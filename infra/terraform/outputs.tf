@@ -81,3 +81,29 @@ output "next_steps" {
   For more details, see docs/DEPLOYMENT.md
   EOT
 }
+
+# Data Lake Layer URLs
+output "s3_bronze_layer_url" {
+  description = "S3 console URL for bronze layer (raw data)"
+  value       = "https://s3.console.aws.amazon.com/s3/buckets/${aws_s3_bucket.data_lake.id}?prefix=bronze/&region=${local.region}"
+}
+
+output "s3_silver_layer_url" {
+  description = "S3 console URL for silver layer (normalized data)"
+  value       = "https://s3.console.aws.amazon.com/s3/buckets/${aws_s3_bucket.data_lake.id}?prefix=silver/&region=${local.region}"
+}
+
+output "s3_gold_layer_url" {
+  description = "S3 console URL for gold layer (query-facing data)"
+  value       = "https://s3.console.aws.amazon.com/s3/buckets/${aws_s3_bucket.data_lake.id}?prefix=gold/&region=${local.region}"
+}
+
+# CLI commands for accessing data
+output "data_access_commands" {
+  description = "AWS CLI commands for accessing data layers"
+  value = {
+    list_bronze = "aws s3 ls s3://${aws_s3_bucket.data_lake.id}/bronze/ --recursive --human-readable"
+    list_silver = "aws s3 ls s3://${aws_s3_bucket.data_lake.id}/silver/ --recursive --human-readable"
+    list_gold   = "aws s3 ls s3://${aws_s3_bucket.data_lake.id}/gold/ --recursive --human-readable"
+  }
+}

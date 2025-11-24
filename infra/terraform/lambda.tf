@@ -8,9 +8,10 @@ resource "aws_lambda_function" "ingest_zip" {
   handler       = "handler.lambda_handler"
   runtime       = "python3.11"
 
-  # Placeholder - actual deployment will be done via CI/CD or manual packaging
-  filename         = "${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") : null
+  # Deploy from S3 (packages >50 MB must use S3)
+  s3_bucket         = aws_s3_bucket.data_lake.id
+  s3_key            = "lambda-deployments/house_fd_ingest_zip/function.zip"
+  source_code_hash  = fileexists("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") : null
 
   timeout     = var.lambda_timeout_seconds
   memory_size = var.lambda_ingest_memory_mb
@@ -28,8 +29,8 @@ resource "aws_lambda_function" "ingest_zip" {
     }
   }
 
-  # Reserved concurrent executions (1 for ingestion to avoid duplicate processing)
-  reserved_concurrent_executions = 1
+  # Reserved concurrent executions disabled for free tier compatibility
+  # reserved_concurrent_executions = 1
 
   # Enable X-Ray tracing (optional)
   tracing_config {
@@ -70,8 +71,10 @@ resource "aws_lambda_function" "index_to_silver" {
   handler       = "handler.lambda_handler"
   runtime       = "python3.11"
 
-  filename         = "${path.module}/../../ingestion/lambdas/house_fd_index_to_silver/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_index_to_silver/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_index_to_silver/function.zip") : null
+  # Deploy from S3 (packages >50 MB must use S3)
+  s3_bucket         = aws_s3_bucket.data_lake.id
+  s3_key            = "lambda-deployments/house_fd_index_to_silver/function.zip"
+  source_code_hash  = fileexists("${path.module}/../../ingestion/lambdas/house_fd_index_to_silver/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_index_to_silver/function.zip") : null
 
   timeout     = 120 # 2 minutes (lighter processing)
   memory_size = var.lambda_index_memory_mb
@@ -88,7 +91,8 @@ resource "aws_lambda_function" "index_to_silver" {
     }
   }
 
-  reserved_concurrent_executions = 2
+  # Reserved concurrent executions disabled for free tier compatibility
+  # reserved_concurrent_executions = 2
 
   tracing_config {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
@@ -125,8 +129,10 @@ resource "aws_lambda_function" "extract_document" {
   handler       = "handler.lambda_handler"
   runtime       = "python3.11"
 
-  filename         = "${path.module}/../../ingestion/lambdas/house_fd_extract_document/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_extract_document/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_extract_document/function.zip") : null
+  # Deploy from S3 (packages >50 MB must use S3)
+  s3_bucket         = aws_s3_bucket.data_lake.id
+  s3_key            = "lambda-deployments/house_fd_extract_document/function.zip"
+  source_code_hash  = fileexists("${path.module}/../../ingestion/lambdas/house_fd_extract_document/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_extract_document/function.zip") : null
 
   timeout     = var.lambda_timeout_seconds
   memory_size = var.lambda_extract_memory_mb
@@ -149,8 +155,9 @@ resource "aws_lambda_function" "extract_document" {
     }
   }
 
+  # Reserved concurrent executions disabled for free tier compatibility
   # Higher concurrency for extraction (but capped for cost control)
-  reserved_concurrent_executions = var.lambda_max_concurrent_executions
+  # reserved_concurrent_executions = var.lambda_max_concurrent_executions
 
   tracing_config {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"

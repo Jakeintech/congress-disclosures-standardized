@@ -187,7 +187,7 @@ resource "aws_cloudwatch_metric_alarm" "extract_duration" {
 resource "aws_cloudwatch_log_metric_filter" "extraction_success" {
   name           = "${local.name_prefix}-extraction-success"
   log_group_name = aws_cloudwatch_log_group.extract_document.name
-  pattern        = "[time, request_id, level = INFO, msg = *extraction successful*]"
+  pattern        = "?INFO ?extraction ?successful"
 
   metric_transformation {
     name      = "ExtractionSuccess"
@@ -200,7 +200,7 @@ resource "aws_cloudwatch_log_metric_filter" "extraction_success" {
 resource "aws_cloudwatch_log_metric_filter" "extraction_failure" {
   name           = "${local.name_prefix}-extraction-failure"
   log_group_name = aws_cloudwatch_log_group.extract_document.name
-  pattern        = "[time, request_id, level = ERROR, msg = *extraction failed*]"
+  pattern        = "?ERROR ?extraction ?failed"
 
   metric_transformation {
     name      = "ExtractionFailure"

@@ -139,3 +139,4 @@ data/gold/
 config/production.ini
 config/secrets.yaml
 config/local.yaml
+.terraform.lock.hcl

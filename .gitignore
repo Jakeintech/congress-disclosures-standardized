@@ -118,6 +118,10 @@ data/gold/
 *.pdf
 *.zip
 *.xml
+# But allow test fixtures
+!tests/fixtures/*.xml
+!tests/fixtures/*.txt
+!tests/fixtures/*.pdf
 # Ignore data .txt files but keep requirements.txt and documentation
 /data/**/*.txt
 # Allow important .txt files

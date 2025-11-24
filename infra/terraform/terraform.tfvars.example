@@ -1,0 +1,71 @@
+# Example Terraform variables file
+# Copy this to terraform.tfvars and fill in your values
+# DO NOT commit terraform.tfvars to Git!
+
+# AWS Configuration
+aws_region = "us-east-1" # Cheapest region for most services
+
+# Environment
+environment = "development" # Options: development, staging, production
+
+# Project Configuration
+project_name = "congress-disclosures"
+
+# S3 Configuration
+# IMPORTANT: S3 bucket names must be globally unique
+# Replace 'your-unique-name' with something unique to you
+s3_bucket_name = "congress-disclosures-your-unique-name"
+
+# Enable S3 versioning (recommended for bronze layer immutability)
+enable_s3_versioning = true
+
+# Days before transitioning silver data to Glacier (0 to disable)
+# Glacier is cheaper but slower to access
+s3_lifecycle_glacier_days = 365 # 1 year
+
+# Lambda Configuration
+# Adjust these based on your expected workload and cost tolerance
+
+lambda_timeout_seconds = 300 # 5 minutes
+
+# Memory allocations (higher = faster but more expensive)
+lambda_ingest_memory_mb  = 1024 # Ingest needs moderate memory
+lambda_extract_memory_mb = 2048 # Extraction needs more for PDFs
+lambda_index_memory_mb   = 512  # Index processing is lightweight
+
+# Maximum concurrent Lambda executions (controls costs)
+# Free tier: 1 million requests/month, 400,000 GB-seconds compute
+lambda_max_concurrent_executions = 10
+
+# SQS Configuration
+sqs_visibility_timeout_seconds = 360 # 6 minutes (Lambda timeout + buffer)
+sqs_message_retention_days     = 4
+sqs_max_receive_count          = 3 # Retries before DLQ
+
+# CloudWatch Configuration
+cloudwatch_log_retention_days = 30 # Balance between auditability and cost
+
+# Monitoring & Alerts
+enable_cost_alerts = true
+alert_email        = "" # Leave empty to disable email alerts, or add your email
+
+# Extraction Configuration
+textract_max_pages_sync = 10      # Max pages for synchronous Textract calls
+extraction_version      = "1.0.0" # Version for auditability
+
+# Optional: Lambda Layers
+# Add ARNs for any Lambda Layers you want to use (e.g., pandas, AWS SDK)
+lambda_layer_arns = []
+
+# Optional: X-Ray Tracing (debugging, adds small cost)
+enable_xray_tracing = false
+
+# Common Tags
+# These are applied to all resources for organization and cost tracking
+common_tags = {
+  Project    = "congress-disclosures-standardized"
+  ManagedBy  = "terraform"
+  Repository = "https://github.com/Jakeintech/congress-disclosures-standardized"
+  Owner      = "your-name" # Add your name or team
+  CostCenter = "research"  # For cost tracking
+}

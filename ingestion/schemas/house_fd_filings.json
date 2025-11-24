@@ -62,8 +62,8 @@
     },
     "state_district": {
       "type": "string",
-      "description": "State and district (e.g., 'CA-11')",
-      "pattern": "^[A-Z]{2}(-[0-9]{1,2})?$"
+      "description": "State and district (e.g., 'CA11' or 'CA-11')",
+      "pattern": "^[A-Z]{2}[0-9]{0,2}$|^[A-Z]{2}-[0-9]{1,2}$"
     },
     "raw_xml_path": {
       "type": ["string", "null"],

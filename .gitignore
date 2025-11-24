@@ -118,7 +118,13 @@ data/gold/
 *.pdf
 *.zip
 *.xml
-*.txt
+# Ignore data .txt files but keep requirements.txt and documentation
+/data/**/*.txt
+# Allow important .txt files
+!requirements.txt
+!requirements-*.txt
+!**/requirements.txt
+!**/requirements-*.txt
 
 # Backup files
 *.bak

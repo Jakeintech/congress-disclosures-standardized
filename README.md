@@ -6,12 +6,16 @@ A transparent, open-source pipeline for converting U.S. House of Representatives
 
 This project downloads official House financial disclosure PDFs from [disclosures-clerk.house.gov](https://disclosures-clerk.house.gov/FinancialDisclosure), extracts their contents, and stores them in a **medallion architecture data lake** (bronze/silver/gold) on AWS S3.
 
+**Browse the data**: [Public Website](http://congress-disclosures-standardized.s3-website-us-east-1.amazonaws.com/website/) - Search and explore all financial disclosure filings with a clean, modern interface.
+
 ### Key Features
 
+- **Public website**: Browse and search all filings via [static website](http://congress-disclosures-standardized.s3-website-us-east-1.amazonaws.com/website/)
 - **Transparent & reproducible**: Every transformation is auditable with full provenance tracking
 - **Legally compliant**: Built for transparency/research/news use per 5 U.S.C. § 13107
 - **AWS-native**: Uses Lambda, S3, SQS, and Textract for scalable, cost-effective processing
 - **Open source**: MIT licensed, infrastructure-as-code with Terraform
+- **Free tier optimized**: Entire infrastructure designed to stay within AWS free tier limits
 
 ### Current Status: Phase 1 (Bronze + Silver)
 
@@ -19,6 +23,8 @@ This project downloads official House financial disclosure PDFs from [disclosure
 - Bronze layer: Raw ingestion of zip files, XML/TXT indexes, and PDFs
 - Silver layer: Normalized Parquet tables (`house_fd_filings`, `house_fd_documents`, `house_fd_text`)
 - PDF text extraction: pypdf for text-based PDFs, AWS Textract for image-based PDFs
+- Public website: Static S3-hosted website for browsing and searching filings
+- Manifest API: Auto-generated manifest.json with all filing metadata
 
 **Planned (Phase 2):**
 - Gold layer: Cleaned, denormalized query-facing tables

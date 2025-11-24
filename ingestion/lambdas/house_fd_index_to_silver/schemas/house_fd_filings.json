@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "House Financial Disclosure Filing",
+  "type": "object",
+  "properties": {
+    "doc_id": {"type": "string"},
+    "year": {"type": "integer"},
+    "filing_date": {"type": "string"},
+    "filing_type": {"type": "string"},
+    "prefix": {"type": ["string", "null"]},
+    "first_name": {"type": "string"},
+    "last_name": {"type": "string"},
+    "suffix": {"type": ["string", "null"]},
+    "state_district": {"type": "string"},
+    "raw_xml_path": {"type": "string"},
+    "raw_txt_path": {"type": "string"},
+    "pdf_s3_key": {"type": "string"},
+    "bronze_ingest_ts": {"type": "string"},
+    "silver_ingest_ts": {"type": "string"},
+    "source_system": {"type": "string"}
+  },
+  "required": ["doc_id", "year"]
+}

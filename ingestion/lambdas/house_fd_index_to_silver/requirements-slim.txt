@@ -1,0 +1,4 @@
+# Minimal dependencies for index-to-silver Lambda
+# pandas/pyarrow/numpy provided by AWS Data Wrangler layer
+
+jsonschema>=4.17.0,<5.0.0

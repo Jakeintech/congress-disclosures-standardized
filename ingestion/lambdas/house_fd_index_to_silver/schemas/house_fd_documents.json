@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "House Financial Disclosure Document",
+  "type": "object",
+  "properties": {
+    "doc_id": {"type": "string"},
+    "year": {"type": "integer"},
+    "pdf_s3_key": {"type": "string"},
+    "pdf_sha256": {"type": "string"},
+    "pdf_file_size_bytes": {"type": "integer"},
+    "pages": {"type": "integer"},
+    "has_embedded_text": {"type": "boolean"},
+    "extraction_method": {"type": "string"},
+    "extraction_status": {"type": "string"},
+    "extraction_version": {"type": "string"},
+    "extraction_timestamp": {"type": "string"},
+    "extraction_error": {"type": ["string", "null"]},
+    "extraction_duration_seconds": {"type": ["number", "null"]},
+    "text_s3_key": {"type": ["string", "null"]},
+    "json_s3_key": {"type": ["string", "null"]},
+    "textract_job_id": {"type": ["string", "null"]},
+    "char_count": {"type": ["integer", "null"]}
+  },
+  "required": ["doc_id", "year"]
+}

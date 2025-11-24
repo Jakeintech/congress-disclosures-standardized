@@ -21,7 +21,7 @@ from typing import Any, Dict, List
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Import shared libraries
-from lib import s3_utils, parquet_writer
+from lib import s3_utils, parquet_writer, manifest_generator
 
 # Configure logging
 logger = logging.getLogger()
@@ -103,6 +103,19 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             schema=DOCUMENTS_SCHEMA,
         )
 
+        # Step 5: Generate manifest.json for website
+        logger.info(f"Step 5: Generating manifest.json for website")
+        try:
+            manifest_result = manifest_generator.update_manifest_incremental(
+                new_filings=filing_records,
+                s3_bucket=S3_BUCKET,
+                s3_key="manifest.json",
+            )
+            logger.info(f"Manifest generated: {manifest_result['filings_count']} filings")
+        except Exception as e:
+            logger.warning(f"Failed to generate manifest: {str(e)}")
+            manifest_result = {"error": str(e)}
+
         result = {
             "status": "success",
             "year": year,
@@ -110,6 +123,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "documents_initialized": documents_result["row_count"],
             "filings_s3_key": filings_s3_key,
             "documents_s3_key": documents_s3_key,
+            "manifest": manifest_result,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 

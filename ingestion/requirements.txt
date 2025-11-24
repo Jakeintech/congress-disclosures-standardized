@@ -1,0 +1,23 @@
+# Base dependencies for ingestion pipeline
+# Used by all Lambda functions
+
+# AWS SDK
+boto3>=1.28.0,<2.0.0
+botocore>=1.31.0,<2.0.0
+
+# Data processing
+pandas>=2.0.0,<3.0.0
+pyarrow>=13.0.0,<14.0.0  # Parquet support
+numpy>=1.24.0,<2.0.0
+
+# PDF processing
+pypdf>=3.15.0,<4.0.0  # Previously PyPDF2, now pypdf
+
+# JSON schema validation
+jsonschema>=4.17.0,<5.0.0
+
+# HTTP requests (for downloading zips)
+requests>=2.31.0,<3.0.0
+
+# Date/time utilities
+python-dateutil>=2.8.0,<3.0.0

@@ -1,0 +1,24 @@
+# Development and testing dependencies
+
+# Testing framework
+pytest>=7.4.0,<8.0.0
+pytest-cov>=4.1.0,<5.0.0
+pytest-mock>=3.11.0,<4.0.0
+moto>=4.2.0,<5.0.0  # Mock AWS services
+
+# Code quality
+black>=23.7.0,<24.0.0  # Code formatter
+flake8>=6.1.0,<7.0.0  # Linter
+pylint>=2.17.0,<3.0.0  # Advanced linter
+mypy>=1.5.0,<2.0.0  # Type checker
+isort>=5.12.0,<6.0.0  # Import sorter
+
+# Security scanning
+bandit>=1.7.5,<2.0.0
+
+# Documentation
+sphinx>=7.1.0,<8.0.0  # If we add API docs later
+
+# Utilities
+ipython>=8.14.0,<9.0.0  # Better REPL
+ipdb>=0.13.13,<1.0.0  # Debugger

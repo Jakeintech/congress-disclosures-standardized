@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congress Financial Disclosures</title>
+    <meta name="description" content="Open-source database of U.S. House financial disclosure reports">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Congress Financial Disclosures Database</h1>
+                <p class="subtitle">Standardized access to U.S. House financial disclosure reports for transparency, research, and accountability</p>
+                <p class="source-attribution">
+                    Official source: <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">U.S. House Clerk Financial Disclosure Office</a> |
+                    Pipeline source code: <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank" rel="noopener">GitHub</a>
+                </p>
+                <div class="header-stats" id="stats">
+                    <div class="stat">
+                        <span class="stat-value" id="total-filings">-</span>
+                        <span class="stat-label">Total Filings</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="total-members">-</span>
+                        <span class="stat-label">Members</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="latest-year">-</span>
+                        <span class="stat-label">Latest Year</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="last-updated">-</span>
+                        <span class="stat-label">Last Updated</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Disclaimer -->
+        <section class="disclaimer">
+            <div class="disclaimer-content">
+                <h3>Important Legal Notice</h3>
+
+                <div class="disclaimer-primary">
+                    <h4>Purpose and Permitted Uses</h4>
+                    <p>This database provides standardized access to U.S. House financial disclosure reports published by the <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">House Clerk Financial Disclosure Office</a>. Data is provided under <a href="https://www.law.cornell.edu/uscode/text/5/13107" target="_blank" rel="noopener">5 U.S.C. § 13107</a> for the following purposes only:</p>
+                    <ul>
+                        <li>Transparency and government accountability</li>
+                        <li>Academic and policy research</li>
+                        <li>News reporting and journalism</li>
+                        <li>Public oversight of elected officials</li>
+                    </ul>
+                </div>
+
+                <div class="disclaimer-grid">
+                    <div class="disclaimer-item">
+                        <strong>Not Financial or Investment Advice</strong>
+                        <p>This data is informational only. It does not constitute financial, investment, legal, or tax advice. Consult qualified professionals before making any financial decisions.</p>
+                    </div>
+                    <div class="disclaimer-item">
+                        <strong>No Warranties or Guarantees</strong>
+                        <p>Data provided "AS IS" without warranties. We make no representations regarding accuracy, completeness, or timeliness. Errors may exist in source data, processing, or display.</p>
+                    </div>
+                    <div class="disclaimer-item">
+                        <strong>No Liability</strong>
+                        <p>We assume no liability for decisions made based on this data, including financial losses, missed opportunities, or damages of any kind arising from use of this information.</p>
+                    </div>
+                    <div class="disclaimer-item">
+                        <strong>Verify Independently</strong>
+                        <p>Always verify data independently at the official <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">House Clerk website</a>. Review our open-source <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank" rel="noopener">processing pipeline</a> on GitHub.</p>
+                    </div>
+                </div>
+
+                <div class="disclaimer-prohibited">
+                    <h4>Prohibited Uses</h4>
+                    <p>The following uses are strictly prohibited under federal law:</p>
+                    <ul>
+                        <li>Commercial purposes (except news/media organizations)</li>
+                        <li>Credit rating or creditworthiness determinations</li>
+                        <li>Fundraising, solicitation, or marketing</li>
+                        <li>Any purpose inconsistent with the Ethics in Government Act</li>
+                    </ul>
+                    <p><strong>By accessing this website, you agree to these terms and acknowledge sole responsibility for compliance with all applicable laws.</strong></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters -->
+        <section class="filters">
+            <div class="filter-group">
+                <input type="text" id="search" placeholder="Search by name, state, or document ID..." class="search-input">
+            </div>
+            <div class="filter-row">
+                <select id="year-filter" class="filter-select">
+                    <option value="">All Years</option>
+                </select>
+                <select id="state-filter" class="filter-select">
+                    <option value="">All States</option>
+                </select>
+                <select id="type-filter" class="filter-select">
+                    <option value="">All Filing Types</option>
+                    <option value="A">Annual (A)</option>
+                    <option value="N">New Member (N)</option>
+                    <option value="T">Termination (T)</option>
+                    <option value="P">Periodic Transaction (P)</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading financial disclosure data...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error hidden">
+            <p>Unable to load data. Please try again later or verify data directly at <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">disclosures-clerk.house.gov</a>.</p>
+        </div>
+
+        <!-- Data Table -->
+        <section id="data-section" class="data-section hidden">
+            <div class="table-header">
+                <h2>Financial Disclosure Filings</h2>
+                <div class="table-actions">
+                    <span id="showing-count" class="showing-count">Showing 0 of 0 filings</span>
+                    <button id="export-csv" class="btn-secondary">Export CSV</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="year">Year</th>
+                            <th data-sort="filing_date">Filing Date</th>
+                            <th data-sort="last_name">Name</th>
+                            <th data-sort="state_district">State/District</th>
+                            <th data-sort="filing_type">Type</th>
+                            <th data-sort="doc_id">Document ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination">
+                <button id="prev-page" class="btn-secondary" disabled>← Previous</button>
+                <span id="page-info">Page 1 of 1</span>
+                <button id="next-page" class="btn-secondary" disabled>Next →</button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About</h3>
+                    <p>Open-source database of U.S. House financial disclosure reports. Data sourced from <a href="https://disclosures-clerk.house.gov/" target="_blank">House Clerk Office</a>.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal Notice</h3>
+                    <p>This data is provided for transparency and research purposes only under <a href="https://www.law.cornell.edu/uscode/text/5/13107" target="_blank">5 U.S.C. § 13107</a>. Prohibited uses include commercial purposes (except news/media), credit rating, and solicitation.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Links</h3>
+                    <ul>
+                        <li><a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank">GitHub Repository</a></li>
+                        <li><a href="https://github.com/Jakeintech/congress-disclosures-standardized/blob/main/docs/API_STRATEGY.md" target="_blank">API Documentation</a></li>
+                        <li><a href="https://github.com/Jakeintech/congress-disclosures-standardized/issues" target="_blank">Report Issue</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Open-source project for government transparency. Data updated daily. <a href="https://github.com/Jakeintech/congress-disclosures-standardized/blob/main/docs/LEGAL_NOTES.md" target="_blank" rel="noopener">Terms of Use</a> | <a href="https://github.com/Jakeintech/congress-disclosures-standardized/blob/main/LICENSE" target="_blank" rel="noopener">License</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

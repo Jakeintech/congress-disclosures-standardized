@@ -1,0 +1,229 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Allow manual triggers
+
+env:
+  PYTHON_VERSION: "3.11"
+  TERRAFORM_VERSION: "1.6.0"
+
+jobs:
+  # Lint and format check
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Check code formatting with Black
+        run: black --check ingestion/ tests/
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 ingestion/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings
+          flake8 ingestion/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+
+      - name: Type check with mypy
+        run: mypy ingestion/ --ignore-missing-imports
+        continue-on-error: true  # Don't fail build on type errors yet
+
+      - name: Security scan with bandit
+        run: bandit -r ingestion/ -ll
+        continue-on-error: true  # Don't fail build on security warnings yet
+
+  # Unit tests
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ingestion/requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run unit tests with coverage
+        run: |
+          pytest tests/unit/ \
+            --cov=ingestion \
+            --cov-report=xml \
+            --cov-report=term \
+            --cov-fail-under=70 \
+            -v
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+        continue-on-error: true
+
+  # Terraform validation
+  terraform-validate:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive infra/terraform/
+        continue-on-error: true
+
+      - name: Terraform Init
+        run: |
+          cd infra/terraform
+          terraform init -backend=false
+
+      - name: Terraform Validate
+        run: |
+          cd infra/terraform
+          terraform validate
+
+  # Build Lambda packages (on main branch only)
+  build-lambdas:
+    name: Build Lambda Packages
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [lint, test-unit, terraform-validate]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Package house_fd_ingest_zip
+        run: |
+          cd ingestion/lambdas/house_fd_ingest_zip
+          mkdir -p package
+          pip install -r requirements.txt -t package/
+          cp handler.py package/
+          cp -r ../../lib package/
+          cp -r ../../schemas package/
+          cd package && zip -r ../function.zip . -q
+
+      - name: Package house_fd_index_to_silver
+        run: |
+          cd ingestion/lambdas/house_fd_index_to_silver
+          mkdir -p package
+          pip install -r requirements.txt -t package/
+          cp handler.py package/
+          cp -r ../../lib package/
+          cp -r ../../schemas package/
+          cd package && zip -r ../function.zip . -q
+
+      - name: Package house_fd_extract_document
+        run: |
+          cd ingestion/lambdas/house_fd_extract_document
+          mkdir -p package
+          pip install -r requirements.txt -t package/
+          cp handler.py package/
+          cp -r ../../lib package/
+          cp -r ../../schemas package/
+          cd package && zip -r ../function.zip . -q
+
+      - name: Upload Lambda artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-packages
+          path: ingestion/lambdas/*/function.zip
+          retention-days: 30
+
+  # Deploy (manual approval required)
+  deploy:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    needs: [build-lambdas]
+    environment:
+      name: production
+      url: https://console.aws.amazon.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Download Lambda artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-packages
+          path: ingestion/lambdas/
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init
+        run: |
+          cd infra/terraform
+          terraform init
+
+      - name: Terraform Plan
+        run: |
+          cd infra/terraform
+          terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: |
+          cd infra/terraform
+          terraform apply tfplan
+
+      - name: Update Lambda functions
+        run: |
+          for lambda_dir in ingestion/lambdas/*/; do
+            lambda_name=$(basename $lambda_dir)
+            if [ -f "$lambda_dir/function.zip" ]; then
+              aws lambda update-function-code \
+                --function-name "congress-disclosures-production-${lambda_name}" \
+                --zip-file "fileb://$lambda_dir/function.zip" \
+                || echo "Lambda $lambda_name not found or update failed"
+            fi
+          done

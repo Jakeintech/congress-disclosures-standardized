@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "House Financial Disclosure Documents",
+  "description": "Schema for PDF metadata and extraction status (silver layer)",
+  "type": "object",
+  "required": [
+    "doc_id",
+    "year",
+    "pdf_s3_key",
+    "pdf_sha256",
+    "pdf_file_size_bytes",
+    "pages",
+    "has_embedded_text",
+    "extraction_method",
+    "extraction_status",
+    "extraction_version",
+    "extraction_timestamp"
+  ],
+  "properties": {
+    "doc_id": {
+      "type": "string",
+      "description": "Document identifier (matches house_fd_filings)",
+      "minLength": 1
+    },
+    "year": {
+      "type": "integer",
+      "description": "Filing year",
+      "minimum": 2008,
+      "maximum": 2100
+    },
+    "pdf_s3_key": {
+      "type": "string",
+      "description": "S3 key to PDF in bronze layer",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "pdf_sha256": {
+      "type": "string",
+      "description": "SHA256 hash of PDF content for deduplication",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "pdf_file_size_bytes": {
+      "type": "integer",
+      "description": "PDF file size in bytes",
+      "minimum": 0
+    },
+    "pages": {
+      "type": "integer",
+      "description": "Number of pages in PDF",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "has_embedded_text": {
+      "type": "boolean",
+      "description": "True if PDF has embedded text layer, False if image-only"
+    },
+    "extraction_method": {
+      "type": "string",
+      "description": "Method used for text extraction",
+      "enum": [
+        "none",
+        "pending",
+        "pypdf",
+        "textract-detect-sync",
+        "textract-detect-async",
+        "textract-analyze",
+        "tesseract",
+        "failed"
+      ]
+    },
+    "extraction_status": {
+      "type": "string",
+      "description": "Status of extraction process",
+      "enum": ["pending", "in_progress", "success", "failed", "skipped"]
+    },
+    "extraction_version": {
+      "type": "string",
+      "description": "Version of extraction code (for reproducibility)",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "extraction_timestamp": {
+      "type": "string",
+      "description": "Last extraction attempt timestamp (ISO 8601)",
+      "format": "date-time"
+    },
+    "extraction_error": {
+      "type": ["string", "null"],
+      "description": "Error message if extraction failed",
+      "maxLength": 1000
+    },
+    "extraction_duration_seconds": {
+      "type": ["number", "null"],
+      "description": "Duration of extraction process in seconds",
+      "minimum": 0
+    },
+    "text_s3_key": {
+      "type": ["string", "null"],
+      "description": "S3 key to extracted text file (gzipped)",
+      "maxLength": 500
+    },
+    "json_s3_key": {
+      "type": ["string", "null"],
+      "description": "S3 key to structured JSON (if using AI extraction)",
+      "maxLength": 500
+    },
+    "textract_job_id": {
+      "type": ["string", "null"],
+      "description": "AWS Textract job ID (for async jobs)",
+      "maxLength": 500
+    },
+    "char_count": {
+      "type": ["integer", "null"],
+      "description": "Total character count of extracted text",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

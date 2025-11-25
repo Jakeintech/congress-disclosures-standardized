@@ -54,9 +54,16 @@ async function initDocumentQualityTab() {
  * Update quality stats
  */
 function updateQualityStats(data) {
-    document.getElementById('quality-total-members').textContent = data.total_members || 0;
+    const totalFilers = data.total_members || 0;
+    document.getElementById('quality-total-members').textContent = totalFilers;
     document.getElementById('quality-flagged').textContent = data.flagged_members_count || 0;
     document.getElementById('quality-avg-score').textContent = data.average_quality_score ? data.average_quality_score.toFixed(1) : '-';
+
+    // Update the filer count in the explanation note
+    const filerNote = document.getElementById('quality-total-filers-note');
+    if (filerNote) {
+        filerNote.textContent = `${totalFilers} total filers`;
+    }
 
     // Format date
     if (data.generated_at) {

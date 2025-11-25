@@ -93,6 +93,19 @@ def load_structured_json(s3_client, doc_id: str, year: int) -> Dict[str, Any]:
         return None
 
 
+def convert_to_s3_url(doc_id: int, year: int) -> str:
+    """Convert external PDF URL to S3 URL.
+
+    Args:
+        doc_id: Document ID
+        year: Filing year
+
+    Returns:
+        S3 URL for the PDF
+    """
+    return f"https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/bronze/house/financial/disclosures/year={year}/doc_id={doc_id}/{doc_id}.pdf"
+
+
 def flatten_transactions(ptr_metadata: pd.Series, structured_data: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Flatten structured PTR data into transaction rows.
 
@@ -117,7 +130,7 @@ def flatten_transactions(ptr_metadata: pd.Series, structured_data: Dict[str, Any
             "first_name": ptr_metadata["first_name"],
             "last_name": ptr_metadata["last_name"],
             "state_district": ptr_metadata["state_district"],
-            "pdf_url": ptr_metadata["pdf_url"],
+            "pdf_url": convert_to_s3_url(ptr_metadata["doc_id"], ptr_metadata["year"]),  # Use S3 URL instead of external URL
 
             # From structured.json filer_info
             "filer_full_name": filer_info.get("full_name"),

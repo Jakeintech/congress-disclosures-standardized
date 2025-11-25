@@ -280,6 +280,17 @@ jobs:
             fi
           done
 
+      - name: Run ETL Pipeline (Silver+Gold)
+        run: |
+          echo "🔄 Running ETL Pipeline (Silver -> Gold)..."
+          python3 -m pip install boto3 pandas requests pyarrow
+          
+          # Run for 2025 (and potentially 2024 if needed)
+          python3 scripts/run_etl_pipeline.py \
+            --mode silver_gold \
+            --years 2025 \
+            --environment development
+
       - name: Refresh Gold Layer Aggregates
         run: |
           echo "🔄 Refreshing Gold layer aggregates..."

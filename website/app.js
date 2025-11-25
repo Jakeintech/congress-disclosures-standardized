@@ -3,6 +3,7 @@ const S3_BUCKET = 'congress-disclosures-standardized';
 const S3_REGION = 'us-east-1';
 const MANIFEST_URL = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/manifest.json`;
 const SILVER_DOCUMENTS_URL = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/silver_documents.json`;
+const PTR_TRANSACTIONS_URL = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/ptr_transactions.json`;
 const ITEMS_PER_PAGE = 50;
 
 // State - Bronze Layer
@@ -19,10 +20,18 @@ let silverCurrentPage = 1;
 let silverSortColumn = 'doc_id';
 let silverSortDirection = 'asc';
 
+// State - PTR Transactions
+let allPTRTransactions = [];
+let filteredPTRTransactions = [];
+let ptrCurrentPage = 1;
+let ptrSortColumn = 'transaction_date';
+let ptrSortDirection = 'desc';
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
     loadSilverData();
+    loadPTRTransactions();
     setupEventListeners();
     setupTabs();
 });
@@ -106,6 +115,9 @@ function setupEventListeners() {
 
     // Silver layer event listeners
     setupSilverEventListeners();
+
+    // PTR transactions event listeners
+    setupPTREventListeners();
 }
 
 // Apply filters
@@ -564,4 +576,291 @@ function hideSilverLoading() {
 function showSilverError() {
     document.getElementById('silver-loading').classList.add('hidden');
     document.getElementById('silver-error').classList.remove('hidden');
+}
+
+// ============================================================================
+// PTR TRANSACTIONS FUNCTIONS
+// ============================================================================
+
+// Load PTR transactions data from S3
+async function loadPTRTransactions() {
+    try {
+        showPTRLoading();
+
+        const response = await fetch(PTR_TRANSACTIONS_URL);
+        if (!response.ok) {
+            throw new Error('Failed to fetch PTR transactions');
+        }
+
+        const data = await response.json();
+        allPTRTransactions = data.transactions || [];
+
+        updatePTRStats(data);
+        populatePTRFilters();
+        applyPTRFilters();
+        hidePTRLoading();
+
+    } catch (error) {
+        console.error('Error loading PTR transactions:', error);
+        showPTRError();
+    }
+}
+
+// Update PTR statistics
+function updatePTRStats(data) {
+    document.getElementById('ptr-total-trans').textContent = data.total_transactions?.toLocaleString() || '0';
+    document.getElementById('ptr-total-ptrs').textContent = data.total_ptrs?.toLocaleString() || '0';
+    document.getElementById('ptr-latest-date').textContent = data.latest_date ? formatDate(data.latest_date) : '-';
+
+    // Calculate average confidence
+    const avgConf = allPTRTransactions.reduce((sum, t) => sum + (t.extraction_confidence || 0), 0) / allPTRTransactions.length;
+    document.getElementById('ptr-avg-confidence').textContent = avgConf ? `${(avgConf * 100).toFixed(1)}%` : '-';
+}
+
+// Populate PTR filter dropdowns
+function populatePTRFilters() {
+    // Transaction types
+    const types = [...new Set(allPTRTransactions.map(t => t.transaction_type))].filter(Boolean).sort();
+    const typeFilter = document.getElementById('ptr-type-filter');
+    types.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        typeFilter.appendChild(option);
+    });
+
+    // Amount ranges
+    const amounts = [...new Set(allPTRTransactions.map(t => t.amount_range))].filter(Boolean);
+    const amountFilter = document.getElementById('ptr-amount-filter');
+    // Sort by numeric value
+    const sortedAmounts = amounts.sort((a, b) => {
+        const aNum = parseInt(a.replace(/[^0-9]/g, ''));
+        const bNum = parseInt(b.replace(/[^0-9]/g, ''));
+        return aNum - bNum;
+    });
+    sortedAmounts.forEach(amount => {
+        const option = document.createElement('option');
+        option.value = amount;
+        option.textContent = amount;
+        amountFilter.appendChild(option);
+    });
+
+    // Owner codes
+    const owners = [...new Set(allPTRTransactions.map(t => t.owner_code))].filter(Boolean).sort();
+    const ownerFilter = document.getElementById('ptr-owner-filter');
+    owners.forEach(owner => {
+        const option = document.createElement('option');
+        option.value = owner;
+        option.textContent = getOwnerName(owner);
+        ownerFilter.appendChild(option);
+    });
+}
+
+// Setup PTR event listeners
+function setupPTREventListeners() {
+    // Search
+    const searchEl = document.getElementById('ptr-search');
+    if (searchEl) {
+        searchEl.addEventListener('input', debounce(applyPTRFilters, 300));
+    }
+
+    // Filters
+    const typeFilter = document.getElementById('ptr-type-filter');
+    if (typeFilter) typeFilter.addEventListener('change', applyPTRFilters);
+
+    const amountFilter = document.getElementById('ptr-amount-filter');
+    if (amountFilter) amountFilter.addEventListener('change', applyPTRFilters);
+
+    const ownerFilter = document.getElementById('ptr-owner-filter');
+    if (ownerFilter) ownerFilter.addEventListener('change', applyPTRFilters);
+
+    // Pagination
+    const prevBtn = document.getElementById('ptr-prev-page');
+    if (prevBtn) prevBtn.addEventListener('click', () => changePTRPage(-1));
+
+    const nextBtn = document.getElementById('ptr-next-page');
+    if (nextBtn) nextBtn.addEventListener('click', () => changePTRPage(1));
+
+    // Sort
+    document.querySelectorAll('#ptr-data-section th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => sortPTRBy(th.dataset.sort));
+    });
+}
+
+// Apply PTR filters
+function applyPTRFilters() {
+    const searchTerm = (document.getElementById('ptr-search')?.value || '').toLowerCase();
+    const typeFilter = document.getElementById('ptr-type-filter')?.value || '';
+    const amountFilter = document.getElementById('ptr-amount-filter')?.value || '';
+    const ownerFilter = document.getElementById('ptr-owner-filter')?.value || '';
+
+    filteredPTRTransactions = allPTRTransactions.filter(trans => {
+        const matchesSearch = !searchTerm ||
+            trans.first_name?.toLowerCase().includes(searchTerm) ||
+            trans.last_name?.toLowerCase().includes(searchTerm) ||
+            trans.asset_name?.toLowerCase().includes(searchTerm) ||
+            trans.state_district?.toLowerCase().includes(searchTerm);
+
+        const matchesType = !typeFilter || trans.transaction_type === typeFilter;
+        const matchesAmount = !amountFilter || trans.amount_range === amountFilter;
+        const matchesOwner = !ownerFilter || trans.owner_code === ownerFilter;
+
+        return matchesSearch && matchesType && matchesAmount && matchesOwner;
+    });
+
+    sortPTRTransactions();
+    ptrCurrentPage = 1;
+    renderPTRTable();
+    updatePTRPagination();
+}
+
+// Sort PTR transactions
+function sortPTRTransactions() {
+    filteredPTRTransactions.sort((a, b) => {
+        let aVal = a[ptrSortColumn];
+        let bVal = b[ptrSortColumn];
+
+        // Handle nulls
+        if (aVal === null || aVal === undefined) return 1;
+        if (bVal === null || bVal === undefined) return -1;
+
+        // Convert dates
+        if (ptrSortColumn === 'transaction_date' || ptrSortColumn === 'filing_date') {
+            aVal = new Date(aVal);
+            bVal = new Date(bVal);
+        }
+
+        // Convert amounts
+        if (ptrSortColumn === 'amount_low') {
+            aVal = parseFloat(aVal) || 0;
+            bVal = parseFloat(bVal) || 0;
+        }
+
+        if (aVal < bVal) return ptrSortDirection === 'asc' ? -1 : 1;
+        if (aVal > bVal) return ptrSortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+// Sort PTR by column
+function sortPTRBy(column) {
+    if (ptrSortColumn === column) {
+        ptrSortDirection = ptrSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        ptrSortColumn = column;
+        ptrSortDirection = column === 'transaction_date' ? 'desc' : 'asc';
+    }
+
+    sortPTRTransactions();
+    renderPTRTable();
+}
+
+// Render PTR table
+function renderPTRTable() {
+    const tbody = document.getElementById('ptr-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    const start = (ptrCurrentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    const pageTransactions = filteredPTRTransactions.slice(start, end);
+
+    pageTransactions.forEach(trans => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${formatDate(trans.transaction_date)}</td>
+            <td>
+                <strong>${trans.first_name} ${trans.last_name}</strong>
+            </td>
+            <td>${trans.state_district || '-'}</td>
+            <td>${trans.asset_name || '-'}</td>
+            <td>
+                <span class="badge badge-type-${getTransactionTypeClass(trans.transaction_type)}">
+                    ${trans.transaction_type || '-'}
+                </span>
+            </td>
+            <td>${trans.amount_range || '-'}</td>
+            <td>${getOwnerName(trans.owner_code)}</td>
+            <td>
+                <a href="${trans.pdf_url || getPDFUrl({ year: trans.year, doc_id: trans.doc_id })}"
+                   target="_blank" rel="noopener" class="btn-link">
+                    View PDF
+                </a>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    const showingEl = document.getElementById('ptr-showing-count');
+    if (showingEl) {
+        showingEl.textContent =
+            `Showing ${start + 1}-${Math.min(end, filteredPTRTransactions.length)} of ${filteredPTRTransactions.length.toLocaleString()} transactions`;
+    }
+}
+
+// Update PTR pagination
+function updatePTRPagination() {
+    const totalPages = Math.ceil(filteredPTRTransactions.length / ITEMS_PER_PAGE);
+
+    const prevBtn = document.getElementById('ptr-prev-page');
+    const nextBtn = document.getElementById('ptr-next-page');
+    const pageInfo = document.getElementById('ptr-page-info');
+
+    if (prevBtn) prevBtn.disabled = ptrCurrentPage === 1;
+    if (nextBtn) nextBtn.disabled = ptrCurrentPage === totalPages || totalPages === 0;
+    if (pageInfo) pageInfo.textContent = `Page ${ptrCurrentPage} of ${totalPages || 1}`;
+}
+
+// Change PTR page
+function changePTRPage(delta) {
+    ptrCurrentPage += delta;
+    renderPTRTable();
+    updatePTRPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Helper: Get transaction type CSS class
+function getTransactionTypeClass(type) {
+    if (!type) return 'unknown';
+    const lower = type.toLowerCase();
+    if (lower.includes('purchase')) return 'p';
+    if (lower.includes('sale')) return 'a';
+    return 'unknown';
+}
+
+// Helper: Get owner name
+function getOwnerName(code) {
+    const codes = {
+        'SP': 'Spouse',
+        'DC': 'Dependent Child',
+        'JT': 'Joint',
+    };
+    return codes[code] || code || 'Filer';
+}
+
+function showPTRLoading() {
+    const loading = document.getElementById('ptr-loading');
+    const dataSection = document.getElementById('ptr-data-section');
+    const error = document.getElementById('ptr-error');
+
+    if (loading) loading.classList.remove('hidden');
+    if (dataSection) dataSection.classList.add('hidden');
+    if (error) error.classList.add('hidden');
+}
+
+function hidePTRLoading() {
+    const loading = document.getElementById('ptr-loading');
+    const dataSection = document.getElementById('ptr-data-section');
+
+    if (loading) loading.classList.add('hidden');
+    if (dataSection) dataSection.classList.remove('hidden');
+}
+
+function showPTRError() {
+    const loading = document.getElementById('ptr-loading');
+    const error = document.getElementById('ptr-error');
+
+    if (loading) loading.classList.add('hidden');
+    if (error) error.classList.remove('hidden');
 }

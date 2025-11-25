@@ -523,3 +523,67 @@ body {
         padding: 0.5rem;
     }
 }
+
+/* Badge variants for filing types */
+.badge-type-a {
+    background: hsl(217, 91%, 92%);
+    color: hsl(217, 91%, 30%);
+}
+
+.badge-type-n {
+    background: hsl(142, 76%, 92%);
+    color: hsl(142, 76%, 30%);
+}
+
+.badge-type-t {
+    background: hsl(0, 84%, 92%);
+    color: hsl(0, 84%, 30%);
+}
+
+.badge-type-p {
+    background: hsl(48, 96%, 92%);
+    color: hsl(48, 96%, 30%);
+}
+
+/* Badge variants for extraction status */
+.badge-status-success {
+    background: hsl(142, 76%, 92%);
+    color: hsl(142, 76%, 30%);
+}
+
+.badge-status-pending {
+    background: hsl(48, 96%, 92%);
+    color: hsl(48, 96%, 30%);
+}
+
+.badge-status-failed {
+    background: hsl(0, 84%, 92%);
+    color: hsl(0, 84%, 30%);
+}
+
+.badge-status-unknown {
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+}
+
+/* Stats grid for silver layer */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stats-grid .stat-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+}
+
+.stats-grid .stat-value {
+    color: hsl(var(--foreground));
+}
+
+.stats-grid .stat-label {
+    color: hsl(var(--muted-foreground));
+}

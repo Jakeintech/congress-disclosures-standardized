@@ -68,6 +68,13 @@
                             </svg>
                             Silver: Normalized
                         </button>
+                        <button class="tab-trigger" data-tab="ptr-transactions">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            PTR Transactions
+                        </button>
                         <button class="tab-trigger" data-tab="downloads">
                             <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -254,6 +261,110 @@
                                         <strong>Filings:</strong> <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/filings/year=2025/part-0000.parquet" download>Download</a><br>
                                         <strong>Documents:</strong> <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/documents/year=2025/part-0000.parquet" download>Download</a><br>
                                         <strong>Query with:</strong> <code>pd.read_parquet('filings.parquet')</code> or <code>SELECT * FROM 'filings.parquet'</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PTR Transactions Tab -->
+                    <div class="tab-content" data-tab="ptr-transactions">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">PTR Transactions</h2>
+                                <p class="card-description">Stock and securities transactions by House members</p>
+                            </div>
+                            <div class="card-content">
+                                <!-- Stats -->
+                                <div class="stats-grid" id="ptr-stats">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="ptr-total-trans">-</div>
+                                        <div class="stat-label">Total Transactions</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="ptr-total-ptrs">-</div>
+                                        <div class="stat-label">PTRs Processed</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="ptr-latest-date">-</div>
+                                        <div class="stat-label">Latest Filing</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="ptr-avg-confidence">-</div>
+                                        <div class="stat-label">Avg Confidence</div>
+                                    </div>
+                                </div>
+
+                                <!-- Filters -->
+                                <div class="filters">
+                                    <input type="text" id="ptr-search" placeholder="Search by name, asset, or ticker..." class="input">
+                                    <div class="filter-grid">
+                                        <select id="ptr-type-filter" class="select">
+                                            <option value="">All Transaction Types</option>
+                                            <option value="Purchase">Purchase</option>
+                                            <option value="Sale">Sale</option>
+                                            <option value="Partial Sale">Partial Sale</option>
+                                            <option value="Exchange">Exchange</option>
+                                        </select>
+                                        <select id="ptr-amount-filter" class="select">
+                                            <option value="">All Amounts</option>
+                                            <option value="0-50000">Under $50K</option>
+                                            <option value="50001-250000">$50K - $250K</option>
+                                            <option value="250001-1000000">$250K - $1M</option>
+                                            <option value="1000001-5000000">$1M - $5M</option>
+                                            <option value="5000001-999999999">Over $5M</option>
+                                        </select>
+                                        <select id="ptr-owner-filter" class="select">
+                                            <option value="">All Owners</option>
+                                            <option value="null">Filer</option>
+                                            <option value="SP">Spouse (SP)</option>
+                                            <option value="DC">Dependent Child (DC)</option>
+                                            <option value="JT">Joint (JT)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="ptr-loading" class="loading-state">
+                                    <div class="spinner"></div>
+                                    <p>Loading PTR transactions...</p>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="ptr-error" class="error-state hidden">
+                                    <p>Unable to load PTR transactions.</p>
+                                </div>
+
+                                <!-- Data Table -->
+                                <div id="ptr-data-section" class="data-section hidden">
+                                    <div class="table-actions">
+                                        <span id="ptr-showing-count" class="text-muted">Showing 0 of 0 transactions</span>
+                                        <button id="ptr-export-csv" class="btn btn-secondary">Export CSV</button>
+                                    </div>
+
+                                    <div class="table-container">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th data-sort="filing_date">Date</th>
+                                                    <th data-sort="last_name">Member</th>
+                                                    <th data-sort="state_district">State</th>
+                                                    <th data-sort="asset_name">Asset</th>
+                                                    <th data-sort="transaction_type">Type</th>
+                                                    <th data-sort="amount_low">Amount</th>
+                                                    <th data-sort="owner_code">Owner</th>
+                                                    <th>PDF</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="ptr-table-body">
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="pagination" id="ptr-pagination">
+                                        <button id="ptr-prev-page" class="btn btn-secondary" disabled>Previous</button>
+                                        <span id="ptr-page-info">Page 1</span>
+                                        <button id="ptr-next-page" class="btn btn-secondary">Next</button>
                                     </div>
                                 </div>
                             </div>

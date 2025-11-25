@@ -187,12 +187,48 @@ jobs:
       - name: Terraform Plan
         run: |
           cd infra/terraform
-          terraform plan -out=tfplan
+          terraform plan -out=tfplan \
+            -var="budget_alert_email=${{ secrets.BUDGET_ALERT_EMAIL }}"
 
       - name: Terraform Apply
         run: |
           cd infra/terraform
           terraform apply tfplan
+
+      - name: Upload API Keys to SSM Parameter Store
+        run: |
+          ENV="development"
+          echo "📦 Uploading API keys to SSM Parameter Store..."
+
+          # Congress API Key
+          aws ssm put-parameter \
+            --name "/congress-disclosures/${ENV}/congress_api_key" \
+            --value "${{ secrets.CONGRESS_API_KEY }}" \
+            --type "SecureString" \
+            --overwrite || echo "⚠️  Failed to update Congress API key"
+
+          # Alpha Vantage API Key
+          aws ssm put-parameter \
+            --name "/congress-disclosures/${ENV}/alpha_vantage_api_key" \
+            --value "${{ secrets.ALPHA_VANTAGE_API_KEY }}" \
+            --type "SecureString" \
+            --overwrite || echo "⚠️  Failed to update Alpha Vantage API key"
+
+          # Coinbase API Key
+          aws ssm put-parameter \
+            --name "/congress-disclosures/${ENV}/coinbase_api_key" \
+            --value "${{ secrets.COINBASE_API_KEY }}" \
+            --type "SecureString" \
+            --overwrite || echo "⚠️  Failed to update Coinbase API key"
+
+          # Coinbase API Secret
+          aws ssm put-parameter \
+            --name "/congress-disclosures/${ENV}/coinbase_api_secret" \
+            --value "${{ secrets.COINBASE_API_SECRET }}" \
+            --type "SecureString" \
+            --overwrite || echo "⚠️  Failed to update Coinbase API secret"
+
+          echo "✅ API keys uploaded to SSM"
 
       - name: Upload Lambda packages to S3
         run: |

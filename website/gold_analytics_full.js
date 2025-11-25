@@ -49,7 +49,7 @@ async function initMemberTradingStats(data) {
                             ${(data.members || []).slice(0, 50).map(m => `
                                 <tr>
                                     <td>${m.full_name || 'Unknown'}</td>
-                                    <td><span class="badge badge-${m.party === 'R' ? 'error' : m.party === 'D' ? 'info' : 'secondary'}">${m.party || '-'}</span></td>
+                                    <td><span class="badge badge-${m.party === 'R' ? 'danger' : m.party === 'D' ? 'primary' : m.party === 'I' ? 'warning' : 'secondary'}">${m.party || '-'}</span></td>
                                     <td>${m.total_trades || 0}</td>
                                     <td>${m.buy_count || 0}</td>
                                     <td>${m.sell_count || 0}</td>

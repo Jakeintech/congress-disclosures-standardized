@@ -318,6 +318,31 @@ body {
     color: hsl(142, 76%, 30%);
 }
 
+.badge-danger {
+    background: hsl(0, 84%, 92%);
+    color: hsl(0, 84%, 40%);
+}
+
+.badge-warning {
+    background: hsl(38, 92%, 92%);
+    color: hsl(38, 92%, 35%);
+}
+
+.badge-info {
+    background: hsl(200, 98%, 92%);
+    color: hsl(200, 98%, 40%);
+}
+
+.badge-secondary {
+    background: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+}
+
+.badge-primary {
+    background: hsl(213, 94%, 92%);
+    color: hsl(213, 94%, 40%);
+}
+
 /* Table */
 .table-actions {
     display: flex;

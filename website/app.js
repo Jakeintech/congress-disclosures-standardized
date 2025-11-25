@@ -66,6 +66,22 @@ function updateStats(stats) {
     document.getElementById('total-members').textContent = stats.total_members?.toLocaleString() || '0';
     document.getElementById('latest-year').textContent = stats.latest_year || '-';
     document.getElementById('last-updated').textContent = stats.last_updated || '-';
+
+    // Update Bronze tab stats
+    updateBronzeStats();
+}
+
+// Update Bronze layer stats
+function updateBronzeStats() {
+    const totalFilings = allFilings.length;
+    const uniqueFilers = new Set(allFilings.map(f => `${f.first_name} ${f.last_name}`)).size;
+    const ptrFilings = allFilings.filter(f => f.filing_type === 'P').length;
+    const latestYear = Math.max(...allFilings.map(f => f.year || 0));
+
+    document.getElementById('bronze-total-filings').textContent = totalFilings.toLocaleString();
+    document.getElementById('bronze-total-filers').textContent = uniqueFilers.toLocaleString();
+    document.getElementById('bronze-ptrs').textContent = ptrFilings.toLocaleString();
+    document.getElementById('bronze-latest-year').textContent = latestYear || '-';
 }
 
 // Populate filter dropdowns
@@ -776,7 +792,7 @@ function renderPTRTable() {
             <td>${trans.state_district || '-'}</td>
             <td>${trans.asset_name || '-'}</td>
             <td>
-                <span class="badge badge-type-${getTransactionTypeClass(trans.transaction_type)}">
+                <span class="badge badge-${getTransactionTypeClass(trans.transaction_type)}">
                     ${trans.transaction_type || '-'}
                 </span>
             </td>

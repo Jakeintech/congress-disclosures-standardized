@@ -267,7 +267,8 @@ function getFilingTypeName(type) {
 }
 
 function getPDFUrl(filing) {
-    return `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/bronze/house/financial/year=${filing.year}/pdfs/${filing.year}/${filing.doc_id}.pdf`;
+    // Link directly to official House website (more reliable than storing copies)
+    return `https://disclosures-clerk.house.gov/public_disc/financial-pdfs/${filing.year}/${filing.doc_id}.pdf`;
 }
 
 function debounce(func, wait) {

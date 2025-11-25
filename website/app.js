@@ -371,14 +371,23 @@ function showError() {
 // Load silver documents data from S3
 async function loadSilverData() {
     try {
+        console.log('Loading silver data from:', SILVER_DOCUMENTS_URL);
         showSilverLoading();
 
         const response = await fetch(SILVER_DOCUMENTS_URL);
+        console.log('Silver data response status:', response.status);
+
         if (!response.ok) {
-            throw new Error('Failed to fetch silver documents');
+            throw new Error(`Failed to fetch silver documents: HTTP ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('Silver data loaded:', {
+            total_documents: data.total_documents,
+            by_status: data.by_status,
+            documents_count: data.documents?.length
+        });
+
         allSilverDocuments = data.documents || [];
 
         updateSilverStats(data);
@@ -386,21 +395,37 @@ async function loadSilverData() {
         applySilverFilters();
         hideSilverLoading();
 
+        console.log('Silver data initialization complete');
+
     } catch (error) {
         console.error('Error loading silver data:', error);
+        console.error('Error stack:', error.stack);
         showSilverError();
     }
 }
 
 // Update silver layer statistics
 function updateSilverStats(data) {
-    document.getElementById('silver-total-docs').textContent = data.total_documents?.toLocaleString() || '0';
-    document.getElementById('silver-success').textContent = (data.by_status?.success || 0).toLocaleString();
-    document.getElementById('silver-pending').textContent = (data.by_status?.pending || 0).toLocaleString();
+    try {
+        console.log('Updating silver stats with data:', data);
 
-    // Calculate total pages from documents
-    const totalPages = allSilverDocuments.reduce((sum, doc) => sum + (doc.pages || 0), 0);
-    document.getElementById('silver-total-pages').textContent = totalPages.toLocaleString();
+        const totalDocs = data.total_documents?.toLocaleString() || '0';
+        const successDocs = (data.by_status?.success || 0).toLocaleString();
+        const pendingDocs = (data.by_status?.pending || 0).toLocaleString();
+
+        document.getElementById('silver-total-docs').textContent = totalDocs;
+        document.getElementById('silver-success').textContent = successDocs;
+        document.getElementById('silver-pending').textContent = pendingDocs;
+
+        // Calculate total pages from documents
+        const totalPages = allSilverDocuments.reduce((sum, doc) => sum + (doc.pages || 0), 0);
+        document.getElementById('silver-total-pages').textContent = totalPages.toLocaleString();
+
+        console.log('Silver stats updated:', { totalDocs, successDocs, pendingDocs, totalPages });
+    } catch (error) {
+        console.error('Error updating silver stats:', error);
+        throw error;
+    }
 }
 
 // Populate silver filter dropdowns

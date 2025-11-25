@@ -1,7 +1,8 @@
 # Use AWS Lambda Python 3.11 base image
 # This ensures dependencies are built for the correct Linux platform
 # FREE TIER OPTIMIZED: Uses pypdf (free) instead of Textract
-FROM public.ecr.aws/lambda/python:3.11
+# IMPORTANT: Force x86_64/amd64 platform (not ARM64) for Lambda compatibility
+FROM --platform=linux/amd64 public.ecr.aws/lambda/python:3.11
 
 # Set working directory
 WORKDIR ${LAMBDA_TASK_ROOT}

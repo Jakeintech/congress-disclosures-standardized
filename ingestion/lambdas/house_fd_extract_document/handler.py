@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 import tempfile
+import requests
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
@@ -21,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 # Import shared libraries
 from lib import s3_utils, pdf_extractor, parquet_writer  # noqa: E402
+import boto3
 
 # Configure logging
 logger = logging.getLogger()
@@ -37,6 +39,57 @@ TEXTRACT_MAX_PAGES_SYNC = int(os.environ.get("TEXTRACT_MAX_PAGES_SYNC", "10"))
 SCHEMAS_DIR = Path(__file__).parent / "schemas"
 with open(SCHEMAS_DIR / "house_fd_documents.json") as f:
     DOCUMENTS_SCHEMA = json.load(f)
+
+
+def download_pdf_from_house_website(doc_id: str, year: int, s3_pdf_key: str, pdf_path: Path):
+    """Download PDF from House website and upload to bronze layer.
+
+    Args:
+        doc_id: Document ID
+        year: Filing year
+        s3_pdf_key: S3 key to upload to
+        pdf_path: Local path to save PDF
+
+    Raises:
+        Exception: If download or upload fails
+    """
+    # House PDF URL pattern
+    house_url = f"https://disclosures-clerk.house.gov/public_disc/financial-pdfs/{year}/{doc_id}.pdf"
+
+    logger.info(f"Downloading from House website: {house_url}")
+
+    try:
+        response = requests.get(house_url, timeout=30)
+        response.raise_for_status()
+
+        # Write to temp file
+        pdf_path.write_bytes(response.content)
+
+        logger.info(f"Downloaded {len(response.content)} bytes from House website")
+
+        # Upload to bronze layer
+        s3_client = boto3.client("s3")
+        s3_client.put_object(
+            Bucket=S3_BUCKET,
+            Key=s3_pdf_key,
+            Body=response.content,
+            ContentType="application/pdf",
+            Metadata={
+                "doc_id": doc_id,
+                "year": str(year),
+                "source_url": house_url,
+                "download_timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+
+        logger.info(f"Uploaded PDF to bronze: s3://{S3_BUCKET}/{s3_pdf_key}")
+
+    except requests.RequestException as e:
+        logger.error(f"Failed to download PDF from House website: {str(e)}")
+        raise
+    except Exception as e:
+        logger.error(f"Failed to upload PDF to bronze: {str(e)}")
+        raise
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -104,8 +157,13 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
         pdf_path = Path(tmp_file.name)
 
     try:
-        logger.info(f"Downloading PDF: s3://{S3_BUCKET}/{s3_pdf_key}")
-        s3_utils.download_file_from_s3(S3_BUCKET, s3_pdf_key, pdf_path)
+        # Check if PDF exists in bronze layer, if not download from House website
+        if not s3_utils.s3_object_exists(S3_BUCKET, s3_pdf_key):
+            logger.info(f"PDF not in bronze, downloading from House website: {doc_id}")
+            download_pdf_from_house_website(doc_id, year, s3_pdf_key, pdf_path)
+        else:
+            logger.info(f"Downloading PDF from bronze: s3://{S3_BUCKET}/{s3_pdf_key}")
+            s3_utils.download_file_from_s3(S3_BUCKET, s3_pdf_key, pdf_path)
 
         # Calculate PDF hash and metadata
         pdf_sha256 = s3_utils.calculate_sha256(pdf_path)

@@ -167,9 +167,12 @@ resource "aws_lambda_function" "extract_document" {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
   }
 
-  # TODO: Add minimal numpy/pandas/pyarrow layer once Docker build is working
-  # AWS SDK pandas layer is too large (389MB) - exceeds 250MB limit with our code
-  layers = var.lambda_layer_arns
+  # AWS SDK for pandas Layer provides numpy, pandas, pyarrow for parquet_writer
+  # Layer: 389MB + Package: 1.6MB = 390MB (under 250MB uncompressed limit)
+  layers = concat(
+    var.lambda_layer_arns,
+    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
+  )
 
   tags = merge(
     local.standard_tags,

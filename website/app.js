@@ -381,7 +381,7 @@ async function loadSilverData() {
         const data = await response.json();
         allSilverDocuments = data.documents || [];
 
-        updateSilverStats(data.stats || {});
+        updateSilverStats(data);
         populateSilverFilters();
         applySilverFilters();
         hideSilverLoading();
@@ -393,11 +393,14 @@ async function loadSilverData() {
 }
 
 // Update silver layer statistics
-function updateSilverStats(stats) {
-    document.getElementById('silver-total-docs').textContent = stats.total_documents?.toLocaleString() || '0';
-    document.getElementById('silver-success').textContent = stats.extraction_stats?.success?.toLocaleString() || '0';
-    document.getElementById('silver-pending').textContent = stats.extraction_stats?.pending?.toLocaleString() || '0';
-    document.getElementById('silver-total-pages').textContent = stats.total_pages?.toLocaleString() || '0';
+function updateSilverStats(data) {
+    document.getElementById('silver-total-docs').textContent = data.total_documents?.toLocaleString() || '0';
+    document.getElementById('silver-success').textContent = (data.by_status?.success || 0).toLocaleString();
+    document.getElementById('silver-pending').textContent = (data.by_status?.pending || 0).toLocaleString();
+
+    // Calculate total pages from documents
+    const totalPages = allSilverDocuments.reduce((sum, doc) => sum + (doc.pages || 0), 0);
+    document.getElementById('silver-total-pages').textContent = totalPages.toLocaleString();
 }
 
 // Populate silver filter dropdowns

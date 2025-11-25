@@ -188,6 +188,7 @@ jobs:
         run: |
           cd infra/terraform
           terraform plan -out=tfplan \
+            -var="environment=development" \
             -var="s3_bucket_name=${{ secrets.S3_BUCKET_NAME }}" \
             -var="budget_alert_email=${{ secrets.BUDGET_ALERT_EMAIL }}"
 
@@ -244,7 +245,7 @@ jobs:
 
       - name: Update Lambda function codes
         run: |
-          ENV="development"  # Change to production when ready
+          ENV="development"
           for lambda_dir in ingestion/lambdas/*/; do
             lambda_name=$(basename $lambda_dir)
             if [ -f "$lambda_dir/function.zip" ]; then

@@ -14,7 +14,10 @@
     "extraction_method",
     "extraction_status",
     "extraction_version",
-    "extraction_timestamp"
+    "extraction_timestamp",
+    "extraction_month",
+    "textract_pages_used",
+    "requires_textract_reprocessing"
   ],
   "properties": {
     "doc_id": {
@@ -61,6 +64,7 @@
         "none",
         "pending",
         "pypdf",
+        "pypdf-budget-limit",
         "textract-detect-sync",
         "textract-detect-async",
         "textract-analyze",
@@ -112,6 +116,30 @@
     "char_count": {
       "type": ["integer", "null"],
       "description": "Total character count of extracted text",
+      "minimum": 0
+    },
+    "extraction_month": {
+      "type": "string",
+      "description": "Month when extraction was performed (YYYY-MM format) for Textract budget tracking",
+      "pattern": "^[0-9]{4}-[0-9]{2}$"
+    },
+    "textract_pages_used": {
+      "type": "integer",
+      "description": "Number of pages processed with Textract (0 if pypdf used). Used for monthly budget tracking.",
+      "minimum": 0
+    },
+    "requires_textract_reprocessing": {
+      "type": "boolean",
+      "description": "True if document is image-based but was processed with pypdf due to budget limits. Needs Textract reprocessing in future."
+    },
+    "filing_date": {
+      "type": ["string", "null"],
+      "description": "Date the disclosure was filed (ISO 8601 date format). Used for processing priority.",
+      "format": "date"
+    },
+    "processing_priority": {
+      "type": ["integer", "null"],
+      "description": "Priority score for processing (higher = process first). Based on filing date.",
       "minimum": 0
     }
   },

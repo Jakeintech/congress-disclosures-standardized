@@ -208,6 +208,18 @@ def upsert_parquet_records(
         else:
             merged_df = new_df
 
+        # Fill NaN values for required fields with schema defaults
+        # This handles old records that don't have new required fields
+        if "textract_pages_used" in merged_df.columns:
+            merged_df["textract_pages_used"] = merged_df["textract_pages_used"].fillna(0).astype(int)
+        if "requires_textract_reprocessing" in merged_df.columns:
+            merged_df["requires_textract_reprocessing"] = merged_df["requires_textract_reprocessing"].fillna(False)
+        if "extraction_month" in merged_df.columns:
+            # For old records without extraction_month, use current month (project just started)
+            from datetime import date
+            current_month = date.today().strftime("%Y-%m")
+            merged_df["extraction_month"] = merged_df["extraction_month"].fillna(current_month)
+
         # Convert back to records
         merged_records = merged_df.to_dict("records")
 

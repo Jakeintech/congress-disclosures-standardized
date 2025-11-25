@@ -193,6 +193,7 @@ def extract_text_textract_sync(pdf_bytes: bytes, max_pages: int = 10) -> Dict[st
             "has_embedded_text": False,
             "duration_seconds": duration,
             "textract_response_metadata": response.get("ResponseMetadata", {}),
+            "textract_raw_response": response,  # Full raw response for comparison
         }
 
     except ClientError as e:
@@ -318,6 +319,7 @@ def extract_text_textract_async(
             "has_embedded_text": False,
             "duration_seconds": duration,
             "textract_job_id": job_id,
+            "textract_raw_response": get_response,  # Full raw response for comparison
         }
 
     except (ClientError, TimeoutError) as e:
@@ -330,21 +332,25 @@ def extract_text_from_pdf(
     textract_max_pages_sync: int = 10,
     s3_bucket: Optional[str] = None,
     s3_key: Optional[str] = None,
+    textract_budget_remaining: Optional[int] = None,
 ) -> Dict[str, any]:
     """Extract text from PDF using best available method.
 
     Decision logic:
     1. Check if PDF has embedded text layer
     2. If yes: use pypdf (fast, free)
-    3. If no: use AWS Textract
-       - If <= max_pages_sync: use sync API
-       - If > max_pages_sync: use async API (requires S3 location)
+    3. If no: check Textract budget
+       - If budget exhausted: use pypdf anyway, mark for reprocessing
+       - If budget available: use AWS Textract
+         * If <= max_pages_sync: use sync API
+         * If > max_pages_sync: use async API (requires S3 location)
 
     Args:
         pdf_path: Path to PDF file
         textract_max_pages_sync: Max pages for Textract sync API
         s3_bucket: S3 bucket (required for Textract async)
         s3_key: S3 key (required for Textract async)
+        textract_budget_remaining: Pages remaining in monthly Textract budget (None = unlimited)
 
     Returns:
         Dict with extraction results including:
@@ -355,6 +361,7 @@ def extract_text_from_pdf(
             - has_embedded_text: bool
             - duration_seconds: float
             - pdf_file_size_bytes: int
+            - requires_textract_reprocessing: bool (True if budget prevented Textract)
 
     Raises:
         Exception: If extraction fails
@@ -370,29 +377,50 @@ def extract_text_from_pdf(
     if has_text:
         # Use pypdf (fast and free)
         result = extract_text_pypdf(pdf_path)
+        result["requires_textract_reprocessing"] = False
     else:
-        # PDF is image-based, need Textract
-        logger.info(f"PDF is image-based, using Textract for {pdf_path.name}")
-
-        # Read PDF bytes
-        with open(pdf_path, "rb") as f:
-            pdf_bytes = f.read()
+        # PDF is image-based, check Textract budget
+        logger.info(f"PDF is image-based: {pdf_path.name}")
 
         # Estimate page count (rough heuristic: 50KB per page average)
         estimated_pages = max(1, file_size // (50 * 1024))
 
-        if estimated_pages <= textract_max_pages_sync:
-            # Use sync API
-            result = extract_text_textract_sync(pdf_bytes, textract_max_pages_sync)
+        # Check if we have Textract budget remaining
+        if textract_budget_remaining is not None and textract_budget_remaining < estimated_pages:
+            logger.warning(
+                f"Textract budget exhausted ({textract_budget_remaining} pages remaining, "
+                f"need {estimated_pages}). Using pypdf fallback, marking for reprocessing."
+            )
+            # Use pypdf fallback (will extract blank or minimal text)
+            result = extract_text_pypdf(pdf_path)
+            result["extraction_method"] = "pypdf-budget-limit"
+            result["has_embedded_text"] = False
+            result["requires_textract_reprocessing"] = True
         else:
-            # Need async API - requires S3 location
-            if not s3_bucket or not s3_key:
-                raise ValueError(
-                    f"PDF has {estimated_pages} pages (>{textract_max_pages_sync}). "
-                    "Async Textract requires s3_bucket and s3_key parameters."
-                )
+            # Budget available, use Textract
+            logger.info(
+                f"Using Textract for {pdf_path.name} "
+                f"(est. {estimated_pages} pages, budget: {textract_budget_remaining})"
+            )
 
-            result = extract_text_textract_async(s3_bucket, s3_key)
+            # Read PDF bytes
+            with open(pdf_path, "rb") as f:
+                pdf_bytes = f.read()
+
+            if estimated_pages <= textract_max_pages_sync:
+                # Use sync API
+                result = extract_text_textract_sync(pdf_bytes, textract_max_pages_sync)
+            else:
+                # Need async API - requires S3 location
+                if not s3_bucket or not s3_key:
+                    raise ValueError(
+                        f"PDF has {estimated_pages} pages (>{textract_max_pages_sync}). "
+                        "Async Textract requires s3_bucket and s3_key parameters."
+                    )
+
+                result = extract_text_textract_async(s3_bucket, s3_key)
+
+            result["requires_textract_reprocessing"] = False
 
     # Add file metadata to result
     result["pdf_file_size_bytes"] = file_size

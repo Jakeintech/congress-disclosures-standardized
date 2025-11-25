@@ -12,14 +12,14 @@ resource "aws_s3_bucket" "data_lake" {
   )
 }
 
-# Block all public access (security best practice)
+# Block public ACLs but allow public bucket policy for website hosting
 resource "aws_s3_bucket_public_access_block" "data_lake" {
   bucket = aws_s3_bucket.data_lake.id
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  block_public_acls       = true  # Block public ACLs
+  block_public_policy     = false # Allow public bucket policy for website folder
+  ignore_public_acls      = true  # Ignore any existing public ACLs
+  restrict_public_buckets = false # Allow public bucket policy
 }
 
 # Enable versioning for bronze layer (immutable archive)

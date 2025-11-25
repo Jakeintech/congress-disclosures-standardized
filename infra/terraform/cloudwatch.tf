@@ -41,6 +41,34 @@ resource "aws_cloudwatch_log_group" "extract_document" {
   )
 }
 
+resource "aws_cloudwatch_log_group" "gold_seed" {
+  name              = "/aws/lambda/${local.name_prefix}-gold-seed"
+  retention_in_days = var.cloudwatch_log_retention_days
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${local.name_prefix}-gold-seed-logs"
+      Component = "logging"
+      Lambda    = "gold-seed"
+    }
+  )
+}
+
+resource "aws_cloudwatch_log_group" "gold_seed_members" {
+  name              = "/aws/lambda/${local.name_prefix}-gold-seed-members"
+  retention_in_days = var.cloudwatch_log_retention_days
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${local.name_prefix}-gold-seed-members-logs"
+      Component = "logging"
+      Lambda    = "gold-seed-members"
+    }
+  )
+}
+
 # SNS Topic for alerts (optional)
 resource "aws_sns_topic" "alerts" {
   count = var.enable_cost_alerts && var.alert_email != "" ? 1 : 0

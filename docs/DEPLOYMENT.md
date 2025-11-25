@@ -196,6 +196,44 @@ quick_reference = {
   "logs_extract" = "aws logs tail ..."
   ...
 }
+
+### Automatic Gold-Layer Seeding
+
+On first apply, Terraform automatically invokes a bootstrap Lambda to seed gold-layer dimensions:
+
+- `gold/house/financial/dimensions/dim_date/year=YYYY/part-0000.parquet`
+- `gold/house/financial/dimensions/dim_filing_types/part-0000.parquet`
+
+The seeding is idempotent and only writes missing partitions/files. To force a reseed (e.g., after logic changes), bump the Terraform variable `seed_data_version` in `terraform.tfvars`:
+
+```hcl
+seed_data_version = "2"
+```
+
+Then run `terraform apply` again. The seed Lambda will execute and update any missing outputs.
+
+### Configure Congress.gov Key (for dim_members)
+
+The `dim_members` seed Lambda reads your Congress.gov API key from AWS Systems Manager Parameter Store and seeds:
+
+- `gold/house/financial/dimensions/dim_members/year=YYYY/part-0000.parquet`
+
+1) Store your key (encrypted) in SSM. The default parameter name is based on environment:
+
+```bash
+aws ssm put-parameter \
+  --name "/congress-disclosures/${ENVIRONMENT:-development}/congress-api-key" \
+  --type "SecureString" \
+  --value "<YOUR_CONGRESS_API_KEY>"
+```
+
+2) Optionally override the parameter name in `infra/terraform/terraform.tfvars`:
+
+```hcl
+ssm_congress_api_key_param = "/congress-disclosures/development/congress-api-key"
+```
+
+3) Apply Terraform. The members seed runs automatically (and is idempotent). If the parameter is missing, the seed step is skipped without failing the deployment. Bump `seed_data_version` to force reseed when needed.
 ```
 
 ### Verify Deployment

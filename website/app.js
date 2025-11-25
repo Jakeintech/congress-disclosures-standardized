@@ -383,8 +383,8 @@ async function loadSilverData() {
 
         const data = await response.json();
         console.log('Silver data loaded:', {
-            total_documents: data.total_documents,
-            by_status: data.by_status,
+            total_documents: data?.stats?.total_documents,
+            extraction_stats: data?.stats?.extraction_stats,
             documents_count: data.documents?.length
         });
 
@@ -409,19 +409,19 @@ function updateSilverStats(data) {
     try {
         console.log('Updating silver stats with data:', data);
 
-        const totalDocs = data.total_documents?.toLocaleString() || '0';
-        const successDocs = (data.by_status?.success || 0).toLocaleString();
-        const pendingDocs = (data.by_status?.pending || 0).toLocaleString();
+        const stats = data.stats || {};
+        const totalDocsNum = stats.total_documents || (allSilverDocuments?.length || 0);
+        const totalDocs = totalDocsNum.toLocaleString();
+        const successDocs = (stats.extraction_stats?.success || 0).toLocaleString();
+        const pendingDocs = (stats.extraction_stats?.pending || 0).toLocaleString();
+        const totalPagesNum = stats.total_pages || allSilverDocuments.reduce((sum, doc) => sum + (doc.pages || 0), 0);
 
         document.getElementById('silver-total-docs').textContent = totalDocs;
         document.getElementById('silver-success').textContent = successDocs;
         document.getElementById('silver-pending').textContent = pendingDocs;
+        document.getElementById('silver-total-pages').textContent = totalPagesNum.toLocaleString();
 
-        // Calculate total pages from documents
-        const totalPages = allSilverDocuments.reduce((sum, doc) => sum + (doc.pages || 0), 0);
-        document.getElementById('silver-total-pages').textContent = totalPages.toLocaleString();
-
-        console.log('Silver stats updated:', { totalDocs, successDocs, pendingDocs, totalPages });
+        console.log('Silver stats updated:', { totalDocs, successDocs, pendingDocs, totalPages: totalPagesNum });
     } catch (error) {
         console.error('Error updating silver stats:', error);
         throw error;
@@ -430,15 +430,35 @@ function updateSilverStats(data) {
 
 // Populate silver filter dropdowns
 function populateSilverFilters() {
-    const years = [...new Set(allSilverDocuments.map(d => d.year))].sort((a, b) => b - a);
-
+    // Years
+    const years = [...new Set(allSilverDocuments.map(d => d.year))].filter(Boolean).sort((a, b) => b - a);
     const yearFilter = document.getElementById('silver-year-filter');
-    years.forEach(year => {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        yearFilter.appendChild(option);
-    });
+    if (yearFilter) {
+        yearFilter.length = 1; // keep 'All Years'
+        years.forEach(year => {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearFilter.appendChild(option);
+        });
+    }
+
+    // Methods (dynamic)
+    const methods = [...new Set(allSilverDocuments.map(d => d.extraction_method))].filter(Boolean).sort();
+    const methodFilter = document.getElementById('silver-method-filter');
+    if (methodFilter) {
+        methodFilter.innerHTML = '';
+        const allOpt = document.createElement('option');
+        allOpt.value = '';
+        allOpt.textContent = 'All Extraction Methods';
+        methodFilter.appendChild(allOpt);
+        methods.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m;
+            option.textContent = m;
+            methodFilter.appendChild(option);
+        });
+    }
 }
 
 // Setup silver event listeners
@@ -528,6 +548,8 @@ function renderSilverTable() {
 
     pageDocuments.forEach(doc => {
         const row = document.createElement('tr');
+        const textUrl = doc.text_s3_key ? `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${doc.text_s3_key}` : null;
+        const jsonUrl = doc.json_s3_key ? `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${doc.json_s3_key}` : null;
         row.innerHTML = `
             <td><code>${doc.doc_id || '-'}</code></td>
             <td>${doc.year || '-'}</td>
@@ -541,10 +563,9 @@ function renderSilverTable() {
             <td>${(doc.char_count || 0).toLocaleString()}</td>
             <td>${formatFileSize(doc.pdf_file_size_bytes)}</td>
             <td>
-                <a href="https://disclosures-clerk.house.gov/public_disc/financial-pdfs/${doc.year}/${doc.doc_id}.pdf"
-                   target="_blank" rel="noopener" class="btn-link">
-                    View PDF
-                </a>
+                <a href="https://disclosures-clerk.house.gov/public_disc/financial-pdfs/${doc.year}/${doc.doc_id}.pdf" target="_blank" rel="noopener" class="btn-link">PDF</a>
+                ${textUrl ? ` | <a href="${textUrl}" target="_blank" rel="noopener" class="btn-link">Text</a>` : ''}
+                ${jsonUrl ? ` | <a href="${jsonUrl}" target="_blank" rel="noopener" class="btn-link">JSON</a>` : ''}
             </td>
         `;
         tbody.appendChild(row);

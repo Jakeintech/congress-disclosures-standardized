@@ -1,0 +1,48 @@
+name: Deploy Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'scripts/generate_all_gold_manifests.py'
+      - '.github/workflows/deploy-website.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy-website:
+    name: Deploy Website to S3
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Sync website files to S3
+        run: |
+          aws s3 sync website/ s3://congress-disclosures-standardized/website/ \
+            --exclude "data/*" \
+            --cache-control "max-age=300" \
+            --delete
+
+      - name: Sync website data with no-cache
+        run: |
+          aws s3 sync website/data/ s3://congress-disclosures-standardized/website/data/ \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --delete
+
+      - name: Invalidate CloudFront (if exists)
+        run: |
+          # If you set up CloudFront later, add invalidation here
+          echo "Website deployed successfully!"
+
+      - name: Verify deployment
+        run: |
+          echo "✅ Website deployed to: https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/index.html"

@@ -47,7 +47,35 @@ def load_ptr_transactions(bucket_name: str) -> pd.DataFrame:
     return all_transactions
 
 
-def compute_member_trading_stats(transactions_df: pd.DataFrame) -> pd.DataFrame:
+def load_dim_members(bucket_name: str) -> pd.DataFrame:
+    """Load dim_members from gold layer."""
+    s3 = boto3.client('s3')
+    prefix = 'gold/house/financial/dimensions/dim_members/'
+
+    logger.info(f"Loading dim_members from s3://{bucket_name}/{prefix}")
+
+    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+    if 'Contents' not in response:
+        logger.warning("No dim_members found, party data will be null")
+        return pd.DataFrame()
+
+    dfs = []
+    for obj in response['Contents']:
+        if obj['Key'].endswith('.parquet'):
+            logger.info(f"  Reading {obj['Key']}")
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
+                s3.download_file(bucket_name, obj['Key'], tmp.name)
+                df = pd.read_parquet(tmp.name)
+                dfs.append(df)
+                os.unlink(tmp.name)
+
+    all_members = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+    logger.info(f"✅ Loaded {len(all_members):,} members")
+
+    return all_members
+
+
+def compute_member_trading_stats(transactions_df: pd.DataFrame, members_df: pd.DataFrame = None) -> pd.DataFrame:
     """Compute trading statistics by member."""
     logger.info("Computing member trading statistics...")
 
@@ -81,7 +109,6 @@ def compute_member_trading_stats(transactions_df: pd.DataFrame) -> pd.DataFrame:
             'state_district': state_district,
             'state': state_district[:2] if pd.notna(state_district) else None,
             'district': state_district[2:] if pd.notna(state_district) and len(state_district) > 2 else None,
-            'party': None,  # Will be enriched later
             'total_trades': len(group),
             'buy_count': buy_count,
             'sell_count': sell_count,
@@ -96,6 +123,19 @@ def compute_member_trading_stats(transactions_df: pd.DataFrame) -> pd.DataFrame:
         member_stats.append(stats)
 
     stats_df = pd.DataFrame(member_stats)
+
+    # Enrich with party data from dim_members
+    if members_df is not None and len(members_df) > 0:
+        logger.info("  Enriching with party data from dim_members...")
+
+        # Join on state_district to get party
+        members_lookup = members_df[['state_district', 'party']].drop_duplicates(subset=['state_district'])
+        stats_df = stats_df.merge(members_lookup, on='state_district', how='left')
+
+        logger.info(f"  Enriched {stats_df['party'].notna().sum()} members with party data")
+    else:
+        stats_df['party'] = None
+        logger.warning("  No party data available - all parties will be null")
 
     # Sort by total trades descending
     stats_df = stats_df.sort_values('total_trades', ascending=False).reset_index(drop=True)
@@ -152,8 +192,11 @@ def main():
     # Load PTR transactions
     transactions_df = load_ptr_transactions(bucket_name)
 
+    # Load dim_members for party enrichment
+    members_df = load_dim_members(bucket_name)
+
     # Compute stats
-    stats_df = compute_member_trading_stats(transactions_df)
+    stats_df = compute_member_trading_stats(transactions_df, members_df)
 
     # Write to gold layer
     write_to_gold(stats_df, bucket_name)

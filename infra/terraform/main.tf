@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/archive"
       version = "~> 2.4"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
+    }
   }
 
   # Uncomment after initial setup to enable remote state
@@ -56,4 +60,7 @@ locals {
       Terraform   = "true"
     }
   )
+
+  # SSM parameter name for Congress.gov API key
+  ssm_congress_api_key_param = var.ssm_congress_api_key_param != "" ? var.ssm_congress_api_key_param : "/congress-disclosures/${var.environment}/congress-api-key"
 }

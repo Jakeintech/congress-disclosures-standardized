@@ -202,16 +202,24 @@ def main():
     # Step 4: Regenerate silver_documents.json for website
     print("Regenerating silver_documents.json for website...")
 
+    # Replace NaN with None in the dataframe BEFORE converting to dict
+    df = df.where(pd.notnull(df), None)
+
     # Create manifest
     documents_list = df.to_dict('records')
 
-    # Convert non-serializable types
+    # Additional cleanup: ensure no NaN, Infinity, or invalid JSON values
+    import math
     for doc in documents_list:
-        for key, value in doc.items():
-            if pd.isna(value):
-                doc[key] = None
-            elif isinstance(value, (pd.Timestamp, pd.Timestamp)):
-                doc[key] = value.isoformat() if value is not None else None
+        for key, value in list(doc.items()):
+            # Convert NaN, Infinity to None
+            if value is None:
+                continue
+            elif isinstance(value, float):
+                if math.isnan(value) or math.isinf(value):
+                    doc[key] = None
+            elif isinstance(value, pd.Timestamp):
+                doc[key] = value.isoformat()
 
     manifest = {
         "generated_at": pd.Timestamp.now(tz='UTC').isoformat(),
@@ -221,12 +229,17 @@ def main():
         "documents": documents_list
     }
 
+    # Validate JSON before uploading
+    json_str = json.dumps(manifest, indent=2)
+    print(f"Generated JSON: {len(json_str):,} bytes")
+
     # Upload JSON
     s3_client.put_object(
         Bucket=S3_BUCKET,
         Key="silver_documents.json",
-        Body=json.dumps(manifest, indent=2, default=str),
-        ContentType="application/json"
+        Body=json_str,
+        ContentType="application/json",
+        CacheControl="no-cache, no-store, must-revalidate"
     )
 
     print("✅ Regenerated silver_documents.json")

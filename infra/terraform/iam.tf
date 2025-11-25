@@ -122,6 +122,25 @@ resource "aws_iam_role_policy" "lambda_textract_access" {
   })
 }
 
+# SSM Parameter Store access for Congress API key (used by dim_members seed)
+resource "aws_iam_role_policy" "lambda_ssm_congress_api" {
+  name = "${local.name_prefix}-lambda-ssm-congress-api"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ssm:GetParameter"
+        ],
+        Resource = "arn:aws:ssm:${local.region}:${local.account_id}:parameter${local.ssm_congress_api_key_param}"
+      }
+    ]
+  })
+}
+
 # Optional: X-Ray tracing policy (disabled by default for cost savings)
 resource "aws_iam_role_policy" "lambda_xray_access" {
   count = var.enable_xray_tracing ? 1 : 0

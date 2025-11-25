@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-11-25T11:45:40.594939",
+  "generated_at": "2025-11-25T13:21:27.458441",
   "total_members": 38,
   "total_trades": 3025,
   "total_volume": 105773012.5,
@@ -11,7 +11,6 @@
       "state_district": "FL02",
       "state": "FL",
       "district": "02",
-      "party": null,
       "total_trades": 1,
       "buy_count": 1,
       "sell_count": 0,
@@ -20,7 +19,8 @@
       "avg_transaction_size": 32500.5,
       "unique_stocks": 1,
       "period_start": "2024-12-24",
-      "period_end": "2024-12-24"
+      "period_end": "2024-12-24",
+      "party": "R"
     },
     {
       "first_name": "Lisa",
@@ -29,7 +29,6 @@
       "state_district": "MI09",
       "state": "MI",
       "district": "09",
-      "party": null,
       "total_trades": 1274,
       "buy_count": 642,
       "sell_count": 632,
@@ -38,7 +37,8 @@
       "avg_transaction_size": 9139.040031397175,
       "unique_stocks": 401,
       "period_start": "2024-03-11",
-      "period_end": "2025-10-31"
+      "period_end": "2025-10-31",
+      "party": "R"
     },
     {
       "first_name": "Josh",
@@ -47,7 +47,6 @@
       "state_district": "NJ05",
       "state": "NJ",
       "district": "05",
-      "party": null,
       "total_trades": 374,
       "buy_count": 124,
       "sell_count": 250,
@@ -56,7 +55,8 @@
       "avg_transaction_size": 117259.85828877005,
       "unique_stocks": 156,
       "period_start": "2024-03-18",
-      "period_end": "2025-10-20"
+      "period_end": "2025-10-20",
+      "party": "D"
     },
     {
       "first_name": "Julie",
@@ -65,7 +65,6 @@
       "state_district": "TX32",
       "state": "TX",
       "district": "32",
-      "party": null,
       "total_trades": 352,
       "buy_count": 76,
       "sell_count": 276,
@@ -74,7 +73,8 @@
       "avg_transaction_size": 8487.71590909091,
       "unique_stocks": 207,
       "period_start": "2024-03-15",
-      "period_end": "2025-10-31"
+      "period_end": "2025-10-31",
+      "party": "D"
     },
     {
       "first_name": "Valerie",
@@ -83,7 +83,6 @@
       "state_district": "OR04",
       "state": "OR",
       "district": "04",
-      "party": null,
       "total_trades": 330,
       "buy_count": 166,
       "sell_count": 164,
@@ -92,7 +91,8 @@
       "avg_transaction_size": 8797.469696969696,
       "unique_stocks": 164,
       "period_start": "2024-10-29",
-      "period_end": "2025-09-23"
+      "period_end": "2025-09-23",
+      "party": "D"
     },
     {
       "first_name": "April McClain",
@@ -101,7 +101,6 @@
       "state_district": "MD06",
       "state": "MD",
       "district": "06",
-      "party": null,
       "total_trades": 118,
       "buy_count": 68,
       "sell_count": 50,
@@ -110,7 +109,8 @@
       "avg_transaction_size": 10907.27966101695,
       "unique_stocks": 31,
       "period_start": "2025-02-05",
-      "period_end": "2025-10-31"
+      "period_end": "2025-10-31",
+      "party": "D"
     },
     {
       "first_name": "Rob",
@@ -119,7 +119,6 @@
       "state_district": "PA08",
       "state": "PA",
       "district": "08",
-      "party": null,
       "total_trades": 76,
       "buy_count": 0,
       "sell_count": 76,
@@ -128,7 +127,8 @@
       "avg_transaction_size": 8322.868421052632,
       "unique_stocks": 74,
       "period_start": "2025-01-13",
-      "period_end": "2025-01-13"
+      "period_end": "2025-01-13",
+      "party": "R"
     },
     {
       "first_name": "Sheri",
@@ -137,7 +137,6 @@
       "state_district": "SC03",
       "state": "SC",
       "district": "03",
-      "party": null,
       "total_trades": 64,
       "buy_count": 1,
       "sell_count": 63,
@@ -146,7 +145,8 @@
       "avg_transaction_size": 17883.3125,
       "unique_stocks": 64,
       "period_start": "2025-03-18",
-      "period_end": "2025-07-09"
+      "period_end": "2025-07-09",
+      "party": "R"
     },
     {
       "first_name": "Dan",
@@ -155,7 +155,6 @@
       "state_district": "WA04",
       "state": "WA",
       "district": "04",
-      "party": null,
       "total_trades": 57,
       "buy_count": 12,
       "sell_count": 45,
@@ -164,7 +163,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 55,
       "period_start": "2025-04-11",
-      "period_end": "2025-08-18"
+      "period_end": "2025-08-18",
+      "party": "R"
     },
     {
       "first_name": "Greg",
@@ -173,7 +173,6 @@
       "state_district": "OH01",
       "state": "OH",
       "district": "01",
-      "party": null,
       "total_trades": 52,
       "buy_count": 5,
       "sell_count": 47,
@@ -182,7 +181,8 @@
       "avg_transaction_size": 25173.576923076922,
       "unique_stocks": 34,
       "period_start": "2024-12-19",
-      "period_end": "2025-05-09"
+      "period_end": "2025-05-09",
+      "party": "D"
     },
     {
       "first_name": "Byron",
@@ -191,7 +191,6 @@
       "state_district": "FL19",
       "state": "FL",
       "district": "19",
-      "party": null,
       "total_trades": 50,
       "buy_count": 26,
       "sell_count": 24,
@@ -200,7 +199,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 34,
       "period_start": "2025-01-16",
-      "period_end": "2025-10-24"
+      "period_end": "2025-10-24",
+      "party": "R"
     },
     {
       "first_name": "Jared",
@@ -209,7 +209,6 @@
       "state_district": "FL23",
       "state": "FL",
       "district": "23",
-      "party": null,
       "total_trades": 49,
       "buy_count": 28,
       "sell_count": 21,
@@ -218,7 +217,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 24,
       "period_start": "2025-01-15",
-      "period_end": "2025-10-10"
+      "period_end": "2025-10-10",
+      "party": "D"
     },
     {
       "first_name": "Jonathan",
@@ -227,7 +227,6 @@
       "state_district": "IL01",
       "state": "IL",
       "district": "01",
-      "party": null,
       "total_trades": 49,
       "buy_count": 31,
       "sell_count": 18,
@@ -236,7 +235,8 @@
       "avg_transaction_size": 19469.88775510204,
       "unique_stocks": 24,
       "period_start": "2024-12-09",
-      "period_end": "2025-10-08"
+      "period_end": "2025-10-08",
+      "party": "D"
     },
     {
       "first_name": "Scott Scott",
@@ -245,7 +245,6 @@
       "state_district": "FL18",
       "state": "FL",
       "district": "18",
-      "party": null,
       "total_trades": 48,
       "buy_count": 29,
       "sell_count": 19,
@@ -254,7 +253,8 @@
       "avg_transaction_size": 88854.66666666667,
       "unique_stocks": 30,
       "period_start": "2024-01-30",
-      "period_end": "2025-10-14"
+      "period_end": "2025-10-14",
+      "party": "R"
     },
     {
       "first_name": "Austin",
@@ -263,7 +263,6 @@
       "state_district": "GA08",
       "state": "GA",
       "district": "08",
-      "party": null,
       "total_trades": 17,
       "buy_count": 0,
       "sell_count": 17,
@@ -272,7 +271,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 9,
       "period_start": "2024-07-15",
-      "period_end": "2025-06-16"
+      "period_end": "2025-06-16",
+      "party": "R"
     },
     {
       "first_name": "Adam",
@@ -281,7 +281,6 @@
       "state_district": "WA09",
       "state": "WA",
       "district": "09",
-      "party": null,
       "total_trades": 15,
       "buy_count": 0,
       "sell_count": 15,
@@ -290,7 +289,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 15,
       "period_start": "2025-08-08",
-      "period_end": "2025-08-08"
+      "period_end": "2025-08-08",
+      "party": "D"
     },
     {
       "first_name": "Kevin",
@@ -299,7 +299,6 @@
       "state_district": "OK01",
       "state": "OK",
       "district": "01",
-      "party": null,
       "total_trades": 14,
       "buy_count": 2,
       "sell_count": 12,
@@ -308,7 +307,8 @@
       "avg_transaction_size": 72750.5,
       "unique_stocks": 11,
       "period_start": "2024-12-10",
-      "period_end": "2025-10-28"
+      "period_end": "2025-10-28",
+      "party": "R"
     },
     {
       "first_name": "Nancy",
@@ -317,7 +317,6 @@
       "state_district": "CA11",
       "state": "CA",
       "district": "11",
-      "party": null,
       "total_trades": 11,
       "buy_count": 8,
       "sell_count": 3,
@@ -326,7 +325,8 @@
       "avg_transaction_size": 2443182.3181818184,
       "unique_stocks": 8,
       "period_start": "2024-12-20",
-      "period_end": "2025-10-22"
+      "period_end": "2025-10-22",
+      "party": "D"
     },
     {
       "first_name": "Daniel",
@@ -335,7 +335,6 @@
       "state_district": "PA09",
       "state": "PA",
       "district": "09",
-      "party": null,
       "total_trades": 11,
       "buy_count": 0,
       "sell_count": 11,
@@ -344,7 +343,8 @@
       "avg_transaction_size": 154955.04545454544,
       "unique_stocks": 9,
       "period_start": "2024-08-07",
-      "period_end": "2025-02-11"
+      "period_end": "2025-02-11",
+      "party": "R"
     },
     {
       "first_name": "Richard W.",
@@ -353,7 +353,6 @@
       "state_district": "GA12",
       "state": "GA",
       "district": "12",
-      "party": null,
       "total_trades": 10,
       "buy_count": 6,
       "sell_count": 4,
@@ -362,7 +361,8 @@
       "avg_transaction_size": 25150.5,
       "unique_stocks": 8,
       "period_start": "2024-12-12",
-      "period_end": "2025-09-12"
+      "period_end": "2025-09-12",
+      "party": "R"
     },
     {
       "first_name": "Emily",
@@ -371,7 +371,6 @@
       "state_district": "WA06",
       "state": "WA",
       "district": "06",
-      "party": null,
       "total_trades": 9,
       "buy_count": 0,
       "sell_count": 9,
@@ -380,7 +379,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 9,
       "period_start": "2025-01-06",
-      "period_end": "2025-01-07"
+      "period_end": "2025-01-07",
+      "party": "D"
     },
     {
       "first_name": "Mark Dr",
@@ -389,7 +389,6 @@
       "state_district": "TN07",
       "state": "TN",
       "district": "07",
-      "party": null,
       "total_trades": 6,
       "buy_count": 0,
       "sell_count": 6,
@@ -398,7 +397,8 @@
       "avg_transaction_size": 240000.5,
       "unique_stocks": 1,
       "period_start": "2025-01-02",
-      "period_end": "2025-02-28"
+      "period_end": "2025-02-28",
+      "party": "R"
     },
     {
       "first_name": "John",
@@ -407,7 +407,6 @@
       "state_district": "VA05",
       "state": "VA",
       "district": "05",
-      "party": null,
       "total_trades": 5,
       "buy_count": 4,
       "sell_count": 1,
@@ -416,7 +415,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 4,
       "period_start": "2025-04-10",
-      "period_end": "2025-06-30"
+      "period_end": "2025-06-30",
+      "party": "R"
     },
     {
       "first_name": "Gerald E.",
@@ -425,7 +425,6 @@
       "state_district": "VA11",
       "state": "VA",
       "district": "11",
-      "party": null,
       "total_trades": 5,
       "buy_count": 0,
       "sell_count": 5,
@@ -434,7 +433,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 3,
       "period_start": "2025-02-05",
-      "period_end": "2025-05-13"
+      "period_end": "2025-05-13",
+      "party": "D"
     },
     {
       "first_name": "Debbie",
@@ -443,7 +443,6 @@
       "state_district": "FL25",
       "state": "FL",
       "district": "25",
-      "party": null,
       "total_trades": 5,
       "buy_count": 3,
       "sell_count": 2,
@@ -452,7 +451,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 5,
       "period_start": "2025-02-06",
-      "period_end": "2025-08-15"
+      "period_end": "2025-08-15",
+      "party": "D"
     },
     {
       "first_name": "Jake",
@@ -461,7 +461,6 @@
       "state_district": "MA04",
       "state": "MA",
       "district": "04",
-      "party": null,
       "total_trades": 4,
       "buy_count": 0,
       "sell_count": 4,
@@ -470,7 +469,8 @@
       "avg_transaction_size": 32500.5,
       "unique_stocks": 1,
       "period_start": "2025-02-18",
-      "period_end": "2025-11-17"
+      "period_end": "2025-11-17",
+      "party": "D"
     },
     {
       "first_name": "Laurel",
@@ -479,7 +479,6 @@
       "state_district": "FL15",
       "state": "FL",
       "district": "15",
-      "party": null,
       "total_trades": 3,
       "buy_count": 2,
       "sell_count": 1,
@@ -488,7 +487,8 @@
       "avg_transaction_size": 30333.833333333332,
       "unique_stocks": 2,
       "period_start": "2024-11-25",
-      "period_end": "2025-07-13"
+      "period_end": "2025-07-13",
+      "party": "R"
     },
     {
       "first_name": "Mike",
@@ -497,7 +497,6 @@
       "state_district": "PA16",
       "state": "PA",
       "district": "16",
-      "party": null,
       "total_trades": 3,
       "buy_count": 1,
       "sell_count": 2,
@@ -506,7 +505,8 @@
       "avg_transaction_size": 80000.5,
       "unique_stocks": 2,
       "period_start": "2025-06-03",
-      "period_end": "2025-06-20"
+      "period_end": "2025-06-20",
+      "party": "R"
     },
     {
       "first_name": "James French",
@@ -515,7 +515,6 @@
       "state_district": "AR02",
       "state": "AR",
       "district": "02",
-      "party": null,
       "total_trades": 2,
       "buy_count": 1,
       "sell_count": 1,
@@ -524,7 +523,8 @@
       "avg_transaction_size": 20250.5,
       "unique_stocks": 2,
       "period_start": "2025-06-23",
-      "period_end": "2025-06-23"
+      "period_end": "2025-06-23",
+      "party": "R"
     },
     {
       "first_name": "Victoria",
@@ -533,7 +533,6 @@
       "state_district": "IN05",
       "state": "IN",
       "district": "05",
-      "party": null,
       "total_trades": 2,
       "buy_count": 2,
       "sell_count": 0,
@@ -542,7 +541,8 @@
       "avg_transaction_size": 20250.5,
       "unique_stocks": 1,
       "period_start": "2025-02-03",
-      "period_end": "2025-04-03"
+      "period_end": "2025-04-03",
+      "party": "R"
     },
     {
       "first_name": "Judy",
@@ -551,7 +551,6 @@
       "state_district": "CA28",
       "state": "CA",
       "district": "28",
-      "party": null,
       "total_trades": 2,
       "buy_count": 1,
       "sell_count": 1,
@@ -560,7 +559,8 @@
       "avg_transaction_size": 175000.5,
       "unique_stocks": 1,
       "period_start": "2025-08-19",
-      "period_end": "2025-08-19"
+      "period_end": "2025-08-19",
+      "party": "D"
     },
     {
       "first_name": "Mikie",
@@ -569,7 +569,6 @@
       "state_district": "NJ11",
       "state": "NJ",
       "district": "11",
-      "party": null,
       "total_trades": 1,
       "buy_count": 0,
       "sell_count": 1,
@@ -578,7 +577,8 @@
       "avg_transaction_size": 375000.5,
       "unique_stocks": 1,
       "period_start": "2025-03-07",
-      "period_end": "2025-03-07"
+      "period_end": "2025-03-07",
+      "party": "D"
     },
     {
       "first_name": "Pete",
@@ -587,7 +587,6 @@
       "state_district": "TX17",
       "state": "TX",
       "district": "17",
-      "party": null,
       "total_trades": 1,
       "buy_count": 0,
       "sell_count": 1,
@@ -596,7 +595,8 @@
       "avg_transaction_size": 75000.5,
       "unique_stocks": 1,
       "period_start": "2025-06-12",
-      "period_end": "2025-06-12"
+      "period_end": "2025-06-12",
+      "party": "R"
     },
     {
       "first_name": "George",
@@ -605,7 +605,6 @@
       "state_district": "CA27",
       "state": "CA",
       "district": "27",
-      "party": null,
       "total_trades": 1,
       "buy_count": 0,
       "sell_count": 1,
@@ -614,7 +613,8 @@
       "avg_transaction_size": 375000.5,
       "unique_stocks": 1,
       "period_start": "2025-03-25",
-      "period_end": "2025-03-25"
+      "period_end": "2025-03-25",
+      "party": "D"
     },
     {
       "first_name": "Greg",
@@ -623,7 +623,6 @@
       "state_district": "FL17",
       "state": "FL",
       "district": "17",
-      "party": null,
       "total_trades": 1,
       "buy_count": 0,
       "sell_count": 1,
@@ -632,7 +631,8 @@
       "avg_transaction_size": 32500.5,
       "unique_stocks": 1,
       "period_start": "2025-02-19",
-      "period_end": "2025-02-19"
+      "period_end": "2025-02-19",
+      "party": "R"
     },
     {
       "first_name": "Cliff",
@@ -641,7 +641,6 @@
       "state_district": "OR02",
       "state": "OR",
       "district": "02",
-      "party": null,
       "total_trades": 1,
       "buy_count": 1,
       "sell_count": 0,
@@ -650,7 +649,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 1,
       "period_start": "2025-06-06",
-      "period_end": "2025-06-06"
+      "period_end": "2025-06-06",
+      "party": "R"
     },
     {
       "first_name": "August Lee",
@@ -659,7 +659,6 @@
       "state_district": "TX11",
       "state": "TX",
       "district": "11",
-      "party": null,
       "total_trades": 1,
       "buy_count": 0,
       "sell_count": 1,
@@ -668,7 +667,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 1,
       "period_start": "2025-01-13",
-      "period_end": "2025-01-13"
+      "period_end": "2025-01-13",
+      "party": "R"
     },
     {
       "first_name": "Michael Patrick",
@@ -677,7 +677,6 @@
       "state_district": "MS03",
       "state": "MS",
       "district": "03",
-      "party": null,
       "total_trades": 1,
       "buy_count": 1,
       "sell_count": 0,
@@ -686,7 +685,8 @@
       "avg_transaction_size": 8000.5,
       "unique_stocks": 1,
       "period_start": "2025-10-20",
-      "period_end": "2025-10-20"
+      "period_end": "2025-10-20",
+      "party": "R"
     }
   ]
 }

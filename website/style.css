@@ -625,8 +625,8 @@ body {
 }
 
 .silver-sidebar {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: 8px;
     padding: 1.5rem;
     height: fit-content;
@@ -638,7 +638,7 @@ body {
     font-size: 1.125rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: var(--text);
+    color: hsl(var(--foreground));
 }
 
 .silver-sidebar-nav {
@@ -655,7 +655,7 @@ body {
     background: transparent;
     border: 1px solid transparent;
     border-radius: 6px;
-    color: var(--text-muted);
+    color: hsl(var(--muted-foreground));
     font-size: 0.9375rem;
     text-align: left;
     cursor: pointer;
@@ -669,14 +669,14 @@ body {
 }
 
 .silver-nav-item:hover {
-    background: var(--hover-bg);
-    color: var(--text);
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
 }
 
 .silver-nav-item.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
 }
 
 .silver-main-content {
@@ -726,8 +726,8 @@ body {
 }
 
 .gold-sidebar {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: 8px;
     padding: 1.5rem;
     height: fit-content;
@@ -739,7 +739,7 @@ body {
     font-size: 1.125rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: var(--text);
+    color: hsl(var(--foreground));
 }
 
 .gold-sidebar-nav {
@@ -756,7 +756,7 @@ body {
     background: transparent;
     border: 1px solid transparent;
     border-radius: 6px;
-    color: var(--text-muted);
+    color: hsl(var(--muted-foreground));
     font-size: 0.9375rem;
     text-align: left;
     cursor: pointer;
@@ -770,14 +770,14 @@ body {
 }
 
 .gold-nav-item:hover {
-    background: var(--hover-bg);
-    color: var(--text);
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
 }
 
 .gold-nav-item.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
 }
 
 .gold-nav-item .badge {

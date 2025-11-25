@@ -79,7 +79,7 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-seed package-seed-members ## Package all Lambda functions
 
 package-ingest: ## Package house_fd_ingest_zip Lambda
 	@echo "Packaging house_fd_ingest_zip..."
@@ -110,6 +110,24 @@ package-extract: ## Package house_fd_extract_document Lambda
 	@cp -r ingestion/lib $(LAMBDA_DIR)/house_fd_extract_document/package/
 	@cd $(LAMBDA_DIR)/house_fd_extract_document/package && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/house_fd_extract_document/function.zip"
+
+package-seed: ## Package gold_seed Lambda
+	@echo "Packaging gold_seed..."
+	@rm -rf $(LAMBDA_DIR)/gold_seed/package
+	@mkdir -p $(LAMBDA_DIR)/gold_seed/package
+	# gold_seed relies on AWS SDK for pandas Lambda layer; no local deps required
+	@cp $(LAMBDA_DIR)/gold_seed/handler.py $(LAMBDA_DIR)/gold_seed/package/
+	@cd $(LAMBDA_DIR)/gold_seed/package && zip -r ../function.zip . > /dev/null
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/gold_seed/function.zip"
+
+package-seed-members: ## Package gold_seed_members Lambda
+	@echo "Packaging gold_seed_members..."
+	@rm -rf $(LAMBDA_DIR)/gold_seed_members/package
+	@mkdir -p $(LAMBDA_DIR)/gold_seed_members/package
+	$(PIP) install -r $(LAMBDA_DIR)/gold_seed_members/requirements.txt -t $(LAMBDA_DIR)/gold_seed_members/package
+	@cp $(LAMBDA_DIR)/gold_seed_members/handler.py $(LAMBDA_DIR)/gold_seed_members/package/
+	@cd $(LAMBDA_DIR)/gold_seed_members/package && zip -r ../function.zip . > /dev/null
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/gold_seed_members/function.zip"
 
 ##@ Testing
 

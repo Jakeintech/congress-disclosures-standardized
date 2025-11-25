@@ -230,6 +230,8 @@ def generate_silver_documents_json(
             "extraction_timestamp": doc.get("extraction_timestamp"),
             "extraction_error": doc.get("extraction_error"),
             "char_count": doc.get("char_count"),
+            "text_s3_key": doc.get("text_s3_key"),
+            "json_s3_key": doc.get("json_s3_key"),
         }
         simplified_documents.append(simplified)
 

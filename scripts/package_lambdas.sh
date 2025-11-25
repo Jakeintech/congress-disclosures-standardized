@@ -129,6 +129,8 @@ echo ""
 package_lambda "house_fd_ingest_zip"
 package_lambda "house_fd_index_to_silver"
 package_lambda "house_fd_extract_document"
+package_lambda "gold_seed"
+package_lambda "gold_seed_members"
 
 echo -e "${GREEN}================================${NC}"
 echo -e "${GREEN}All Lambda functions packaged!${NC}"

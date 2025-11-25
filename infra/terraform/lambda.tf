@@ -244,3 +244,124 @@ output "lambda_extract_document_name" {
   description = "Name of extract document Lambda function"
   value       = aws_lambda_function.extract_document.function_name
 }
+
+# Lambda function: gold_seed (bootstrap gold-layer dimensions)
+resource "aws_lambda_function" "gold_seed" {
+  function_name = "${local.name_prefix}-gold-seed"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+
+  s3_bucket        = aws_s3_bucket.data_lake.id
+  s3_key           = "lambda-deployments/gold_seed/function.zip"
+  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/gold_seed/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/gold_seed/function.zip") : null
+
+  timeout     = 60
+  memory_size = 512
+
+  environment {
+    variables = {
+      S3_BUCKET_NAME = aws_s3_bucket.data_lake.id
+      SEED_START_YEAR = "2008"
+      SEED_END_YEAR   = "2030"
+      LOG_LEVEL       = "INFO"
+    }
+  }
+
+  tracing_config {
+    mode = var.enable_xray_tracing ? "Active" : "PassThrough"
+  }
+
+  # Use AWS Data Wrangler layer (pandas/pyarrow)
+  layers = concat(
+    var.lambda_layer_arns,
+    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
+  )
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${local.name_prefix}-gold-seed"
+      Component = "lambda"
+      Purpose   = "seed"
+    }
+  )
+
+  lifecycle {
+    ignore_changes = [
+      source_code_hash,
+      filename
+    ]
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.gold_seed,
+    aws_iam_role_policy.lambda_logging
+  ]
+}
+
+output "lambda_gold_seed_name" {
+  description = "Name of gold seed Lambda function"
+  value       = aws_lambda_function.gold_seed.function_name
+}
+
+# Lambda function: gold_seed_members (seed dim_members via Congress API)
+resource "aws_lambda_function" "gold_seed_members" {
+  function_name = "${local.name_prefix}-gold-seed-members"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+
+  s3_bucket        = aws_s3_bucket.data_lake.id
+  s3_key           = "lambda-deployments/gold_seed_members/function.zip"
+  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/gold_seed_members/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/gold_seed_members/function.zip") : null
+
+  timeout     = 120
+  memory_size = 512
+
+  environment {
+    variables = {
+      S3_BUCKET_NAME                = aws_s3_bucket.data_lake.id
+      SSM_CONGRESS_API_KEY_PARAM    = local.ssm_congress_api_key_param
+      DIM_MEMBERS_TARGET_YEAR       = "${formatdate("YYYY", timestamp())}"
+      LOG_LEVEL                     = "INFO"
+    }
+  }
+
+  tracing_config {
+    mode = var.enable_xray_tracing ? "Active" : "PassThrough"
+  }
+
+  # Use AWS Data Wrangler layer (pandas/pyarrow)
+  layers = concat(
+    var.lambda_layer_arns,
+    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
+  )
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${local.name_prefix}-gold-seed-members"
+      Component = "lambda"
+      Purpose   = "seed"
+    }
+  )
+
+  lifecycle {
+    ignore_changes = [
+      source_code_hash,
+      filename
+    ]
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.gold_seed_members,
+    aws_iam_role_policy.lambda_logging,
+    aws_iam_role_policy.lambda_ssm_congress_api
+  ]
+}
+
+output "lambda_gold_seed_members_name" {
+  description = "Name of gold seed members Lambda"
+  value       = aws_lambda_function.gold_seed_members.function_name
+}

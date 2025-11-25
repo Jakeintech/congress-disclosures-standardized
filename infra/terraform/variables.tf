@@ -204,6 +204,18 @@ variable "extraction_version" {
   default     = "1.0.0"
 }
 
+variable "seed_data_version" {
+  description = "Version string for seed data run (bump to re-run bootstrap)"
+  type        = string
+  default     = "1"
+}
+
+variable "ssm_congress_api_key_param" {
+  description = "SSM Parameter Store name for Congress.gov API key (leave blank to use default path per environment)"
+  type        = string
+  default     = ""
+}
+
 # Budget Configuration
 variable "budget_alert_email" {
   description = "Email address for budget alerts (required for cost protection)"

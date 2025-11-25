@@ -1,0 +1,539 @@
+ETHICS IN GOVERNMENT ACT
+PERIODIC TRANSACTION REPORT FORM AND
+INSTRUCTIONS
+
+Instruction Guide and Form for Completing
+Ethics In Government Act Periodic Transaction Reports
+Members, officers, and employees who
+qualify as “senior staff” under the Ethics in
+Government Act of 1978 are required to file
+Periodic Transaction Reports (PTRs or
+Reports). In general, you must report on a PTR
+each purchase, sale, or exchange involving
+stocks, bonds, commodities futures, or
+other securities (e.g., cryptocurrencies)
+owned by you, your spouse, or your
+dependent child when the amount of the
+transaction exceeds $1,000. For sales
+transactions, the $1,000 threshold is based on
+the total dollar value of the transaction, not
+your gain or loss made on the sale.
+Note: If you, your spouse, or your
+dependent
+children
+do
+not
+have
+reportable transactions, no PTR is
+required (although some transactions
+may be reportable on your annual FD).
+Purchase transactions which must be
+disclosed include:
+• Individual purchases involving an asset
+listed above in which the transaction
+amount exceeds $1,000; or
+• Reinvestment of income (such as dividends
+or interest) in a reportable asset in which
+the amount of the reinvestment transaction
+exceeds $1,000.
+Sale transactions which must be
+disclosed are:
+• Individual sales involving an asset in which
+the transaction amount exceeds $1,000.
+
+Where only a portion of an asset is sold (e.g., half
+of your shares in Mega Corporation), please
+check the “Partial Sale” box.
+Exchange transactions are somewhat
+rare and refer only to limited circumstances.
+One set of circumstances involves the exchange
+of stock certificates following the purchase of
+one company by another or a merger of two
+companies. Please consult with Committee
+staff for further guidance.
+
+You are not required to report on a
+PTR any transactions in a widely held
+investment fund (e.g., a mutual fund) if:
+1. You neither exercise control over nor
+have the ability to exercise control
+over the financial interests held by the
+fund, and
+2. (a) The fund is publicly traded; or
+(b) The assets of the fund are widely
+diversified.
+A fund is widely diversified if it both:
+1. Holds no more than 5% of the value of its
+portfolio in the securities of any issuer
+(other than the U.S. government), and
+2. Holds no more than 20% of the value of
+its portfolio in any particular economic
+sector or geographic region.
+Further explanation of these terms is available
+in the “Instruction Guide for Completing
+Financial Disclosure Statements and Periodic
+Transaction Reports” available on the
+Committee website:
+https://ethics.house.gov.
+Note: Transactions in these assets must
+still be reported on your annual FD Statement.
+Purchase
+and
+sale
+transactions
+involving assets held within self-directed
+retirement accounts such as 401(k) plans
+and IRAs must be disclosed. For example, if
+you have a 401(k) plan and direct the plan
+administrator to sell or purchase stocks, bonds,
+or other securities, you must separately
+disclose on a PTR each of these transactions
+valued over $1,000. Transfers between
+currently-held assets within these accounts are
+also considered purchase and sale transactions
+for financial disclosure purposes. These types of
+transfers are commonly referred to as
+reallocation or rebalancing of funds.
+The reporting threshold for disclosure of
+transactions is reached when the gross amount
+of a single purchase or sale transaction
+
+exceeds $1,000. This includes transactions that
+result in a net loss. Thus, a sale transaction of
+an asset for $5,000 for which you previously
+paid $7,000 must be disclosed even though it
+resulted in a $2,000 net loss.
+Partnership Transactions. You are only
+required to disclose transactions related to the
+ownership interests in partnerships and
+limited liability companies that were formed for
+the purpose of holding investments. If, for
+example, you are a partner in a limited
+partnership that transacted in five stocks, you
+must separately disclose each transaction for
+which your interest exceeds $1,000.
+Column-by-Column Instructions
+IPO Check Box. You must indicate
+whether you were allocated any shares to
+purchase in an Initial Public Offering by
+checking the appropriate box.
+SP/DC/JT Ownership Column. You
+may, but are not required to, indicate that a
+transaction involves an asset that is held by
+your spouse or dependent child, or is jointly
+held, by including an “SP” for spouse, “DC” for
+dependent child, or “JT” for jointly held
+property. If you use this distinction on your
+annual FD Statement, please use it on your
+PTR.
+Asset Column. Provide the complete name
+of the asset for which a reportable transaction
+has occurred. Do not use ticker symbols.
+Type of Transaction Column. Indicate
+the type of transaction (purchase, sale, or
+exchange) by placing an “X” in the appropriate
+box.
+Date of Transaction Column. Indicate
+the month, day, and year of the transaction. For
+securities, the transaction date is generally the
+date the security was traded.
+
+Date Notified of Transaction Column.
+Indicate the month, day, and year that you
+were notified of the transaction.
+Amount of Transaction Column. Report the
+category of value of the total purchase price or
+total sale price (or the fair market value in the
+case of an exchange) of the transaction. As
+explained above, use the gross amount of a
+transaction to determine which value category
+amount to disclose. The amount of any capital
+gain or loss on the transaction is irrelevant for
+the purposes of determining the transaction
+amount. The column “Transaction in a Spouse
+or Dependent Child Asset over $1,000,000”
+should only be used for assets that are owned
+by your spouse or dependent child, in which you
+have no interest.
+You may not send brokerage statements
+in lieu of completing, or as an attachment
+to, the PTR form.
+Exclusions
+
+The following transactions are not required
+to be disclosed on a PTR:
+• Any transaction in real property;
+• The purchase or sale of any widely held
+investment fund that is either publicly
+traded or widely diversified and is not
+controlled by the filer;
+• Any transaction in a mutual fund or
+Exchange Traded Fund (ETF);
+• Any transactions solely by and between
+you, your spouse, or your dependent child;
+• Any transaction in a federal retirement
+program, such as the Thrift Savings
+Plan (TSP);
+• Stock splits;
+• Bequests or inheritances;
+• The opening or closing of bank or similar
+
+accounts (such as money market funds), or
+deposits or withdrawals from a bank
+account;
+
+• The purchase or sale of certificates of
+
+deposit; and
+
+• The rollover of assets from one retirement
+
+account to another.
+
+Note: You may still be required to report
+some of these transactions on your annual
+FD Statement.
+Signature
+You must sign and date the signature page
+after completing the PTR. By your signature,
+you are certifying that the report is accurate
+and complete to the best of your knowledge and
+belief. Additionally, you are certifying that, to
+date, you have disclosed all transactions as
+required by the STOCK Act. This page must be
+signed by you personally, not by someone acting
+on your behalf, even if someone else prepared or
+assisted you in completing the Report.
+Due Date of Filing
+A PTR must be filed by the earlier of these
+two dates: (a) 30 days from being made aware of
+the transaction or (b) 45 days from the
+transaction. PTR deadlines will not be extended
+to the following business day if the original due
+date falls on a weekend or federal holiday. If the
+deadline falls on a holiday or weekend, the PTR
+can still be timely filed through the online filing
+system that day, but if a filer submits the PTR
+using the paper form, it must be received by the
+Clerk or legibly postmarked by the last business
+day before the holiday or weekend.
+Extensions will not be granted for PTRs.
+A $200 penalty shall be assessed against
+anyone who files more than 30 days late.
+Where to File and Number of Copies
+The PTR (and any amendments) must be
+filed with the Clerk of the House of
+Representatives, Legislative Resource Center,
+Room B-81 Cannon House Office Building,
+
+Washington, DC. 20515. Members should
+submit one original (with an original signature)
+and two photocopies of their completed and
+signed Report. Officers and employees should
+submit one original (with an original signature)
+and one photocopy of their completed and
+signed Report.
+Getting Assistance
+Filers are encouraged to carefully read these
+instructions. Any filer who has questions
+concerning the reporting requirements or how
+to fill out the PTR should call the Committee
+at
+(202) 225–7103. Additional copies of the form
+can be obtained by visiting the Committee
+website at https://ethics.house.gov and clicking
+on the “Financial Disclosure” tab. If you would
+like additional information about financial
+disclosure requirements generally, it can be
+found in the Instruction Guide, also available
+on the website.
+Note: PTRs are required by the Ethics
+in Government Act of 1978, as amended.
+The reports will be available to the public
+and will be reviewed by the Committee on
+Ethics or its designee. Any individual who
+knowingly and willfully falsifies, or who
+knowingly and willfully fails to file a PTR
+may be subject to civil penalties and
+criminal sanctions. See section 104 of the
+Ethics in Government Act (5 U.S.C. app.
+§§ 101-111) and 18 U.S.C. § 1001.
+THE PERIODIC TRANSACTION REPORT
+MUST BE SIGNED AND DATED BY THE
+REPORTING INDIVIDUAL.
+
+UNITED STATES HOUSE OF REPRESENTATIVES
+ETHICS IN GOVERNMENT ACT
+PERIODIC TRANSACTION REPORT
+Please provide the following information.
+
+Your address and signature WILL NOT be made available to the public.
+
+(Print Full Name)
+
+(Daytime Telephone)
+
+(Complete Address – Office or Home)
+
+Filer Status:
+
+Member
+
+Officer or Employee
+
+CERTIFICATION – THIS DOCUMENT MUST BE SIGNED BY THE REPORTING INDIVIDUAL AND DATED
+
+The attached Periodic Transaction Report (PTR) is required by the Ethics in Government Act of 1978, as amended by the Representative Louise McIntosh
+Slaughter Stop Trading on Congressional Knowledge (STOCK) Act. The PTR will be available to the public and will be reviewed by the Committee on Ethics
+or its designee. Any individual who knowingly and willfully falsifies or who knowingly and willfully fails to file the attached report may be subject to civil
+penalties and criminal sanctions. See Section 104 of the Ethics in Government Act (5 U.S.C. app. §§ 101-111) and 18 U.S.C. § 1001.
+Certification
+I CERTIFY that the statements I have made on the attached Periodic Transaction
+Report are true, complete, and correct to the best of my knowledge and belief.
+Further, I CERTIFY that I have disclosed all transactions as required by the
+STOCK Act.
+
+Signature of Reporting Individual
+
+Date
+
+Members must file a signed original and two photocopies thereof.
+Officers and employees must file a signed original and one photocopy thereof.
+
+***FOR OFFICIAL USE ONLY – DO NOT WRITE BELOW***
+Certification
+
+Signature of Certifying Official
+
+Date
+
+It is my opinion, based on the information contained in this Periodic
+Transaction Report, that the reporting individual is in compliance
+with title I of the Ethics in Government Act (5 U.S.C. app. §§ 101111).
+
+UNITED STATES HOUSE OF REPRESENTATIVES
+
+Page 1 of ____
+
+Periodic Transaction Report
+
+NAME: __________________________________
+
+OFFICE TELEPHONE: _____________________
+
+Member of the U.S. House of Representatives
+
+Officer or Employee
+
+State:
+
+Employing Office: _____________________________
+
+District: _________________
+
+File an original and 2 copies
+
+File an original and 1 copy
+
+Did you purchase any shares that were allocated as a part of
+an Initial Public Offering?
+Yes
+
+No
+
+(For Official Use Only)
+
+Please indicate whether this is an initial report or an amended
+report. For amendments, please provide the date of the report
+you are amending.
+Initial report
+
+A $200 penalty shall be assessed against anyone
+who files more than 30 days late.
+
+Amendment
+
+Date of Report Being Amended: ______________________
+If you answered “yes” to this question, please contact the
+Committee on Ethics for further guidance.
+
+X
+
+D
+
+E
+
+F
+
+G
+
+H
+
+I
+
+J
+
+K
+
+$250,001-$500,000
+
+$500,001-1,000,000
+
+$1,000,001-$5,000,000
+
+$5,000,001-$25,000,000
+
+$25,000,001-$50,000,000
+
+Over $50,000,000
+
+Transaction in a Spouse or
+Dependent Child Asset over
+$1,000,000
+
+03/07/20
+
+C
+
+$100,001-$250,000
+
+02/05/20
+
+B
+
+$50,001-$100,000
+
+(MM/DD/YY)
+
+A
+
+$1,5,001-$50,000
+
+(MM/DD/YY)
+
+AMOUNT OF TRANSACTION
+
+$1,001-$15,000
+
+Example: Mega Corp. Common Stock
+
+Exchange
+
+JT
+
+Partial Sale
+
+Provide full name, not ticker symbol.
+
+Sale
+
+SP
+DC
+JT
+
+Purchase
+
+FULL ASSET NAME
+
+DATE OF
+TRANSACTION
+
+TYPE OF
+TRANSACTION
+
+DATE
+NOTIFIED
+OF
+TRANSACTION
+
+X
+
+NAME:____________________________Page____of____
+
+UNITED STATES HOUSE OF REPRESENTATIVES
+Periodic Transaction Report
+
+NOTE NUMBER
+
+FILER NOTES
+
+A
+
+B
+
+C
+
+D
+
+E
+
+F
+
+G
+
+H
+
+I
+
+J
+
+K
+
+$50,001-$100,000
+
+$100,001-$250,000
+
+$250,001-$500,000
+
+$500,001-1,000,000
+
+$1,000,001-$5,000,000
+
+$5,000,001-$25,000,000
+
+$25,000,001-$50,000,000
+
+Over $50,000,000
+
+Transaction in a Spouse or
+Dependent Child Asset over
+$1,000,000
+
+(MM/DD/YY)
+
+AMOUNT OF TRANSACTION
+
+$1,5,001-$50,000
+
+(MM/DD/YY)
+
+DATE
+NOTIFIED
+OF
+TRANSACTION
+
+$1,001-$15,000
+
+Exchange
+
+Partial Sale
+
+Provide full name, not ticker symbol.
+
+Sale
+
+SP
+DC
+JT
+
+Purchase
+
+FULL ASSET NAME
+
+DATE OF
+TRANSACTION
+
+TYPE OF
+TRANSACTION
+
+

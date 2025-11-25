@@ -7,7 +7,6 @@ This Lambda (triggered by SQS):
 4. Updates house_fd_documents record with extraction results
 """
 
-import hashlib
 import json
 import logging
 import os
@@ -15,13 +14,13 @@ import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 # Add lib to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Import shared libraries
-from lib import s3_utils, pdf_extractor, parquet_writer
+from lib import s3_utils, pdf_extractor, parquet_writer  # noqa: E402
 
 # Configure logging
 logger = logging.getLogger()
@@ -81,14 +80,10 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             logger.error(f"Failed to process record: {str(e)}", exc_info=True)
 
             # Add to batch failures (SQS will retry)
-            batch_item_failures.append({
-                "itemIdentifier": record["messageId"]
-            })
+            batch_item_failures.append({"itemIdentifier": record["messageId"]})
 
     # Return batch failures for SQS partial batch response
-    return {
-        "batchItemFailures": batch_item_failures
-    }
+    return {"batchItemFailures": batch_item_failures}
 
 
 def process_document(doc_id: str, year: int, s3_pdf_key: str):
@@ -116,10 +111,12 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
         pdf_sha256 = s3_utils.calculate_sha256(pdf_path)
         pdf_file_size = pdf_path.stat().st_size
 
-        logger.info(f"PDF downloaded: {pdf_file_size} bytes, SHA256={pdf_sha256[:16]}...")
+        logger.info(
+            f"PDF downloaded: {pdf_file_size} bytes, SHA256={pdf_sha256[:16]}..."
+        )
 
         # Step 2: Extract text
-        logger.info(f"Extracting text from PDF")
+        logger.info("Extracting text from PDF")
 
         extraction_result = pdf_extractor.extract_text_from_pdf(
             pdf_path=pdf_path,
@@ -129,9 +126,12 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
         )
 
         # Step 3: Upload extracted text to silver
-        logger.info(f"Uploading extracted text to silver")
+        logger.info("Uploading extracted text to silver")
 
-        text_s3_key = f"{S3_SILVER_PREFIX}/house/financial/text/year={year}/doc_id={doc_id}/raw_text.txt.gz"
+        text_s3_key = (
+            f"{S3_SILVER_PREFIX}/house/financial/text/year={year}/"
+            f"doc_id={doc_id}/raw_text.txt.gz"
+        )
 
         s3_utils.upload_text_gzipped(
             text=extraction_result["text"],
@@ -148,7 +148,7 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
         )
 
         # Step 4: Update house_fd_documents record
-        logger.info(f"Updating house_fd_documents record")
+        logger.info("Updating house_fd_documents record")
 
         update_document_record(
             doc_id=doc_id,
@@ -198,7 +198,9 @@ def update_document_record(
     updated_record = {
         "doc_id": doc_id,
         "year": year,
-        "pdf_s3_key": f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf",
+        "pdf_s3_key": (
+            f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
+        ),
         "pdf_sha256": pdf_sha256,
         "pdf_file_size_bytes": pdf_file_size,
         "pages": extraction_result["pages"],
@@ -216,7 +218,9 @@ def update_document_record(
     }
 
     # Read existing records
-    documents_s3_key = f"{S3_SILVER_PREFIX}/house/financial/documents/year={year}/part-0000.parquet"
+    documents_s3_key = (
+        f"{S3_SILVER_PREFIX}/house/financial/documents/year={year}/part-0000.parquet"
+    )
 
     # Upsert record
     parquet_writer.upsert_parquet_records(

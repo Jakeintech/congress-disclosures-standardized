@@ -40,8 +40,8 @@ resource "aws_budgets_budget" "monthly_free_tier" {
 
   # Alert at 80% of budget
   notification {
-    comparison_operator        = "GREATER_THAN"
-    threshold                  = 80
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 80
     threshold_type            = "PERCENTAGE"
     notification_type         = "ACTUAL"
     subscriber_sns_topic_arns = [aws_sns_topic.budget_alerts.arn]
@@ -49,8 +49,8 @@ resource "aws_budgets_budget" "monthly_free_tier" {
 
   # Alert at 100% of budget
   notification {
-    comparison_operator        = "GREATER_THAN"
-    threshold                  = 100
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 100
     threshold_type            = "PERCENTAGE"
     notification_type         = "ACTUAL"
     subscriber_sns_topic_arns = [aws_sns_topic.budget_alerts.arn]
@@ -58,8 +58,8 @@ resource "aws_budgets_budget" "monthly_free_tier" {
 
   # Forecasted alert at 100%
   notification {
-    comparison_operator        = "GREATER_THAN"
-    threshold                  = 100
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 100
     threshold_type            = "PERCENTAGE"
     notification_type         = "FORECASTED"
     subscriber_sns_topic_arns = [aws_sns_topic.budget_alerts.arn]
@@ -91,8 +91,8 @@ resource "aws_budgets_budget" "daily_limit" {
 
   # Alert at 100% of daily budget
   notification {
-    comparison_operator        = "GREATER_THAN"
-    threshold                  = 100
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 100
     threshold_type            = "PERCENTAGE"
     notification_type         = "ACTUAL"
     subscriber_sns_topic_arns = [aws_sns_topic.budget_alerts.arn]
@@ -111,7 +111,7 @@ resource "aws_budgets_budget" "daily_limit" {
 resource "aws_budgets_budget" "lambda_budget" {
   name         = "${local.name_prefix}-lambda-budget"
   budget_type  = "COST"
-  limit_amount = "5.00"  # Lambda costs should be near zero in free tier
+  limit_amount = "5.00" # Lambda costs should be near zero in free tier
   limit_unit   = "USD"
   time_unit    = "MONTHLY"
 
@@ -123,8 +123,8 @@ resource "aws_budgets_budget" "lambda_budget" {
   }
 
   notification {
-    comparison_operator        = "GREATER_THAN"
-    threshold                  = 80
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 80
     threshold_type            = "PERCENTAGE"
     notification_type         = "ACTUAL"
     subscriber_sns_topic_arns = [aws_sns_topic.budget_alerts.arn]
@@ -143,7 +143,7 @@ resource "aws_budgets_budget" "lambda_budget" {
 resource "aws_budgets_budget" "s3_budget" {
   name         = "${local.name_prefix}-s3-budget"
   budget_type  = "COST"
-  limit_amount = "2.00"  # S3 should be mostly free tier
+  limit_amount = "2.00" # S3 should be mostly free tier
   limit_unit   = "USD"
   time_unit    = "MONTHLY"
 
@@ -155,8 +155,8 @@ resource "aws_budgets_budget" "s3_budget" {
   }
 
   notification {
-    comparison_operator        = "GREATER_THAN"
-    threshold                  = 80
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 80
     threshold_type            = "PERCENTAGE"
     notification_type         = "ACTUAL"
     subscriber_sns_topic_arns = [aws_sns_topic.budget_alerts.arn]
@@ -179,7 +179,7 @@ resource "aws_cloudwatch_metric_alarm" "estimated_charges" {
   evaluation_periods  = "1"
   metric_name         = "EstimatedCharges"
   namespace           = "AWS/Billing"
-  period              = "21600"  # 6 hours
+  period              = "21600" # 6 hours
   statistic           = "Maximum"
   threshold           = var.budget_monthly_limit
   alarm_description   = "Alert when estimated charges exceed monthly budget"
@@ -212,9 +212,9 @@ resource "aws_lambda_function" "emergency_shutdown" {
 
   environment {
     variables = {
-      ENVIRONMENT           = var.environment
-      PROJECT_NAME          = var.project_name
-      LAMBDA_FUNCTION_ARNS  = jsonencode([
+      ENVIRONMENT  = var.environment
+      PROJECT_NAME = var.project_name
+      LAMBDA_FUNCTION_ARNS = jsonencode([
         aws_lambda_function.ingest_zip.arn,
         aws_lambda_function.index_to_silver.arn,
         aws_lambda_function.extract_document.arn,

@@ -157,53 +157,103 @@
                     <div class="tab-content" data-tab="silver-filings">
                         <div class="card">
                             <div class="card-header">
-                                <h2 class="card-title">Silver Layer: Normalized Parquet Tables</h2>
-                                <p class="card-description">Query-optimized data in Apache Parquet format</p>
+                                <h2 class="card-title">Silver Layer: Documents Extraction Status</h2>
+                                <p class="card-description">View extraction status and metadata for all processed documents</p>
                             </div>
                             <div class="card-content">
-                                <div class="space-y-4">
-                                    <div class="download-item">
-                                        <div class="download-header">
-                                            <h3 class="download-title">Filings Table</h3>
-                                            <span class="badge">~82 KB</span>
-                                        </div>
-                                        <p class="download-description">Normalized filing metadata (1,616 records)</p>
-                                        <div class="download-actions">
-                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/filings/year=2025/part-0000.parquet"
-                                               class="btn btn-primary" download>
-                                                Download Parquet
-                                            </a>
-                                            <code class="code-inline">silver/house/financial/filings/year=2025/</code>
-                                        </div>
-                                        <div class="schema-preview">
-                                            <strong>Schema:</strong> doc_id, year, filing_date, filing_type, first_name, last_name, state_district, pdf_s3_key
-                                        </div>
+                                <!-- Silver Stats -->
+                                <div class="stats-grid" id="silver-stats">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="silver-total-docs">-</div>
+                                        <div class="stat-label">Total Documents</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="silver-success">-</div>
+                                        <div class="stat-label">Extracted Successfully</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="silver-pending">-</div>
+                                        <div class="stat-label">Pending</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="silver-total-pages">-</div>
+                                        <div class="stat-label">Total Pages</div>
+                                    </div>
+                                </div>
+
+                                <!-- Filters -->
+                                <div class="filters">
+                                    <input type="text" id="silver-search" placeholder="Search by document ID..." class="input">
+                                    <div class="filter-grid">
+                                        <select id="silver-year-filter" class="select">
+                                            <option value="">All Years</option>
+                                        </select>
+                                        <select id="silver-status-filter" class="select">
+                                            <option value="">All Statuses</option>
+                                            <option value="success">Success</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="failed">Failed</option>
+                                        </select>
+                                        <select id="silver-method-filter" class="select">
+                                            <option value="">All Extraction Methods</option>
+                                            <option value="pypdf">PyPDF</option>
+                                            <option value="textract">AWS Textract</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="silver-loading" class="loading-state">
+                                    <div class="spinner"></div>
+                                    <p>Loading silver layer data...</p>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="silver-error" class="error-state hidden">
+                                    <p>Unable to load silver layer data.</p>
+                                </div>
+
+                                <!-- Data Table -->
+                                <div id="silver-data-section" class="data-section hidden">
+                                    <div class="table-actions">
+                                        <span id="silver-showing-count" class="text-muted">Showing 0 of 0 documents</span>
+                                        <button id="silver-export-csv" class="btn btn-secondary">Export CSV</button>
                                     </div>
 
-                                    <div class="download-item">
-                                        <div class="download-header">
-                                            <h3 class="download-title">Documents Table</h3>
-                                            <span class="badge">~45 KB</span>
-                                        </div>
-                                        <p class="download-description">Document extraction metadata (1,616 records)</p>
-                                        <div class="download-actions">
-                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/documents/year=2025/part-0000.parquet"
-                                               class="btn btn-primary" download>
-                                                Download Parquet
-                                            </a>
-                                            <code class="code-inline">silver/house/financial/documents/year=2025/</code>
-                                        </div>
-                                        <div class="schema-preview">
-                                            <strong>Schema:</strong> doc_id, year, pdf_s3_key, extraction_status, extraction_method, pages, char_count
-                                        </div>
+                                    <div class="table-container">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th data-sort="doc_id">Document ID</th>
+                                                    <th data-sort="year">Year</th>
+                                                    <th data-sort="extraction_status">Status</th>
+                                                    <th data-sort="extraction_method">Method</th>
+                                                    <th data-sort="pages">Pages</th>
+                                                    <th data-sort="char_count">Characters</th>
+                                                    <th data-sort="pdf_file_size_bytes">File Size</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="silver-table-body">
+                                                <!-- Populated by JavaScript -->
+                                            </tbody>
+                                        </table>
                                     </div>
 
-                                    <div class="alert alert-info">
-                                        <div class="alert-title">Query Examples</div>
-                                        <div class="alert-description">
-                                            <strong>Python/Pandas:</strong> <code>pd.read_parquet('filings.parquet')</code><br>
-                                            <strong>DuckDB:</strong> <code>SELECT * FROM 'filings.parquet' WHERE year=2025</code>
-                                        </div>
+                                    <div class="pagination" id="silver-pagination">
+                                        <button id="silver-prev-page" class="btn btn-ghost" disabled>Previous</button>
+                                        <span id="silver-page-info" class="text-muted">Page 1 of 1</span>
+                                        <button id="silver-next-page" class="btn btn-ghost" disabled>Next</button>
+                                    </div>
+                                </div>
+
+                                <!-- Download Parquet Files -->
+                                <div class="alert alert-info" style="margin-top: 2rem;">
+                                    <div class="alert-title">Download Parquet Files</div>
+                                    <div class="alert-description">
+                                        <strong>Filings:</strong> <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/filings/year=2025/part-0000.parquet" download>Download</a><br>
+                                        <strong>Documents:</strong> <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/documents/year=2025/part-0000.parquet" download>Download</a><br>
+                                        <strong>Query with:</strong> <code>pd.read_parquet('filings.parquet')</code> or <code>SELECT * FROM 'filings.parquet'</code>
                                     </div>
                                 </div>
                             </div>

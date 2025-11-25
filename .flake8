@@ -1,0 +1,11 @@
+[flake8]
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    ingestion/lambdas/*/package
+max-line-length = 88
+# Compatible with Black
+ignore = E203, W503
+

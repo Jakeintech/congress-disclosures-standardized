@@ -2,7 +2,6 @@
 
 import hashlib
 import logging
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
@@ -114,9 +113,11 @@ def upload_file_to_s3(
     # Upload with retry logic (handled by boto3 config)
     s3 = get_s3_client()
     try:
-        logger.info(f"Uploading {local_path} to s3://{bucket}/{s3_key} ({file_size} bytes)")
+        logger.info(
+            f"Uploading {local_path} to s3://{bucket}/{s3_key} ({file_size} bytes)"
+        )
 
-        response = s3.upload_file(
+        s3.upload_file(
             str(local_path),
             bucket,
             s3_key,

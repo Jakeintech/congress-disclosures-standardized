@@ -3,11 +3,9 @@
 import io
 import logging
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
-import pyarrow as pa
 import pyarrow.parquet as pq
 from jsonschema import validate, ValidationError
 
@@ -92,7 +90,8 @@ def write_parquet_to_s3(
 
         # Upload to S3
         logger.info(
-            f"Writing {len(records)} records ({len(parquet_bytes)} bytes) to {s3_key}"
+            f"Writing {len(records)} records "
+            f"({len(parquet_bytes)} bytes) to {s3_key}"
         )
 
         result = upload_bytes_to_s3(
@@ -192,7 +191,9 @@ def upsert_parquet_records(
             existing_records = read_parquet_from_s3(bucket, s3_key)
 
         # Convert to DataFrames
-        existing_df = pd.DataFrame(existing_records) if existing_records else pd.DataFrame()
+        existing_df = (
+            pd.DataFrame(existing_records) if existing_records else pd.DataFrame()
+        )
         new_df = pd.DataFrame(new_records)
 
         # Perform upsert (merge with 'right' to keep new records)
@@ -222,7 +223,9 @@ def upsert_parquet_records(
             "existing_count": len(existing_records),
             "new_count": len(new_records),
             "final_count": len(merged_records),
-            "updated_count": len(new_records),  # Simplified - could track actual updates
+            "updated_count": len(
+                new_records
+            ),  # Simplified - could track actual updates
         }
 
         logger.info(
@@ -362,10 +365,14 @@ def get_parquet_stats(bucket: str, s3_key: str) -> Dict[str, Any]:
             "num_row_groups": metadata.num_row_groups,
             "columns": [field.name for field in schema],
             "column_types": {field.name: str(field.type) for field in schema},
-            "compression": metadata.row_group(0).column(0).compression if metadata.num_row_groups > 0 else None,
+            "compression": metadata.row_group(0).column(0).compression
+            if metadata.num_row_groups > 0
+            else None,
         }
 
-        logger.info(f"Parquet stats: {stats['row_count']} rows, {len(stats['columns'])} columns")
+        logger.info(
+            f"Parquet stats: {stats['row_count']} rows, {len(stats['columns'])} columns"
+        )
 
         return stats
 
@@ -374,7 +381,9 @@ def get_parquet_stats(bucket: str, s3_key: str) -> Dict[str, Any]:
         raise
 
 
-def normalize_datetime_fields(records: List[Dict[str, Any]], datetime_fields: List[str]) -> List[Dict[str, Any]]:
+def normalize_datetime_fields(
+    records: List[Dict[str, Any]], datetime_fields: List[str]
+) -> List[Dict[str, Any]]:
     """Normalize datetime fields to ISO format strings.
 
     Args:

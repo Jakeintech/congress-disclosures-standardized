@@ -33,10 +33,10 @@ output "quick_reference" {
   description = "Quick reference guide for common operations"
   value = {
     ingest_command = "aws lambda invoke --function-name ${aws_lambda_function.ingest_zip.function_name} --payload '{\"year\": 2025}' response.json"
-    s3_bucket = aws_s3_bucket.data_lake.id
-    sqs_queue_url = aws_sqs_queue.extraction_queue.url
-    logs_ingest = "aws logs tail ${aws_cloudwatch_log_group.ingest_zip.name} --follow"
-    logs_extract = "aws logs tail ${aws_cloudwatch_log_group.extract_document.name} --follow"
+    s3_bucket      = aws_s3_bucket.data_lake.id
+    sqs_queue_url  = aws_sqs_queue.extraction_queue.url
+    logs_ingest    = "aws logs tail ${aws_cloudwatch_log_group.ingest_zip.name} --follow"
+    logs_extract   = "aws logs tail ${aws_cloudwatch_log_group.extract_document.name} --follow"
   }
 }
 
@@ -45,19 +45,19 @@ output "monthly_cost_estimate" {
   description = "Estimated monthly cost breakdown (USD) based on typical usage"
   value = {
     s3_storage_20gb = "$0.46"
-    lambda_compute = "$0.08 - $2.00 (depends on invocations)"
-    textract = "$0.00 - $15.00 (depends on image PDFs, 1000 pages free)"
-    sqs = "$0.00 (within free tier)"
+    lambda_compute  = "$0.08 - $2.00 (depends on invocations)"
+    textract        = "$0.00 - $15.00 (depends on image PDFs, 1000 pages free)"
+    sqs             = "$0.00 (within free tier)"
     cloudwatch_logs = "$0.50"
-    total_estimate = "$1.04 - $17.96 per month"
-    note = "First month may be fully covered by AWS free tier. Textract is main variable cost."
+    total_estimate  = "$1.04 - $17.96 per month"
+    note            = "First month may be fully covered by AWS free tier. Textract is main variable cost."
   }
 }
 
 # Deployment instructions
 output "next_steps" {
   description = "Next steps after Terraform deployment"
-  value = <<-EOT
+  value       = <<-EOT
   Terraform deployment complete! Next steps:
 
   1. Trigger initial ingestion:

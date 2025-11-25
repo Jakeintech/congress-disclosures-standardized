@@ -12,7 +12,6 @@ import io
 import json
 import logging
 import os
-import tempfile
 import time
 import zipfile
 from datetime import datetime, timezone
@@ -72,20 +71,22 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         zip_bytes, download_meta = download_zip_file(zip_url)
 
         # Step 2: Upload raw zip to bronze
-        logger.info(f"Step 2: Uploading raw zip to bronze layer")
-        raw_zip_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/raw_zip/{year}FD.zip"
+        logger.info("Step 2: Uploading raw zip to bronze layer")
+        raw_zip_key = (
+            f"{S3_BRONZE_PREFIX}/house/financial/year={year}/raw_zip/{year}FD.zip"
+        )
         upload_raw_zip(zip_bytes, raw_zip_key, download_meta, year)
 
         # Step 3: Extract and upload index files
-        logger.info(f"Step 3: Extracting and uploading index files")
+        logger.info("Step 3: Extracting and uploading index files")
         index_files = extract_and_upload_index(zip_bytes, year)
 
         # Step 4: Extract and upload PDFs + send to SQS
-        logger.info(f"Step 4: Extracting and uploading PDFs")
+        logger.info("Step 4: Extracting and uploading PDFs")
         pdf_count, sqs_message_count = extract_and_upload_pdfs(zip_bytes, year)
 
         # Trigger index-to-silver Lambda (synchronous)
-        logger.info(f"Step 5: Triggering index-to-silver Lambda")
+        logger.info("Step 5: Triggering index-to-silver Lambda")
         trigger_index_to_silver(year)
 
         result = {
@@ -221,7 +222,9 @@ def extract_and_upload_index(zip_bytes: bytes, year: int) -> List[str]:
                         "upload_timestamp": datetime.now(timezone.utc).isoformat(),
                         "year": str(year),
                     },
-                    ContentType="application/xml" if file_ext == ".xml" else "text/plain",
+                    ContentType="application/xml"
+                    if file_ext == ".xml"
+                    else "text/plain",
                 )
 
                 uploaded_keys.append(s3_key)
@@ -255,7 +258,9 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int) -> tuple:
                 # Extract doc_id from filename (e.g., "8221216.pdf" -> "8221216")
                 doc_id = Path(filename).stem
 
-                logger.debug(f"Processing PDF {pdf_count}: {filename} (doc_id={doc_id})")
+                logger.debug(
+                    f"Processing PDF {pdf_count}: {filename} (doc_id={doc_id})"
+                )
 
                 # Read PDF
                 pdf_data = zf.read(filename)
@@ -279,14 +284,18 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int) -> tuple:
                 logger.debug(f"Uploaded PDF to s3://{S3_BUCKET}/{s3_key}")
 
                 # Prepare SQS message
-                sqs_messages_batch.append({
-                    "Id": doc_id,
-                    "MessageBody": json.dumps({
-                        "doc_id": doc_id,
-                        "year": year,
-                        "s3_pdf_key": s3_key,
-                    }),
-                })
+                sqs_messages_batch.append(
+                    {
+                        "Id": doc_id,
+                        "MessageBody": json.dumps(
+                            {
+                                "doc_id": doc_id,
+                                "year": year,
+                                "s3_pdf_key": s3_key,
+                            }
+                        ),
+                    }
+                )
 
                 # Send batch if we have 10 messages (SQS max batch size)
                 if len(sqs_messages_batch) >= 10:
@@ -342,7 +351,10 @@ def trigger_index_to_silver(year: int):
     # Get function name from environment or construct it
     function_name = os.environ.get(
         "INDEX_TO_SILVER_FUNCTION_NAME",
-        f"congress-disclosures-{os.environ.get('ENVIRONMENT', 'development')}-index-to-silver"
+        (
+            f"congress-disclosures-{os.environ.get('ENVIRONMENT', 'development')}"
+            f"-index-to-silver"
+        ),
     )
 
     try:

@@ -12,7 +12,7 @@ import json
 import logging
 import os
 import sys
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
@@ -21,7 +21,7 @@ from typing import Any, Dict, List
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Import shared libraries
-from lib import s3_utils, parquet_writer, manifest_generator
+from lib import s3_utils, parquet_writer, manifest_generator  # noqa: E402
 
 # Configure logging
 logger = logging.getLogger()
@@ -67,19 +67,23 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         logger.info(f"Starting index-to-silver for year {year}")
 
         # Step 1: Download XML index from bronze
-        logger.info(f"Step 1: Downloading XML index from bronze")
-        xml_s3_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/index/{year}FD.xml"
+        logger.info("Step 1: Downloading XML index from bronze")
+        xml_s3_key = (
+            f"{S3_BRONZE_PREFIX}/house/financial/year={year}/index/{year}FD.xml"
+        )
         xml_content = s3_utils.download_bytes_from_s3(S3_BUCKET, xml_s3_key)
 
         # Step 2: Parse XML into records
-        logger.info(f"Step 2: Parsing XML index")
+        logger.info("Step 2: Parsing XML index")
         filing_records = parse_xml_index(xml_content, year, xml_s3_key)
 
         logger.info(f"Parsed {len(filing_records)} filing records")
 
         # Step 3: Write house_fd_filings to silver
-        logger.info(f"Step 3: Writing house_fd_filings to silver")
-        filings_s3_key = f"{S3_SILVER_PREFIX}/house/financial/filings/year={year}/part-0000.parquet"
+        logger.info("Step 3: Writing house_fd_filings to silver")
+        filings_s3_key = (
+            f"{S3_SILVER_PREFIX}/house/financial/filings/year={year}/part-0000.parquet"
+        )
 
         filings_result = parquet_writer.upsert_parquet_records(
             new_records=filing_records,
@@ -90,10 +94,12 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         )
 
         # Step 4: Initialize house_fd_documents records
-        logger.info(f"Step 4: Initializing house_fd_documents records")
+        logger.info("Step 4: Initializing house_fd_documents records")
         document_records = initialize_document_records(filing_records)
 
-        documents_s3_key = f"{S3_SILVER_PREFIX}/house/financial/documents/year={year}/part-0000.parquet"
+        documents_s3_key = (
+            f"{S3_SILVER_PREFIX}/house/financial/documents/year={year}/part-0000.parquet"
+        )
 
         documents_result = parquet_writer.upsert_parquet_records(
             new_records=document_records,
@@ -104,17 +110,36 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         )
 
         # Step 5: Generate manifest.json for website
-        logger.info(f"Step 5: Generating manifest.json for website")
+        logger.info("Step 5: Generating manifest.json for website")
         try:
             manifest_result = manifest_generator.update_manifest_incremental(
                 new_filings=filing_records,
                 s3_bucket=S3_BUCKET,
                 s3_key="manifest.json",
             )
-            logger.info(f"Manifest generated: {manifest_result['filings_count']} filings")
+            logger.info(
+                f"Manifest generated: {manifest_result['filings_count']} filings"
+            )
         except Exception as e:
             logger.warning(f"Failed to generate manifest: {str(e)}")
             manifest_result = {"error": str(e)}
+
+        # Step 6: Generate silver_documents.json for website
+        logger.info("Step 6: Generating silver_documents.json for website")
+        try:
+            documents_json_result = (
+                manifest_generator.update_silver_documents_json_incremental(
+                    new_documents=document_records,
+                    s3_bucket=S3_BUCKET,
+                    s3_key="silver_documents.json",
+                )
+            )
+            logger.info(
+                f"Silver documents JSON generated: {documents_json_result['documents_count']} documents"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to generate silver_documents.json: {str(e)}")
+            documents_json_result = {"error": str(e)}
 
         result = {
             "status": "success",
@@ -124,6 +149,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "filings_s3_key": filings_s3_key,
             "documents_s3_key": documents_s3_key,
             "manifest": manifest_result,
+            "silver_documents_json": documents_json_result,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -140,7 +166,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
 
 
-def parse_xml_index(xml_bytes: bytes, year: int, xml_s3_key: str) -> List[Dict[str, Any]]:
+def parse_xml_index(
+    xml_bytes: bytes, year: int, xml_s3_key: str
+) -> List[Dict[str, Any]]:
     """Parse House FD XML index into structured records.
 
     Args:
@@ -164,7 +192,7 @@ def parse_xml_index(xml_bytes: bytes, year: int, xml_s3_key: str) -> List[Dict[s
         doc_id = member.findtext("DocID", "").strip()
 
         if not doc_id:
-            logger.warning(f"Skipping member with no DocID")
+            logger.warning("Skipping member with no DocID")
             continue
 
         # Extract fields
@@ -180,7 +208,9 @@ def parse_xml_index(xml_bytes: bytes, year: int, xml_s3_key: str) -> List[Dict[s
             "state_district": member.findtext("StateDst", "").strip(),
             "raw_xml_path": xml_s3_key,
             "raw_txt_path": xml_s3_key.replace(".xml", ".txt"),
-            "pdf_s3_key": f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf",
+            "pdf_s3_key": (
+                f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
+            ),
             "bronze_ingest_ts": datetime.now(timezone.utc).isoformat(),
             "silver_ingest_ts": datetime.now(timezone.utc).isoformat(),
             "source_system": "house_fd",
@@ -199,7 +229,9 @@ def parse_xml_index(xml_bytes: bytes, year: int, xml_s3_key: str) -> List[Dict[s
     return records
 
 
-def initialize_document_records(filing_records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def initialize_document_records(
+    filing_records: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
     """Initialize house_fd_documents records from filing records.
 
     Creates pending extraction records for each PDF.

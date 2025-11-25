@@ -2,18 +2,27 @@
 const S3_BUCKET = 'congress-disclosures-standardized';
 const S3_REGION = 'us-east-1';
 const MANIFEST_URL = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/manifest.json`;
+const SILVER_DOCUMENTS_URL = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/silver_documents.json`;
 const ITEMS_PER_PAGE = 50;
 
-// State
+// State - Bronze Layer
 let allFilings = [];
 let filteredFilings = [];
 let currentPage = 1;
 let sortColumn = 'filing_date';
 let sortDirection = 'desc';
 
+// State - Silver Layer
+let allSilverDocuments = [];
+let filteredSilverDocuments = [];
+let silverCurrentPage = 1;
+let silverSortColumn = 'doc_id';
+let silverSortDirection = 'asc';
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
+    loadSilverData();
     setupEventListeners();
     setupTabs();
 });
@@ -74,6 +83,7 @@ function populateFilters() {
 
 // Setup event listeners
 function setupEventListeners() {
+    // Bronze layer event listeners
     // Search
     document.getElementById('search').addEventListener('input', debounce(applyFilters, 300));
 
@@ -93,6 +103,9 @@ function setupEventListeners() {
     document.querySelectorAll('th[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortBy(th.dataset.sort));
     });
+
+    // Silver layer event listeners
+    setupSilverEventListeners();
 }
 
 // Apply filters
@@ -321,4 +334,234 @@ function hideLoading() {
 function showError() {
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('error').classList.remove('hidden');
+}
+
+// ============================================================================
+// SILVER LAYER FUNCTIONS
+// ============================================================================
+
+// Load silver documents data from S3
+async function loadSilverData() {
+    try {
+        showSilverLoading();
+
+        const response = await fetch(SILVER_DOCUMENTS_URL);
+        if (!response.ok) {
+            throw new Error('Failed to fetch silver documents');
+        }
+
+        const data = await response.json();
+        allSilverDocuments = data.documents || [];
+
+        updateSilverStats(data.stats || {});
+        populateSilverFilters();
+        applySilverFilters();
+        hideSilverLoading();
+
+    } catch (error) {
+        console.error('Error loading silver data:', error);
+        showSilverError();
+    }
+}
+
+// Update silver layer statistics
+function updateSilverStats(stats) {
+    document.getElementById('silver-total-docs').textContent = stats.total_documents?.toLocaleString() || '0';
+    document.getElementById('silver-success').textContent = stats.extraction_stats?.success?.toLocaleString() || '0';
+    document.getElementById('silver-pending').textContent = stats.extraction_stats?.pending?.toLocaleString() || '0';
+    document.getElementById('silver-total-pages').textContent = stats.total_pages?.toLocaleString() || '0';
+}
+
+// Populate silver filter dropdowns
+function populateSilverFilters() {
+    const years = [...new Set(allSilverDocuments.map(d => d.year))].sort((a, b) => b - a);
+
+    const yearFilter = document.getElementById('silver-year-filter');
+    years.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearFilter.appendChild(option);
+    });
+}
+
+// Setup silver event listeners
+function setupSilverEventListeners() {
+    // Search
+    document.getElementById('silver-search').addEventListener('input', debounce(applySilverFilters, 300));
+
+    // Filters
+    document.getElementById('silver-year-filter').addEventListener('change', applySilverFilters);
+    document.getElementById('silver-status-filter').addEventListener('change', applySilverFilters);
+    document.getElementById('silver-method-filter').addEventListener('change', applySilverFilters);
+
+    // Pagination
+    document.getElementById('silver-prev-page').addEventListener('click', () => changeSilverPage(-1));
+    document.getElementById('silver-next-page').addEventListener('click', () => changeSilverPage(1));
+
+    // Export
+    document.getElementById('silver-export-csv').addEventListener('click', exportSilverToCSV);
+
+    // Sort
+    document.querySelectorAll('#silver-data-section th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => sortSilverBy(th.dataset.sort));
+    });
+}
+
+// Apply silver filters
+function applySilverFilters() {
+    const searchTerm = document.getElementById('silver-search').value.toLowerCase();
+    const yearFilter = document.getElementById('silver-year-filter').value;
+    const statusFilter = document.getElementById('silver-status-filter').value;
+    const methodFilter = document.getElementById('silver-method-filter').value;
+
+    filteredSilverDocuments = allSilverDocuments.filter(doc => {
+        const matchesSearch = !searchTerm ||
+            doc.doc_id?.toLowerCase().includes(searchTerm);
+
+        const matchesYear = !yearFilter || doc.year == yearFilter;
+        const matchesStatus = !statusFilter || doc.extraction_status === statusFilter;
+        const matchesMethod = !methodFilter || doc.extraction_method === methodFilter;
+
+        return matchesSearch && matchesYear && matchesStatus && matchesMethod;
+    });
+
+    sortSilverDocuments();
+    silverCurrentPage = 1;
+    renderSilverTable();
+    updateSilverPagination();
+}
+
+// Sort silver documents
+function sortSilverDocuments() {
+    filteredSilverDocuments.sort((a, b) => {
+        let aVal = a[silverSortColumn];
+        let bVal = b[silverSortColumn];
+
+        // Handle nulls
+        if (aVal === null || aVal === undefined) return 1;
+        if (bVal === null || bVal === undefined) return -1;
+
+        if (aVal < bVal) return silverSortDirection === 'asc' ? -1 : 1;
+        if (aVal > bVal) return silverSortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+// Sort silver by column
+function sortSilverBy(column) {
+    if (silverSortColumn === column) {
+        silverSortDirection = silverSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        silverSortColumn = column;
+        silverSortDirection = 'asc';
+    }
+
+    sortSilverDocuments();
+    renderSilverTable();
+}
+
+// Render silver table
+function renderSilverTable() {
+    const tbody = document.getElementById('silver-table-body');
+    tbody.innerHTML = '';
+
+    const start = (silverCurrentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    const pageDocuments = filteredSilverDocuments.slice(start, end);
+
+    pageDocuments.forEach(doc => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><code>${doc.doc_id || '-'}</code></td>
+            <td>${doc.year || '-'}</td>
+            <td>
+                <span class="badge badge-status-${(doc.extraction_status || 'unknown').toLowerCase()}">
+                    ${doc.extraction_status || 'Unknown'}
+                </span>
+            </td>
+            <td>${doc.extraction_method || '-'}</td>
+            <td>${doc.pages || 0}</td>
+            <td>${(doc.char_count || 0).toLocaleString()}</td>
+            <td>${formatFileSize(doc.pdf_file_size_bytes)}</td>
+            <td>
+                <a href="https://disclosures-clerk.house.gov/public_disc/financial-pdfs/${doc.year}/${doc.doc_id}.pdf"
+                   target="_blank" rel="noopener" class="btn-link">
+                    View PDF
+                </a>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    document.getElementById('silver-showing-count').textContent =
+        `Showing ${start + 1}-${Math.min(end, filteredSilverDocuments.length)} of ${filteredSilverDocuments.length.toLocaleString()} documents`;
+}
+
+// Update silver pagination
+function updateSilverPagination() {
+    const totalPages = Math.ceil(filteredSilverDocuments.length / ITEMS_PER_PAGE);
+
+    document.getElementById('silver-prev-page').disabled = silverCurrentPage === 1;
+    document.getElementById('silver-next-page').disabled = silverCurrentPage === totalPages;
+    document.getElementById('silver-page-info').textContent = `Page ${silverCurrentPage} of ${totalPages}`;
+}
+
+// Change silver page
+function changeSilverPage(delta) {
+    silverCurrentPage += delta;
+    renderSilverTable();
+    updateSilverPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Export silver to CSV
+function exportSilverToCSV() {
+    const headers = ['Document ID', 'Year', 'Status', 'Method', 'Pages', 'Characters', 'File Size (bytes)', 'PDF URL'];
+    const rows = filteredSilverDocuments.map(d => [
+        d.doc_id,
+        d.year,
+        d.extraction_status,
+        d.extraction_method,
+        d.pages,
+        d.char_count,
+        d.pdf_file_size_bytes,
+        `https://disclosures-clerk.house.gov/public_disc/financial-pdfs/${d.year}/${d.doc_id}.pdf`
+    ]);
+
+    const csv = [headers, ...rows]
+        .map(row => row.map(cell => `"${cell || ''}"`).join(','))
+        .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `congress-disclosures-silver-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+}
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '-';
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    const mb = kb / 1024;
+    return `${mb.toFixed(1)} MB`;
+}
+
+function showSilverLoading() {
+    document.getElementById('silver-loading').classList.remove('hidden');
+    document.getElementById('silver-data-section').classList.add('hidden');
+    document.getElementById('silver-error').classList.add('hidden');
+}
+
+function hideSilverLoading() {
+    document.getElementById('silver-loading').classList.add('hidden');
+    document.getElementById('silver-data-section').classList.remove('hidden');
+}
+
+function showSilverError() {
+    document.getElementById('silver-loading').classList.add('hidden');
+    document.getElementById('silver-error').classList.remove('hidden');
 }

@@ -1,10 +1,9 @@
 """PDF text extraction utilities with pypdf and AWS Textract support."""
 
-import io
 import logging
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Union
 
 import boto3
 from botocore.exceptions import ClientError
@@ -155,9 +154,7 @@ def extract_text_textract_sync(pdf_bytes: bytes, max_pages: int = 10) -> Dict[st
 
         logger.info(f"Starting Textract sync extraction ({len(pdf_bytes)} bytes)")
 
-        response = textract.detect_document_text(
-            Document={"Bytes": pdf_bytes}
-        )
+        response = textract.detect_document_text(Document={"Bytes": pdf_bytes})
 
         # Parse Textract response
         text_by_page = []
@@ -286,7 +283,7 @@ def extract_text_textract_async(
                 # Handle pagination if results are large
                 next_token = get_response.get("NextToken")
                 if next_token:
-                    logger.info(f"Fetching additional pages (NextToken exists)")
+                    logger.info("Fetching additional pages (NextToken exists)")
                     # Additional pagination would go here if needed
                     # For simplicity, we're assuming single response is enough
 
@@ -309,7 +306,7 @@ def extract_text_textract_async(
         duration = time.time() - start_time
 
         logger.info(
-            f"Textract async extraction complete: "
+            "Textract async extraction complete: "
             f"{len(text_by_page)} pages, {len(full_text)} chars, {duration:.2f}s"
         )
 

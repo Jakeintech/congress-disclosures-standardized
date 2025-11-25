@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "ingestion"))
 
 # Import the actual parsing logic from the Lambda handler
 # This ensures we're testing the real implementation
-from lib import parquet_writer
+from lib import parquet_writer  # noqa: F401, E402
 
 
 @pytest.fixture
@@ -32,7 +32,12 @@ def real_2025fd_xml():
 @pytest.fixture
 def filings_schema():
     """Load house_fd_filings JSON schema."""
-    schema_path = Path(__file__).parent.parent.parent / "ingestion" / "schemas" / "house_fd_filings.json"
+    schema_path = (
+        Path(__file__).parent.parent.parent
+        / "ingestion"
+        / "schemas"
+        / "house_fd_filings.json"
+    )
     with open(schema_path) as f:
         return json.load(f)
 
@@ -91,7 +96,9 @@ class TestReal2025FDParsing:
                     date_obj = datetime.strptime(record["filing_date"], "%m/%d/%Y")
                     record["filing_date"] = date_obj.strftime("%Y-%m-%d")
                 except ValueError as e:
-                    pytest.fail(f"Failed to parse filing_date '{record['filing_date']}': {e}")
+                    pytest.fail(
+                        f"Failed to parse filing_date '{record['filing_date']}': {e}"
+                    )
 
             records.append(record)
 
@@ -141,18 +148,18 @@ class TestReal2025FDParsing:
             try:
                 validate(instance=record, schema=filings_schema)
             except ValidationError as e:
-                validation_errors.append({
-                    "doc_id": doc_id,
-                    "record": record,
-                    "error": str(e)
-                })
+                validation_errors.append(
+                    {"doc_id": doc_id, "record": record, "error": str(e)}
+                )
 
         # Report all validation errors
         if validation_errors:
-            error_summary = "\n\n".join([
-                f"DocID {err['doc_id']}: {err['error']}\nRecord: {err['record']}"
-                for err in validation_errors[:5]  # Show first 5
-            ])
+            error_summary = "\n\n".join(
+                [
+                    f"DocID {err['doc_id']}: {err['error']}\nRecord: {err['record']}"
+                    for err in validation_errors[:5]  # Show first 5
+                ]
+            )
             pytest.fail(
                 f"Found {len(validation_errors)} validation errors:\n{error_summary}\n\n"
                 f"(showing first 5 of {len(validation_errors)} errors)"
@@ -237,7 +244,9 @@ class TestReal2025FDParsing:
                 date_errors.append(filing_date)
 
         if date_errors:
-            pytest.fail(f"Found {len(date_errors)} dates with unexpected format: {date_errors[:10]}")
+            pytest.fail(
+                f"Found {len(date_errors)} dates with unexpected format: {date_errors[:10]}"
+            )
 
     @pytest.mark.skip(reason="Sample only - run manually to see data statistics")
     def test_print_sample_records(self, real_2025fd_xml):
@@ -246,14 +255,16 @@ class TestReal2025FDParsing:
 
         members = root.findall(".//Member")[:5]
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("SAMPLE RECORDS FROM REAL 2025FD.XML:")
-        print("="*80 + "\n")
+        print("=" * 80 + "\n")
 
         for i, member in enumerate(members, 1):
             print(f"Record {i}:")
             print(f"  DocID: {member.findtext('DocID')}")
-            print(f"  Name: {member.findtext('Prefix')} {member.findtext('First')} {member.findtext('Last')} {member.findtext('Suffix')}")
+            print(
+                f"  Name: {member.findtext('Prefix')} {member.findtext('First')} {member.findtext('Last')} {member.findtext('Suffix')}"
+            )
             print(f"  State/District: {member.findtext('StateDst')}")
             print(f"  Filing Type: {member.findtext('FilingType')}")
             print(f"  Filing Date: {member.findtext('FilingDate')}")

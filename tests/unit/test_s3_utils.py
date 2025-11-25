@@ -3,16 +3,16 @@
 import gzip
 import io
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 
-import pytest
 from botocore.exceptions import ClientError
 
 # Add ingestion/lib to path
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "ingestion"))
 
-from lib import s3_utils
+from lib import s3_utils  # noqa: E402
 
 
 class TestS3Utils:
@@ -21,7 +21,9 @@ class TestS3Utils:
     def test_calculate_sha256_bytes(self):
         """Test SHA256 calculation from bytes."""
         data = b"test data"
-        expected_hash = "916f0027a575074ce72a331777c3478d6513f786a591bd892da1a577bf2335f9"
+        expected_hash = (
+            "916f0027a575074ce72a331777c3478d6513f786a591bd892da1a577bf2335f9"
+        )
 
         result = s3_utils.calculate_sha256_bytes(data)
 
@@ -56,7 +58,7 @@ class TestS3Utils:
         """Test successful bytes upload to S3."""
         mock_s3 = MagicMock()
         mock_get_client.return_value = mock_s3
-        mock_s3.put_object.return_value = {"ETag": "\"abc123\""}
+        mock_s3.put_object.return_value = {"ETag": '"abc123"'}
 
         data = b"test data"
         bucket = "test-bucket"
@@ -121,7 +123,7 @@ class TestS3Utils:
             bucket = "test-bucket"
             s3_key = "test.txt.gz"
 
-            result = s3_utils.upload_text_gzipped(text, bucket, s3_key)
+            s3_utils.upload_text_gzipped(text, bucket, s3_key)
 
             # Verify upload was called
             mock_upload.assert_called_once()

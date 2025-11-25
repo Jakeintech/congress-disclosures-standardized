@@ -302,6 +302,18 @@
                                     </div>
                                 </div>
 
+                                <!-- Owner Type Clarification -->
+                                <div class="alert alert-info" style="margin-top: 2rem;">
+                                    <div class="alert-title">📘 Understanding Owner Types</div>
+                                    <div class="alert-description">
+                                        <strong>Filer</strong> = The Congress member who filed the disclosure<br>
+                                        <strong>SP (Spouse)</strong> = Member's spouse owns the asset<br>
+                                        <strong>DC (Dependent Child)</strong> = Member's dependent child owns the asset<br>
+                                        <strong>JT (Joint)</strong> = Joint ownership with member<br><br>
+                                        <em>Note: The "Member" column always shows the Congress member who filed. The "Asset Owner" column shows who actually owns the traded asset.</em>
+                                    </div>
+                                </div>
+
                                 <!-- Filters -->
                                 <div class="filters">
                                     <input type="text" id="ptr-search" placeholder="Search by name, asset, or ticker..." class="input">
@@ -322,7 +334,7 @@
                                             <option value="5000001-999999999">Over $5M</option>
                                         </select>
                                         <select id="ptr-owner-filter" class="select">
-                                            <option value="">All Owners</option>
+                                            <option value="">All Asset Owners</option>
                                             <option value="null">Filer</option>
                                             <option value="SP">Spouse (SP)</option>
                                             <option value="DC">Dependent Child (DC)</option>
@@ -359,7 +371,7 @@
                                                     <th data-sort="asset_name">Asset</th>
                                                     <th data-sort="transaction_type">Type</th>
                                                     <th data-sort="amount_low">Amount</th>
-                                                    <th data-sort="owner_code">Owner</th>
+                                                    <th data-sort="owner_code">Asset Owner</th>
                                                     <th>PDF</th>
                                                 </tr>
                                             </thead>

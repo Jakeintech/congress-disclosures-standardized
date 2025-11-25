@@ -31,36 +31,46 @@ def generate_member_trading_manifest(bucket_name: str):
             logger.warning("No member trading stats found, using empty data")
             return {'members': [], 'total_trades': 0}
 
+        # Read ALL parquet files and concatenate
+        dfs = []
         for obj in response['Contents']:
             if obj['Key'].endswith('.parquet'):
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
                     s3.download_file(bucket_name, obj['Key'], tmp.name)
                     df = pd.read_parquet(tmp.name)
+                    dfs.append(df)
                     os.unlink(tmp.name)
 
-                    manifest = {
-                        'generated_at': pd.Timestamp.now().isoformat(),
-                        'total_members': len(df),
-                        'total_trades': int(df['total_trades'].sum()),
-                        'total_volume': float(df['total_volume'].sum()),
-                        'members': df.to_dict('records')
-                    }
+        if not dfs:
+            logger.warning("No parquet files found")
+            return {'members': [], 'total_trades': 0}
 
-                    output_dir = Path('website/data')
-                    output_dir.mkdir(parents=True, exist_ok=True)
+        # Concatenate all DataFrames
+        df = pd.concat(dfs, ignore_index=True)
 
-                    with open(output_dir / 'member_trading_stats.json', 'w') as f:
-                        json.dump(manifest, f, indent=2, default=str)
+        manifest = {
+            'generated_at': pd.Timestamp.now().isoformat(),
+            'total_members': len(df),
+            'total_trades': int(df['total_trades'].sum()),
+            'total_volume': float(df['total_volume'].sum()),
+            'members': df.to_dict('records')
+        }
 
-                    s3.upload_file(
-                        str(output_dir / 'member_trading_stats.json'),
-                        bucket_name,
-                        'website/data/member_trading_stats.json',
-                        ExtraArgs={'ContentType': 'application/json'}
-                    )
+        output_dir = Path('website/data')
+        output_dir.mkdir(parents=True, exist_ok=True)
 
-                    logger.info(f"✅ Generated member_trading_stats.json ({len(df)} members)")
-                    return manifest
+        with open(output_dir / 'member_trading_stats.json', 'w') as f:
+            json.dump(manifest, f, indent=2, default=str)
+
+        s3.upload_file(
+            str(output_dir / 'member_trading_stats.json'),
+            bucket_name,
+            'website/data/member_trading_stats.json',
+            ExtraArgs={'ContentType': 'application/json'}
+        )
+
+        logger.info(f"✅ Generated member_trading_stats.json ({len(df)} members)")
+        return manifest
 
     except Exception as e:
         logger.error(f"Error generating member trading manifest: {e}")
@@ -80,31 +90,41 @@ def generate_trending_stocks_manifest(bucket_name: str):
             logger.warning("No trending stocks found")
             return
 
+        # Read ALL parquet files and concatenate
+        dfs = []
         for obj in response['Contents']:
             if obj['Key'].endswith('.parquet'):
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
                     s3.download_file(bucket_name, obj['Key'], tmp.name)
                     df = pd.read_parquet(tmp.name)
+                    dfs.append(df)
                     os.unlink(tmp.name)
 
-                    manifest = {
-                        'generated_at': pd.Timestamp.now().isoformat(),
-                        'total_stocks': len(df),
-                        'stocks': df.to_dict('records')
-                    }
+        if not dfs:
+            logger.warning("No parquet files found")
+            return
 
-                    output_dir = Path('website/data')
-                    with open(output_dir / 'trending_stocks.json', 'w') as f:
-                        json.dump(manifest, f, indent=2, default=str)
+        # Concatenate all DataFrames
+        df = pd.concat(dfs, ignore_index=True)
 
-                    s3.upload_file(
-                        str(output_dir / 'trending_stocks.json'),
-                        bucket_name,
-                        'website/data/trending_stocks.json',
-                        ExtraArgs={'ContentType': 'application/json'}
-                    )
+        manifest = {
+            'generated_at': pd.Timestamp.now().isoformat(),
+            'total_stocks': len(df),
+            'stocks': df.to_dict('records')
+        }
 
-                    logger.info(f"✅ Generated trending_stocks.json ({len(df)} stocks)")
+        output_dir = Path('website/data')
+        with open(output_dir / 'trending_stocks.json', 'w') as f:
+            json.dump(manifest, f, indent=2, default=str)
+
+        s3.upload_file(
+            str(output_dir / 'trending_stocks.json'),
+            bucket_name,
+            'website/data/trending_stocks.json',
+            ExtraArgs={'ContentType': 'application/json'}
+        )
+
+        logger.info(f"✅ Generated trending_stocks.json ({len(df)} stocks)")
 
     except Exception as e:
         logger.error(f"Error generating trending stocks manifest: {e}")

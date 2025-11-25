@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "agg_trending_stocks",
+  "description": "Rolling window analysis of congressional stock trading activity - identifies trending buys/sells",
+  "type": "object",
+  "table_metadata": {
+    "grain": "One row per asset per day",
+    "partitioning": ["year(date_key)", "month(date_key)"],
+    "clustering": ["asset_key"],
+    "update_frequency": "daily"
+  },
+  "properties": {
+    "date_key": {"type": "integer", "minimum": 20080101, "maximum": 20301231},
+    "asset_key": {"type": "integer", "minimum": 1},
+    "transactions_last_7d": {"type": "integer", "minimum": 0},
+    "purchases_last_7d": {"type": "integer", "minimum": 0},
+    "sales_last_7d": {"type": "integer", "minimum": 0},
+    "unique_members_last_7d": {"type": "integer", "minimum": 0},
+    "net_buy_pressure_7d": {
+      "type": "integer",
+      "description": "purchases - sales (positive = buying, negative = selling)"
+    },
+    "transactions_last_30d": {"type": "integer", "minimum": 0},
+    "purchases_last_30d": {"type": "integer", "minimum": 0},
+    "sales_last_30d": {"type": "integer", "minimum": 0},
+    "unique_members_last_30d": {"type": "integer", "minimum": 0},
+    "transaction_velocity_7d": {
+      "type": "number",
+      "description": "% change from prior 7-day period"
+    },
+    "buy_sell_ratio": {
+      "type": ["number", "null"],
+      "description": "purchases / sales (null if sales = 0)"
+    },
+    "momentum_score": {
+      "type": "number",
+      "description": "Weighted score (recency-weighted activity)",
+      "minimum": 0.0
+    },
+    "is_trending_buy": {"type": "boolean"},
+    "is_trending_sell": {"type": "boolean"}
+  },
+  "required": [
+    "date_key", "asset_key", "transactions_last_7d", "purchases_last_7d",
+    "sales_last_7d", "unique_members_last_7d", "momentum_score",
+    "is_trending_buy", "is_trending_sell"
+  ]
+}

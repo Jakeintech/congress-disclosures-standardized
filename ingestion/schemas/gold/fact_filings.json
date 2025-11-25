@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "fact_filings",
+  "description": "Filing-level fact table with metadata about each disclosure filing",
+  "type": "object",
+  "table_metadata": {
+    "grain": "One row per filing",
+    "partitioning": ["year"],
+    "clustering": ["member_key", "filing_type_key"],
+    "natural_key": "doc_id",
+    "surrogate_key": "filing_key",
+    "update_frequency": "real-time"
+  },
+  "properties": {
+    "filing_key": {
+      "type": "integer",
+      "description": "Surrogate key (auto-generated sequence)",
+      "minimum": 1
+    },
+    "member_key": {
+      "type": "integer",
+      "description": "Foreign key to dim_members",
+      "minimum": 1
+    },
+    "filing_type_key": {
+      "type": "integer",
+      "description": "Foreign key to dim_filing_types",
+      "minimum": 1
+    },
+    "filing_date_key": {
+      "type": "integer",
+      "description": "Foreign key to dim_date",
+      "minimum": 20080101,
+      "maximum": 20301231
+    },
+    "doc_id": {
+      "type": "string",
+      "description": "Unique document ID",
+      "pattern": "^[0-9]{8}$",
+      "example": "20026590"
+    },
+    "year": {
+      "type": "integer",
+      "description": "Filing year",
+      "minimum": 2008,
+      "maximum": 2030
+    },
+    "pdf_url": {
+      "type": "string",
+      "description": "URL to PDF on House Clerk website",
+      "format": "uri"
+    },
+    "pdf_pages": {
+      "type": "integer",
+      "description": "Number of pages in PDF",
+      "minimum": 1
+    },
+    "pdf_file_size_bytes": {
+      "type": "integer",
+      "description": "PDF file size in bytes",
+      "minimum": 0
+    },
+    "pdf_sha256": {
+      "type": "string",
+      "description": "SHA-256 hash of PDF",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "transaction_count": {
+      "type": "integer",
+      "description": "Number of transactions (for PTRs)",
+      "minimum": 0
+    },
+    "asset_count": {
+      "type": "integer",
+      "description": "Number of assets (for Annual Reports)",
+      "minimum": 0
+    },
+    "liability_count": {
+      "type": "integer",
+      "description": "Number of liabilities (for Annual Reports)",
+      "minimum": 0
+    },
+    "position_count": {
+      "type": "integer",
+      "description": "Number of positions held (for Annual Reports)",
+      "minimum": 0
+    },
+    "agreement_count": {
+      "type": "integer",
+      "description": "Number of agreements (for Annual Reports)",
+      "minimum": 0
+    },
+    "expected_deadline_date": {
+      "type": ["string", "null"],
+      "description": "Expected filing deadline (ISO 8601)",
+      "format": "date"
+    },
+    "days_late": {
+      "type": ["integer", "null"],
+      "description": "Days past deadline (negative if early)",
+      "minimum": -365,
+      "maximum": 1000
+    },
+    "is_timely_filed": {
+      "type": "boolean",
+      "description": "True if filed on or before deadline"
+    },
+    "is_amendment": {
+      "type": "boolean",
+      "description": "True if this is an amendment to a previous filing"
+    },
+    "original_filing_doc_id": {
+      "type": ["string", "null"],
+      "description": "Original filing doc_id (if amendment)",
+      "pattern": "^[0-9]{8}$"
+    },
+    "extraction_method": {
+      "type": "string",
+      "description": "Primary extraction method used",
+      "enum": ["pypdf", "textract", "manual", "not_extracted"]
+    },
+    "extraction_status": {
+      "type": "string",
+      "description": "Status of extraction",
+      "enum": ["success", "failed", "pending", "skipped"]
+    },
+    "pdf_type": {
+      "type": "string",
+      "description": "PDF format type",
+      "enum": ["text", "image", "hybrid", "unknown"]
+    },
+    "overall_confidence": {
+      "type": ["number", "null"],
+      "description": "Overall extraction confidence (0.0-1.0)",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "has_extracted_data": {
+      "type": "boolean",
+      "description": "True if text was extracted"
+    },
+    "has_structured_data": {
+      "type": "boolean",
+      "description": "True if structured JSON was created"
+    },
+    "requires_manual_review": {
+      "type": "boolean",
+      "description": "True if flagged for manual review"
+    },
+    "textract_pages_used": {
+      "type": "integer",
+      "description": "Number of pages processed with Textract (for budget tracking)",
+      "minimum": 0
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Record creation timestamp (ISO 8601)",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "Record last updated timestamp (ISO 8601)",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "filing_key",
+    "member_key",
+    "filing_type_key",
+    "filing_date_key",
+    "doc_id",
+    "year",
+    "pdf_url",
+    "pdf_pages",
+    "pdf_file_size_bytes",
+    "pdf_sha256",
+    "transaction_count",
+    "asset_count",
+    "liability_count",
+    "position_count",
+    "agreement_count",
+    "is_timely_filed",
+    "is_amendment",
+    "extraction_method",
+    "extraction_status",
+    "pdf_type",
+    "has_extracted_data",
+    "has_structured_data",
+    "requires_manual_review",
+    "textract_pages_used",
+    "created_at",
+    "updated_at"
+  ]
+}

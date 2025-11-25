@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "dim_assets",
+  "description": "Asset master table with ticker extraction and sector classification",
+  "type": "object",
+  "table_metadata": {
+    "grain": "One row per unique asset",
+    "partitioning": [],
+    "clustering": ["asset_type", "sector"],
+    "natural_key": "asset_name",
+    "surrogate_key": "asset_key",
+    "update_frequency": "nightly"
+  },
+  "properties": {
+    "asset_key": {
+      "type": "integer",
+      "description": "Surrogate key (auto-generated sequence)",
+      "minimum": 1
+    },
+    "asset_name": {
+      "type": "string",
+      "description": "Full asset name as it appears in PTR filings",
+      "minLength": 1,
+      "maxLength": 500,
+      "example": "Alphabet Inc. - Class A Common Stock"
+    },
+    "normalized_asset_name": {
+      "type": "string",
+      "description": "Cleaned/standardized asset name",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "ticker_symbol": {
+      "type": ["string", "null"],
+      "description": "Stock ticker symbol (extracted or enriched)",
+      "pattern": "^[A-Z]{1,5}$",
+      "example": "GOOGL"
+    },
+    "company_name": {
+      "type": ["string", "null"],
+      "description": "Official company name from stock APIs",
+      "maxLength": 200
+    },
+    "asset_type": {
+      "type": "string",
+      "description": "Type of asset",
+      "enum": [
+        "Stock",
+        "Bond",
+        "Mutual Fund",
+        "ETF",
+        "Real Estate",
+        "Cryptocurrency",
+        "Option",
+        "Future",
+        "Private Equity",
+        "Other"
+      ]
+    },
+    "sector": {
+      "type": ["string", "null"],
+      "description": "GICS sector classification",
+      "enum": [
+        "Technology",
+        "Healthcare",
+        "Financials",
+        "Consumer Discretionary",
+        "Communication Services",
+        "Industrials",
+        "Consumer Staples",
+        "Energy",
+        "Utilities",
+        "Real Estate",
+        "Materials",
+        "Cryptocurrency",
+        null
+      ]
+    },
+    "industry": {
+      "type": ["string", "null"],
+      "description": "GICS industry classification",
+      "maxLength": 100,
+      "example": "Software"
+    },
+    "market_cap_category": {
+      "type": ["string", "null"],
+      "description": "Market capitalization category",
+      "enum": ["Large", "Mid", "Small", "Micro", "Nano", null],
+      "comments": {
+        "Large": ">$10B",
+        "Mid": "$2B-$10B",
+        "Small": "$300M-$2B",
+        "Micro": "$50M-$300M",
+        "Nano": "<$50M"
+      }
+    },
+    "is_publicly_traded": {
+      "type": "boolean",
+      "description": "True if asset is publicly traded on an exchange"
+    },
+    "is_crypto": {
+      "type": "boolean",
+      "description": "True if asset is a cryptocurrency"
+    },
+    "exchange": {
+      "type": ["string", "null"],
+      "description": "Exchange where asset is traded",
+      "enum": ["NYSE", "NASDAQ", "CRYPTO", "OTC", "PRIVATE", null]
+    },
+    "cusip": {
+      "type": ["string", "null"],
+      "description": "9-character CUSIP identifier",
+      "pattern": "^[0-9A-Z]{9}$",
+      "example": "02079K305"
+    },
+    "first_seen_date": {
+      "type": "string",
+      "description": "First appearance in disclosures (ISO 8601)",
+      "format": "date",
+      "example": "2023-01-15"
+    },
+    "last_seen_date": {
+      "type": "string",
+      "description": "Most recent appearance in disclosures (ISO 8601)",
+      "format": "date",
+      "example": "2025-01-15"
+    },
+    "occurrence_count": {
+      "type": "integer",
+      "description": "Number of times asset appears in transactions",
+      "minimum": 1
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Record creation timestamp (ISO 8601)",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "Record last updated timestamp (ISO 8601)",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "asset_key",
+    "asset_name",
+    "normalized_asset_name",
+    "asset_type",
+    "is_publicly_traded",
+    "is_crypto",
+    "first_seen_date",
+    "last_seen_date",
+    "occurrence_count",
+    "created_at",
+    "updated_at"
+  ]
+}

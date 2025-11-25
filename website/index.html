@@ -75,6 +75,13 @@
                             </svg>
                             PTR Transactions
                         </button>
+                        <button class="tab-trigger" data-tab="gold-analytics">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                            </svg>
+                            Gold Analytics
+                        </button>
                         <button class="tab-trigger" data-tab="downloads">
                             <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -371,6 +378,282 @@
                         </div>
                     </div>
 
+                    <!-- Gold Analytics Tab -->
+                    <div class="tab-content" data-tab="gold-analytics">
+                        <!-- Gold Analytics Sidebar Layout -->
+                        <div class="gold-analytics-layout">
+                            <!-- Sidebar Navigation -->
+                            <aside class="gold-sidebar">
+                                <h3 class="gold-sidebar-title">Analytics</h3>
+                                <nav class="gold-sidebar-nav">
+                                    <button class="gold-nav-item active" data-gold-view="document-quality">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                                        </svg>
+                                        Document Quality
+                                    </button>
+                                    <button class="gold-nav-item" data-gold-view="member-stats">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="9" cy="7" r="4"></circle>
+                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"></path>
+                                        </svg>
+                                        Member Trading Stats
+                                        <span class="badge badge-secondary">Coming Soon</span>
+                                    </button>
+                                    <button class="gold-nav-item" data-gold-view="portfolio">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                        </svg>
+                                        Portfolio Tracking
+                                        <span class="badge badge-secondary">Coming Soon</span>
+                                    </button>
+                                    <button class="gold-nav-item" data-gold-view="trending">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                            <polyline points="17 6 23 6 23 12"></polyline>
+                                        </svg>
+                                        Trending Stocks
+                                        <span class="badge badge-secondary">Coming Soon</span>
+                                    </button>
+                                    <button class="gold-nav-item" data-gold-view="sector">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                                        </svg>
+                                        Sector Analysis
+                                        <span class="badge badge-secondary">Coming Soon</span>
+                                    </button>
+                                </nav>
+                            </aside>
+
+                            <!-- Main Content Area -->
+                            <div class="gold-main-content">
+                                <!-- Document Quality View -->
+                                <div class="gold-view active" data-gold-view="document-quality">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="card-title">🔍 Document Quality & Compliance Tracking</h2>
+                                            <p class="card-description">Transparency metrics for PDF submission quality - identifies members submitting hard-to-process image-based PDFs</p>
+                                        </div>
+                                        <div class="card-content">
+                                <!-- Alert explaining the metrics -->
+                                <div class="alert alert-info">
+                                    <div class="alert-title">What This Shows</div>
+                                    <div class="alert-description">
+                                        Members can submit disclosures as <strong>text-based PDFs</strong> (easy to extract data from) or <strong>image-based PDFs</strong> (scanned documents requiring OCR).
+                                        High percentages of image PDFs may indicate submission practices that make transparency harder. This data is objective and factual - we report what we observe.
+                                    </div>
+                                </div>
+
+                                <!-- Stats -->
+                                <div class="stats-grid" id="quality-stats">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="quality-total-members">-</div>
+                                        <div class="stat-label">Members Tracked</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="quality-flagged">-</div>
+                                        <div class="stat-label">Flagged (>30% Image PDFs)</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="quality-avg-score">-</div>
+                                        <div class="stat-label">Avg Quality Score</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="quality-updated">-</div>
+                                        <div class="stat-label">Last Updated</div>
+                                    </div>
+                                </div>
+
+                                <!-- Filters -->
+                                <div class="filters">
+                                    <input type="text" id="quality-search" placeholder="Search by name, state, or party..." class="input">
+                                    <div class="filter-grid">
+                                        <select id="quality-party-filter" class="select">
+                                            <option value="">All Parties</option>
+                                            <option value="D">Democrat</option>
+                                            <option value="R">Republican</option>
+                                            <option value="I">Independent</option>
+                                        </select>
+                                        <select id="quality-category-filter" class="select">
+                                            <option value="">All Quality Levels</option>
+                                            <option value="Poor">Poor (< 60)</option>
+                                            <option value="Fair">Fair (60-75)</option>
+                                            <option value="Good">Good (75-90)</option>
+                                            <option value="Excellent">Excellent (> 90)</option>
+                                        </select>
+                                        <select id="quality-flagged-filter" class="select">
+                                            <option value="">All Members</option>
+                                            <option value="true">Flagged Only (>30% Image)</option>
+                                            <option value="false">Not Flagged</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="quality-loading" class="loading-state">
+                                    <div class="spinner"></div>
+                                    <p>Loading document quality data...</p>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="quality-error" class="error-state hidden">
+                                    <p>Unable to load document quality data.</p>
+                                </div>
+
+                                <!-- Data Table -->
+                                <div id="quality-data-section" class="data-section hidden">
+                                    <div class="table-actions">
+                                        <span id="quality-showing-count" class="text-muted">Showing 0 of 0 members</span>
+                                        <button id="quality-export-csv" class="btn btn-secondary">Export CSV</button>
+                                    </div>
+
+                                    <div class="table-container">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th data-sort="full_name">Member</th>
+                                                    <th data-sort="party">Party</th>
+                                                    <th data-sort="state_district">State</th>
+                                                    <th data-sort="total_filings">Filings</th>
+                                                    <th data-sort="image_pdf_pct">% Image PDFs</th>
+                                                    <th data-sort="avg_confidence_score">Avg Confidence</th>
+                                                    <th data-sort="quality_score">Quality Score</th>
+                                                    <th data-sort="quality_category">Rating</th>
+                                                    <th>Flag</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="quality-table-body">
+                                                <!-- Populated by JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="pagination" id="quality-pagination">
+                                        <button id="quality-prev-page" class="btn btn-ghost" disabled>Previous</button>
+                                        <span id="quality-page-info" class="text-muted">Page 1 of 1</span>
+                                        <button id="quality-next-page" class="btn btn-ghost" disabled>Next</button>
+                                    </div>
+                                </div>
+
+                                <!-- Methodology -->
+                                <div class="alert alert-warning" style="margin-top: 2rem;">
+                                    <div class="alert-title">Methodology</div>
+                                    <div class="alert-description">
+                                        <strong>Quality Score</strong> is calculated as: (Avg Confidence × 40%) + ((1 - Image PDF %) × 30%) + (Data Completeness × 30%) × 100.<br>
+                                        <strong>Flagged</strong> members have >30% image-based PDFs, requiring OCR and potentially indicating less transparent submission practices.<br>
+                                        <strong>Not Accusatory</strong>: This is objective data reporting. Some offices may have legitimate reasons for scanning documents.
+                                    </div>
+                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Member Trading Stats View (Placeholder) -->
+                                <div class="gold-view" data-gold-view="member-stats">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="card-title">📊 Member Trading Statistics</h2>
+                                            <p class="card-description">Comprehensive trading analytics by member</p>
+                                        </div>
+                                        <div class="card-content">
+                                            <div class="alert alert-info">
+                                                <div class="alert-title">Coming Soon</div>
+                                                <div class="alert-description">
+                                                    This analytics view will display:
+                                                    <ul style="margin-top: 1rem; padding-left: 1.5rem;">
+                                                        <li>Total trades and transaction volume by member</li>
+                                                        <li>Average transaction size and frequency</li>
+                                                        <li>Buy vs sell ratios</li>
+                                                        <li>Most active traders rankings</li>
+                                                        <li>Trading patterns and timing analysis</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Portfolio Tracking View (Placeholder) -->
+                                <div class="gold-view" data-gold-view="portfolio">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="card-title">💼 Portfolio Tracking</h2>
+                                            <p class="card-description">Track member portfolios over time</p>
+                                        </div>
+                                        <div class="card-content">
+                                            <div class="alert alert-info">
+                                                <div class="alert-title">Coming Soon</div>
+                                                <div class="alert-description">
+                                                    This analytics view will display:
+                                                    <ul style="margin-top: 1rem; padding-left: 1.5rem;">
+                                                        <li>Current portfolio holdings by member</li>
+                                                        <li>Portfolio value changes over time</li>
+                                                        <li>Diversification metrics</li>
+                                                        <li>Asset allocation breakdowns</li>
+                                                        <li>Performance comparison to market indices</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Trending Stocks View (Placeholder) -->
+                                <div class="gold-view" data-gold-view="trending">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="card-title">📈 Trending Stocks</h2>
+                                            <p class="card-description">Most traded stocks by Congress members</p>
+                                        </div>
+                                        <div class="card-content">
+                                            <div class="alert alert-info">
+                                                <div class="alert-title">Coming Soon</div>
+                                                <div class="alert-description">
+                                                    This analytics view will display:
+                                                    <ul style="margin-top: 1rem; padding-left: 1.5rem;">
+                                                        <li>Most frequently traded stocks</li>
+                                                        <li>Stocks with highest buy/sell activity</li>
+                                                        <li>Trending sectors and industries</li>
+                                                        <li>Unusual trading activity alerts</li>
+                                                        <li>Cross-member stock ownership patterns</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sector Analysis View (Placeholder) -->
+                                <div class="gold-view" data-gold-view="sector">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="card-title">🏭 Sector Analysis</h2>
+                                            <p class="card-description">Congressional trading by industry sector</p>
+                                        </div>
+                                        <div class="card-content">
+                                            <div class="alert alert-info">
+                                                <div class="alert-title">Coming Soon</div>
+                                                <div class="alert-description">
+                                                    This analytics view will display:
+                                                    <ul style="margin-top: 1rem; padding-left: 1.5rem;">
+                                                        <li>Trading volume by sector (Tech, Finance, Healthcare, etc.)</li>
+                                                        <li>Sector exposure by committee assignment</li>
+                                                        <li>Cross-sector trading patterns</li>
+                                                        <li>Sector performance correlation analysis</li>
+                                                        <li>Potential conflicts of interest flags</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Downloads Tab -->
                     <div class="tab-content" data-tab="downloads">
                         <div class="card">
@@ -455,6 +738,8 @@
         </footer>
     </div>
 
+    <script src="gold_analytics.js"></script>
+    <script src="document_quality.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

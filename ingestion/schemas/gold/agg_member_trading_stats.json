@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "agg_member_trading_stats",
+  "description": "Member-level trading effectiveness, compliance, and portfolio metrics",
+  "type": "object",
+  "table_metadata": {
+    "grain": "One row per member per period (monthly)",
+    "partitioning": ["year(period_start_date)", "period_start_date"],
+    "clustering": ["member_key"],
+    "update_frequency": "nightly"
+  },
+  "properties": {
+    "member_key": {"type": "integer", "minimum": 1},
+    "period_start_date": {"type": "string", "format": "date"},
+    "period_end_date": {"type": "string", "format": "date"},
+    "total_transactions": {"type": "integer", "minimum": 0},
+    "total_purchase_count": {"type": "integer", "minimum": 0},
+    "total_sale_count": {"type": "integer", "minimum": 0},
+    "total_exchange_count": {"type": "integer", "minimum": 0},
+    "estimated_total_volume_low": {"type": "integer", "minimum": 0},
+    "estimated_total_volume_high": {"type": "integer", "minimum": 0},
+    "unique_assets_traded": {"type": "integer", "minimum": 0},
+    "unique_sectors_traded": {"type": "integer", "minimum": 0},
+    "concentration_score": {
+      "type": "number",
+      "description": "Herfindahl index (0=diversified, 1=concentrated)",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "top_sector": {"type": ["string", "null"]},
+    "top_sector_pct": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+    "avg_days_to_filing": {"type": "number", "minimum": 0.0},
+    "median_days_to_filing": {"type": "integer", "minimum": 0},
+    "late_filing_count": {"type": "integer", "minimum": 0},
+    "late_filing_pct": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+    "same_day_notification_count": {"type": "integer", "minimum": 0},
+    "avg_extraction_confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+    "image_pdf_count": {"type": "integer", "minimum": 0},
+    "image_pdf_pct": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+    "manual_review_count": {"type": "integer", "minimum": 0},
+    "most_traded_asset_key": {"type": ["integer", "null"]},
+    "most_traded_asset_name": {"type": ["string", "null"]},
+    "largest_transaction_amount_high": {"type": "integer", "minimum": 0}
+  },
+  "required": [
+    "member_key", "period_start_date", "period_end_date",
+    "total_transactions", "total_purchase_count", "total_sale_count"
+  ]
+}

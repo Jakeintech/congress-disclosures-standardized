@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "dim_members",
+  "description": "Member dimension table with SCD Type 2 for tracking party changes, redistricting, etc.",
+  "type": "object",
+  "table_metadata": {
+    "grain": "One row per member per version",
+    "partitioning": ["year(effective_from)"],
+    "clustering": [],
+    "scd_type": 2,
+    "natural_key": "bioguide_id",
+    "surrogate_key": "member_key",
+    "update_frequency": "daily"
+  },
+  "properties": {
+    "member_key": {
+      "type": "integer",
+      "description": "Surrogate key (auto-generated sequence)",
+      "minimum": 1
+    },
+    "bioguide_id": {
+      "type": ["string", "null"],
+      "description": "Congressional Bioguide ID (e.g., 'P000197' for Pelosi)",
+      "pattern": "^[A-Z][0-9]{6}$",
+      "example": "P000197"
+    },
+    "first_name": {
+      "type": "string",
+      "description": "Member's first name",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Member's last name",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Full name (first + last)",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "party": {
+      "type": ["string", "null"],
+      "description": "Party affiliation",
+      "enum": ["D", "R", "I", "L", null],
+      "comments": {
+        "D": "Democrat",
+        "R": "Republican",
+        "I": "Independent",
+        "L": "Libertarian"
+      }
+    },
+    "state": {
+      "type": "string",
+      "description": "Two-letter state code",
+      "pattern": "^[A-Z]{2}$",
+      "example": "CA"
+    },
+    "district": {
+      "type": ["integer", "null"],
+      "description": "Congressional district number (null for at-large or Senate)",
+      "minimum": 0,
+      "maximum": 99
+    },
+    "state_district": {
+      "type": "string",
+      "description": "Combined state and district (e.g., 'CA-11', 'TX-02')",
+      "pattern": "^[A-Z]{2}(-[0-9]{2})?$",
+      "example": "CA-11"
+    },
+    "chamber": {
+      "type": ["string", "null"],
+      "description": "Chamber of Congress",
+      "enum": ["House", "Senate", null]
+    },
+    "member_type": {
+      "type": "string",
+      "description": "Type of filer",
+      "enum": ["Member", "Officer", "Employee", "Candidate"]
+    },
+    "start_date": {
+      "type": ["string", "null"],
+      "description": "Term start date (ISO 8601)",
+      "format": "date",
+      "example": "2023-01-03"
+    },
+    "end_date": {
+      "type": ["string", "null"],
+      "description": "Term end date (null if currently serving)",
+      "format": "date",
+      "example": "2025-01-03"
+    },
+    "is_current": {
+      "type": "boolean",
+      "description": "True if this is the current SCD version for this member"
+    },
+    "effective_from": {
+      "type": "string",
+      "description": "SCD version start timestamp (ISO 8601)",
+      "format": "date-time",
+      "example": "2025-01-15T10:30:00Z"
+    },
+    "effective_to": {
+      "type": ["string", "null"],
+      "description": "SCD version end timestamp (null if current)",
+      "format": "date-time"
+    },
+    "version": {
+      "type": "integer",
+      "description": "SCD version number (1, 2, 3...)",
+      "minimum": 1
+    }
+  },
+  "required": [
+    "member_key",
+    "first_name",
+    "last_name",
+    "full_name",
+    "state",
+    "state_district",
+    "member_type",
+    "is_current",
+    "effective_from",
+    "version"
+  ]
+}

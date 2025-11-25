@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "dim_date",
+  "description": "Standard date dimension for time-series analysis",
+  "type": "object",
+  "table_metadata": {
+    "grain": "One row per date",
+    "partitioning": ["year"],
+    "clustering": [],
+    "natural_key": "date_key",
+    "surrogate_key": "date_key",
+    "update_frequency": "one-time",
+    "date_range": "2008-01-01 to 2030-12-31"
+  },
+  "properties": {
+    "date_key": {
+      "type": "integer",
+      "description": "Date key in YYYYMMDD format",
+      "minimum": 20080101,
+      "maximum": 20301231,
+      "example": 20250115
+    },
+    "full_date": {
+      "type": "string",
+      "description": "Full date in ISO 8601 format",
+      "format": "date",
+      "example": "2025-01-15"
+    },
+    "year": {
+      "type": "integer",
+      "description": "Calendar year",
+      "minimum": 2008,
+      "maximum": 2030
+    },
+    "quarter": {
+      "type": "integer",
+      "description": "Calendar quarter (1-4)",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "month": {
+      "type": "integer",
+      "description": "Calendar month (1-12)",
+      "minimum": 1,
+      "maximum": 12
+    },
+    "week_of_year": {
+      "type": "integer",
+      "description": "ISO week number (1-53)",
+      "minimum": 1,
+      "maximum": 53
+    },
+    "day_of_year": {
+      "type": "integer",
+      "description": "Day of year (1-366)",
+      "minimum": 1,
+      "maximum": 366
+    },
+    "day_of_month": {
+      "type": "integer",
+      "description": "Day of month (1-31)",
+      "minimum": 1,
+      "maximum": 31
+    },
+    "day_of_week": {
+      "type": "integer",
+      "description": "ISO day of week (1=Monday, 7=Sunday)",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "day_name": {
+      "type": "string",
+      "description": "Full name of day",
+      "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    },
+    "month_name": {
+      "type": "string",
+      "description": "Full name of month",
+      "enum": [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ]
+    },
+    "is_weekend": {
+      "type": "boolean",
+      "description": "True if Saturday or Sunday"
+    },
+    "is_holiday": {
+      "type": "boolean",
+      "description": "True if federal holiday"
+    },
+    "holiday_name": {
+      "type": ["string", "null"],
+      "description": "Name of holiday (if applicable)",
+      "example": "Independence Day"
+    },
+    "fiscal_year": {
+      "type": "integer",
+      "description": "U.S. Government fiscal year (Oct 1 - Sep 30)",
+      "minimum": 2008,
+      "maximum": 2031
+    },
+    "fiscal_quarter": {
+      "type": "integer",
+      "description": "Fiscal quarter (1-4)",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "congressional_session": {
+      "type": "integer",
+      "description": "Congressional session number (e.g., 118, 119)",
+      "minimum": 110,
+      "maximum": 125
+    },
+    "congressional_session_year": {
+      "type": "integer",
+      "description": "Year within 2-year congressional session (1 or 2)",
+      "enum": [1, 2]
+    }
+  },
+  "required": [
+    "date_key",
+    "full_date",
+    "year",
+    "quarter",
+    "month",
+    "week_of_year",
+    "day_of_year",
+    "day_of_month",
+    "day_of_week",
+    "day_name",
+    "month_name",
+    "is_weekend",
+    "is_holiday",
+    "fiscal_year",
+    "fiscal_quarter",
+    "congressional_session",
+    "congressional_session_year"
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "dim_filing_types",
+  "description": "Static lookup table for filing type codes",
+  "type": "object",
+  "table_metadata": {
+    "grain": "One row per filing type",
+    "partitioning": [],
+    "clustering": [],
+    "natural_key": "filing_type_code",
+    "surrogate_key": "filing_type_key",
+    "update_frequency": "manual"
+  },
+  "properties": {
+    "filing_type_key": {
+      "type": "integer",
+      "description": "Surrogate key",
+      "minimum": 1
+    },
+    "filing_type_code": {
+      "type": "string",
+      "description": "Single-letter filing type code",
+      "pattern": "^[A-Z]$",
+      "example": "P"
+    },
+    "filing_type_name": {
+      "type": "string",
+      "description": "Full name of filing type",
+      "minLength": 1,
+      "maxLength": 100,
+      "example": "Periodic Transaction Report"
+    },
+    "form_type": {
+      "type": "string",
+      "description": "Form designation",
+      "enum": ["Form A", "Form B", "PTR", "Other"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of filing type",
+      "minLength": 1
+    },
+    "frequency": {
+      "type": "string",
+      "description": "Expected filing frequency",
+      "enum": ["Annual", "Quarterly", "As-needed", "One-time", "Event-driven"]
+    },
+    "is_transaction_report": {
+      "type": "boolean",
+      "description": "True if filing contains transaction data"
+    },
+    "requires_structured_extraction": {
+      "type": "boolean",
+      "description": "True if filing should be processed for structured data"
+    },
+    "typical_page_count_low": {
+      "type": ["integer", "null"],
+      "description": "Typical minimum page count",
+      "minimum": 1
+    },
+    "typical_page_count_high": {
+      "type": ["integer", "null"],
+      "description": "Typical maximum page count",
+      "minimum": 1
+    }
+  },
+  "required": [
+    "filing_type_key",
+    "filing_type_code",
+    "filing_type_name",
+    "form_type",
+    "description",
+    "frequency",
+    "is_transaction_report",
+    "requires_structured_extraction"
+  ]
+}

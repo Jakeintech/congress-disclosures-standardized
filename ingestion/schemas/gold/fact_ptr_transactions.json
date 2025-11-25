@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "fact_ptr_transactions",
+  "description": "Transaction-level fact table for Periodic Transaction Reports",
+  "type": "object",
+  "table_metadata": {
+    "grain": "One row per transaction per filing",
+    "partitioning": ["year(transaction_date)", "month(transaction_date)"],
+    "clustering": ["member_key", "asset_key"],
+    "natural_key": "doc_id + transaction_id",
+    "surrogate_key": "transaction_key",
+    "update_frequency": "real-time"
+  },
+  "properties": {
+    "transaction_key": {
+      "type": "integer",
+      "description": "Surrogate key (auto-generated sequence)",
+      "minimum": 1
+    },
+    "member_key": {
+      "type": "integer",
+      "description": "Foreign key to dim_members",
+      "minimum": 1
+    },
+    "asset_key": {
+      "type": "integer",
+      "description": "Foreign key to dim_assets",
+      "minimum": 1
+    },
+    "filing_type_key": {
+      "type": "integer",
+      "description": "Foreign key to dim_filing_types",
+      "minimum": 1
+    },
+    "transaction_date_key": {
+      "type": "integer",
+      "description": "Foreign key to dim_date (transaction date)",
+      "minimum": 20080101,
+      "maximum": 20301231
+    },
+    "notification_date_key": {
+      "type": ["integer", "null"],
+      "description": "Foreign key to dim_date (notification date)",
+      "minimum": 20080101,
+      "maximum": 20301231
+    },
+    "filing_date_key": {
+      "type": "integer",
+      "description": "Foreign key to dim_date (filing date)",
+      "minimum": 20080101,
+      "maximum": 20301231
+    },
+    "doc_id": {
+      "type": "string",
+      "description": "Source document ID",
+      "pattern": "^[0-9]{8}$",
+      "example": "20026590"
+    },
+    "transaction_id": {
+      "type": "integer",
+      "description": "Sequence within filing (1, 2, 3...)",
+      "minimum": 1
+    },
+    "transaction_type": {
+      "type": "string",
+      "description": "Type of transaction",
+      "enum": ["Purchase", "Sale", "Partial Sale", "Exchange"]
+    },
+    "owner_code": {
+      "type": ["string", "null"],
+      "description": "Owner/relationship code",
+      "enum": ["SP", "DC", "JT", null],
+      "comments": {
+        "SP": "Spouse",
+        "DC": "Dependent Child",
+        "JT": "Joint",
+        "null": "Self"
+      }
+    },
+    "amount_column": {
+      "type": "string",
+      "description": "Amount column code (A-K)",
+      "pattern": "^[A-K]$",
+      "example": "F"
+    },
+    "amount_range": {
+      "type": "string",
+      "description": "Human-readable amount range",
+      "example": "$250,001 - $500,000"
+    },
+    "amount_low": {
+      "type": "integer",
+      "description": "Numeric low bound of transaction amount",
+      "minimum": 0
+    },
+    "amount_high": {
+      "type": "integer",
+      "description": "Numeric high bound of transaction amount",
+      "minimum": 0
+    },
+    "amount_midpoint": {
+      "type": "integer",
+      "description": "Calculated midpoint: (amount_low + amount_high) / 2",
+      "minimum": 0
+    },
+    "transaction_size_category": {
+      "type": "string",
+      "description": "Categorization of transaction size",
+      "enum": ["Small", "Medium", "Large", "Mega"],
+      "comments": {
+        "Small": "<$15,000",
+        "Medium": "$15,000-$50,000",
+        "Large": "$50,000-$500,000",
+        "Mega": ">$500,000"
+      }
+    },
+    "days_to_notification": {
+      "type": ["integer", "null"],
+      "description": "Days between transaction_date and notification_date",
+      "minimum": 0
+    },
+    "days_to_filing": {
+      "type": "integer",
+      "description": "Days between transaction_date and filing_date",
+      "minimum": 0
+    },
+    "is_late_filing": {
+      "type": "boolean",
+      "description": "True if filed after 45-day deadline"
+    },
+    "is_same_day_notification": {
+      "type": "boolean",
+      "description": "True if transaction_date == notification_date"
+    },
+    "is_spouse_transaction": {
+      "type": "boolean",
+      "description": "True if owner_code = 'SP'"
+    },
+    "is_dependent_child_transaction": {
+      "type": "boolean",
+      "description": "True if owner_code = 'DC'"
+    },
+    "extraction_confidence": {
+      "type": "number",
+      "description": "Extraction confidence score (0.0-1.0)",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "extraction_method": {
+      "type": "string",
+      "description": "Method used to extract data",
+      "enum": ["pypdf", "textract_ocr", "manual"]
+    },
+    "pdf_type": {
+      "type": "string",
+      "description": "PDF format type",
+      "enum": ["text", "image", "hybrid"]
+    },
+    "data_completeness_pct": {
+      "type": "number",
+      "description": "Percentage of fields successfully extracted",
+      "minimum": 0.0,
+      "maximum": 100.0
+    },
+    "requires_manual_review": {
+      "type": "boolean",
+      "description": "True if flagged for manual review"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Record creation timestamp (ISO 8601)",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "Record last updated timestamp (ISO 8601)",
+      "format": "date-time"
+    },
+    "source_version": {
+      "type": "string",
+      "description": "Version of extraction pipeline",
+      "example": "1.0.0"
+    }
+  },
+  "required": [
+    "transaction_key",
+    "member_key",
+    "asset_key",
+    "filing_type_key",
+    "transaction_date_key",
+    "filing_date_key",
+    "doc_id",
+    "transaction_id",
+    "transaction_type",
+    "amount_column",
+    "amount_range",
+    "amount_low",
+    "amount_high",
+    "amount_midpoint",
+    "transaction_size_category",
+    "days_to_filing",
+    "is_late_filing",
+    "is_same_day_notification",
+    "is_spouse_transaction",
+    "is_dependent_child_transaction",
+    "extraction_confidence",
+    "extraction_method",
+    "pdf_type",
+    "data_completeness_pct",
+    "requires_manual_review",
+    "created_at",
+    "updated_at",
+    "source_version"
+  ]
+}

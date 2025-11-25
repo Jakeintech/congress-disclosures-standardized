@@ -1,0 +1,169 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "agg_document_quality",
+  "description": "Member-level document quality and compliance tracking - identifies members submitting hard-to-process PDFs",
+  "type": "object",
+  "table_metadata": {
+    "grain": "One row per member per period (monthly)",
+    "partitioning": ["year(period_start_date)"],
+    "clustering": ["member_key"],
+    "natural_key": "member_key + period_start_date",
+    "update_frequency": "nightly"
+  },
+  "properties": {
+    "member_key": {
+      "type": "integer",
+      "description": "Foreign key to dim_members",
+      "minimum": 1
+    },
+    "period_start_date": {
+      "type": "string",
+      "description": "Start of measurement period (ISO 8601)",
+      "format": "date",
+      "example": "2025-01-01"
+    },
+    "period_end_date": {
+      "type": "string",
+      "description": "End of measurement period (ISO 8601)",
+      "format": "date",
+      "example": "2025-01-31"
+    },
+    "total_filings": {
+      "type": "integer",
+      "description": "Total number of filings in period",
+      "minimum": 0
+    },
+    "ptr_filings": {
+      "type": "integer",
+      "description": "Number of PTR filings",
+      "minimum": 0
+    },
+    "annual_filings": {
+      "type": "integer",
+      "description": "Number of annual report filings",
+      "minimum": 0
+    },
+    "text_pdf_count": {
+      "type": "integer",
+      "description": "Number of text-based PDFs (easy to extract)",
+      "minimum": 0
+    },
+    "image_pdf_count": {
+      "type": "integer",
+      "description": "Number of image-based PDFs (require OCR) 🔍",
+      "minimum": 0
+    },
+    "hybrid_pdf_count": {
+      "type": "integer",
+      "description": "Number of hybrid PDFs (mix of text and images)",
+      "minimum": 0
+    },
+    "image_pdf_pct": {
+      "type": "number",
+      "description": "Percentage of filings that are image-based (KEY METRIC) 🔍",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "comment": "Values > 0.30 are flagged as potentially suspicious"
+    },
+    "avg_confidence_score": {
+      "type": "number",
+      "description": "Average extraction confidence across all filings",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "min_confidence_score": {
+      "type": ["number", "null"],
+      "description": "Lowest confidence score in period",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "low_confidence_count": {
+      "type": "integer",
+      "description": "Number of filings below MIN_CONFIDENCE_SCORE threshold",
+      "minimum": 0
+    },
+    "manual_review_count": {
+      "type": "integer",
+      "description": "Number of filings flagged for manual review",
+      "minimum": 0
+    },
+    "extraction_failure_count": {
+      "type": "integer",
+      "description": "Number of failed extraction attempts",
+      "minimum": 0
+    },
+    "avg_data_completeness_pct": {
+      "type": "number",
+      "description": "Average data completeness percentage",
+      "minimum": 0.0,
+      "maximum": 100.0
+    },
+    "zero_transaction_filing_count": {
+      "type": "integer",
+      "description": "Number of PTRs with 0 transactions extracted (potential data loss)",
+      "minimum": 0
+    },
+    "quality_score": {
+      "type": "number",
+      "description": "Weighted composite quality score (0-100) 🔍",
+      "minimum": 0.0,
+      "maximum": 100.0,
+      "comment": "Calculated: (avg_confidence * 0.4 + (1-image_pdf_pct) * 0.3 + avg_completeness * 0.3) * 100"
+    },
+    "quality_category": {
+      "type": "string",
+      "description": "Categorization of document quality",
+      "enum": ["Excellent", "Good", "Fair", "Poor"],
+      "comments": {
+        "Excellent": "quality_score >= 90",
+        "Good": "quality_score >= 75",
+        "Fair": "quality_score >= 60",
+        "Poor": "quality_score < 60"
+      }
+    },
+    "is_hard_to_process": {
+      "type": "boolean",
+      "description": "True if image_pdf_pct > IMAGE_PDF_WARNING_THRESHOLD (default 0.30) 🔍",
+      "comment": "This flags members consistently submitting scanned/image PDFs"
+    },
+    "quality_trend": {
+      "type": "string",
+      "description": "Trend compared to previous period",
+      "enum": ["Improving", "Stable", "Declining", "Insufficient Data"]
+    },
+    "days_since_last_filing": {
+      "type": "integer",
+      "description": "Days since most recent filing",
+      "minimum": 0
+    },
+    "textract_pages_used": {
+      "type": "integer",
+      "description": "Total Textract pages used for this member (budget tracking)",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "member_key",
+    "period_start_date",
+    "period_end_date",
+    "total_filings",
+    "ptr_filings",
+    "annual_filings",
+    "text_pdf_count",
+    "image_pdf_count",
+    "hybrid_pdf_count",
+    "image_pdf_pct",
+    "avg_confidence_score",
+    "low_confidence_count",
+    "manual_review_count",
+    "extraction_failure_count",
+    "avg_data_completeness_pct",
+    "zero_transaction_filing_count",
+    "quality_score",
+    "quality_category",
+    "is_hard_to_process",
+    "quality_trend",
+    "days_since_last_filing",
+    "textract_pages_used"
+  ]
+}

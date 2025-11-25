@@ -135,35 +135,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Package house_fd_ingest_zip
+      - name: Package ALL Lambda Functions
         run: |
-          cd ingestion/lambdas/house_fd_ingest_zip
-          mkdir -p package
-          pip install -r requirements.txt -t package/
-          cp handler.py package/
-          cp -r ../../lib package/
-          cp -r ../../schemas package/
-          cd package && zip -r ../function.zip . -q
-
-      - name: Package house_fd_index_to_silver
-        run: |
-          cd ingestion/lambdas/house_fd_index_to_silver
-          mkdir -p package
-          pip install -r requirements.txt -t package/
-          cp handler.py package/
-          cp -r ../../lib package/
-          cp -r ../../schemas package/
-          cd package && zip -r ../function.zip . -q
-
-      - name: Package house_fd_extract_document
-        run: |
-          cd ingestion/lambdas/house_fd_extract_document
-          mkdir -p package
-          pip install -r requirements.txt -t package/
-          cp handler.py package/
-          cp -r ../../lib package/
-          cp -r ../../schemas package/
-          cd package && zip -r ../function.zip . -q
+          # Use Makefile to package all Lambdas consistently
+          make package-all
 
       - name: Upload Lambda artifacts
         uses: actions/upload-artifact@v4
@@ -191,7 +166,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: us-east-1
 
       - name: Download Lambda artifacts
         uses: actions/download-artifact@v4
@@ -219,14 +194,54 @@ jobs:
           cd infra/terraform
           terraform apply tfplan
 
-      - name: Update Lambda functions
+      - name: Upload Lambda packages to S3
         run: |
           for lambda_dir in ingestion/lambdas/*/; do
             lambda_name=$(basename $lambda_dir)
             if [ -f "$lambda_dir/function.zip" ]; then
-              aws lambda update-function-code \
-                --function-name "congress-disclosures-production-${lambda_name}" \
-                --zip-file "fileb://$lambda_dir/function.zip" \
-                || echo "Lambda $lambda_name not found or update failed"
+              echo "Uploading $lambda_name to S3..."
+              aws s3 cp "$lambda_dir/function.zip" \
+                "s3://congress-disclosures-standardized/lambda-deployments/${lambda_name}/function.zip"
             fi
           done
+
+      - name: Update Lambda function codes
+        run: |
+          ENV="development"  # Change to production when ready
+          for lambda_dir in ingestion/lambdas/*/; do
+            lambda_name=$(basename $lambda_dir)
+            if [ -f "$lambda_dir/function.zip" ]; then
+              echo "Updating Lambda: congress-disclosures-${ENV}-${lambda_name}"
+              aws lambda update-function-code \
+                --function-name "congress-disclosures-${ENV}-${lambda_name}" \
+                --s3-bucket congress-disclosures-standardized \
+                --s3-key "lambda-deployments/${lambda_name}/function.zip" \
+                || echo "⚠️  Lambda $lambda_name not found or update failed"
+            fi
+          done
+
+      - name: Refresh Gold Layer Aggregates
+        run: |
+          echo "🔄 Refreshing Gold layer aggregates..."
+          python3 -m pip install boto3 pandas pyarrow
+          python3 scripts/compute_agg_member_trading_stats_real.py || echo "Member stats refresh failed"
+          # Add other gold aggregates here as you create them
+
+      - name: Regenerate Website Manifests
+        run: |
+          echo "📊 Regenerating website data manifests..."
+          python3 scripts/generate_all_gold_manifests.py
+
+      - name: Deploy Website to S3
+        run: |
+          echo "🌐 Deploying website..."
+          aws s3 sync website/ s3://congress-disclosures-standardized/website/ \
+            --exclude "data/*" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --delete
+
+          aws s3 sync website/data/ s3://congress-disclosures-standardized/website/data/ \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --delete
+
+          echo "✅ Full pipeline deployment complete!"

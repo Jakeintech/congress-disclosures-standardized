@@ -261,7 +261,7 @@ resource "aws_lambda_function" "gold_seed" {
 
   environment {
     variables = {
-      S3_BUCKET_NAME = aws_s3_bucket.data_lake.id
+      S3_BUCKET_NAME  = aws_s3_bucket.data_lake.id
       SEED_START_YEAR = "2008"
       SEED_END_YEAR   = "2030"
       LOG_LEVEL       = "INFO"
@@ -321,10 +321,10 @@ resource "aws_lambda_function" "gold_seed_members" {
 
   environment {
     variables = {
-      S3_BUCKET_NAME                = aws_s3_bucket.data_lake.id
-      SSM_CONGRESS_API_KEY_PARAM    = local.ssm_congress_api_key_param
-      DIM_MEMBERS_TARGET_YEAR       = "${formatdate("YYYY", timestamp())}"
-      LOG_LEVEL                     = "INFO"
+      S3_BUCKET_NAME             = aws_s3_bucket.data_lake.id
+      SSM_CONGRESS_API_KEY_PARAM = local.ssm_congress_api_key_param
+      DIM_MEMBERS_TARGET_YEAR    = "${formatdate("YYYY", timestamp())}"
+      LOG_LEVEL                  = "INFO"
     }
   }
 

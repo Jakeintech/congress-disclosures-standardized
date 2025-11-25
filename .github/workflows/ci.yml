@@ -188,6 +188,7 @@ jobs:
         run: |
           cd infra/terraform
           terraform plan -out=tfplan \
+            -var="s3_bucket_name=congress-disclosures-standardized" \
             -var="budget_alert_email=${{ secrets.BUDGET_ALERT_EMAIL }}"
 
       - name: Terraform Apply

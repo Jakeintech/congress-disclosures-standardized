@@ -75,6 +75,7 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
     max-width: 900px;
+    margin: 0 auto;
 }
 
 .stat-card {

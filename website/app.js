@@ -15,6 +15,7 @@ let sortDirection = 'desc';
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
     setupEventListeners();
+    setupTabs();
 });
 
 // Load data from S3
@@ -281,6 +282,29 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// Tab Management
+function setupTabs() {
+    const tabTriggers = document.querySelectorAll('.tab-trigger');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabTriggers.forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const targetTab = trigger.dataset.tab;
+
+            // Remove active from all triggers and contents
+            tabTriggers.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+
+            // Add active to clicked trigger and corresponding content
+            trigger.classList.add('active');
+            const targetContent = document.querySelector(`.tab-content[data-tab="${targetTab}"]`);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        });
+    });
 }
 
 function showLoading() {

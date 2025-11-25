@@ -8,177 +8,288 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <div class="app-container">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1>Congress Financial Disclosures Database</h1>
-                <p class="subtitle">Standardized access to U.S. House financial disclosure reports for transparency, research, and accountability</p>
-                <p class="source-attribution">
-                    Official source: <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">U.S. House Clerk Financial Disclosure Office</a> |
-                    Pipeline source code: <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank" rel="noopener">GitHub</a>
-                </p>
+                <h1>Congress Financial Disclosures</h1>
+                <p class="subtitle">Standardized access to U.S. House financial disclosure reports</p>
                 <div class="header-stats" id="stats">
-                    <div class="stat">
-                        <span class="stat-value" id="total-filings">-</span>
-                        <span class="stat-label">Total Filings</span>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-filings">-</div>
+                        <div class="stat-label">Total Filings</div>
                     </div>
-                    <div class="stat">
-                        <span class="stat-value" id="total-members">-</span>
-                        <span class="stat-label">Members</span>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-members">-</div>
+                        <div class="stat-label">Members</div>
                     </div>
-                    <div class="stat">
-                        <span class="stat-value" id="latest-year">-</span>
-                        <span class="stat-label">Latest Year</span>
+                    <div class="stat-card">
+                        <div class="stat-value" id="latest-year">-</div>
+                        <div class="stat-label">Latest Year</div>
                     </div>
-                    <div class="stat">
-                        <span class="stat-value" id="last-updated">-</span>
-                        <span class="stat-label">Last Updated</span>
+                    <div class="stat-card">
+                        <div class="stat-value" id="last-updated">-</div>
+                        <div class="stat-label">Last Updated</div>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- Disclaimer -->
-        <section class="disclaimer">
-            <div class="disclaimer-content">
-                <h3>Important Legal Notice</h3>
-
-                <div class="disclaimer-primary">
-                    <h4>Purpose and Permitted Uses</h4>
-                    <p>This database provides standardized access to U.S. House financial disclosure reports published by the <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">House Clerk Financial Disclosure Office</a>. Data is provided under <a href="https://www.law.cornell.edu/uscode/text/5/13107" target="_blank" rel="noopener">5 U.S.C. § 13107</a> for the following purposes only:</p>
-                    <ul>
-                        <li>Transparency and government accountability</li>
-                        <li>Academic and policy research</li>
-                        <li>News reporting and journalism</li>
-                        <li>Public oversight of elected officials</li>
-                    </ul>
-                </div>
-
-                <div class="disclaimer-grid">
-                    <div class="disclaimer-item">
-                        <strong>Not Financial or Investment Advice</strong>
-                        <p>This data is informational only. It does not constitute financial, investment, legal, or tax advice. Consult qualified professionals before making any financial decisions.</p>
-                    </div>
-                    <div class="disclaimer-item">
-                        <strong>No Warranties or Guarantees</strong>
-                        <p>Data provided "AS IS" without warranties. We make no representations regarding accuracy, completeness, or timeliness. Errors may exist in source data, processing, or display.</p>
-                    </div>
-                    <div class="disclaimer-item">
-                        <strong>No Liability</strong>
-                        <p>We assume no liability for decisions made based on this data, including financial losses, missed opportunities, or damages of any kind arising from use of this information.</p>
-                    </div>
-                    <div class="disclaimer-item">
-                        <strong>Verify Independently</strong>
-                        <p>Always verify data independently at the official <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">House Clerk website</a>. Review our open-source <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank" rel="noopener">processing pipeline</a> on GitHub.</p>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Disclaimer -->
+                <div class="alert alert-warning">
+                    <div class="alert-title">Legal Notice</div>
+                    <div class="alert-description">
+                        This data is provided for transparency and research purposes per
+                        <a href="https://www.law.cornell.edu/uscode/text/5/13107" target="_blank" rel="noopener">5 U.S.C. § 13107</a>.
+                        Not financial advice. No warranties.
+                        <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">Verify at official source</a>.
                     </div>
                 </div>
 
-                <div class="disclaimer-prohibited">
-                    <h4>Prohibited Uses</h4>
-                    <p>The following uses are strictly prohibited under federal law:</p>
-                    <ul>
-                        <li>Commercial purposes (except news/media organizations)</li>
-                        <li>Credit rating or creditworthiness determinations</li>
-                        <li>Fundraising, solicitation, or marketing</li>
-                        <li>Any purpose inconsistent with the Ethics in Government Act</li>
-                    </ul>
-                    <p><strong>By accessing this website, you agree to these terms and acknowledge sole responsibility for compliance with all applicable laws.</strong></p>
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tabs-list">
+                        <button class="tab-trigger active" data-tab="filings">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            Bronze: Filings
+                        </button>
+                        <button class="tab-trigger" data-tab="silver-filings">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            Silver: Normalized
+                        </button>
+                        <button class="tab-trigger" data-tab="downloads">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Downloads
+                        </button>
+                    </div>
+
+                    <!-- Bronze Tab: Filings -->
+                    <div class="tab-content active" data-tab="filings">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Financial Disclosure Filings</h2>
+                                <p class="card-description">Browse all House member financial disclosures</p>
+                            </div>
+                            <div class="card-content">
+                                <!-- Filters -->
+                                <div class="filters">
+                                    <input type="text" id="search" placeholder="Search by name, state, or document ID..." class="input">
+                                    <div class="filter-grid">
+                                        <select id="year-filter" class="select">
+                                            <option value="">All Years</option>
+                                        </select>
+                                        <select id="state-filter" class="select">
+                                            <option value="">All States</option>
+                                        </select>
+                                        <select id="type-filter" class="select">
+                                            <option value="">All Filing Types</option>
+                                            <option value="A">Annual</option>
+                                            <option value="N">New Member</option>
+                                            <option value="T">Termination</option>
+                                            <option value="P">Periodic Transaction</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="loading" class="loading-state">
+                                    <div class="spinner"></div>
+                                    <p>Loading financial disclosure data...</p>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="error" class="error-state hidden">
+                                    <p>Unable to load data. <a href="https://disclosures-clerk.house.gov/" target="_blank">Verify at official source</a>.</p>
+                                </div>
+
+                                <!-- Data Table -->
+                                <div id="data-section" class="data-section hidden">
+                                    <div class="table-actions">
+                                        <span id="showing-count" class="text-muted">Showing 0 of 0 filings</span>
+                                        <button id="export-csv" class="btn btn-secondary">Export CSV</button>
+                                    </div>
+
+                                    <div class="table-container">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th data-sort="year">Year</th>
+                                                    <th data-sort="filing_date">Filing Date</th>
+                                                    <th data-sort="last_name">Name</th>
+                                                    <th data-sort="state_district">State/District</th>
+                                                    <th data-sort="filing_type">Type</th>
+                                                    <th data-sort="doc_id">Document ID</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="table-body">
+                                                <!-- Populated by JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="pagination" id="pagination">
+                                        <button id="prev-page" class="btn btn-ghost" disabled>Previous</button>
+                                        <span id="page-info" class="text-muted">Page 1 of 1</span>
+                                        <button id="next-page" class="btn btn-ghost" disabled>Next</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Silver Tab: Normalized Data -->
+                    <div class="tab-content" data-tab="silver-filings">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Silver Layer: Normalized Parquet Tables</h2>
+                                <p class="card-description">Query-optimized data in Apache Parquet format</p>
+                            </div>
+                            <div class="card-content">
+                                <div class="space-y-4">
+                                    <div class="download-item">
+                                        <div class="download-header">
+                                            <h3 class="download-title">Filings Table</h3>
+                                            <span class="badge">~82 KB</span>
+                                        </div>
+                                        <p class="download-description">Normalized filing metadata (1,616 records)</p>
+                                        <div class="download-actions">
+                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/filings/year=2025/part-0000.parquet"
+                                               class="btn btn-primary" download>
+                                                Download Parquet
+                                            </a>
+                                            <code class="code-inline">silver/house/financial/filings/year=2025/</code>
+                                        </div>
+                                        <div class="schema-preview">
+                                            <strong>Schema:</strong> doc_id, year, filing_date, filing_type, first_name, last_name, state_district, pdf_s3_key
+                                        </div>
+                                    </div>
+
+                                    <div class="download-item">
+                                        <div class="download-header">
+                                            <h3 class="download-title">Documents Table</h3>
+                                            <span class="badge">~45 KB</span>
+                                        </div>
+                                        <p class="download-description">Document extraction metadata (1,616 records)</p>
+                                        <div class="download-actions">
+                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/documents/year=2025/part-0000.parquet"
+                                               class="btn btn-primary" download>
+                                                Download Parquet
+                                            </a>
+                                            <code class="code-inline">silver/house/financial/documents/year=2025/</code>
+                                        </div>
+                                        <div class="schema-preview">
+                                            <strong>Schema:</strong> doc_id, year, pdf_s3_key, extraction_status, extraction_method, pages, char_count
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-info">
+                                        <div class="alert-title">Query Examples</div>
+                                        <div class="alert-description">
+                                            <strong>Python/Pandas:</strong> <code>pd.read_parquet('filings.parquet')</code><br>
+                                            <strong>DuckDB:</strong> <code>SELECT * FROM 'filings.parquet' WHERE year=2025</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Downloads Tab -->
+                    <div class="tab-content" data-tab="downloads">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Data Downloads</h2>
+                                <p class="card-description">Access raw indexes and APIs</p>
+                            </div>
+                            <div class="card-content">
+                                <div class="space-y-4">
+                                    <div class="download-item">
+                                        <div class="download-header">
+                                            <h3 class="download-title">Manifest API</h3>
+                                            <span class="badge badge-success">JSON</span>
+                                        </div>
+                                        <p class="download-description">Complete filing metadata in JSON format</p>
+                                        <div class="download-actions">
+                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/manifest.json"
+                                               class="btn btn-primary" target="_blank">
+                                                View JSON
+                                            </a>
+                                            <code class="code-inline">GET manifest.json</code>
+                                        </div>
+                                    </div>
+
+                                    <div class="download-item">
+                                        <div class="download-header">
+                                            <h3 class="download-title">Bronze: XML Index</h3>
+                                            <span class="badge">439 KB</span>
+                                        </div>
+                                        <p class="download-description">Official House Clerk XML index for 2025</p>
+                                        <div class="download-actions">
+                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/bronze/house/financial/year=2025/index/2025FD.xml"
+                                               class="btn btn-primary" download>
+                                                Download XML
+                                            </a>
+                                            <code class="code-inline">bronze/.../index/2025FD.xml</code>
+                                        </div>
+                                    </div>
+
+                                    <div class="download-item">
+                                        <div class="download-header">
+                                            <h3 class="download-title">Bronze: TXT Index</h3>
+                                            <span class="badge">84 KB</span>
+                                        </div>
+                                        <p class="download-description">Plain text index for 2025</p>
+                                        <div class="download-actions">
+                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/bronze/house/financial/year=2025/index/2025FD.txt"
+                                               class="btn btn-primary" download>
+                                                Download TXT
+                                            </a>
+                                            <code class="code-inline">bronze/.../index/2025FD.txt</code>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-info">
+                                        <div class="alert-title">Data Pipeline</div>
+                                        <div class="alert-description">
+                                            <strong>Bronze:</strong> Raw data from House Clerk<br>
+                                            <strong>Silver:</strong> Normalized Parquet tables<br>
+                                            <strong>Gold:</strong> Coming soon - denormalized analytics tables
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </section>
-
-        <!-- Filters -->
-        <section class="filters">
-            <div class="filter-group">
-                <input type="text" id="search" placeholder="Search by name, state, or document ID..." class="search-input">
-            </div>
-            <div class="filter-row">
-                <select id="year-filter" class="filter-select">
-                    <option value="">All Years</option>
-                </select>
-                <select id="state-filter" class="filter-select">
-                    <option value="">All States</option>
-                </select>
-                <select id="type-filter" class="filter-select">
-                    <option value="">All Filing Types</option>
-                    <option value="A">Annual (A)</option>
-                    <option value="N">New Member (N)</option>
-                    <option value="T">Termination (T)</option>
-                    <option value="P">Periodic Transaction (P)</option>
-                </select>
-            </div>
-        </section>
-
-        <!-- Loading State -->
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <p>Loading financial disclosure data...</p>
-        </div>
-
-        <!-- Error State -->
-        <div id="error" class="error hidden">
-            <p>Unable to load data. Please try again later or verify data directly at <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">disclosures-clerk.house.gov</a>.</p>
-        </div>
-
-        <!-- Data Table -->
-        <section id="data-section" class="data-section hidden">
-            <div class="table-header">
-                <h2>Financial Disclosure Filings</h2>
-                <div class="table-actions">
-                    <span id="showing-count" class="showing-count">Showing 0 of 0 filings</span>
-                    <button id="export-csv" class="btn-secondary">Export CSV</button>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th data-sort="year">Year</th>
-                            <th data-sort="filing_date">Filing Date</th>
-                            <th data-sort="last_name">Name</th>
-                            <th data-sort="state_district">State/District</th>
-                            <th data-sort="filing_type">Type</th>
-                            <th data-sort="doc_id">Document ID</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body">
-                        <!-- Populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="pagination" id="pagination">
-                <button id="prev-page" class="btn-secondary" disabled>← Previous</button>
-                <span id="page-info">Page 1 of 1</span>
-                <button id="next-page" class="btn-secondary" disabled>Next →</button>
-            </div>
-        </section>
+        </main>
 
         <!-- Footer -->
         <footer class="footer">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>About</h3>
-                    <p>Open-source database of U.S. House financial disclosure reports. Data sourced from <a href="https://disclosures-clerk.house.gov/" target="_blank">House Clerk Office</a>.</p>
+            <div class="container">
+                <div class="footer-content">
+                    <p>
+                        Open-source project for government transparency.
+                        <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank">View on GitHub</a> |
+                        <a href="https://disclosures-clerk.house.gov/" target="_blank">Official Source</a>
+                    </p>
                 </div>
-                <div class="footer-section">
-                    <h3>Legal Notice</h3>
-                    <p>This data is provided for transparency and research purposes only under <a href="https://www.law.cornell.edu/uscode/text/5/13107" target="_blank">5 U.S.C. § 13107</a>. Prohibited uses include commercial purposes (except news/media), credit rating, and solicitation.</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Links</h3>
-                    <ul>
-                        <li><a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank">GitHub Repository</a></li>
-                        <li><a href="https://github.com/Jakeintech/congress-disclosures-standardized/blob/main/docs/API_STRATEGY.md" target="_blank">API Documentation</a></li>
-                        <li><a href="https://github.com/Jakeintech/congress-disclosures-standardized/issues" target="_blank">Report Issue</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>Open-source project for government transparency. Data updated daily. <a href="https://github.com/Jakeintech/congress-disclosures-standardized/blob/main/docs/LEGAL_NOTES.md" target="_blank" rel="noopener">Terms of Use</a> | <a href="https://github.com/Jakeintech/congress-disclosures-standardized/blob/main/LICENSE" target="_blank" rel="noopener">License</a></p>
             </div>
         </footer>
     </div>

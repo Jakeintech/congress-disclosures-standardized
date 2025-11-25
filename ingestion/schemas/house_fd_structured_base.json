@@ -1,0 +1,169 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/example/congress-disclosures/schemas/house_fd_structured_base.json",
+  "title": "House Financial Disclosure - Base Structure",
+  "description": "Common fields shared across all House financial disclosure document types (Form A, Form B, PTR)",
+  "type": "object",
+  "required": [
+    "filing_id",
+    "filing_type",
+    "filing_year",
+    "filing_date",
+    "filer_info",
+    "certification"
+  ],
+  "properties": {
+    "filing_id": {
+      "type": "string",
+      "description": "Unique filing identifier (e.g., '10072874')",
+      "pattern": "^[0-9]{7,10}$"
+    },
+    "filing_type_code": {
+      "type": "string",
+      "description": "Single-letter filing type code",
+      "enum": ["A", "P", "C", "D", "X", "T", "W", "G", "E", "B", "O", "H", ""]
+    },
+    "filing_type": {
+      "type": "string",
+      "description": "Full name of filing type as it appears on form",
+      "examples": [
+        "Annual Report",
+        "Amendment Report",
+        "Candidate Report",
+        "Termination Report",
+        "Periodic Transaction Report"
+      ]
+    },
+    "filing_year": {
+      "type": "integer",
+      "description": "Year of filing (4-digit)",
+      "minimum": 2000,
+      "maximum": 2100
+    },
+    "filing_date": {
+      "type": "string",
+      "description": "Date of filing in YYYY-MM-DD format",
+      "format": "date"
+    },
+    "period_covered": {
+      "type": "object",
+      "description": "Reporting period covered by this filing",
+      "properties": {
+        "start_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Start of reporting period (YYYY-MM-DD)"
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date",
+          "description": "End of reporting period (YYYY-MM-DD)"
+        }
+      },
+      "required": ["start_date", "end_date"]
+    },
+    "filer_info": {
+      "type": "object",
+      "description": "Information about the person filing the disclosure",
+      "required": ["name_first", "name_last", "status"],
+      "properties": {
+        "name_first": {
+          "type": "string",
+          "description": "First name(s) of filer"
+        },
+        "name_middle": {
+          "type": "string",
+          "description": "Middle name or initial"
+        },
+        "name_last": {
+          "type": "string",
+          "description": "Last name of filer"
+        },
+        "status": {
+          "type": "string",
+          "description": "Employment/candidacy status",
+          "enum": [
+            "Member",
+            "Congressional Candidate",
+            "Officer",
+            "Employee",
+            "Terminating Filer",
+            "New Filer"
+          ]
+        },
+        "state_district": {
+          "type": "string",
+          "description": "State code and district number (e.g., 'CA12', 'TX02')",
+          "pattern": "^[A-Z]{2}[0-9]{2}$"
+        },
+        "office": {
+          "type": "string",
+          "description": "Office or committee name (for staff)"
+        }
+      }
+    },
+    "certification": {
+      "type": "object",
+      "description": "Certification and signature information",
+      "required": ["certified", "signature_date"],
+      "properties": {
+        "certified": {
+          "type": "boolean",
+          "description": "Whether filer certified the report"
+        },
+        "signature_name": {
+          "type": "string",
+          "description": "Name as signed"
+        },
+        "signature_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date of signature (YYYY-MM-DD)"
+        },
+        "digital_signature": {
+          "type": "boolean",
+          "description": "Whether signature was digital"
+        },
+        "trusts_excluded": {
+          "type": "boolean",
+          "description": "Qualified blind trusts excluded from report"
+        },
+        "exemption_claimed": {
+          "type": "boolean",
+          "description": "Spouse/dependent exemption claimed"
+        }
+      }
+    },
+    "extraction_metadata": {
+      "type": "object",
+      "description": "Metadata about how this structured data was extracted",
+      "properties": {
+        "extraction_method": {
+          "type": "string",
+          "enum": ["regex", "ocr", "hybrid", "manual"],
+          "description": "Method used to extract structured data from PDF"
+        },
+        "extraction_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When extraction occurred"
+        },
+        "extraction_version": {
+          "type": "string",
+          "description": "Version of extraction software/library"
+        },
+        "confidence_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Confidence in extraction accuracy (0-1)"
+        },
+        "pdf_type": {
+          "type": "string",
+          "enum": ["text", "image", "hybrid"],
+          "description": "Whether source PDF was text-based or image-based"
+        }
+      }
+    }
+  }
+}

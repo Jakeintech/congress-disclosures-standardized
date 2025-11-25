@@ -1,0 +1,472 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/example/congress-disclosures/schemas/house_fd_ptr.json",
+  "title": "House Financial Disclosure - Periodic Transaction Report (PTR)",
+  "description": "Structure for Periodic Transaction Reports (Type P) based on official PTR form structure",
+  "type": "object",
+  "required": [
+    "filer_info",
+    "report_type",
+    "ipo_shares_allocated",
+    "certification",
+    "transactions"
+  ],
+  "properties": {
+    "filing_id": {
+      "type": "string",
+      "description": "Unique filing identifier assigned by Clerk",
+      "pattern": "^[0-9]{7,10}$"
+    },
+    "page_count": {
+      "type": "integer",
+      "description": "Total number of pages in PTR",
+      "minimum": 1
+    },
+    "filer_info": {
+      "type": "object",
+      "description": "Information about the filer (NOT made public)",
+      "required": ["full_name", "filer_type"],
+      "properties": {
+        "full_name": {
+          "type": "string",
+          "description": "Full name of reporting individual"
+        },
+        "office_telephone": {
+          "type": "string",
+          "description": "Daytime telephone number"
+        },
+        "address": {
+          "type": "string",
+          "description": "Complete address (office or home) - NOT made public"
+        },
+        "filer_type": {
+          "type": "string",
+          "enum": ["Member", "Officer or Employee"],
+          "description": "Status of filer"
+        },
+        "state": {
+          "type": "string",
+          "description": "State code (for Members only)",
+          "pattern": "^[A-Z]{2}$"
+        },
+        "district": {
+          "type": "string",
+          "description": "District number (for Members only)"
+        },
+        "employing_office": {
+          "type": "string",
+          "description": "Name of employing office (for Officers/Employees only)"
+        }
+      }
+    },
+    "report_type": {
+      "type": "object",
+      "description": "Type of PTR filing",
+      "required": ["is_initial", "is_amendment"],
+      "properties": {
+        "is_initial": {
+          "type": "boolean",
+          "description": "Whether this is an initial PTR report"
+        },
+        "is_amendment": {
+          "type": "boolean",
+          "description": "Whether this is an amendment to a previous PTR"
+        },
+        "date_of_report_being_amended": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "Date of original report being amended (YYYY-MM-DD)"
+        }
+      }
+    },
+    "ipo_shares_allocated": {
+      "type": "boolean",
+      "description": "Did filer purchase any shares allocated as part of an Initial Public Offering?"
+    },
+    "transactions": {
+      "type": "array",
+      "description": "List of reportable transactions (stocks, bonds, commodities futures, securities)",
+      "items": {
+        "type": "object",
+        "required": ["asset_name", "transaction_type", "transaction_date", "notification_date", "amount_column"],
+        "properties": {
+          "owner_code": {
+            "type": ["string", "null"],
+            "enum": ["SP", "DC", "JT", null],
+            "description": "SP=Spouse only, DC=Dependent Child only, JT=Jointly held, null=Filer only"
+          },
+          "asset_name": {
+            "type": "string",
+            "description": "Full name of asset (NOT ticker symbol) - e.g., 'Mega Corp. Common Stock'"
+          },
+          "transaction_type": {
+            "type": "string",
+            "enum": ["Purchase", "Sale", "Partial Sale", "Exchange"],
+            "description": "Type of transaction"
+          },
+          "transaction_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date transaction occurred (YYYY-MM-DD)"
+          },
+          "notification_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date filer was notified of transaction (YYYY-MM-DD)"
+          },
+          "amount_column": {
+            "type": "string",
+            "enum": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"],
+            "description": "Amount column checked on form (A through K)"
+          },
+          "amount_range": {
+            "type": "string",
+            "description": "Text description of amount range",
+            "enum": [
+              "$1,001-$15,000",
+              "$15,001-$50,000",
+              "$50,001-$100,000",
+              "$100,001-$250,000",
+              "$250,001-$500,000",
+              "$500,001-$1,000,000",
+              "$1,000,001-$5,000,000",
+              "$5,000,001-$25,000,000",
+              "$25,000,001-$50,000,000",
+              "Over $50,000,000",
+              "Transaction in Spouse or Dependent Child Asset over $1,000,000"
+            ]
+          },
+          "amount_low": {
+            "type": ["integer", "null"],
+            "description": "Lower bound of transaction amount (parsed from range)",
+            "minimum": 0
+          },
+          "amount_high": {
+            "type": ["integer", "null"],
+            "description": "Upper bound of transaction amount (parsed from range, null for 'over' categories)"
+          },
+          "note_number": {
+            "type": ["string", "null"],
+            "description": "Reference to note number in Filer Notes section"
+          }
+        }
+      }
+    },
+    "filer_notes": {
+      "type": "array",
+      "description": "Additional notes provided by filer",
+      "items": {
+        "type": "object",
+        "properties": {
+          "note_number": {
+            "type": "string",
+            "description": "Note identifier"
+          },
+          "note_text": {
+            "type": "string",
+            "description": "Content of the note"
+          }
+        }
+      }
+    },
+    "certification": {
+      "type": "object",
+      "description": "Certification and signature information",
+      "required": ["filer_certified", "filer_signature_date", "stock_act_certified"],
+      "properties": {
+        "filer_certified": {
+          "type": "boolean",
+          "description": "Filer certified report is true, complete, and correct"
+        },
+        "filer_signature": {
+          "type": "string",
+          "description": "Signature of reporting individual"
+        },
+        "filer_signature_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date filer signed (YYYY-MM-DD)"
+        },
+        "stock_act_certified": {
+          "type": "boolean",
+          "description": "Filer certified disclosure of all transactions as required by STOCK Act"
+        },
+        "official_certified": {
+          "type": "boolean",
+          "description": "Certifying official verified compliance"
+        },
+        "official_signature": {
+          "type": "string",
+          "description": "Signature of certifying official"
+        },
+        "official_signature_date": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "Date official signed (YYYY-MM-DD)"
+        }
+      }
+    },
+    "filing_metadata": {
+      "type": "object",
+      "description": "PTR-specific filing metadata",
+      "properties": {
+        "filing_deadline": {
+          "type": "string",
+          "format": "date",
+          "description": "Due date: earlier of (a) 30 days from notification or (b) 45 days from transaction"
+        },
+        "timely_filed": {
+          "type": ["boolean", "null"],
+          "description": "Whether PTR was filed by deadline"
+        },
+        "days_late": {
+          "type": ["integer", "null"],
+          "description": "Number of days filed late (null if timely)"
+        },
+        "penalty_amount": {
+          "type": ["integer", "null"],
+          "description": "Penalty assessed ($200 if more than 30 days late)"
+        },
+        "transaction_count": {
+          "type": "integer",
+          "description": "Total number of transactions reported",
+          "minimum": 0
+        },
+        "copies_required": {
+          "type": "string",
+          "enum": ["1 original + 2 copies", "1 original + 1 copy"],
+          "description": "Members: 1 original + 2 copies; Officers/Employees: 1 original + 1 copy"
+        }
+      }
+    },
+    "extraction_metadata": {
+      "type": "object",
+      "description": "Comprehensive metadata about how this structured data was extracted - full audit trail",
+      "required": ["extraction_method", "extraction_timestamp", "extraction_version", "confidence_score", "pdf_type", "requires_manual_review"],
+      "properties": {
+        "extraction_method": {
+          "type": "string",
+          "enum": ["ocr_tesseract", "ocr_textract", "ocr_hybrid", "regex", "ocr_fallback", "manual"],
+          "description": "Primary method used to extract structured data"
+        },
+        "extraction_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When extraction occurred (ISO 8601 format)"
+        },
+        "extraction_version": {
+          "type": "string",
+          "description": "Version of extraction software/library",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "confidence_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Overall confidence in extraction accuracy (0-1)"
+        },
+        "field_confidence": {
+          "type": "object",
+          "description": "Per-field confidence scores for granular audit trail",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "examples": [
+            {
+              "filer_info.full_name": 0.98,
+              "filer_info.state": 1.0,
+              "filer_info.district": 1.0,
+              "transactions[0].asset_name": 0.92,
+              "transactions[0].transaction_date": 0.95,
+              "transactions[0].amount_range": 0.88
+            }
+          ]
+        },
+        "pdf_type": {
+          "type": "string",
+          "enum": ["text", "image", "hybrid"],
+          "description": "Whether source PDF was text-based, image-based, or hybrid (determines extraction strategy)"
+        },
+        "requires_manual_review": {
+          "type": "boolean",
+          "description": "Whether extraction should be manually reviewed due to low confidence or anomalies"
+        },
+        "pdf_properties": {
+          "type": "object",
+          "description": "Properties of the source PDF file for audit trail",
+          "properties": {
+            "file_size_bytes": {
+              "type": "integer",
+              "description": "Size of PDF file in bytes",
+              "minimum": 0
+            },
+            "page_count": {
+              "type": "integer",
+              "description": "Total number of pages in PDF",
+              "minimum": 1
+            },
+            "is_encrypted": {
+              "type": "boolean",
+              "description": "Whether PDF was password-protected or encrypted"
+            },
+            "pdf_version": {
+              "type": "string",
+              "description": "PDF format version (e.g., '1.4', '1.7')"
+            },
+            "creation_date": {
+              "type": ["string", "null"],
+              "format": "date-time",
+              "description": "PDF creation timestamp from metadata"
+            },
+            "modification_date": {
+              "type": ["string", "null"],
+              "format": "date-time",
+              "description": "PDF last modification timestamp from metadata"
+            },
+            "producer": {
+              "type": ["string", "null"],
+              "description": "Software that produced the PDF"
+            }
+          }
+        },
+        "extraction_attempts": {
+          "type": "array",
+          "description": "History of extraction attempts for debugging and audit trail",
+          "items": {
+            "type": "object",
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": ["regex", "ocr_tesseract", "ocr_textract", "ocr_hybrid"],
+                "description": "Extraction method attempted"
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether this attempt succeeded"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When this attempt was made"
+              },
+              "duration_seconds": {
+                "type": "number",
+                "description": "How long this attempt took",
+                "minimum": 0
+              },
+              "error_message": {
+                "type": ["string", "null"],
+                "description": "Error message if attempt failed"
+              },
+              "records_extracted": {
+                "type": ["integer", "null"],
+                "description": "Number of transactions/records extracted in this attempt",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "data_completeness": {
+          "type": "object",
+          "description": "Metrics about extraction completeness for quality assessment",
+          "properties": {
+            "total_fields_expected": {
+              "type": "integer",
+              "description": "Total number of fields expected to be extracted",
+              "minimum": 0
+            },
+            "total_fields_extracted": {
+              "type": "integer",
+              "description": "Total number of fields successfully extracted",
+              "minimum": 0
+            },
+            "completeness_percentage": {
+              "type": "number",
+              "description": "Percentage of expected fields extracted (0-100)",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "missing_required_fields": {
+              "type": "array",
+              "description": "List of required fields that could not be extracted",
+              "items": {
+                "type": "string"
+              }
+            },
+            "suspicious_patterns": {
+              "type": "array",
+              "description": "Anomalies detected that may indicate extraction issues",
+              "items": {
+                "type": "string"
+              },
+              "examples": [
+                ["0 transactions extracted from 2-page PTR", "All transaction amounts in same range", "Transaction date in future"]
+              ]
+            }
+          }
+        },
+        "validation_results": {
+          "type": "object",
+          "description": "Results of schema and business logic validation",
+          "properties": {
+            "schema_valid": {
+              "type": "boolean",
+              "description": "Whether data passes JSON schema validation"
+            },
+            "schema_errors": {
+              "type": "array",
+              "description": "List of schema validation errors if any",
+              "items": {
+                "type": "string"
+              }
+            },
+            "business_rules_valid": {
+              "type": "boolean",
+              "description": "Whether data passes business logic validation"
+            },
+            "business_rule_warnings": {
+              "type": "array",
+              "description": "Business rule warnings (e.g., transaction date > notification date)",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "processing_time": {
+          "type": "object",
+          "description": "Performance metrics for processing time breakdown",
+          "properties": {
+            "total_seconds": {
+              "type": "number",
+              "description": "Total processing time in seconds",
+              "minimum": 0
+            },
+            "pdf_analysis_seconds": {
+              "type": "number",
+              "description": "Time spent analyzing PDF format",
+              "minimum": 0
+            },
+            "text_extraction_seconds": {
+              "type": "number",
+              "description": "Time spent extracting text from PDF",
+              "minimum": 0
+            },
+            "ocr_seconds": {
+              "type": ["number", "null"],
+              "description": "Time spent on OCR processing (if applicable)",
+              "minimum": 0
+            },
+            "parsing_seconds": {
+              "type": "number",
+              "description": "Time spent parsing extracted text into structured data",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}

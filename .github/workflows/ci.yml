@@ -172,11 +172,11 @@ jobs:
           path: ingestion/lambdas/*/function.zip
           retention-days: 30
 
-  # Deploy (manual approval required)
+  # Deploy (auto-deploys on push to main, or manual trigger)
   deploy:
     name: Deploy to AWS
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/main'
     needs: [build-lambdas]
     environment:
       name: production

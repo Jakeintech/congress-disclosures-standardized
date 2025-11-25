@@ -49,6 +49,12 @@ cloudwatch_log_retention_days = 30 # Balance between auditability and cost
 enable_cost_alerts = true
 alert_email        = "" # Leave empty to disable email alerts, or add your email
 
+# Budget Protection (Cost Control)
+# IMPORTANT: Set your email to receive budget alerts
+budget_alert_email  = "your-email@example.com" # REQUIRED for budget alerts
+budget_monthly_limit = "5.00"  # Monthly budget in USD (triggers alerts at 80%, 100%)
+budget_daily_limit   = "0.50"  # Daily budget in USD (catch runaway costs early)
+
 # Extraction Configuration
 textract_max_pages_sync = 10      # Max pages for synchronous Textract calls
 extraction_version      = "1.0.0" # Version for auditability

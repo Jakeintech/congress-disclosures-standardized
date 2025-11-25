@@ -192,3 +192,21 @@ variable "extraction_version" {
   type        = string
   default     = "1.0.0"
 }
+
+# Budget Configuration
+variable "budget_alert_email" {
+  description = "Email address for budget alerts (required for cost protection)"
+  type        = string
+}
+
+variable "budget_monthly_limit" {
+  description = "Monthly budget limit in USD"
+  type        = string
+  default     = "5.00"
+}
+
+variable "budget_daily_limit" {
+  description = "Daily budget limit in USD (to catch runaway costs)"
+  type        = string
+  default     = "0.50"
+}

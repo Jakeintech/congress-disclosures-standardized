@@ -22,6 +22,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 # Import shared libraries
 from lib import s3_utils, parquet_writer, manifest_generator  # noqa: E402
+import boto3
+
+# Initialize SQS client for queuing extraction jobs
+sqs_client = boto3.client('sqs')
 
 # Configure logging
 logger = logging.getLogger()
@@ -32,6 +36,7 @@ S3_BUCKET = os.environ.get("S3_BUCKET_NAME")
 S3_BRONZE_PREFIX = os.environ.get("S3_BRONZE_PREFIX", "bronze")
 S3_SILVER_PREFIX = os.environ.get("S3_SILVER_PREFIX", "silver")
 EXTRACTION_VERSION = os.environ.get("EXTRACTION_VERSION", "1.0.0")
+EXTRACTION_QUEUE_URL = os.environ.get("EXTRACTION_QUEUE_URL")
 
 # Load JSON schemas
 SCHEMAS_DIR = Path(__file__).parent / "schemas"
@@ -124,6 +129,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             logger.warning(f"Failed to generate manifest: {str(e)}")
             manifest_result = {"error": str(e)}
 
+        logger.info("--> ENTERING STEP 6 <--")
         # Step 6: Generate silver_documents.json for website
         logger.info("Step 6: Generating silver_documents.json for website")
         try:
@@ -140,6 +146,33 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         except Exception as e:
             logger.warning(f"Failed to generate silver_documents.json: {str(e)}")
             documents_json_result = {"error": str(e)}
+
+        logger.info("--> ENTERING STEP 7 <--")
+        # Step 7: Queue extraction jobs for each document
+        logger.info(f"Step 7: Queuing {len(document_records)} documents for extraction...")
+        queued_count = 0
+        failed_count = 0
+        
+        if EXTRACTION_QUEUE_URL:
+            for doc in document_records:
+                try:
+                    message = {
+                        'doc_id': doc['doc_id'],
+                        'year': doc['year'],
+                        's3_pdf_key': doc['pdf_s3_key']
+                    }
+                    sqs_client.send_message(
+                        QueueUrl=EXTRACTION_QUEUE_URL,
+                        MessageBody=json.dumps(message)
+                    )
+                    queued_count += 1
+                except Exception as e:
+                    logger.error(f"Failed to queue doc {doc['doc_id']}: {e}")
+                    failed_count += 1
+            
+            logger.info(f"✅ Queued {queued_count} extraction jobs ({failed_count} failed)")
+        else:
+            logger.warning("EXTRACTION_QUEUE_URL not set - skipping extraction job queuing")
 
         result = {
             "status": "success",

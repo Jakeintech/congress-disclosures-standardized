@@ -35,12 +35,65 @@ S3_SILVER_PREFIX = os.environ.get("S3_SILVER_PREFIX", "silver")
 EXTRACTION_VERSION = os.environ.get("EXTRACTION_VERSION", "1.0.0")
 TEXTRACT_MAX_PAGES_SYNC = int(os.environ.get("TEXTRACT_MAX_PAGES_SYNC", "10"))
 TEXTRACT_MONTHLY_PAGE_LIMIT = int(os.environ.get("TEXTRACT_MONTHLY_PAGE_LIMIT", "1000"))
+STRUCTURED_EXTRACTION_QUEUE_URL = os.environ.get("STRUCTURED_EXTRACTION_QUEUE_URL")
+
+# Initialize SQS client for queuing structured extraction
+sqs_client = boto3.client('sqs')
 
 # Load JSON schema
 SCHEMAS_DIR = Path(__file__).parent / "schemas"
 with open(SCHEMAS_DIR / "house_fd_documents.json") as f:
     DOCUMENTS_SCHEMA = json.load(f)
 
+
+def update_bronze_pdf_metadata(
+    s3_pdf_key: str,
+    extraction_result: Dict[str, Any],
+    text_s3_key: str,
+    structured_s3_key: str = None
+):
+    """Update Bronze PDF S3 metadata to track Textract processing.
+    
+    This prevents duplicate expensive Textract API calls by tagging the source PDF
+    with extraction metadata.
+    
+    Args:
+        s3_pdf_key: S3 key of the Bronze PDF
+        extraction_result: Result from pdf_extractor
+        text_s3_key: S3 key of extracted text in Silver
+        structured_s3_key: Optional S3 key of structured JSON in Silver
+    """
+    try:
+        s3_client = boto3.client("s3")
+        
+        # Copy object to itself with new metadata (preserves object, updates metadata)
+        copy_source = {"Bucket": S3_BUCKET, "Key": s3_pdf_key}
+        
+        metadata = {
+            "textract-processed": "true",
+            "textract-version": EXTRACTION_VERSION,
+            "textract-timestamp": datetime.now(timezone.utc).isoformat(),
+            "textract-method": extraction_result["extraction_method"],
+            "textract-pages": str(extraction_result["pages"]),
+            "text-location": text_s3_key,
+        }
+        
+        if structured_s3_key:
+            metadata["structured-location"] = structured_s3_key
+        
+        s3_client.copy_object(
+            Bucket=S3_BUCKET,
+            Key=s3_pdf_key,
+            CopySource=copy_source,
+            Metadata=metadata,
+            MetadataDirective="REPLACE"
+        )
+        
+        logger.info(f"Updated Bronze PDF metadata for {s3_pdf_key}")
+        
+    except Exception as e:
+        # Log but don't fail - metadata update is best-effort
+        logger.warning(f"Failed to update Bronze PDF metadata: {e}")
 
 def get_textract_pages_used_this_month() -> int:
     """Query documents table to count Textract pages used this month.
@@ -326,6 +379,17 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
         # Step 4: Update house_fd_documents record
         logger.info("Updating house_fd_documents record")
 
+        # Step 4a: Update Bronze PDF metadata to prevent duplicate Textract calls
+        logger.info("Updating Bronze PDF metadata")
+        update_bronze_pdf_metadata(
+            s3_pdf_key=s3_pdf_key,
+            extraction_result=extraction_result,
+            text_s3_key=text_s3_key
+        )
+        
+        # Step 4b: Update house_fd_documents record
+        logger.info("Updating house_fd_documents record")
+        
         update_document_record(
             doc_id=doc_id,
             year=year,
@@ -335,6 +399,27 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
             text_s3_key=text_s3_key,
             start_time=start_time,
         )
+
+        # Step 5: Queue structured extraction for ALL documents (not just PTR)
+        if STRUCTURED_EXTRACTION_QUEUE_URL:
+            logger.info("Queuing document for structured extraction")
+            try:
+                sqs_client.send_message(
+                    QueueUrl=STRUCTURED_EXTRACTION_QUEUE_URL,
+                    MessageBody=json.dumps({
+                        'doc_id': doc_id,
+                        'year': year,
+                        's3_text_key': text_s3_key,
+                        'extraction_method': extraction_result['extraction_method'],
+                        'has_embedded_text': extraction_result.get('has_embedded_text', False)
+                    })
+                )
+                logger.info(f"✅ Queued structured extraction for doc_id={doc_id}")
+            except Exception as e:
+                logger.error(f"Failed to queue structured extraction: {e}")
+                # Don't fail the entire extraction if queuing fails
+        else:
+            logger.warning("STRUCTURED_EXTRACTION_QUEUE_URL not set - skipping structured extraction queuing")
 
         logger.info(f"Document processing complete for doc_id={doc_id}")
 

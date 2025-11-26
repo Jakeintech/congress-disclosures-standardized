@@ -1,0 +1,46 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Schedule B",
+    "type": "object",
+    "description": "Transactions (buy/sell) for the reporting period.",
+    "properties": {
+        "transactions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "ticker": {
+                        "type": "string"
+                    },
+                    "quantity": {
+                        "type": "number"
+                    },
+                    "price": {
+                        "type": "number"
+                    },
+                    "amount": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "date",
+                    "type",
+                    "ticker",
+                    "quantity",
+                    "price",
+                    "amount"
+                ]
+            }
+        }
+    },
+    "required": [
+        "transactions"
+    ]
+}

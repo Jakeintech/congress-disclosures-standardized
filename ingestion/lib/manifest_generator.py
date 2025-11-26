@@ -327,8 +327,11 @@ def update_silver_documents_json_incremental(
                 "extraction_timestamp": doc.get("extraction_timestamp"),
                 "extraction_error": doc.get("extraction_error"),
                 "char_count": doc.get("char_count"),
+                "text_s3_key": doc.get("text_s3_key"),
+                "json_s3_key": doc.get("json_s3_key"),
             }
             doc_map[doc_id] = simplified
+
 
     # Regenerate documents JSON
     all_documents = list(doc_map.values())

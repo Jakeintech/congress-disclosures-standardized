@@ -1,9 +1,2 @@
-# Dependencies for house_fd_index_to_silver Lambda
-# This Lambda parses XML index and writes to Parquet
-
-boto3>=1.28.0,<2.0.0
-pandas>=2.0.0,<3.0.0
-pyarrow>=13.0.0,<14.0.0
-jsonschema>=4.17.0,<5.0.0
 python-dateutil>=2.8.0,<3.0.0
 defusedxml>=0.7.1,<1.0.0

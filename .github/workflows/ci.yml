@@ -174,13 +174,183 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - name: Verify AWS credentials and permissions
+        run: |
+          echo "🔐 Verifying AWS credentials and permissions..."
+          echo "AWS Account ID:"
+          aws sts get-caller-identity --query 'Account' --output text || {
+            echo "❌ Failed to get AWS account identity. Check credentials."
+            exit 1
+          }
+          echo "✅ AWS credentials are valid"
+          
+          # Check basic permissions
+          echo "🔍 Checking required permissions..."
+          echo "  - S3 access:"
+          aws s3 ls 2>/dev/null && echo "    ✅ S3 access OK" || echo "    ⚠️  S3 access check failed"
+          echo "  - DynamoDB access:"
+          aws dynamodb list-tables --region us-east-1 2>/dev/null && echo "    ✅ DynamoDB access OK" || echo "    ⚠️  DynamoDB access check failed"
+          
+          # Required IAM permissions for this workflow:
+          # - s3:CreateBucket, s3:PutBucketVersioning, s3:PutBucketEncryption, s3:GetBucketLocation
+          # - dynamodb:CreateTable, dynamodb:DescribeTable, dynamodb:PutItem, dynamodb:DeleteItem, dynamodb:ListTables
+          # - terraform state: s3:GetObject, s3:PutObject, s3:ListBucket on state bucket
+          # - dynamodb:PutItem, dynamodb:GetItem, dynamodb:DeleteItem on lock table
+
+      - name: Ensure S3 state bucket exists
+        run: |
+          set -e  # Exit on error
+          BUCKET_NAME="congress-disclosures-standardized"
+          REGION="us-east-1"
+          STATE_KEY_PREFIX="terraform/development/"
+          
+          echo "🔍 Checking if S3 state bucket exists: $BUCKET_NAME"
+          
+          if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+            echo "✅ S3 state bucket already exists: $BUCKET_NAME"
+            
+            # Verify versioning is enabled
+            VERSIONING=$(aws s3api get-bucket-versioning --bucket "$BUCKET_NAME" --query 'Status' --output text 2>/dev/null || echo "None")
+            if [ "$VERSIONING" != "Enabled" ]; then
+              echo "⚠️  Versioning not enabled, enabling now..."
+              aws s3api put-bucket-versioning \
+                --bucket "$BUCKET_NAME" \
+                --versioning-configuration Status=Enabled || {
+                echo "❌ Failed to enable versioning"
+                exit 1
+              }
+              echo "✅ Versioning enabled"
+            else
+              echo "✅ Versioning is already enabled"
+            fi
+            
+            # Verify encryption
+            ENCRYPTION=$(aws s3api get-bucket-encryption --bucket "$BUCKET_NAME" --query 'ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm' --output text 2>/dev/null || echo "None")
+            if [ "$ENCRYPTION" != "AES256" ]; then
+              echo "⚠️  Encryption not configured, enabling now..."
+              aws s3api put-bucket-encryption \
+                --bucket "$BUCKET_NAME" \
+                --server-side-encryption-configuration '{
+                  "Rules": [{
+                    "ApplyServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }]
+                }' || {
+                echo "❌ Failed to enable encryption"
+                exit 1
+              }
+              echo "✅ Encryption enabled"
+            else
+              echo "✅ Encryption is already configured"
+            fi
+          else
+            echo "📦 Creating S3 bucket for Terraform state: $BUCKET_NAME"
+            # us-east-1 doesn't need LocationConstraint
+            aws s3api create-bucket \
+              --bucket "$BUCKET_NAME" \
+              --region "$REGION" || {
+              echo "❌ Failed to create S3 bucket. Checking permissions..."
+              aws sts get-caller-identity
+              exit 1
+            }
+            
+            # Enable versioning for state bucket (critical for state management)
+            echo "📦 Enabling versioning on state bucket..."
+            aws s3api put-bucket-versioning \
+              --bucket "$BUCKET_NAME" \
+              --versioning-configuration Status=Enabled || {
+              echo "❌ Failed to enable versioning"
+              exit 1
+            }
+            
+            # Enable encryption
+            echo "🔐 Enabling encryption on state bucket..."
+            aws s3api put-bucket-encryption \
+              --bucket "$BUCKET_NAME" \
+              --server-side-encryption-configuration '{
+                "Rules": [{
+                  "ApplyServerSideEncryptionByDefault": {
+                    "SSEAlgorithm": "AES256"
+                  }
+                }]
+              }' || {
+              echo "❌ Failed to enable encryption"
+              exit 1
+            }
+            
+            echo "✅ S3 state bucket created and configured"
+          fi
+          
+          # Verify we can access the state path
+          echo "🔍 Verifying state path access: s3://$BUCKET_NAME/$STATE_KEY_PREFIX"
+          aws s3 ls "s3://$BUCKET_NAME/$STATE_KEY_PREFIX" 2>/dev/null && echo "✅ State path is accessible" || echo "ℹ️  State path doesn't exist yet (will be created by terraform init)"
+
       - name: Ensure DynamoDB lock table exists
         run: |
-          aws dynamodb describe-table --table-name congress-disclosures-terraform-locks || \
-          aws dynamodb create-table --table-name congress-disclosures-terraform-locks \
-            --attribute-definitions AttributeName=LockID,AttributeType=S \
-            --key-schema AttributeName=LockID,KeyType=HASH \
-            --billing-mode PAY_PER_REQUEST
+          set -e  # Exit on error
+          TABLE_NAME="congress-disclosures-terraform-locks"
+          REGION="us-east-1"
+          
+          echo "🔍 Checking if DynamoDB lock table exists: $TABLE_NAME"
+          
+          # Check if table exists and is accessible
+          if aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" 2>/dev/null; then
+            TABLE_STATUS=$(aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" --query 'Table.TableStatus' --output text)
+            echo "✅ DynamoDB lock table exists with status: $TABLE_STATUS"
+            
+            if [ "$TABLE_STATUS" != "ACTIVE" ]; then
+              echo "⏳ Waiting for table to become ACTIVE..."
+              aws dynamodb wait table-exists --table-name "$TABLE_NAME" --region "$REGION"
+              echo "✅ Table is now ACTIVE"
+            fi
+          else
+            echo "📦 Creating DynamoDB lock table: $TABLE_NAME"
+            aws dynamodb create-table \
+              --table-name "$TABLE_NAME" \
+              --region "$REGION" \
+              --attribute-definitions AttributeName=LockID,AttributeType=S \
+              --key-schema AttributeName=LockID,KeyType=HASH \
+              --billing-mode PAY_PER_REQUEST \
+              --tags Key=Name,Value="Terraform State Lock Table" \
+                     Key=Project,Value="congress-disclosures" || {
+              echo "❌ Failed to create DynamoDB table. Checking permissions..."
+              aws sts get-caller-identity
+              exit 1
+            }
+            
+            echo "⏳ Waiting for table to become active..."
+            aws dynamodb wait table-exists --table-name "$TABLE_NAME" --region "$REGION" || {
+              echo "❌ Table creation timed out or failed"
+              exit 1
+            }
+            
+            # Verify table is ACTIVE
+            TABLE_STATUS=$(aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" --query 'Table.TableStatus' --output text)
+            if [ "$TABLE_STATUS" = "ACTIVE" ]; then
+              echo "✅ DynamoDB lock table created and ACTIVE"
+            else
+              echo "❌ Table exists but status is $TABLE_STATUS (expected ACTIVE)"
+              exit 1
+            fi
+          fi
+          
+          # Final verification - test write access
+          echo "🔐 Verifying table access permissions..."
+          TEST_LOCK_ID="test-lock-$(date +%s)"
+          aws dynamodb put-item \
+            --table-name "$TABLE_NAME" \
+            --region "$REGION" \
+            --item "{\"LockID\": {\"S\": \"$TEST_LOCK_ID\"}}" \
+            --condition-expression "attribute_not_exists(LockID)" 2>/dev/null && \
+          aws dynamodb delete-item \
+            --table-name "$TABLE_NAME" \
+            --region "$REGION" \
+            --key "{\"LockID\": {\"S\": \"$TEST_LOCK_ID\"}}" 2>/dev/null && \
+          echo "✅ Table access verified (read/write permissions OK)" || {
+            echo "⚠️  Warning: Could not verify write access to table (may still work for Terraform)"
+          }
 
       - name: Download Lambda artifacts
         uses: actions/download-artifact@v4
@@ -196,7 +366,15 @@ jobs:
       - name: Terraform Init
         run: |
           cd infra/terraform
-          terraform init
+          terraform init -upgrade
+          echo "✅ Terraform backend initialized successfully"
+
+      - name: Verify Terraform Backend
+        run: |
+          cd infra/terraform
+          # Verify backend is configured correctly
+          terraform workspace show || echo "Using default workspace"
+          echo "✅ Backend verification complete"
 
       - name: Terraform Plan
         run: |

@@ -1,0 +1,76 @@
+# Website Deployment Makefile
+# Use: make -f Makefile.website deploy-website
+
+.PHONY: deploy-website increment-version sync-website rebuild-manifests rebuild-ptr-api rebuild-silver-api
+
+# Auto-increment app.js version and deploy entire website
+deploy-website: increment-version rebuild-manifests rebuild-silver-api rebuild-ptr-api sync-website
+	@echo "✅ Website deployed successfully!"
+	@echo "🌐 URL: https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/index.html"
+
+# Increment app.js version in index.html
+increment-version:
+	@echo "📝 Incrementing app.js version..."
+	@current_version=$$(grep -o 'app.js?v=[0-9]*' website/index.html | grep -o '[0-9]*'); \
+	new_version=$$((current_version + 1)); \
+	sed -i '' "s/app.js?v=$$current_version/app.js?v=$$new_version/" website/index.html; \
+	echo "✅ Version incremented: v$$current_version → v$$new_version"
+
+# Rebuild all data manifests
+rebuild-manifests:
+	@echo "📊 Rebuilding data manifests..."
+	python3 scripts/rebuild_silver_manifest.py
+	python3 scripts/build_bronze_manifest.py
+	@echo "✅ Manifests rebuilt"
+
+# Rebuild Silver manifest API endpoint
+rebuild-silver-api:
+	@echo "📊 Rebuilding Silver manifest API..."
+	python3 scripts/build_silver_manifest_api.py
+	@echo "✅ Silver manifest API rebuilt"
+
+# Rebuild PTR transactions API endpoint
+rebuild-ptr-api:
+	@echo "📊 Rebuilding PTR transactions API..."
+	python3 scripts/aggregate_schedule_b.py
+	@echo "✅ PTR transactions API rebuilt"
+
+# Sync website to S3 with proper cache headers
+sync-website:
+	@echo "🚀 Syncing website to S3..."
+	aws s3 sync website/ s3://congress-disclosures-standardized/website/ \
+		--exclude ".DS_Store" \
+		--exclude "*.pyc" \
+		--cache-control "no-cache, no-store, must-revalidate" \
+		--metadata-directive REPLACE
+	@echo "✅ Website synced to S3"
+
+# Build admin.js with IPs from environment
+build-admin:
+	@if [ -z "$$ADMIN_ALLOWED_IPS" ]; then \
+		echo "⚠️  ADMIN_ALLOWED_IPS not set, skipping admin.js build"; \
+	else \
+		echo "📝 Building admin.js with authorized IPs..."; \
+		./scripts/build_admin.sh; \
+	fi
+
+# Deploy only static assets (HTML/CSS/JS) - skip data files
+deploy-static: build-admin
+	@echo "🚀 Deploying static assets only..."
+	aws s3 cp website/index.html s3://congress-disclosures-standardized/website/index.html --cache-control "no-cache"
+	aws s3 cp website/app.js s3://congress-disclosures-standardized/website/app.js --cache-control "no-cache"
+	aws s3 cp website/style.css s3://congress-disclosures-standardized/website/style.css --cache-control "max-age=3600"
+	@if [ -f website/admin.html ]; then \
+		aws s3 cp website/admin.html s3://congress-disclosures-standardized/website/admin.html --cache-control "no-cache"; \
+	fi
+		@if [ -f website/admin.js ]; then \
+			aws s3 cp website/admin.js s3://congress-disclosures-standardized/website/admin.js --cache-control "no-cache"; \
+		fi
+		# Upload vendor assets (PDF.js)
+		@if [ -f website/vendor/pdfjs/pdf.min.js ]; then \
+			aws s3 cp website/vendor/pdfjs/pdf.min.js s3://congress-disclosures-standardized/website/vendor/pdfjs/pdf.min.js --cache-control "max-age=86400"; \
+		fi
+		@if [ -f website/vendor/pdfjs/pdf.worker.min.js ]; then \
+			aws s3 cp website/vendor/pdfjs/pdf.worker.min.js s3://congress-disclosures-standardized/website/vendor/pdfjs/pdf.worker.min.js --cache-control "max-age=86400"; \
+		fi
+		@echo "✅ Static assets deployed"

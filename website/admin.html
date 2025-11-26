@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Document Viewer | Congress Disclosures</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Admin-specific styles */
+        .admin-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .admin-left {
+            width: 300px;
+            min-width: 300px;
+            border-right: 2px solid var(--border);
+            overflow-y: auto;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .admin-left.collapsed {
+            margin-left: -300px;
+        }
+        
+        .admin-right {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .admin-right-split {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .admin-right-split.active {
+            display: flex;
+        }
+        
+        .admin-right-left {
+            width: 50%;
+            border-right: 2px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .admin-right-right {
+            width: 50%;
+            overflow-y: auto;
+            padding: 1rem;
+            background: white;
+        }
+        /* Resizer between panes */
+        .resizer { width: 6px; cursor: col-resize; background: #e5e7eb; }
+        .resizer:hover { background: #cbd5e1; }
+        
+        .pdf-viewer {
+            width: 100%;
+            height: 100%;
+            border: none;
+            flex: 1;
+        }
+        
+        .toggle-sidebar {
+            position: absolute;
+            left: 300px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 0 4px 4px 0;
+            z-index: 10;
+            transition: left 0.3s ease;
+        }
+        
+        .toggle-sidebar.collapsed {
+            left: 0;
+        }
+        
+        .admin-right-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: #999;
+        }
+        
+        .admin-right-empty.hidden {
+            display: none;
+        }
+        
+        .documents-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        
+        .document-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .document-item:hover {
+            background: #f0f0f0;
+            border-color: var(--primary);
+        }
+        
+        .document-item.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .document-item-code {
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .document-item-meta {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        .document-item.active .document-item-meta {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .badge { display: inline-block; padding: 0.15rem 0.4rem; border-radius: 999px; font-size: 0.72rem; line-height: 1; border: 1px solid var(--border); background: #fff; }
+        .badge.type { color: #0f172a; }
+        
+        .admin-header {
+            padding: 0.75rem 1rem;
+            background: #fff;
+            color: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .admin-search {
+            padding: 0.75rem 1rem;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 48px;
+            z-index: 1;
+        }
+        
+        .admin-search input {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        .admin-search .controls-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+        .admin-search select { flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; }
+        .btn-reset, .btn-sort, .btn-chip { padding: 0.5rem 0.75rem; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; }
+        .btn-reset:hover, .btn-sort:hover, .btn-chip:hover { background: #f8fafc; }
+        .top-type-buttons { margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        
+        .document-info {
+            margin-bottom: 2rem;
+        }
+        
+        .info-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .info-section h3 {
+            margin-top: 0;
+            color: #000;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-item strong {
+            color: #666;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-item span {
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .json-viewer {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Structured fields view */
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .field-item {
+            border: 1px solid var(--border);
+            border-left: 4px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            padding: 0.5rem 0.75rem;
+        }
+        .field-item.filled { border-left-color: #22c55e; background: #f0fff4; }
+        .field-item.empty  { border-left-color: #cbd5e1; background: #f8fafc; opacity: 0.9; }
+        .field-label { color: #64748b; font-size: 0.8rem; margin-bottom: 0.25rem; display: block; }
+        .field-value { color: #0f172a; font-size: 0.95rem; word-break: break-word; }
+
+        /* Checkboxes */
+        .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+        .checkbox-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.5rem; background: #fff; border: 1px solid var(--border); border-radius: 4px; }
+        .checkbox-on { color: #16a34a; font-weight: 600; }
+        .checkbox-off { color: #94a3b8; }
+
+        /* Schedules summary */
+        .schedules-table { width: 100%; border-collapse: collapse; background: #fff; }
+        .schedules-table th, .schedules-table td { border: 1px solid var(--border); padding: 0.5rem; text-align: left; }
+        .schedules-table th { background: #f8fafc; color: #334155; }
+        .schedule-has { color: #166534; font-weight: 600; }
+        .schedule-empty { color: #64748b; }
+        
+        .text-viewer {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+        
+        .access-denied {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .access-denied h1 {
+            color: var(--destructive);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .s3-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .s3-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            text-decoration: none;
+            color: var(--primary);
+        }
+        
+        .s3-link:hover {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div id="access-check" class="access-denied" style="display: none;">
+        <h1>🔒 Access Denied</h1>
+        <p>This page is only accessible from authorized IP addresses.</p>
+        <p><small>Your IP: <span id="user-ip"></span></small></p>
+    </div>
+    
+    <div id="admin-container" class="admin-container" style="display: none;">
+        <button class="toggle-sidebar" onclick="toggleSidebar()" title="Toggle document list">☰</button>
+        
+        <div id="admin-left" class="admin-left">
+            <div class="admin-header">
+                <h2>📋 Documents</h2>
+                <button onclick="window.location.href='index.html'" class="btn-secondary">← Back</button>
+            </div>
+            <div class="admin-search">
+                <input type="text" id="doc-search" placeholder="Search by doc ID, member, or filing type" onkeyup="filterDocuments()">
+                <div class="controls-row">
+                    <select id="filing-type-filter" onchange="onFilingTypeChange()">
+                        <option value="">All filing types</option>
+                    </select>
+                    <select id="processing-filter" onchange="onProcessingChange()" title="Filter by processing state">
+                        <option value="">All states</option>
+                        <option value="success">Completed</option>
+                        <option value="pending">Processing</option>
+                        <option value="failed">Failed</option>
+                        <option value="none">Not processed</option>
+                    </select>
+                    <button class="btn-sort" id="sort-year-btn" onclick="toggleSortYear()" title="Toggle sort by year">Year ↓</button>
+                    <button class="btn-reset" onclick="resetFilters()" title="Clear search and filters">Clear</button>
+                </div>
+                <div id="top-type-buttons" class="top-type-buttons"></div>
+                <div id="processing-counts" style="margin-top:.25rem; color:#64748b; font-size: 0.85rem;"></div>
+                <div id="search-hint" style="margin-top: 0.25rem; color: #64748b; font-size: 0.8rem;"></div>
+            </div>
+            <div id="documents-list" class="documents-list">
+                <div class="loading">Loading documents...</div>
+            </div>
+        </div>
+        
+        <div class="admin-right">
+            <div id="admin-right-empty" class="admin-right-empty">
+                <div style="text-align: center;">
+                    <h3>Select a document to view</h3>
+                    <p>Choose a document from the list on the left to see the PDF and extraction data</p>
+                </div>
+            </div>
+            
+            <div id="admin-right-split" class="admin-right-split">
+                <div class="admin-right-left" id="pane-left">
+                    <div class="admin-header" style="gap:.5rem;">
+                        <h2>📄 PDF Viewer</h2>
+                        <span id="pdf-source-label" class="badge" title="Current PDF source">Source: -</span>
+                    </div>
+                    <div id="pdf-toolbar" style="display:flex; align-items:center; gap:.5rem; padding:.5rem; border-bottom:1px solid var(--border); background:#fff;">
+                        <button class="btn-reset" onclick="pdfPrevPage()" title="Previous page">◀</button>
+                        <span id="pdf-page-info">Page <span id="pdf-page-num">-</span> / <span id="pdf-page-count">-</span></span>
+                        <button class="btn-reset" onclick="pdfNextPage()" title="Next page">▶</button>
+                        <span style="flex:1"></span>
+                        <button class="btn-reset" onclick="pdfZoomOut()" title="Zoom out">−</button>
+                        <button class="btn-reset" onclick="pdfZoomIn()" title="Zoom in">＋</button>
+                    </div>
+                    <div id="pdf-canvas-container" style="flex:1; overflow:auto; background:#f8fafc; display:flex; align-items:flex-start; justify-content:center;">
+                        <canvas id="pdf-canvas" style="background:white; margin:1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"></canvas>
+                    </div>
+                </div>
+                <div class="resizer" id="resizer" aria-label="Resize panes" title="Drag to resize"></div>
+                <div class="admin-right-right" id="pane-right">
+                    <div class="admin-header">
+                        <h2>📊 Document Data</h2>
+                    </div>
+                    <div id="document-data" class="loading">
+                        <p>Loading document data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PDF.js hosted locally to avoid SRI/CDN issues -->
+    <script src="vendor/pdfjs/pdf.min.js"></script>
+    <script>
+      if (window['pdfjsLib']) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdfjs/pdf.worker.min.js';
+      }
+    </script>
+    <script src="admin.js?v=3"></script>
+</body>
+</html>

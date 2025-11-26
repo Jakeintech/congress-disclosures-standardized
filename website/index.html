@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <meta name="description" content="Open-source database of U.S. House financial disclosure reports">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Header -->
@@ -43,9 +45,11 @@
                     <div class="alert-title">Legal Notice</div>
                     <div class="alert-description">
                         This data is provided for transparency and research purposes per
-                        <a href="https://www.law.cornell.edu/uscode/text/5/13107" target="_blank" rel="noopener">5 U.S.C. § 13107</a>.
+                        <a href="https://www.law.cornell.edu/uscode/text/5/13107" target="_blank" rel="noopener">5
+                            U.S.C. § 13107</a>.
                         Not financial advice. No warranties.
-                        <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">Verify at official source</a>.
+                        <a href="https://disclosures-clerk.house.gov/" target="_blank" rel="noopener">Verify at official
+                            source</a>.
                     </div>
                 </div>
 
@@ -53,14 +57,16 @@
                 <div class="tabs">
                     <div class="tabs-list">
                         <button class="tab-trigger active" data-tab="filings">
-                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
                             Bronze: Filings
                         </button>
                         <button class="tab-trigger" data-tab="silver-filings">
-                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="14" width="7" height="7"></rect>
@@ -69,14 +75,16 @@
                             Silver: Data & Analytics
                         </button>
                         <button class="tab-trigger" data-tab="gold-analytics">
-                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
                                 <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
                                 <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
                             </svg>
                             Gold Analytics
                         </button>
                         <button class="tab-trigger" data-tab="downloads">
-                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -115,7 +123,8 @@
 
                                 <!-- Filters -->
                                 <div class="filters">
-                                    <input type="text" id="search" placeholder="Search by name, state, or document ID..." class="input">
+                                    <input type="text" id="search"
+                                        placeholder="Search by name, state, or document ID..." class="input">
                                     <div class="filter-grid">
                                         <select id="year-filter" class="select">
                                             <option value="">All Years</option>
@@ -141,7 +150,8 @@
 
                                 <!-- Error State -->
                                 <div id="error" class="error-state hidden">
-                                    <p>Unable to load data. <a href="https://disclosures-clerk.house.gov/" target="_blank">Verify at official source</a>.</p>
+                                    <p>Unable to load data. <a href="https://disclosures-clerk.house.gov/"
+                                            target="_blank">Verify at official source</a>.</p>
                                 </div>
 
                                 <!-- Data Table -->
@@ -182,110 +192,234 @@
 
                     <!-- Silver Tab: Normalized Data -->
                     <div class="tab-content" data-tab="silver-filings">
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title">Silver Layer: Documents Extraction Status</h2>
-                                <p class="card-description">View extraction status and metadata for all processed documents</p>
-                            </div>
-                            <div class="card-content">
-                                <!-- Silver Stats -->
-                                <div class="stats-grid" id="silver-stats">
-                                    <div class="stat-card">
-                                        <div class="stat-value" id="silver-total-docs">-</div>
-                                        <div class="stat-label">Total Documents</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-value" id="silver-success">-</div>
-                                        <div class="stat-label">Extracted Successfully</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-value" id="silver-pending">-</div>
-                                        <div class="stat-label">Pending Extraction</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-value" id="silver-total-pages">-</div>
-                                        <div class="stat-label">Total Pages</div>
+                        <!-- Silver Layer Sidebar Layout -->
+                        <div class="silver-layer-layout">
+                            <!-- Sidebar Navigation -->
+                            <aside class="silver-sidebar">
+                                <h3 class="silver-sidebar-title">Silver Tables</h3>
+                                <nav class="silver-sidebar-nav">
+                                    <button class="silver-nav-item active" data-silver-view="filings">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                        </svg>
+                                        Filings
+                                    </button>
+                                    <button class="silver-nav-item" data-silver-view="documents">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        </svg>
+                                        Documents
+                                    </button>
+                                    <button class="silver-nav-item" data-silver-view="ptr-transactions">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                        </svg>
+                                        PTR Transactions
+                                    </button>
+                                </nav>
+                            </aside>
+
+                            <!-- Main Content Area -->
+                            <div class="silver-main-content">
+                                <!-- Filings View -->
+                                <div class="silver-view active" data-silver-view="filings">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="card-title">📋 Filings Metadata</h2>
+                                            <p class="card-description">Normalized filing records from House XML index -
+                                                basic metadata for each disclosure</p>
+                                        </div>
+                                        <div class="card-content">
+                                            <div class="alert alert-info">
+                                                <div class="alert-title">What's in this table?</div>
+                                                <div class="alert-description">
+                                                    <strong>Source:</strong> House Clerk XML index parsed into
+                                                    structured records<br>
+                                                    <strong>Fields:</strong> doc_id, year, filing_date, filing_type,
+                                                    member name, state/district, PDF location<br>
+                                                    <strong>Use case:</strong> Quick lookup of all filings and their
+                                                    basic metadata
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-info" style="margin-top: 1rem;">
+                                                <div class="alert-title">Download Parquet</div>
+                                                <div class="alert-description">
+                                                    <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/filings/year=2025/part-0000.parquet"
+                                                        download>Download filings.parquet</a><br>
+                                                    Query with: <code>pd.read_parquet('filings.parquet')</code> or
+                                                    <code>SELECT * FROM 'filings.parquet'</code>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Filters -->
-                                <div class="filters">
-                                    <input type="text" id="silver-search" placeholder="Search by document ID..." class="input">
-                                    <div class="filter-grid">
-                                        <select id="silver-year-filter" class="select">
-                                            <option value="">All Years</option>
-                                        </select>
-                                        <select id="silver-status-filter" class="select">
-                                            <option value="">All Statuses</option>
-                                            <option value="success">Success</option>
-                                            <option value="pending">Pending</option>
-                                            <option value="failed">Failed</option>
-                                        </select>
-                                        <select id="silver-method-filter" class="select">
-                                            <option value="">All Extraction Methods</option>
-                                            <option value="pypdf">PyPDF</option>
-                                            <option value="textract">AWS Textract</option>
-                                        </select>
+                                <!-- Documents View with Full Table -->
+                                <div class="silver-view" data-silver-view="documents">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="card-title">📄 Document Extraction Status & Fields</h2>
+                                            <p class="card-description">PDF processing status, extracted text, and
+                                                structured data for each document</p>
+                                        </div>
+                                        <div class="card-content">
+                                            <!-- Silver Stats -->
+                                            <div class="stats-grid" id="silver-stats">
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="silver-total-docs">-</div>
+                                                    <div class="stat-label">Total Documents</div>
+                                                </div>
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="silver-success">-</div>
+                                                    <div class="stat-label">Extracted Successfully</div>
+                                                </div>
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="silver-pending">-</div>
+                                                    <div class="stat-label">Pending Extraction</div>
+                                                </div>
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="silver-total-pages">-</div>
+                                                    <div class="stat-label">Total Pages</div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Filters -->
+                                            <div class="filters">
+                                                <input type="text" id="silver-search"
+                                                    placeholder="Search by document ID..." class="input">
+                                                <div class="filter-grid">
+                                                    <select id="silver-year-filter" class="select">
+                                                        <option value="">All Years</option>
+                                                    </select>
+                                                    <select id="silver-status-filter" class="select">
+                                                        <option value="">All Statuses</option>
+                                                        <option value="success">Success</option>
+                                                        <option value="pending">Pending</option>
+                                                        <option value="failed">Failed</option>
+                                                    </select>
+                                                    <select id="silver-method-filter" class="select">
+                                                        <option value="">All Extraction Methods</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Loading State -->
+                                            <div id="silver-loading" class="loading-state">
+                                                <div class="spinner"></div>
+                                                <p>Loading silver layer data...</p>
+                                            </div>
+
+                                            <!-- Error State -->
+                                            <div id="silver-error" class="error-state hidden">
+                                                <p>Unable to load silver layer data.</p>
+                                            </div>
+
+                                            <!-- Data Table -->
+                                            <div id="silver-data-section" class="data-section hidden">
+                                                <div class="table-actions">
+                                                    <span id="silver-showing-count" class="text-muted">Showing 0 of 0
+                                                        documents</span>
+                                                    <button id="silver-export-csv" class="btn btn-secondary">Export
+                                                        CSV</button>
+                                                </div>
+
+                                                <div class="table-container">
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style="width: 30px;"></th>
+                                                                <th data-sort="member_name">Member</th>
+                                                                <th data-sort="filing_type">Type</th>
+                                                                <th data-sort="filing_date">Filed</th>
+                                                                <th data-sort="doc_id">Doc ID</th>
+                                                                <th data-sort="extraction_status">Extracted</th>
+                                                                <th data-sort="char_count">Text Size</th>
+                                                                <th>View Data</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="silver-table-body">
+                                                            <!-- Populated by JavaScript -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <div class="pagination" id="silver-pagination">
+                                                    <button id="silver-prev-page" class="btn btn-ghost"
+                                                        disabled>Previous</button>
+                                                    <span id="silver-page-info" class="text-muted">Page 1 of 1</span>
+                                                    <button id="silver-next-page" class="btn btn-ghost"
+                                                        disabled>Next</button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Loading State -->
-                                <div id="silver-loading" class="loading-state">
-                                    <div class="spinner"></div>
-                                    <p>Loading silver layer data...</p>
-                                </div>
-
-                                <!-- Error State -->
-                                <div id="silver-error" class="error-state hidden">
-                                    <p>Unable to load silver layer data.</p>
-                                </div>
-
-                                <!-- Data Table -->
-                                <div id="silver-data-section" class="data-section hidden">
-                                    <div class="table-actions">
-                                        <span id="silver-showing-count" class="text-muted">Showing 0 of 0 documents</span>
-                                        <button id="silver-export-csv" class="btn btn-secondary">Export CSV</button>
-                                    </div>
-
-                                    <div class="table-container">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th data-sort="doc_id">Document ID</th>
-                                                    <th data-sort="year">Year</th>
-                                                    <th data-sort="extraction_status">Status</th>
-                                                    <th data-sort="extraction_method">Method</th>
-                                                    <th data-sort="pages">Pages</th>
-                                                    <th data-sort="char_count">Characters</th>
-                                                    <th data-sort="pdf_file_size_bytes">File Size</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="silver-table-body">
-                                                <!-- Populated by JavaScript -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <div class="pagination" id="silver-pagination">
-                                        <button id="silver-prev-page" class="btn btn-ghost" disabled>Previous</button>
-                                        <span id="silver-page-info" class="text-muted">Page 1 of 1</span>
-                                        <button id="silver-next-page" class="btn btn-ghost" disabled>Next</button>
-                                    </div>
-                                </div>
-
-                                <!-- Download Parquet Files -->
-                                <div class="alert alert-info" style="margin-top: 2rem;">
-                                    <div class="alert-title">Download Parquet Files</div>
-                                    <div class="alert-description">
-                                        <strong>Filings:</strong> <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/filings/year=2025/part-0000.parquet" download>Download</a><br>
-                                        <strong>Documents:</strong> <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/documents/year=2025/part-0000.parquet" download>Download</a><br>
-                                        <strong>Query with:</strong> <code>pd.read_parquet('filings.parquet')</code> or <code>SELECT * FROM 'filings.parquet'</code>
+                                <!-- PTR Transactions View -->
+                                <div class="silver-view" data-silver-view="ptr-transactions">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="card-title">💰 PTR Transaction Fields (Extracted)</h2>
+                                            <p class="card-description">Structured transaction data extracted from PTR
+                                                disclosure PDFs</p>
+                                        </div>
+                                        <div class="card-content">
+                                            <div class="alert alert-info">
+                                                <div class="alert-title">What's in this table?</div>
+                                                <div class="alert-description">
+                                                    <strong>Source:</strong> PTR (Periodic Transaction Report) PDFs
+                                                    processed with OCR/text extraction<br>
+                                                    <strong>Extracted Fields:</strong> transaction_date, asset_name,
+                                                    ticker, transaction_type, amount_range, owner_code<br>
+                                                    <strong>Extraction Methods:</strong> PyPDF (text-based PDFs), AWS
+                                                    Textract (scanned/image PDFs)<br>
+                                                    <strong>Use case:</strong> Analyze congressional stock trading
+                                                    patterns
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-info" style="margin-top: 1rem;">
+                                                <div class="alert-title">Download Parquet</div>
+                                                <div class="alert-description">
+                                                    PTR transactions parquet is coming soon. In the meantime:
+                                                    <ul>
+                                                        <li>
+                                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/filings/year=2025/part-0000.parquet"
+                                                                download>
+                                                                Download filings.parquet
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/documents/year=2025/part-0000.parquet"
+                                                                download>
+                                                                Download documents.parquet
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                    Query with: <code>pd.read_parquet('filings.parquet')</code>
+                                                    or <code>pd.read_parquet('documents.parquet')</code>
+                                                </div>
+                                            </div>
+                                            <p class="text-muted" style="margin-top: 1rem;">
+                                                <strong>Note:</strong> This is the <em>Silver layer</em> - structured,
+                                                extracted data.
+                                                See the <strong>Gold Analytics</strong> tab for aggregated insights and
+                                                analysis.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
 
                     <!-- PTR Transactions Tab -->
                     <div class="tab-content" data-tab="ptr-transactions">
@@ -321,15 +455,18 @@
                                     <div class="alert-description">
                                         <strong>Filer</strong> = The Congress member who filed the disclosure<br>
                                         <strong>SP (Spouse)</strong> = Member's spouse owns the asset<br>
-                                        <strong>DC (Dependent Child)</strong> = Member's dependent child owns the asset<br>
+                                        <strong>DC (Dependent Child)</strong> = Member's dependent child owns the
+                                        asset<br>
                                         <strong>JT (Joint)</strong> = Joint ownership with member<br><br>
-                                        <em>Note: The "Member" column always shows the Congress member who filed. The "Asset Owner" column shows who actually owns the traded asset.</em>
+                                        <em>Note: The "Member" column always shows the Congress member who filed. The
+                                            "Asset Owner" column shows who actually owns the traded asset.</em>
                                     </div>
                                 </div>
 
                                 <!-- Filters -->
                                 <div class="filters">
-                                    <input type="text" id="ptr-search" placeholder="Search by name, asset, or ticker..." class="input">
+                                    <input type="text" id="ptr-search" placeholder="Search by name, asset, or ticker..."
+                                        class="input">
                                     <div class="filter-grid">
                                         <select id="ptr-type-filter" class="select">
                                             <option value="">All Transaction Types</option>
@@ -370,7 +507,8 @@
                                 <!-- Data Table -->
                                 <div id="ptr-data-section" class="data-section hidden">
                                     <div class="table-actions">
-                                        <span id="ptr-showing-count" class="text-muted">Showing 0 of 0 transactions</span>
+                                        <span id="ptr-showing-count" class="text-muted">Showing 0 of 0
+                                            transactions</span>
                                         <button id="ptr-export-csv" class="btn btn-secondary">Export CSV</button>
                                     </div>
 
@@ -412,13 +550,15 @@
                                 <h3 class="gold-sidebar-title">Analytics</h3>
                                 <nav class="gold-sidebar-nav">
                                     <button class="gold-nav-item active" data-gold-view="document-quality">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
                                             <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                                         </svg>
                                         Document Quality
                                     </button>
                                     <button class="gold-nav-item" data-gold-view="member-stats">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
                                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                             <circle cx="9" cy="7" r="4"></circle>
                                             <path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"></path>
@@ -426,14 +566,16 @@
                                         Member Trading Stats
                                     </button>
                                     <button class="gold-nav-item" data-gold-view="trending">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
                                             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
                                             <polyline points="17 6 23 6 23 12"></polyline>
                                         </svg>
                                         Trending Stocks
                                     </button>
                                     <button class="gold-nav-item" data-gold-view="sector">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
                                             <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
                                             <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
                                         </svg>
@@ -449,128 +591,150 @@
                                     <div class="card">
                                         <div class="card-header">
                                             <h2 class="card-title">🔍 Document Quality & Compliance Tracking</h2>
-                                            <p class="card-description">Transparency metrics for PDF submission quality - identifies members submitting hard-to-process image-based PDFs</p>
+                                            <p class="card-description">Transparency metrics for PDF submission quality
+                                                - identifies members submitting hard-to-process image-based PDFs</p>
                                         </div>
                                         <div class="card-content">
-                                <!-- Alert explaining the metrics -->
-                                <div class="alert alert-info">
-                                    <div class="alert-title">What This Shows</div>
-                                    <div class="alert-description">
-                                        Members can submit disclosures as <strong>text-based PDFs</strong> (easy to extract data from) or <strong>image-based PDFs</strong> (scanned documents requiring OCR).
-                                        High percentages of image PDFs may indicate submission practices that make transparency harder. This data is objective and factual - we report what we observe.
-                                    </div>
-                                </div>
+                                            <!-- Alert explaining the metrics -->
+                                            <div class="alert alert-info">
+                                                <div class="alert-title">What This Shows</div>
+                                                <div class="alert-description">
+                                                    Members can submit disclosures as <strong>text-based PDFs</strong>
+                                                    (easy to extract data from) or <strong>image-based PDFs</strong>
+                                                    (scanned documents requiring OCR).
+                                                    High percentages of image PDFs may indicate submission practices
+                                                    that make transparency harder. This data is objective and factual -
+                                                    we report what we observe.
+                                                </div>
+                                            </div>
 
-                                <!-- Stats -->
-                                <div class="stats-grid" id="quality-stats">
-                                    <div class="stat-card">
-                                        <div class="stat-value" id="quality-total-members">-</div>
-                                        <div class="stat-label">Filers Tracked</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-value" id="quality-flagged">-</div>
-                                        <div class="stat-label">Flagged (>30% Image PDFs)</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-value" id="quality-avg-score">-</div>
-                                        <div class="stat-label">Avg Quality Score</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-value" id="quality-updated">-</div>
-                                        <div class="stat-label">Last Updated</div>
-                                    </div>
-                                </div>
+                                            <!-- Stats -->
+                                            <div class="stats-grid" id="quality-stats">
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="quality-total-members">-</div>
+                                                    <div class="stat-label">Filers Tracked</div>
+                                                </div>
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="quality-flagged">-</div>
+                                                    <div class="stat-label">Flagged (>30% Image PDFs)</div>
+                                                </div>
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="quality-avg-score">-</div>
+                                                    <div class="stat-label">Avg Quality Score</div>
+                                                </div>
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="quality-updated">-</div>
+                                                    <div class="stat-label">Last Updated</div>
+                                                </div>
+                                            </div>
 
-                                <!-- Filer Explanation -->
-                                <div class="alert alert-info" style="margin-top: 2rem;">
-                                    <div class="alert-title">📘 Who Are "Filers"?</div>
-                                    <div class="alert-description">
-                                        <strong>Filers</strong> include current Congress members, candidates, and others required to file financial disclosures with the House Clerk.<br>
-                                        Of the <strong id="quality-total-filers-note">985 total filers</strong>, approximately <strong>38 are current members</strong> with PTR (stock transaction) filings in 2025.<br><br>
-                                        This tab tracks document quality for <em>all filers</em>, not just current members. See the "Gold Analytics" tab for member-specific trading statistics.
-                                    </div>
-                                </div>
+                                            <!-- Filer Explanation -->
+                                            <div class="alert alert-info" style="margin-top: 2rem;">
+                                                <div class="alert-title">📘 Who Are "Filers"?</div>
+                                                <div class="alert-description">
+                                                    <strong>Filers</strong> include current Congress members,
+                                                    candidates, and others required to file financial disclosures with
+                                                    the House Clerk.<br>
+                                                    Of the <strong id="quality-total-filers-note">985 total
+                                                        filers</strong>, approximately <strong>38 are current
+                                                        members</strong> with PTR (stock transaction) filings in
+                                                    2025.<br><br>
+                                                    This tab tracks document quality for <em>all filers</em>, not just
+                                                    current members. See the "Gold Analytics" tab for member-specific
+                                                    trading statistics.
+                                                </div>
+                                            </div>
 
-                                <!-- Filters -->
-                                <div class="filters">
-                                    <input type="text" id="quality-search" placeholder="Search by name, state, or party..." class="input">
-                                    <div class="filter-grid">
-                                        <select id="quality-party-filter" class="select">
-                                            <option value="">All Parties</option>
-                                            <option value="D">Democrat</option>
-                                            <option value="R">Republican</option>
-                                            <option value="I">Independent</option>
-                                        </select>
-                                        <select id="quality-category-filter" class="select">
-                                            <option value="">All Quality Levels</option>
-                                            <option value="Poor">Poor (< 60)</option>
-                                            <option value="Fair">Fair (60-75)</option>
-                                            <option value="Good">Good (75-90)</option>
-                                            <option value="Excellent">Excellent (> 90)</option>
-                                        </select>
-                                        <select id="quality-flagged-filter" class="select">
-                                            <option value="">All Members</option>
-                                            <option value="true">Flagged Only (>30% Image)</option>
-                                            <option value="false">Not Flagged</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                            <!-- Filters -->
+                                            <div class="filters">
+                                                <input type="text" id="quality-search"
+                                                    placeholder="Search by name, state, or party..." class="input">
+                                                <div class="filter-grid">
+                                                    <select id="quality-party-filter" class="select">
+                                                        <option value="">All Parties</option>
+                                                        <option value="D">Democrat</option>
+                                                        <option value="R">Republican</option>
+                                                        <option value="I">Independent</option>
+                                                    </select>
+                                                    <select id="quality-category-filter" class="select">
+                                                        <option value="">All Quality Levels</option>
+                                                        <option value="Poor">Poor (< 60)</option>
+                                                        <option value="Fair">Fair (60-75)</option>
+                                                        <option value="Good">Good (75-90)</option>
+                                                        <option value="Excellent">Excellent (> 90)</option>
+                                                    </select>
+                                                    <select id="quality-flagged-filter" class="select">
+                                                        <option value="">All Members</option>
+                                                        <option value="true">Flagged Only (>30% Image)</option>
+                                                        <option value="false">Not Flagged</option>
+                                                    </select>
+                                                </div>
+                                            </div>
 
-                                <!-- Loading State -->
-                                <div id="quality-loading" class="loading-state">
-                                    <div class="spinner"></div>
-                                    <p>Loading document quality data...</p>
-                                </div>
+                                            <!-- Loading State -->
+                                            <div id="quality-loading" class="loading-state">
+                                                <div class="spinner"></div>
+                                                <p>Loading document quality data...</p>
+                                            </div>
 
-                                <!-- Error State -->
-                                <div id="quality-error" class="error-state hidden">
-                                    <p>Unable to load document quality data.</p>
-                                </div>
+                                            <!-- Error State -->
+                                            <div id="quality-error" class="error-state hidden">
+                                                <p>Unable to load document quality data.</p>
+                                            </div>
 
-                                <!-- Data Table -->
-                                <div id="quality-data-section" class="data-section hidden">
-                                    <div class="table-actions">
-                                        <span id="quality-showing-count" class="text-muted">Showing 0 of 0 members</span>
-                                        <button id="quality-export-csv" class="btn btn-secondary">Export CSV</button>
-                                    </div>
+                                            <!-- Data Table -->
+                                            <div id="quality-data-section" class="data-section hidden">
+                                                <div class="table-actions">
+                                                    <span id="quality-showing-count" class="text-muted">Showing 0 of 0
+                                                        members</span>
+                                                    <button id="quality-export-csv" class="btn btn-secondary">Export
+                                                        CSV</button>
+                                                </div>
 
-                                    <div class="table-container">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th data-sort="full_name">Member</th>
-                                                    <th data-sort="party">Party</th>
-                                                    <th data-sort="state_district">State</th>
-                                                    <th data-sort="total_filings">Filings</th>
-                                                    <th data-sort="image_pdf_pct">% Image PDFs</th>
-                                                    <th data-sort="avg_confidence_score">Avg Confidence</th>
-                                                    <th data-sort="quality_score">Quality Score</th>
-                                                    <th data-sort="quality_category">Rating</th>
-                                                    <th>Flag</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="quality-table-body">
-                                                <!-- Populated by JavaScript -->
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                <div class="table-container">
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th data-sort="full_name">Member</th>
+                                                                <th data-sort="party">Party</th>
+                                                                <th data-sort="state_district">State</th>
+                                                                <th data-sort="total_filings">Filings</th>
+                                                                <th data-sort="image_pdf_pct">% Image PDFs</th>
+                                                                <th data-sort="avg_confidence_score">Avg Confidence</th>
+                                                                <th data-sort="quality_score">Quality Score</th>
+                                                                <th data-sort="quality_category">Rating</th>
+                                                                <th>Flag</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="quality-table-body">
+                                                            <!-- Populated by JavaScript -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
 
-                                    <div class="pagination" id="quality-pagination">
-                                        <button id="quality-prev-page" class="btn btn-ghost" disabled>Previous</button>
-                                        <span id="quality-page-info" class="text-muted">Page 1 of 1</span>
-                                        <button id="quality-next-page" class="btn btn-ghost" disabled>Next</button>
-                                    </div>
-                                </div>
+                                                <div class="pagination" id="quality-pagination">
+                                                    <button id="quality-prev-page" class="btn btn-ghost"
+                                                        disabled>Previous</button>
+                                                    <span id="quality-page-info" class="text-muted">Page 1 of 1</span>
+                                                    <button id="quality-next-page" class="btn btn-ghost"
+                                                        disabled>Next</button>
+                                                </div>
+                                            </div>
 
-                                <!-- Methodology -->
-                                <div class="alert alert-warning" style="margin-top: 2rem;">
-                                    <div class="alert-title">Methodology</div>
-                                    <div class="alert-description">
-                                        <strong>Quality Score</strong> is calculated as: (Avg Confidence × 40%) + ((1 - Image PDF %) × 30%) + (Data Completeness × 30%) × 100.<br>
-                                        <strong>Flagged</strong> members have >30% image-based PDFs, requiring OCR and potentially indicating less transparent submission practices.<br>
-                                        <strong>Not Accusatory</strong>: This is objective data reporting. Some offices may have legitimate reasons for scanning documents.
-                                    </div>
-                                </div>
+                                            <!-- Methodology -->
+                                            <div class="alert alert-warning" style="margin-top: 2rem;">
+                                                <div class="alert-title">Methodology</div>
+                                                <div class="alert-description">
+                                                    <strong>Quality Score</strong> is calculated as: (Avg Confidence ×
+                                                    40%) + ((1 - Image PDF %) × 30%) + (Data Completeness × 30%) ×
+                                                    100.<br>
+                                                    <strong>Flagged</strong> members have >30% image-based PDFs,
+                                                    requiring OCR and potentially indicating less transparent submission
+                                                    practices.<br>
+                                                    <strong>Not Accusatory</strong>: This is objective data reporting.
+                                                    Some offices may have legitimate reasons for scanning documents.
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -610,7 +774,7 @@
                                         <p class="download-description">Complete filing metadata in JSON format</p>
                                         <div class="download-actions">
                                             <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/manifest.json"
-                                               class="btn btn-primary" target="_blank">
+                                                class="btn btn-primary" target="_blank">
                                                 View JSON
                                             </a>
                                             <code class="code-inline">GET manifest.json</code>
@@ -625,7 +789,7 @@
                                         <p class="download-description">Official House Clerk XML index for 2025</p>
                                         <div class="download-actions">
                                             <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/bronze/house/financial/year=2025/index/2025FD.xml"
-                                               class="btn btn-primary" download>
+                                                class="btn btn-primary" download>
                                                 Download XML
                                             </a>
                                             <code class="code-inline">bronze/.../index/2025FD.xml</code>
@@ -640,7 +804,7 @@
                                         <p class="download-description">Plain text index for 2025</p>
                                         <div class="download-actions">
                                             <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/bronze/house/financial/year=2025/index/2025FD.txt"
-                                               class="btn btn-primary" download>
+                                                class="btn btn-primary" download>
                                                 Download TXT
                                             </a>
                                             <code class="code-inline">bronze/.../index/2025FD.txt</code>
@@ -652,7 +816,8 @@
                                         <div class="alert-description">
                                             <strong>Bronze:</strong> Raw data from House Clerk<br>
                                             <strong>Silver:</strong> Normalized Parquet tables<br>
-                                            <strong>Gold:</strong> Denormalized analytics tables (Member Trading Stats, Trending Stocks, Sector Analysis)
+                                            <strong>Gold:</strong> Denormalized analytics tables (Member Trading Stats,
+                                            Trending Stocks, Sector Analysis)
                                         </div>
                                     </div>
                                 </div>
@@ -669,7 +834,8 @@
                 <div class="footer-content">
                     <p>
                         Open-source project for government transparency.
-                        <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank">View on GitHub</a> |
+                        <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank">View
+                            on GitHub</a> |
                         <a href="https://disclosures-clerk.house.gov/" target="_blank">Official Source</a>
                     </p>
                 </div>
@@ -681,6 +847,7 @@
     <script src="gold_analytics_full.js"></script>
     <script src="gold_analytics.js"></script>
     <script src="document_quality.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=15"></script>
 </body>
+
 </html>

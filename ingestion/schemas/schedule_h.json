@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Schedule H",
+    "type": "object",
+    "description": "Charitable contributions and donations.",
+    "properties": {
+        "contributions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "recipient": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "number"
+                    },
+                    "currency": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "date",
+                    "recipient",
+                    "amount"
+                ]
+            }
+        }
+    },
+    "required": [
+        "contributions"
+    ]
+}

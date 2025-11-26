@@ -1,9 +1,14 @@
-// Configuration
-const S3_BUCKET = 'congress-disclosures-standardized';
-const S3_REGION = 'us-east-1';
-const MANIFEST_URL = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/manifest.json`;
-const SILVER_DOCUMENTS_URL = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/silver_documents.json`;
-const PTR_TRANSACTIONS_URL = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/ptr_transactions.json`;
+// S3 Configuration
+const S3_BUCKET = "congress-disclosures-standardized";
+const S3_REGION = "us-east-1";
+const API_BASE = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/website/api/v1`;
+
+// API Endpoints
+const MANIFEST_URL = `${API_BASE}/documents/manifest.json`;
+const PTR_TRANSACTIONS_URL = `${API_BASE}/schedules/b/transactions.json`;
+// Silver documents API endpoint (falls back to data file if API unavailable)
+const SILVER_DOCUMENTS_API_URL = `${API_BASE}/documents/silver/manifest.json`;
+const SILVER_DOCUMENTS_FALLBACK_URL = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/website/data/silver_documents_v2.json`;
 const ITEMS_PER_PAGE = 50;
 
 // State - Bronze Layer
@@ -36,18 +41,27 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
 });
 
-// Load data from S3
+// Load data from S3 (Bronze manifest)
 async function loadData() {
     try {
+        console.log('Loading Bronze manifest from:', MANIFEST_URL);
         showLoading();
 
         const response = await fetch(MANIFEST_URL);
         if (!response.ok) {
-            throw new Error('Failed to fetch manifest');
+            // Non-blocking: if manifest doesn't exist, just log and continue
+            if (response.status === 403 || response.status === 404) {
+                console.warn('Bronze manifest not available (403/404). Continuing without Bronze data.');
+                allFilings = [];
+                hideLoading();
+                return;
+            }
+            throw new Error(`Failed to fetch manifest: HTTP ${response.status}`);
         }
 
         const data = await response.json();
         allFilings = data.filings || [];
+        console.log('Bronze data loaded:', { total_filings: allFilings.length });
 
         updateStats(data.stats || {});
         populateFilters();
@@ -55,8 +69,10 @@ async function loadData() {
         hideLoading();
 
     } catch (error) {
-        console.error('Error loading data:', error);
-        showError();
+        console.error('Error loading Bronze data:', error);
+        // Non-blocking: don't show error UI, just log and continue
+        allFilings = [];
+        hideLoading();
     }
 }
 
@@ -371,13 +387,38 @@ function showError() {
 // Load silver documents data from S3
 async function loadSilverData() {
     try {
-        console.log('Loading silver data from:', SILVER_DOCUMENTS_URL);
         showSilverLoading();
-
-        const response = await fetch(SILVER_DOCUMENTS_URL);
-        console.log('Silver data response status:', response.status);
+        
+        // Try API endpoint first, fallback to data file
+        let response;
+        let urlUsed;
+        
+        try {
+            console.log('Loading silver data from API:', SILVER_DOCUMENTS_API_URL);
+            response = await fetch(SILVER_DOCUMENTS_API_URL);
+            urlUsed = SILVER_DOCUMENTS_API_URL;
+            
+            if (!response.ok && response.status !== 404) {
+                throw new Error(`API endpoint returned ${response.status}`);
+            }
+        } catch (apiError) {
+            console.warn('API endpoint failed, trying fallback:', apiError.message);
+            console.log('Loading silver data from fallback:', SILVER_DOCUMENTS_FALLBACK_URL);
+            const cacheBuster = new Date().getTime();
+            response = await fetch(`${SILVER_DOCUMENTS_FALLBACK_URL}?t=${cacheBuster}`);
+            urlUsed = SILVER_DOCUMENTS_FALLBACK_URL;
+        }
+        
+        console.log('Silver data response status:', response.status, 'from:', urlUsed);
 
         if (!response.ok) {
+            // Non-blocking: if manifest doesn't exist, just log and continue
+            if (response.status === 403 || response.status === 404) {
+                console.warn('Silver manifest not available (403/404). Continuing without Silver data.');
+                allSilverDocuments = [];
+                hideSilverLoading();
+                return;
+            }
             throw new Error(`Failed to fetch silver documents: HTTP ${response.status}`);
         }
 
@@ -388,7 +429,18 @@ async function loadSilverData() {
             documents_count: data.documents?.length
         });
 
-        allSilverDocuments = data.documents || [];
+        // Join documents with filings data to show useful information
+        const documents = data.documents || [];
+        allSilverDocuments = documents.map(doc => {
+            const filing = allFilings.find(f => f.doc_id === doc.doc_id);
+            return {
+                ...doc,
+                member_name: filing ? `${filing.first_name || ''} ${filing.last_name || ''}`.trim() : '-',
+                filing_type: filing?.filing_type || '-',
+                filing_date: filing?.filing_date || null,
+                state_district: filing?.state_district || '-'
+            };
+        });
 
         updateSilverStats(data);
         populateSilverFilters();
@@ -398,9 +450,10 @@ async function loadSilverData() {
         console.log('Silver data initialization complete');
 
     } catch (error) {
-        console.error('Error loading silver data:', error);
-        console.error('Error stack:', error.stack);
-        showSilverError();
+        console.error('Error loading Silver data:', error);
+        // Non-blocking: don't show error UI, just log and continue
+        allSilverDocuments = [];
+        hideSilverLoading();
     }
 }
 
@@ -409,12 +462,24 @@ function updateSilverStats(data) {
     try {
         console.log('Updating silver stats with data:', data);
 
-        const stats = data.stats || {};
-        const totalDocsNum = stats.total_documents || (allSilverDocuments?.length || 0);
+        const docs = data.documents || allSilverDocuments || [];
+
+        // Calculate stats from documents if not provided
+        const stats = data.stats || {
+            total_documents: docs.length,
+            extraction_stats: {
+                success: docs.filter(d => d.extraction_status === 'success').length,
+                pending: docs.filter(d => d.extraction_status === 'pending').length,
+                error: docs.filter(d => d.extraction_status === 'error').length
+            },
+            total_pages: docs.reduce((sum, d) => sum + (d.pages || 0), 0)
+        };
+
+        const totalDocsNum = stats.total_documents || docs.length;
         const totalDocs = totalDocsNum.toLocaleString();
         const successDocs = (stats.extraction_stats?.success || 0).toLocaleString();
         const pendingDocs = (stats.extraction_stats?.pending || 0).toLocaleString();
-        const totalPagesNum = stats.total_pages || allSilverDocuments.reduce((sum, doc) => sum + (doc.pages || 0), 0);
+        const totalPagesNum = stats.total_pages || docs.reduce((sum, doc) => sum + (doc.pages || 0), 0);
 
         document.getElementById('silver-total-docs').textContent = totalDocs;
         document.getElementById('silver-success').textContent = successDocs;
@@ -427,6 +492,7 @@ function updateSilverStats(data) {
         throw error;
     }
 }
+
 
 // Populate silver filter dropdowns
 function populateSilverFilters() {
@@ -537,42 +603,295 @@ function sortSilverBy(column) {
     renderSilverTable();
 }
 
-// Render silver table
+// Render silver table with expandable JSON display
 function renderSilverTable() {
     const tbody = document.getElementById('silver-table-body');
     tbody.innerHTML = '';
 
     const start = (silverCurrentPage - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    const pageDocuments = filteredSilverDocuments.slice(start, end);
+    const end = Math.min(start + ITEMS_PER_PAGE, filteredSilverDocuments.length);
+    const pageData = filteredSilverDocuments.slice(start, end);
 
-    pageDocuments.forEach(doc => {
-        const row = document.createElement('tr');
+    pageData.forEach((doc) => {
+        // URLs
         const textUrl = doc.text_s3_key ? `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${doc.text_s3_key}` : null;
         const jsonUrl = doc.json_s3_key ? `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${doc.json_s3_key}` : null;
+        const pdfUrl = `https://disclosures-clerk.house.gov/public_disc/financial-pdfs/${doc.year}/${doc.doc_id}.pdf`;
+
+        // Format filing date
+        const filingDate = doc.filing_date ?
+            new Date(doc.filing_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) :
+            '-';
+
+        // Format extraction status
+        const extractionStatus = doc.extraction_status === 'success' ?
+            '<span class="badge badge-success">✓ Yes</span>' :
+            doc.extraction_status === 'pending' ?
+                '<span class="badge badge-warning">⏳ Processing</span>' :
+                '<span class="badge badge-error">✗ Failed</span>';
+
+        // Format filing type badge
+        const filingTypeBadge = doc.filing_type === 'P' ?
+            '<span class="badge badge-info">PTR</span>' :
+            doc.filing_type === 'A' ?
+                '<span class="badge badge-success">Annual</span>' :
+                `<span class="badge">${doc.filing_type || '-'}</span>`;
+
+        // Build data links
+        let dataLinks = `<a href="${pdfUrl}" target="_blank" rel="noopener" class="btn-link" title="Download Original PDF">📄 PDF</a>`;
+
+        if (textUrl) {
+            dataLinks += ` <a href="${textUrl}" target="_blank" rel="noopener" class="btn-link" title="Download Extracted Text">📝 Text</a>`;
+        }
+
+        if (jsonUrl) {
+            dataLinks += ` <a href="${jsonUrl}" target="_blank" rel="noopener" class="btn-link" title="View Structured Data">📊 JSON</a>`;
+        }
+
+        // Main row
+        const row = document.createElement('tr');
+        row.classList.add('expandable-row');
+        row.dataset.docId = doc.doc_id;
+        row.dataset.year = doc.year;
+        row.dataset.jsonUrl = jsonUrl || '';
+        row.dataset.extractionError = doc.extraction_error || '';
+        row.dataset.extractionMethod = doc.extraction_method || '';
+        row.dataset.extractionStatus = doc.extraction_status || '';
+        row.dataset.hasEmbeddedText = String(doc.has_embedded_text || '');
+        row.dataset.pages = String(doc.pages || '');
+
         row.innerHTML = `
-            <td><code>${doc.doc_id || '-'}</code></td>
-            <td>${doc.year || '-'}</td>
-            <td>
-                <span class="badge badge-status-${(doc.extraction_status || 'unknown').toLowerCase()}">
-                    ${doc.extraction_status || 'Unknown'}
-                </span>
+            <td class="expand-cell">
+                ${(jsonUrl || doc.extraction_status === 'failed' || doc.extraction_error) ? '<span class="expand-icon">▶</span>' : ''}
             </td>
-            <td>${doc.extraction_method || '-'}</td>
-            <td>${doc.pages || 0}</td>
-            <td>${(doc.char_count || 0).toLocaleString()}</td>
-            <td>${formatFileSize(doc.pdf_file_size_bytes)}</td>
-            <td>
-                <a href="https://disclosures-clerk.house.gov/public_disc/financial-pdfs/${doc.year}/${doc.doc_id}.pdf" target="_blank" rel="noopener" class="btn-link">PDF</a>
-                ${textUrl ? ` | <a href="${textUrl}" target="_blank" rel="noopener" class="btn-link">Text</a>` : ''}
-                ${jsonUrl ? ` | <a href="${jsonUrl}" target="_blank" rel="noopener" class="btn-link">JSON</a>` : ''}
+            <td><strong>${doc.member_name || '-'}</strong><br><small class="text-muted">${doc.state_district || ''}</small></td>
+            <td>${filingTypeBadge}</td>
+            <td>${filingDate}</td>
+            <td><code>${doc.doc_id || '-'}</code></td>
+            <td>${extractionStatus}</td>
+            <td>${doc.char_count ? (doc.char_count / 1000).toFixed(1) + 'k chars' : '-'}</td>
+            <td class="data-links-cell">
+                ${dataLinks}
             </td>
         `;
+
+        // Add click handler for expansion if JSON exists
+        if (jsonUrl) {
+            const expandCell = row.querySelector('.expand-cell');
+            expandCell.style.cursor = 'pointer';
+            expandCell.addEventListener('click', () => toggleRowExpansion(row));
+        }
+
         tbody.appendChild(row);
     });
 
     document.getElementById('silver-showing-count').textContent =
         `Showing ${start + 1}-${Math.min(end, filteredSilverDocuments.length)} of ${filteredSilverDocuments.length.toLocaleString()} documents`;
+}
+
+// Toggle row expansion to show/hide JSON data
+async function toggleRowExpansion(row) {
+    const expandIcon = row.querySelector('.expand-icon');
+    const jsonUrl = row.dataset.jsonUrl;
+
+    // Check if already expanded
+    const nextRow = row.nextElementSibling;
+    if (nextRow && nextRow.classList.contains('expanded-content-row')) {
+        // Collapse
+        nextRow.remove();
+        expandIcon.textContent = '▶';
+        row.classList.remove('expanded');
+        return;
+    }
+
+    // Expand
+    expandIcon.textContent = '▼';
+    row.classList.add('expanded');
+
+    // Create expanded row
+    const expandedRow = document.createElement('tr');
+    expandedRow.classList.add('expanded-content-row');
+    expandedRow.innerHTML = `
+        <td colspan="8">
+            <div class="expanded-content">
+                <div class="loading">Loading extracted data...</div>
+            </div>
+        </td>
+    `;
+    row.after(expandedRow);
+
+    // If no JSON URL, show metadata/error immediately
+    if (!jsonUrl) {
+        const contentDiv = expandedRow.querySelector('.expanded-content');
+        contentDiv.innerHTML = renderErrorOrMetadata(row);
+        return;
+    }
+
+    // Fetch and render JSON
+    try {
+        const response = await fetch(jsonUrl);
+        if (!response.ok) throw new Error('Failed to fetch JSON');
+
+        const data = await response.json();
+        const contentDiv = expandedRow.querySelector('.expanded-content');
+        contentDiv.innerHTML = renderExtractedJSON(data);
+    } catch (error) {
+        const contentDiv = expandedRow.querySelector('.expanded-content');
+        // Fallback to metadata/error view if JSON fetch fails
+        contentDiv.innerHTML = renderErrorOrMetadata(row);
+
+        // Append specific fetch error if it's not just a missing file
+        if (error.message !== 'Failed to fetch JSON') {
+            contentDiv.innerHTML += `<div class="error-message" style="margin-top: 1rem; color: var(--destructive);">Error loading details: ${error.message}</div>`;
+        }
+    }
+}
+// Render extracted JSON as formatted tables
+function renderExtractedJSON(data) {
+    let html = '<div class="json-display">';
+
+    // Metadata section
+    html += `
+        <div class="json-metadata">
+            <div class="metadata-grid">
+                <div><strong>Filing Type:</strong> ${data.filing_type || 'Unknown'}</div>
+                <div><strong>Pages:</strong> ${data.total_pages || '-'}</div>
+                <div><strong>Extraction Method:</strong> ${data.extraction_method || '-'}</div>
+                <div><strong>Extracted:</strong> ${data.extraction_timestamp ? new Date(data.extraction_timestamp).toLocaleString(undefined, { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit',
+                    timeZoneName: 'short'
+                }) : '-'}</div>
+            </div>
+        </div>
+    `;
+
+    // Schedules section
+    if (data.schedules) {
+        html += '<div class="schedules-container">';
+
+        for (const [scheduleLetter, scheduleData] of Object.entries(data.schedules)) {
+            if (scheduleData.tables && scheduleData.tables.length > 0) {
+                html += `
+                    <div class="schedule-section">
+                        <h4>Schedule ${scheduleLetter}: ${scheduleData.type || 'Data'}</h4>
+                        ${renderScheduleTables(scheduleData.tables)}
+                    </div>
+                `;
+            }
+        }
+
+        html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+// Render extraction metadata and errors
+function renderErrorOrMetadata(row) {
+    const extractionError = row.dataset.extractionError;
+    const extractionStatus = row.dataset.extractionStatus;
+    const extractionMethod = row.dataset.extractionMethod;
+    const hasEmbeddedText = row.dataset.hasEmbeddedText;
+    const pages = row.dataset.pages;
+
+    let html = '<div class="extraction-metadata">';
+
+    // Show error if failed
+    if (extractionStatus === 'failed' && extractionError) {
+        html += `
+            <div class="error-section">
+                <h4>⚠️ Extraction Failed</h4>
+                <div class="error-message">${extractionError}</div>
+            </div>
+        `;
+    }
+
+    // Show extraction metadata
+    // Format status for display
+    const statusDisplay = extractionStatus === 'success' ? 
+        '<span class="badge badge-success">✓ Success</span>' :
+        extractionStatus === 'pending' ? 
+            '<span class="badge badge-warning">⏳ Pending</span>' :
+            extractionStatus === 'failed' ?
+                '<span class="badge badge-error">✗ Failed</span>' :
+                extractionStatus || 'Unknown';
+    
+    // Format method for display
+    const methodDisplay = extractionMethod || 'Not extracted';
+    
+    // Format pages for display
+    const pagesDisplay = pages && pages !== 'Unknown' && pages !== '' ? pages : 'Unknown';
+    
+    // Format has embedded text
+    const embeddedTextDisplay = hasEmbeddedText === 'true' || hasEmbeddedText === true ? 'Yes' : 
+                                hasEmbeddedText === 'false' || hasEmbeddedText === false ? 'No' : 'Unknown';
+    
+    html += `
+        <div class="metadata-section">
+            <h4>Extraction Metadata</h4>
+            <div class="metadata-grid">
+                <div><strong>Status:</strong> ${statusDisplay}</div>
+                <div><strong>Method:</strong> ${methodDisplay}</div>
+                <div><strong>Pages:</strong> ${pagesDisplay}</div>
+                <div><strong>Has Embedded Text:</strong> ${embeddedTextDisplay}</div>
+            </div>
+        </div>
+    `;
+
+    // Show details based on status
+    if (extractionStatus === 'queued') {
+        html += '<div class="info-message">📥 Queued for extraction - waiting for Lambda to process</div>';
+    } else if (extractionStatus === 'pending') {
+        html += '<div class="info-message">⏳ Extraction in progress...</div>';
+    } else if (extractionStatus === 'unknown') {
+        html += '<div class="info-message">❓ Not yet processed - pipeline hasn\'t reached this document</div>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+// Render schedule tables
+function renderScheduleTables(tables) {
+    let html = '';
+
+    tables.forEach((table, idx) => {
+        if (!table.rows || table.rows.length === 0) return;
+
+        html += `<div class="schedule-table-wrapper">`;
+        html += `<table class="schedule-table">`;
+
+        // Render rows
+        table.rows.forEach((row, rowIdx) => {
+            html += '<tr>';
+            const cellKeys = Object.keys(row).sort((a, b) => parseInt(a) - parseInt(b));
+            cellKeys.forEach(key => {
+                // Handle cell value - can be object with 'value' property or direct value
+                let cellValue = row[key];
+                if (cellValue && typeof cellValue === 'object' && 'value' in cellValue) {
+                    cellValue = cellValue.value;
+                }
+                cellValue = cellValue || '';
+                
+                // Convert to string and check if it's a header (contains colon)
+                const cellValueStr = String(cellValue);
+                const tag = rowIdx === 0 && cellValueStr.includes(':') ? 'th' : 'td';
+                html += `<${tag}>${cellValueStr}</${tag}>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</table>';
+        html += '</div>';
+    });
+
+    return html || '<p class="text-muted">No table data available</p>';
 }
 
 // Update silver pagination
@@ -642,28 +961,80 @@ function showSilverError() {
     document.getElementById('silver-loading').classList.add('hidden');
     document.getElementById('silver-error').classList.remove('hidden');
 }
+// Sort PTR transactions
+function sortPTRTransactions() {
+    filteredPTRTransactions.sort((a, b) => {
+        let aVal = a[ptrSortColumn];
+        let bVal = b[ptrSortColumn];
+
+        // Handle nulls
+        if (aVal === null || aVal === undefined) return 1;
+        if (bVal === null || bVal === undefined) return -1;
+
+        // Special handling for dates and numbers
+        if (ptrSortColumn === 'transaction_date') {
+            aVal = new Date(aVal);
+            bVal = new Date(bVal);
+        } else if (ptrSortColumn === 'amount_range') {
+            // Simple heuristic for amount ranges (e.g. "$1,001 - $15,000")
+            // Extract first number
+            const getMinAmount = (str) => {
+                const match = str.match(/\$?([\d,]+)/);
+                return match ? parseInt(match[1].replace(/,/g, '')) : 0;
+            };
+            aVal = getMinAmount(aVal);
+            bVal = getMinAmount(bVal);
+        }
+
+        if (aVal < bVal) return ptrSortDirection === 'asc' ? -1 : 1;
+        if (aVal > bVal) return ptrSortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+// Sort PTR by column
+function sortPTRBy(column) {
+    if (ptrSortColumn === column) {
+        ptrSortDirection = ptrSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        ptrSortColumn = column;
+        ptrSortDirection = 'desc'; // Default to desc for transactions
+    }
+
+    sortPTRTransactions();
+    renderPTRTable();
+}
 
 // ============================================================================
 // PTR TRANSACTIONS FUNCTIONS
 // ============================================================================
 
 // Load PTR transactions data from S3
+// Load PTR transactions data from S3
 async function loadPTRTransactions() {
+    console.log('Starting loadPTRTransactions...');
     try {
         showPTRLoading();
 
+        console.log('Fetching PTR data from:', PTR_TRANSACTIONS_URL);
         const response = await fetch(PTR_TRANSACTIONS_URL);
+        console.log('PTR fetch status:', response.status);
+
         if (!response.ok) {
             throw new Error('Failed to fetch PTR transactions');
         }
 
         const data = await response.json();
+        console.log('PTR data received:', data);
+
         allPTRTransactions = data.transactions || [];
+        console.log('Parsed PTR transactions:', allPTRTransactions.length);
 
         updatePTRStats(data);
         populatePTRFilters();
         applyPTRFilters();
         hidePTRLoading();
+        console.log('PTR loading complete, hidden class removed');
 
     } catch (error) {
         console.error('Error loading PTR transactions:', error);
@@ -754,10 +1125,11 @@ function setupPTREventListeners() {
 
 // Apply PTR filters
 function applyPTRFilters() {
+    console.log('Applying PTR filters...');
     const searchTerm = (document.getElementById('ptr-search')?.value || '').toLowerCase();
     const typeFilter = document.getElementById('ptr-type-filter')?.value || '';
-    const amountFilter = document.getElementById('ptr-amount-filter')?.value || '';
-    const ownerFilter = document.getElementById('ptr-owner-filter')?.value || '';
+
+    console.log('Filters:', { searchTerm, typeFilter });
 
     filteredPTRTransactions = allPTRTransactions.filter(trans => {
         const matchesSearch = !searchTerm ||
@@ -767,11 +1139,11 @@ function applyPTRFilters() {
             trans.state_district?.toLowerCase().includes(searchTerm);
 
         const matchesType = !typeFilter || trans.transaction_type === typeFilter;
-        const matchesAmount = !amountFilter || trans.amount_range === amountFilter;
-        const matchesOwner = !ownerFilter || trans.owner_code === ownerFilter;
-
-        return matchesSearch && matchesType && matchesAmount && matchesOwner;
+        // Simplified for debug
+        return matchesSearch && matchesType;
     });
+
+    console.log('Filtered PTR transactions:', filteredPTRTransactions.length);
 
     sortPTRTransactions();
     ptrCurrentPage = 1;
@@ -779,57 +1151,22 @@ function applyPTRFilters() {
     updatePTRPagination();
 }
 
-// Sort PTR transactions
-function sortPTRTransactions() {
-    filteredPTRTransactions.sort((a, b) => {
-        let aVal = a[ptrSortColumn];
-        let bVal = b[ptrSortColumn];
-
-        // Handle nulls
-        if (aVal === null || aVal === undefined) return 1;
-        if (bVal === null || bVal === undefined) return -1;
-
-        // Convert dates
-        if (ptrSortColumn === 'transaction_date' || ptrSortColumn === 'filing_date') {
-            aVal = new Date(aVal);
-            bVal = new Date(bVal);
-        }
-
-        // Convert amounts
-        if (ptrSortColumn === 'amount_low') {
-            aVal = parseFloat(aVal) || 0;
-            bVal = parseFloat(bVal) || 0;
-        }
-
-        if (aVal < bVal) return ptrSortDirection === 'asc' ? -1 : 1;
-        if (aVal > bVal) return ptrSortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
-}
-
-// Sort PTR by column
-function sortPTRBy(column) {
-    if (ptrSortColumn === column) {
-        ptrSortDirection = ptrSortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-        ptrSortColumn = column;
-        ptrSortDirection = column === 'transaction_date' ? 'desc' : 'asc';
-    }
-
-    sortPTRTransactions();
-    renderPTRTable();
-}
-
 // Render PTR table
 function renderPTRTable() {
+    console.log('Rendering PTR table...');
     const tbody = document.getElementById('ptr-table-body');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error('PTR table body not found!');
+        return;
+    }
 
     tbody.innerHTML = '';
 
     const start = (ptrCurrentPage - 1) * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
     const pageTransactions = filteredPTRTransactions.slice(start, end);
+
+    console.log('Rendering rows:', pageTransactions.length);
 
     pageTransactions.forEach(trans => {
         const row = document.createElement('tr');
@@ -848,7 +1185,7 @@ function renderPTRTable() {
             <td>${trans.amount_range || '-'}</td>
             <td>${getOwnerName(trans.owner_code)}</td>
             <td>
-                <a href="${trans.pdf_url || getPDFUrl({ year: trans.year, doc_id: trans.doc_id })}"
+                <a href="${trans.pdf_url || '#'}"
                    target="_blank" rel="noopener" class="btn-link">
                     View PDF
                 </a>
@@ -856,6 +1193,7 @@ function renderPTRTable() {
         `;
         tbody.appendChild(row);
     });
+    console.log('PTR table rendered.');
 
     const showingEl = document.getElementById('ptr-showing-count');
     if (showingEl) {
@@ -929,3 +1267,26 @@ function showPTRError() {
     if (loading) loading.classList.add('hidden');
     if (error) error.classList.remove('hidden');
 }
+
+// Silver Layer Sidebar Navigation
+document.addEventListener('DOMContentLoaded', () => {
+    const silverNavItems = document.querySelectorAll('.silver-nav-item');
+    const silverViews = document.querySelectorAll('.silver-view');
+
+    silverNavItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const viewName = item.getAttribute('data-silver-view');
+
+            // Update active nav item
+            silverNavItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+
+            // Update active view
+            silverViews.forEach(view => view.classList.remove('active'));
+            const targetView = document.querySelector(`.silver-view[data-silver-view="${viewName}"]`);
+            if (targetView) {
+                targetView.classList.add('active');
+            }
+        });
+    });
+});

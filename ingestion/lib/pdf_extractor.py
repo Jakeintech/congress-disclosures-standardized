@@ -394,7 +394,7 @@ def extract_text_from_pdf(
             # Use pypdf fallback (will extract blank or minimal text)
             result = extract_text_pypdf(pdf_path)
             result["extraction_method"] = "pypdf-budget-limit"
-            result["has_embedded_text"] = False
+            result["has_embedded_text"] = has_text  # FIX: Preserve detected value, don't hardcode False
             result["requires_textract_reprocessing"] = True
         else:
             # Budget available, use Textract

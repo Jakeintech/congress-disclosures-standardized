@@ -12,7 +12,7 @@ endif
 # Variables
 TERRAFORM_DIR := infra/terraform
 LAMBDA_DIR := ingestion/lambdas
-PYTHON := python3
+PYTHON := python3.11
 PIP := $(PYTHON) -m pip
 PYTEST := $(PYTHON) -m pytest
 BLACK := $(PYTHON) -m black
@@ -93,22 +93,25 @@ package-ingest: ## Package house_fd_ingest_zip Lambda
 
 package-index: ## Package house_fd_index_to_silver Lambda
 	@echo "Packaging house_fd_index_to_silver..."
-	@rm -rf $(LAMBDA_DIR)/house_fd_index_to_silver/package
-	@mkdir -p $(LAMBDA_DIR)/house_fd_index_to_silver/package
-	$(PIP) install -r $(LAMBDA_DIR)/house_fd_index_to_silver/requirements.txt -t $(LAMBDA_DIR)/house_fd_index_to_silver/package
-	@cp $(LAMBDA_DIR)/house_fd_index_to_silver/handler.py $(LAMBDA_DIR)/house_fd_index_to_silver/package/
-	@cp -r ingestion/lib $(LAMBDA_DIR)/house_fd_index_to_silver/package/
-	@cd $(LAMBDA_DIR)/house_fd_index_to_silver/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/house_fd_index_to_silver/dist $(LAMBDA_DIR)/house_fd_index_to_silver/function.zip
+	@mkdir -p $(LAMBDA_DIR)/house_fd_index_to_silver/dist
+	$(PIP) install -r $(LAMBDA_DIR)/house_fd_index_to_silver/requirements.txt -t $(LAMBDA_DIR)/house_fd_index_to_silver/dist
+	@cp $(LAMBDA_DIR)/house_fd_index_to_silver/handler.py $(LAMBDA_DIR)/house_fd_index_to_silver/dist/
+	@cp -r $(LAMBDA_DIR)/house_fd_index_to_silver/schemas $(LAMBDA_DIR)/house_fd_index_to_silver/dist/
+	@cp -r ingestion/lib $(LAMBDA_DIR)/house_fd_index_to_silver/dist/lib
+	@cd $(LAMBDA_DIR)/house_fd_index_to_silver/dist && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/house_fd_index_to_silver/function.zip"
 
 package-extract: ## Package house_fd_extract_document Lambda
 	@echo "Packaging house_fd_extract_document..."
-	@rm -rf $(LAMBDA_DIR)/house_fd_extract_document/package
-	@mkdir -p $(LAMBDA_DIR)/house_fd_extract_document/package
-	$(PIP) install -r $(LAMBDA_DIR)/house_fd_extract_document/requirements.txt -t $(LAMBDA_DIR)/house_fd_extract_document/package
-	@cp $(LAMBDA_DIR)/house_fd_extract_document/handler.py $(LAMBDA_DIR)/house_fd_extract_document/package/
-	@cp -r ingestion/lib $(LAMBDA_DIR)/house_fd_extract_document/package/
-	@cd $(LAMBDA_DIR)/house_fd_extract_document/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/house_fd_extract_document/dist $(LAMBDA_DIR)/house_fd_extract_document/function.zip
+	@mkdir -p $(LAMBDA_DIR)/house_fd_extract_document/dist/
+	$(PIP) install -r $(LAMBDA_DIR)/house_fd_extract_document/requirements.txt -t $(LAMBDA_DIR)/house_fd_extract_document/dist
+	@cp $(LAMBDA_DIR)/house_fd_extract_document/handler.py $(LAMBDA_DIR)/house_fd_extract_document/dist/
+	# Copy entire shared schemas directory to ensure all files are included
+	@cp -r ingestion/schemas $(LAMBDA_DIR)/house_fd_extract_document/dist/
+	@cp -r ingestion/lib $(LAMBDA_DIR)/house_fd_extract_document/dist/lib
+	@cd $(LAMBDA_DIR)/house_fd_extract_document/dist && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/house_fd_extract_document/function.zip"
 
 package-seed: ## Package gold_seed Lambda

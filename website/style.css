@@ -393,6 +393,149 @@ body {
     background: hsl(var(--muted) / 0.5);
 }
 
+/* Expandable Rows */
+.expand-cell {
+    width: 30px;
+    text-align: center;
+    padding: 0.5rem !important;
+}
+
+.expand-icon {
+    display: inline-block;
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+    transition: transform 0.2s ease;
+    user-select: none;
+}
+
+.expandable-row.expanded .expand-icon {
+    transform: rotate(0deg);
+}
+
+.expanded-content-row {
+    background: hsl(var(--muted) / 0.3) !important;
+}
+
+.expanded-content-row td {
+    padding: 0 !important;
+    border: none !important;
+}
+
+.expanded-content {
+    padding: 1.5rem;
+    border-top: 2px solid hsl(var(--border));
+    animation: expandAnimation 0.3s ease;
+}
+
+@keyframes expandAnimation {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* JSON Display */
+.json-display {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1rem;
+}
+
+.json-metadata {
+    background: hsl(var(--secondary));
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+}
+
+.metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.metadata-grid div {
+    font-size: 0.875rem;
+}
+
+.metadata-grid strong {
+    color: hsl(var(--muted-foreground));
+    font-weight: 600;
+}
+
+/* Schedule Sections */
+.schedules-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.schedule-section {
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.schedule-section h4 {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 0.75rem 1rem;
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.schedule-table-wrapper {
+    overflow-x: auto;
+    padding: 1rem;
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    background: white;
+}
+
+.schedule-table th {
+    background: hsl(var(--muted));
+    padding: 0.6rem;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid hsl(var(--border));
+    font-size: 0.75rem;
+}
+
+.schedule-table td {
+    padding: 0.6rem;
+    border: 1px solid hsl(var(--border));
+}
+
+.schedule-table tr:nth-child(even) {
+    background: hsl(var(--muted) / 0.3);
+}
+
+.schedule-table tr:hover {
+    background: hsl(var(--muted) / 0.6);
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: hsl(var(--muted-foreground));
+}
+
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: hsl(var(--destructive));
+}
+
 /* Pagination */
 .pagination {
     display: flex;
@@ -420,7 +563,9 @@ body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .hidden {
@@ -428,7 +573,7 @@ body {
 }
 
 /* Download Items */
-.space-y-4 > * + * {
+.space-y-4>*+* {
     margin-top: 1.5rem;
 }
 
@@ -681,7 +826,8 @@ body {
 }
 
 .silver-main-content {
-    min-width: 0; /* Prevent flex overflow */
+    min-width: 0;
+    /* Prevent flex overflow */
 }
 
 .silver-view {
@@ -693,7 +839,7 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 968px) {
+@media (max-width: 1200px) {
     .silver-layer-layout {
         grid-template-columns: 1fr;
         gap: 1rem;
@@ -712,6 +858,7 @@ body {
 
     .silver-nav-item {
         white-space: nowrap;
+        flex-shrink: 0;
     }
 }
 
@@ -721,9 +868,10 @@ body {
 
 .gold-analytics-layout {
     display: grid;
-    grid-template-columns: 250px 1fr;
+    grid-template-columns: minmax(200px, 250px) 1fr;
     gap: 2rem;
     min-height: 600px;
+    position: relative;
 }
 
 .gold-sidebar {
@@ -788,7 +936,8 @@ body {
 }
 
 .gold-main-content {
-    min-width: 0; /* Prevent flex overflow */
+    min-width: 0;
+    /* Prevent flex overflow */
 }
 
 .gold-view {
@@ -800,7 +949,7 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 968px) {
+@media (max-width: 1200px) {
     .gold-analytics-layout {
         grid-template-columns: 1fr;
         gap: 1rem;
@@ -819,5 +968,6 @@ body {
 
     .gold-nav-item {
         white-space: nowrap;
+        flex-shrink: 0;
     }
 }

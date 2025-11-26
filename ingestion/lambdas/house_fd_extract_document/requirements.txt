@@ -1,11 +1,1 @@
-# Dependencies for house_fd_extract_document Lambda
-# This Lambda extracts text from PDFs using pypdf or Textract
-#
-# NOTE: boto3 is provided by AWS Lambda runtime
-# NOTE: numpy, pandas, pyarrow are provided by AWS SDK for pandas Lambda Layer
-# Layer ARN: arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24
-
 pypdf>=3.15.0,<4.0.0
-jsonschema>=4.17.0,<5.0.0
-python-dateutil>=2.8.0,<3.0.0
-requests>=2.31.0,<3.0.0

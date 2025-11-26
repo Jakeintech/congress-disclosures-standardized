@@ -85,6 +85,8 @@ resource "aws_lambda_function" "index_to_silver" {
       S3_BRONZE_PREFIX   = "bronze"
       S3_SILVER_PREFIX   = "silver"
       EXTRACTION_VERSION = var.extraction_version
+      # Provide SQS queue URL so index-to-silver can enqueue extraction jobs
+      EXTRACTION_QUEUE_URL = aws_sqs_queue.extraction_queue.url
       LOG_LEVEL          = "INFO"
       PYTHONUNBUFFERED   = "1"
       TZ                 = "UTC"
@@ -101,7 +103,8 @@ resource "aws_lambda_function" "index_to_silver" {
   # Use AWS Data Wrangler layer for pandas/pyarrow/numpy
   layers = concat(
     var.lambda_layer_arns,
-    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
+    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"],
+    ["arn:aws:lambda:us-east-1:464813693153:layer:python-custom-dependencies:3"]
   )
 
   tags = merge(
@@ -168,11 +171,10 @@ resource "aws_lambda_function" "extract_document" {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
   }
 
-  # AWS SDK for pandas Layer provides numpy, pandas, pyarrow for parquet_writer
-  # Layer: 389MB + Package: 1.6MB = 390MB (under 250MB uncompressed limit)
   layers = concat(
     var.lambda_layer_arns,
-    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
+    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"],
+    ["arn:aws:lambda:us-east-1:464813693153:layer:python-custom-dependencies:3"] # Custom layer for jsonschema, etc.
   )
 
   tags = merge(

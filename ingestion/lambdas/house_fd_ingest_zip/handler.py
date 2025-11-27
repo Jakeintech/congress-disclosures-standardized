@@ -79,11 +79,11 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         # Step 3: Extract and upload index files
         logger.info("Step 3: Extracting and uploading index files")
-        index_files = extract_and_upload_index(zip_bytes, year)
+        index_files, filing_type_map = extract_upload_and_parse_index(zip_bytes, year)
 
         # Step 4: Extract and upload PDFs + send to SQS
         logger.info("Step 4: Extracting and uploading PDFs")
-        pdf_count, sqs_message_count = extract_and_upload_pdfs(zip_bytes, year)
+        pdf_count, sqs_message_count = extract_and_upload_pdfs(zip_bytes, year, filing_type_map)
 
         # Trigger index-to-silver Lambda (synchronous)
         logger.info("Step 5: Triggering index-to-silver Lambda")
@@ -187,20 +187,18 @@ def upload_raw_zip(zip_bytes: bytes, s3_key: str, metadata: Dict[str, str], year
     logger.info(f"Uploaded raw zip to s3://{S3_BUCKET}/{s3_key}")
 
 
-def extract_and_upload_index(zip_bytes: bytes, year: int) -> List[str]:
-    """Extract and upload index files (XML, TXT).
+def extract_upload_and_parse_index(zip_bytes: bytes, year: int) -> tuple:
+    """Extract and upload index files, and parse XML for filing types.
 
     Args:
         zip_bytes: Zip file bytes
         year: Year
 
     Returns:
-        List of uploaded S3 keys
-
-    Raises:
-        Exception: If extraction fails
+        Tuple of (uploaded_keys, filing_type_map)
     """
     uploaded_keys = []
+    filing_type_map = {}
 
     with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
         # Find index files
@@ -230,15 +228,41 @@ def extract_and_upload_index(zip_bytes: bytes, year: int) -> List[str]:
                 uploaded_keys.append(s3_key)
                 logger.info(f"Uploaded index to s3://{S3_BUCKET}/{s3_key}")
 
-    return uploaded_keys
+                # Parse XML to build filing type map
+                if file_ext == ".xml":
+                    try:
+                        import xml.etree.ElementTree as ET
+                        root = ET.fromstring(file_data)
+                        for member in root.findall('Member'):
+                            doc_id = member.find('DocID').text
+                            filing_type = member.find('FilingType').text
+                            if doc_id and filing_type:
+                                filing_type_map[doc_id] = filing_type
+                        logger.info(f"Parsed {len(filing_type_map)} entries from XML index")
+                    except Exception as e:
+                        logger.warning(f"Failed to parse XML index: {e}")
+
+    return uploaded_keys, filing_type_map
 
 
-def extract_and_upload_pdfs(zip_bytes: bytes, year: int) -> tuple:
+# Import metadata tagger
+try:
+    from lib.metadata_tagger import calculate_quality_score
+except ImportError:
+    # Fallback for local testing or if lib structure differs
+    try:
+        from ingestion.lib.metadata_tagger import calculate_quality_score
+    except ImportError:
+        logger.warning("Could not import metadata_tagger, quality scoring disabled")
+        calculate_quality_score = lambda *args: 0.0
+
+def extract_and_upload_pdfs(zip_bytes: bytes, year: int, filing_type_map: Dict[str, str]) -> tuple:
     """Extract and upload PDFs, send SQS messages for extraction.
 
     Args:
         zip_bytes: Zip file bytes
         year: Year
+        filing_type_map: Map of DocID to FilingType
 
     Returns:
         Tuple of (pdf_count, sqs_message_count)
@@ -265,8 +289,34 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int) -> tuple:
                 # Read PDF
                 pdf_data = zf.read(filename)
 
-                # Upload to S3
-                s3_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
+                # Determine filing type
+                filing_type = filing_type_map.get(doc_id, "U") # Default to Unknown
+
+                # Calculate quality score
+                # We need page count and text layer check
+                # This requires parsing the PDF bytes
+                # Since we have pypdf, we can do it
+                page_count = 0
+                has_text = False
+                try:
+                    import pypdf
+                    pdf_reader = pypdf.PdfReader(io.BytesIO(pdf_data))
+                    page_count = len(pdf_reader.pages)
+                    if page_count > 0:
+                        text = pdf_reader.pages[0].extract_text()
+                        if text and len(text.strip()) > 50:
+                            has_text = True
+                except Exception as e:
+                    logger.warning(f"Failed to analyze PDF {filename}: {e}")
+
+                # We don't have member name or filing date easily available here without parsing XML deeper
+                # But we can pass what we have.
+                # Ideally filing_type_map should contain more metadata.
+                # For now, use defaults or what we have.
+                quality_score = calculate_quality_score(has_text, page_count, str(year), "Unknown")
+
+                # Upload to S3 with new path structure
+                s3_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type={filing_type}/pdfs/{doc_id}.pdf"
 
                 s3_client.put_object(
                     Bucket=S3_BUCKET,
@@ -276,6 +326,10 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int) -> tuple:
                         "doc_id": doc_id,
                         "year": str(year),
                         "source_filename": filename,
+                        "filing_type": filing_type,
+                        "quality_score": str(quality_score),
+                        "page_count": str(page_count),
+                        "has_text_layer": str(has_text).lower(),
                         "upload_timestamp": datetime.now(timezone.utc).isoformat(),
                     },
                     ContentType="application/pdf",
@@ -292,6 +346,7 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int) -> tuple:
                                 "doc_id": doc_id,
                                 "year": year,
                                 "s3_pdf_key": s3_key,
+                                "filing_type": filing_type
                             }
                         ),
                     }

@@ -166,6 +166,12 @@ def main():
             if extraction['json_s3_key']:
                 df.at[idx, 'json_s3_key'] = extraction['json_s3_key']
 
+            # Infer has_embedded_text from extraction method
+            if extraction['extraction_method'] == 'pypdf':
+                df.at[idx, 'has_embedded_text'] = True
+            elif 'textract' in extraction['extraction_method']:
+                df.at[idx, 'has_embedded_text'] = False
+
             updated_count += 1
 
     print()

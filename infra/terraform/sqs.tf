@@ -16,26 +16,15 @@ resource "aws_sqs_queue" "extraction_dlq" {
 }
 
 # Main extraction queue
+# Extraction Queue (for PDF processing)
 resource "aws_sqs_queue" "extraction_queue" {
-  name = "${local.name_prefix}-extract-queue"
-
-  # Visibility timeout must be longer than Lambda timeout
-  visibility_timeout_seconds = var.sqs_visibility_timeout_seconds
-
-  # Message retention
-  message_retention_seconds = var.sqs_message_retention_days * 86400
-
-  # Receive wait time (long polling reduces costs)
-  receive_wait_time_seconds = 20 # Enable long polling
-
-  # Dead letter queue configuration
+  name                       = "${var.project_name}-${var.environment}-extract-queue"
+  visibility_timeout_seconds = 300 # 5 minutes for Lambda processing
+  message_retention_seconds  = 345600 # 4 days
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.extraction_dlq.arn
-    maxReceiveCount     = var.sqs_max_receive_count
+    maxReceiveCount     = 3
   })
-
-  # Enable SQS server-side encryption (free with SQS-managed keys)
-  sqs_managed_sse_enabled = true
 
   tags = merge(
     local.standard_tags,

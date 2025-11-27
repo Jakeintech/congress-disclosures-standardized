@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Data Quality Report",
+  "type": "object",
+  "properties": {
+    "doc_id": { "type": "string" },
+    "year": { "type": "integer" },
+    "validation_timestamp": { "type": "string", "format": "date-time" },
+    "overall_status": { "type": "string", "enum": ["PASS", "WARNING", "FAIL"] },
+    "issue_count": { "type": "integer" },
+    "validator_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "validator_name": { "type": "string" },
+          "status": { "type": "string", "enum": ["PASS", "WARNING", "FAIL"] },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": { "type": "string" },
+                "message": { "type": "string" },
+                "severity": { "type": "string", "enum": ["error", "warning"] },
+                "field": { "type": "string" }
+              },
+              "required": ["code", "message", "severity"]
+            }
+          }
+        },
+        "required": ["validator_name", "status", "issues"]
+      }
+    }
+  },
+  "required": ["doc_id", "year", "validation_timestamp", "overall_status", "issue_count", "validator_results"]
+}

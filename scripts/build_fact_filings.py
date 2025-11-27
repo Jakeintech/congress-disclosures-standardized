@@ -29,17 +29,19 @@ def load_silver_filings(bucket_name: str) -> pd.DataFrame:
     logger.info("Loading silver/filings...")
 
     prefix = 'silver/house/financial/filings/'
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
 
     dfs = []
-    for obj in response.get('Contents', []):
-        if obj['Key'].endswith('.parquet'):
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
-                s3.download_file(bucket_name, obj['Key'], tmp.name)
-                df = pd.read_parquet(tmp.name)
-                dfs.append(df)
-                os.unlink(tmp.name)
+    for page in pages:
+        for obj in page.get('Contents', []):
+            if obj['Key'].endswith('.parquet'):
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
+                    s3.download_file(bucket_name, obj['Key'], tmp.name)
+                    df = pd.read_parquet(tmp.name)
+                    dfs.append(df)
+                    os.unlink(tmp.name)
 
     result = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
     logger.info(f"Loaded {len(result):,} filings")
@@ -52,17 +54,19 @@ def load_silver_documents(bucket_name: str) -> pd.DataFrame:
     logger.info("Loading silver/documents...")
 
     prefix = 'silver/house/financial/documents/'
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
 
     dfs = []
-    for obj in response.get('Contents', []):
-        if obj['Key'].endswith('.parquet'):
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
-                s3.download_file(bucket_name, obj['Key'], tmp.name)
-                df = pd.read_parquet(tmp.name)
-                dfs.append(df)
-                os.unlink(tmp.name)
+    for page in pages:
+        for obj in page.get('Contents', []):
+            if obj['Key'].endswith('.parquet'):
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
+                    s3.download_file(bucket_name, obj['Key'], tmp.name)
+                    df = pd.read_parquet(tmp.name)
+                    dfs.append(df)
+                    os.unlink(tmp.name)
 
     result = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
     logger.info(f"Loaded {len(result):,} document records")
@@ -75,17 +79,19 @@ def load_dim_members(bucket_name: str) -> pd.DataFrame:
     logger.info("Loading dim_members...")
 
     prefix = 'gold/house/financial/dimensions/dim_members/'
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
 
     dfs = []
-    for obj in response.get('Contents', []):
-        if obj['Key'].endswith('.parquet'):
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
-                s3.download_file(bucket_name, obj['Key'], tmp.name)
-                df = pd.read_parquet(tmp.name)
-                dfs.append(df)
-                os.unlink(tmp.name)
+    for page in pages:
+        for obj in page.get('Contents', []):
+            if obj['Key'].endswith('.parquet'):
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
+                    s3.download_file(bucket_name, obj['Key'], tmp.name)
+                    df = pd.read_parquet(tmp.name)
+                    dfs.append(df)
+                    os.unlink(tmp.name)
 
     result = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
     logger.info(f"Loaded {len(result):,} members")

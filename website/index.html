@@ -103,19 +103,19 @@
                             <div class="card-content">
                                 <!-- Bronze Stats -->
                                 <div class="stats-grid" id="bronze-stats">
-                                    <div class="stat-card">
+                                    <div class="stat-card" title="Total number of financial disclosure documents filed">
                                         <div class="stat-value" id="bronze-total-filings">-</div>
                                         <div class="stat-label">Total Filings</div>
                                     </div>
-                                    <div class="stat-card">
+                                    <div class="stat-card" title="Number of unique members who have filed disclosures">
                                         <div class="stat-value" id="bronze-total-filers">-</div>
                                         <div class="stat-label">Unique Filers</div>
                                     </div>
-                                    <div class="stat-card">
+                                    <div class="stat-card" title="Periodic Transaction Reports (Form P) - stock trades">
                                         <div class="stat-value" id="bronze-ptrs">-</div>
                                         <div class="stat-label">PTR Filings</div>
                                     </div>
-                                    <div class="stat-card">
+                                    <div class="stat-card" title="Most recent filing year in the dataset">
                                         <div class="stat-value" id="bronze-latest-year">-</div>
                                         <div class="stat-label">Latest Year</div>
                                     </div>
@@ -249,13 +249,71 @@
                                                     basic metadata
                                                 </div>
                                             </div>
-                                            <div class="alert alert-info" style="margin-top: 1rem;">
-                                                <div class="alert-title">Download Parquet</div>
-                                                <div class="alert-description">
-                                                    <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/filings/year=2025/part-0000.parquet"
-                                                        download>Download filings.parquet</a><br>
-                                                    Query with: <code>pd.read_parquet('filings.parquet')</code> or
-                                                    <code>SELECT * FROM 'filings.parquet'</code>
+                                            <div class="schema-section" style="margin-top: 1.5rem;">
+                                                <h3
+                                                    style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-primary);">
+                                                    Data Schema</h3>
+                                                <div class="table-container">
+                                                    <table class="table table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Field</th>
+                                                                <th>Type</th>
+                                                                <th>Description</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td><code>doc_id</code></td>
+                                                                <td>String</td>
+                                                                <td>Unique document identifier from House Clerk</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>year</code></td>
+                                                                <td>Integer</td>
+                                                                <td>Filing year</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>filing_date</code></td>
+                                                                <td>Date</td>
+                                                                <td>Date the document was filed</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>filing_type</code></td>
+                                                                <td>String</td>
+                                                                <td>Code: P (Periodic), A (Annual), etc.</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>first_name</code></td>
+                                                                <td>String</td>
+                                                                <td>Member's first name</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>last_name</code></td>
+                                                                <td>String</td>
+                                                                <td>Member's last name</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>state_district</code></td>
+                                                                <td>String</td>
+                                                                <td>State code and district (e.g., CA12)</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <div class="api-section"
+                                                style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 0.5rem;">
+                                                <h3
+                                                    style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-primary);">
+                                                    🔌 API Routes</h3>
+                                                <div style="font-family: monospace; font-size: 0.9rem;">
+                                                    <div style="margin-bottom: 0.5rem;">
+                                                        <span class="badge badge-success">GET</span>
+                                                        <code>/website/api/v1/documents/manifest.json</code>
+                                                    </div>
+                                                    <div class="text-muted">Full list of all filings with metadata</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -273,19 +331,28 @@
                                         <div class="card-content">
                                             <!-- Silver Stats -->
                                             <div class="stats-grid" id="silver-stats">
-                                                <div class="stat-card">
+                                                <div class="stat-card"
+                                                    title="Total documents processed in the Silver layer">
                                                     <div class="stat-value" id="silver-total-docs">-</div>
                                                     <div class="stat-label">Total Documents</div>
                                                 </div>
-                                                <div class="stat-card">
+                                                <div class="stat-card"
+                                                    title="Number of unique members with processed documents">
+                                                    <div class="stat-value" id="silver-unique-filers">-</div>
+                                                    <div class="stat-label">Unique Filers</div>
+                                                </div>
+                                                <div class="stat-card"
+                                                    title="Documents successfully extracted to structured JSON">
                                                     <div class="stat-value" id="silver-success">-</div>
                                                     <div class="stat-label">Extracted Successfully</div>
                                                 </div>
-                                                <div class="stat-card">
+                                                <div class="stat-card"
+                                                    title="Documents waiting in queue for extraction">
                                                     <div class="stat-value" id="silver-pending">-</div>
                                                     <div class="stat-label">Pending Extraction</div>
                                                 </div>
-                                                <div class="stat-card">
+                                                <div class="stat-card"
+                                                    title="Total number of pages processed across all documents">
                                                     <div class="stat-value" id="silver-total-pages">-</div>
                                                     <div class="stat-label">Total Pages</div>
                                                 </div>
@@ -385,26 +452,67 @@
                                                     patterns
                                                 </div>
                                             </div>
-                                            <div class="alert alert-info" style="margin-top: 1rem;">
-                                                <div class="alert-title">Download Parquet</div>
-                                                <div class="alert-description">
-                                                    PTR transactions parquet is coming soon. In the meantime:
-                                                    <ul>
-                                                        <li>
-                                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/filings/year=2025/part-0000.parquet"
-                                                                download>
-                                                                Download filings.parquet
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver/house/financial/documents/year=2025/part-0000.parquet"
-                                                                download>
-                                                                Download documents.parquet
-                                                            </a>
-                                                        </li>
-                                                    </ul>
-                                                    Query with: <code>pd.read_parquet('filings.parquet')</code>
-                                                    or <code>pd.read_parquet('documents.parquet')</code>
+                                            <div class="schema-section" style="margin-top: 1.5rem;">
+                                                <h3
+                                                    style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-primary);">
+                                                    Data Schema</h3>
+                                                <div class="table-container">
+                                                    <table class="table table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Field</th>
+                                                                <th>Type</th>
+                                                                <th>Description</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td><code>transaction_date</code></td>
+                                                                <td>Date</td>
+                                                                <td>Date the trade occurred</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>owner_code</code></td>
+                                                                <td>String</td>
+                                                                <td>SP (Spouse), JT (Joint), DC (Dependent)</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>ticker</code></td>
+                                                                <td>String</td>
+                                                                <td>Stock ticker symbol (extracted)</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>asset_name</code></td>
+                                                                <td>String</td>
+                                                                <td>Full name of the asset</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>transaction_type</code></td>
+                                                                <td>String</td>
+                                                                <td>P (Purchase), S (Sale), E (Exchange)</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><code>amount_range</code></td>
+                                                                <td>String</td>
+                                                                <td>Value range (e.g., $1,001 - $15,000)</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <div class="api-section"
+                                                style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 0.5rem;">
+                                                <h3
+                                                    style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-primary);">
+                                                    🔌 API Routes</h3>
+                                                <div style="font-family: monospace; font-size: 0.9rem;">
+                                                    <div style="margin-bottom: 0.5rem;">
+                                                        <span class="badge badge-success">GET</span>
+                                                        <code>/website/api/v1/schedules/b/transactions.json</code>
+                                                    </div>
+                                                    <div class="text-muted">Aggregated transactions from all PTR filings
+                                                    </div>
                                                 </div>
                                             </div>
                                             <p class="text-muted" style="margin-top: 1rem;">

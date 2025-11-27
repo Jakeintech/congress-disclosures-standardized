@@ -1,0 +1,65 @@
+{
+  "doc_id": "8220832",
+  "year": 2025,
+  "filing_type": "Unknown",
+  "document_header": {
+    "filing_id": "",
+    "filer_name": "",
+    "status": "",
+    "state_district": "",
+    "filing_type": "",
+    "filing_year": "",
+    "filing_date": ""
+  },
+  "checkboxes": {},
+  "extraction_timestamp": "2025-11-26T17:28:34.538393",
+  "extraction_method": "textract_async_enhanced",
+  "total_pages": 1,
+  "schedules": {
+    "A": {
+      "type": "Assets",
+      "data": [],
+      "tables": []
+    },
+    "B": {
+      "type": "Transactions",
+      "data": [],
+      "tables": []
+    },
+    "C": {
+      "type": "Earned Income",
+      "data": [],
+      "tables": []
+    },
+    "D": {
+      "type": "Liabilities",
+      "data": [],
+      "tables": []
+    },
+    "E": {
+      "type": "Positions",
+      "data": [],
+      "tables": []
+    },
+    "F": {
+      "type": "Agreements",
+      "data": [],
+      "tables": []
+    },
+    "G": {
+      "type": "Gifts",
+      "data": [],
+      "tables": []
+    },
+    "H": {
+      "type": "Travel",
+      "data": [],
+      "tables": []
+    },
+    "I": {
+      "type": "Charity",
+      "data": [],
+      "tables": []
+    }
+  }
+}

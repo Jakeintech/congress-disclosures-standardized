@@ -367,3 +367,62 @@ output "lambda_gold_seed_members_name" {
   description = "Name of gold seed members Lambda"
   value       = aws_lambda_function.gold_seed_members.function_name
 }
+
+# Lambda function: data_quality_validator
+resource "aws_lambda_function" "data_quality_validator" {
+  function_name = "${local.name_prefix}-data-quality-validator"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+
+  s3_bucket        = aws_s3_bucket.data_lake.id
+  s3_key           = "lambda-deployments/data_quality_validator/function.zip"
+  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/data_quality_validator/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/data_quality_validator/function.zip") : null
+
+  timeout     = 300
+  memory_size = 512
+
+  environment {
+    variables = {
+      S3_BUCKET_NAME   = aws_s3_bucket.data_lake.id
+      S3_SILVER_PREFIX = "silver"
+      LOG_LEVEL        = "INFO"
+    }
+  }
+
+  tracing_config {
+    mode = var.enable_xray_tracing ? "Active" : "PassThrough"
+  }
+
+  # Use AWS Data Wrangler layer (pandas/pyarrow)
+  layers = concat(
+    var.lambda_layer_arns,
+    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
+  )
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${local.name_prefix}-data-quality-validator"
+      Component = "lambda"
+      Purpose   = "validation"
+    }
+  )
+
+  lifecycle {
+    ignore_changes = [
+      source_code_hash,
+      filename
+    ]
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.data_quality_validator,
+    aws_iam_role_policy.lambda_logging
+  ]
+}
+
+output "lambda_data_quality_validator_name" {
+  description = "Name of data quality validator Lambda"
+  value       = aws_lambda_function.data_quality_validator.function_name
+}

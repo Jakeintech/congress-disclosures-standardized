@@ -39,6 +39,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     {
         "doc_id": "1234567",
         "year": 2025,
+        "filing_type": "A" (optional),
         "extraction_method": "pypdf" | "textract",
         "has_embedded_text": true/false
     }
@@ -48,8 +49,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body = json.loads(record["body"])
             doc_id = body["doc_id"]
             year = int(body["year"])
-            logger.info(f"Starting async Textract extraction for {doc_id} ({year})")
-            result = process_document_async(doc_id, year)
+            filing_type = body.get("filing_type")  # Optional
+            logger.info(f"Starting async Textract extraction for {doc_id} ({year}), type={filing_type}")
+            result = process_document_async(doc_id, year, filing_type)
             if result["status"] == "success":
                 # Update documents table with json_s3_key
                 update_document_record(doc_id, year, result["json_s3_key"])
@@ -62,26 +64,39 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             logger.error(f"Error processing SQS record: {e}", exc_info=True)
     return {"statusCode": 200, "body": json.dumps({"message": "Processing complete"})}
 
-def process_document_async(doc_id: str, year: int) -> Dict[str, Any]:
+def process_document_async(doc_id: str, year: int, filing_type: str = None) -> Dict[str, Any]:
     """Start async Textract analysis and poll for results.
 
     For production, we'd use SNS callbacks. For simplicity now, we'll poll inline
     if the Lambda has time, otherwise return job_id for later processing.
-    
+
+    Args:
+        doc_id: Document ID
+        year: Filing year
+        filing_type: Optional filing type code (A, P, C, etc.) for path resolution
+
     Returns a dict with keys:
         - status: "success", "started", or "partial"
         - data: the structured JSON (if success)
         - job_id: Textract job ID (if started)
         - message: error or partial‑extraction info
     """
-    # 1️⃣ Construct PDF S3 key
-    pdf_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
-    
+    # 1️⃣ Construct PDF S3 key (try new structure first, fall back to old)
+    if filing_type:
+        pdf_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type={filing_type}/pdfs/{doc_id}.pdf"
+    else:
+        # Try to find PDF in any filing_type partition
+        pdf_key = find_pdf_in_bronze(doc_id, year)
+        if not pdf_key:
+            # Fall back to old structure
+            pdf_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
+
     # Verify PDF exists
     try:
         s3.head_object(Bucket=S3_BUCKET, Key=pdf_key)
+        logger.info(f"Found PDF at: {pdf_key}")
     except Exception as e:
-        return {"status": "partial", "message": f"Failed to find PDF: {e}"}
+        return {"status": "partial", "message": f"Failed to find PDF at {pdf_key}: {e}"}
 
     # 2️⃣ Start async Textract job
     try:
@@ -152,32 +167,94 @@ def get_all_blocks(job_id: str) -> List[Dict[str, Any]]:
 
 def parse_textract_blocks(doc_id: str, year: int, blocks: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Parse Textract blocks into structured JSON with schedules A-I.
-    
+
     This is a comprehensive parser that extracts:
     - Document header fields (Filing ID, Name, Status, etc.)
     - Checkboxes (using SELECTION_ELEMENT blocks)
     - Key-value pairs from FORMS
     - Table data from TABLES with enhanced parsing (codes, locations, descriptions)
     - Maps them to the appropriate schedules
+
+    Routes to specialized extractors based on filing type.
     """
     # Build block map for relationship lookups
     block_map = {block["Id"]: block for block in blocks}
-    
+
     # Extract key-value pairs
     kv_pairs = extract_key_value_pairs(blocks, block_map)
-    
+
+    # Classify document type first
+    filing_type = classify_document_type(blocks, kv_pairs)
+
+    # Route to specialized extractors based on filing type
+    if filing_type in ["Annual Report", "Candidate Report", "Form A", "Form B"]:
+        # Use FormABExtractor for Form A/B filings
+        try:
+            import sys
+            sys.path.insert(0, '/opt/python')  # Lambda layer path
+            from extractors.form_ab_extractor import FormABExtractor
+
+            extractor = FormABExtractor()
+            structured = extractor.extract_from_textract(doc_id, year, blocks)
+            logger.info(f"Used FormABExtractor for {filing_type} filing")
+            return structured
+        except ImportError as e:
+            logger.warning(f"FormABExtractor not available, falling back to generic: {e}")
+            # Fall through to generic extraction below
+
+    elif filing_type == "Extension Request":
+        # Use ExtensionRequestExtractor for Type X filings
+        try:
+            import sys
+            sys.path.insert(0, '/opt/python')  # Lambda layer path
+            from extractors.extension_request_extractor import ExtensionRequestExtractor
+
+            extractor = ExtensionRequestExtractor()
+            structured = extractor.extract_from_textract(doc_id, year, blocks)
+            logger.info(f"Used ExtensionRequestExtractor for {filing_type} filing")
+            return structured
+        except ImportError as e:
+            logger.warning(f"ExtensionRequestExtractor not available, falling back to generic: {e}")
+            # Fall through to generic extraction below
+
+    elif filing_type == "Campaign Notice":
+        # Use CampaignNoticeExtractor for Type D filings
+        try:
+            import sys
+            sys.path.insert(0, '/opt/python')  # Lambda layer path
+            from extractors.campaign_notice_extractor import CampaignNoticeExtractor
+
+            extractor = CampaignNoticeExtractor()
+            structured = extractor.extract_from_textract(doc_id, year, blocks)
+            logger.info(f"Used CampaignNoticeExtractor for {filing_type} filing")
+            return structured
+        except ImportError as e:
+            logger.warning(f"CampaignNoticeExtractor not available, falling back to generic: {e}")
+
+    elif filing_type == "Withdrawal Notice":
+        # Use WithdrawalNoticeExtractor for Type W filings
+        try:
+            import sys
+            sys.path.insert(0, '/opt/python')  # Lambda layer path
+            from extractors.withdrawal_notice_extractor import WithdrawalNoticeExtractor
+
+            extractor = WithdrawalNoticeExtractor()
+            structured = extractor.extract_from_textract(doc_id, year, blocks)
+            logger.info(f"Used WithdrawalNoticeExtractor for {filing_type} filing")
+            return structured
+        except ImportError as e:
+            logger.warning(f"WithdrawalNoticeExtractor not available, falling back to generic: {e}")
+
+    # Generic extraction for other filing types (PTR, etc.)
     # Extract document header
     header = extract_document_header(blocks, kv_pairs)
-    
+
     # Extract checkboxes
     checkboxes = extract_checkboxes(blocks, block_map)
-    
+
     # Extract tables with enhanced parsing
     tables = extract_tables_enhanced(blocks, block_map)
-    
-    # Classify document type
-    filing_type = classify_document_type(blocks, kv_pairs)
-    
+
     # Map to schedules using content-based classification
     structured = {
         "doc_id": doc_id,
@@ -190,7 +267,7 @@ def parse_textract_blocks(doc_id: str, year: int, blocks: List[Dict[str, Any]]) 
         "total_pages": get_page_count(blocks),
         "schedules": map_to_schedules(kv_pairs, tables, blocks)
     }
-    
+
     return structured
 
 def classify_document_type(blocks: List[Dict], kv_pairs: Dict[str, str]) -> str:
@@ -208,13 +285,23 @@ def classify_document_type(blocks: List[Dict], kv_pairs: Dict[str, str]) -> str:
     
     if "PERIODIC TRANSACTION REPORT" in first_page_text:
         return "Periodic Transaction Report"
+    elif "EXTENSION REQUEST" in first_page_text:
+        return "Extension Request"
     elif "FINANCIAL DISCLOSURE REPORT" in first_page_text:
         if "AMENDMENT" in first_page_text:
             return "Amendment"
+        elif "CANDIDATE" in first_page_text or "NEW FILER" in first_page_text:
+            return "Candidate Report"
+        elif "TERMINATION" in first_page_text or "TERMINATED FILER" in first_page_text:
+            return "Termination Report"
         return "Annual Report"
-    elif "EXTENSION" in first_page_text:
-        return "Extension"
-        
+    elif "CAMPAIGN NOTICE" in first_page_text:
+        if "WITHDRAWAL" in first_page_text:
+            return "Withdrawal Notice"
+        return "Campaign Notice"
+    elif "GIFT" in first_page_text and "WAIVER" in first_page_text:
+        return "Gift Waiver Request"
+
     return "Unknown"
 
 def extract_document_header(blocks: List[Dict], kv_pairs: Dict[str, str]) -> Dict:
@@ -489,3 +576,41 @@ def update_document_record(doc_id: str, year: int, json_s3_key: str):
         logger.info(f"Updated documents table for {doc_id} with json_s3_key")
     except Exception as e:
         logger.error(f"Failed to update documents table for {doc_id}: {e}")
+
+def find_pdf_in_bronze(doc_id: str, year: int) -> Optional[str]:
+    """Find PDF in Bronze layer by searching across filing_type partitions.
+
+    Args:
+        doc_id: Document ID
+        year: Filing year
+
+    Returns:
+        S3 key to PDF, or None if not found
+    """
+    # List all filing_type partitions
+    prefix = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type="
+
+    try:
+        response = s3.list_objects_v2(
+            Bucket=S3_BUCKET,
+            Prefix=prefix,
+            Delimiter='/'
+        )
+
+        # Get all filing_type prefixes
+        for prefix_info in response.get('CommonPrefixes', []):
+            filing_type_prefix = prefix_info['Prefix']
+            # Try to find PDF in this partition
+            pdf_key = f"{filing_type_prefix}pdfs/{doc_id}.pdf"
+
+            try:
+                s3.head_object(Bucket=S3_BUCKET, Key=pdf_key)
+                logger.info(f"Found PDF at: {pdf_key}")
+                return pdf_key
+            except:
+                continue  # Try next partition
+
+    except Exception as e:
+        logger.warning(f"Error searching for PDF in Bronze: {e}")
+
+    return None

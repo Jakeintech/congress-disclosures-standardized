@@ -1,0 +1,27 @@
+# Form A Sample PDFs for Testing (Session 2)
+# Selected 10 diverse samples from 2025 Form A filings
+
+## Sample Selection Criteria
+- Different file sizes (60KB - 130KB range)
+- Different members
+- Variety in complexity
+
+## Selected Samples
+
+1. 10071624 - 131KB (largest, likely most complex)
+2. 10072228 - 101KB (large)
+3. 10072225 - 98KB (large)
+4. 10063536 - 95KB (medium-large)
+5. 10071566 - 75KB (medium)
+6. 10070318 - 70KB (medium)
+7. 10066969 - 62KB (smaller)
+8. 10071787 - 61KB (smaller)
+9. 10072260 - 68KB (medium-small)
+10. 10068942 - 92KB (medium-large)
+
+## Usage
+These samples will be used for:
+- Manual analysis of Form A structure
+- Textract block mapping
+- Extractor testing
+- Integration testing

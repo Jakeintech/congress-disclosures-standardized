@@ -2,11 +2,11 @@
 """Generate ptr_transactions table from structured.json files.
 
 This script:
-1. Reads bronze CSV to get PTR metadata (name, state, filing date)
+1. Reads bronze manifest from S3 to get PTR metadata (name, state, filing date)
 2. Reads structured.json files from silver/structured layer
 3. Flattens transactions (one row per transaction, not per filing)
 4. Generates parquet table: silver/house/financial/ptr_transactions/
-5. Generates JSON for website: ptr_transactions.json
+5. Generates JSON for website: website/api/v1/schedules/b/transactions.json
 """
 
 import sys
@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 from typing import List, Dict, Any
 from datetime import datetime
+import io
 
 # Add lib paths
 sys.path.insert(0, str(Path(__file__).parent.parent / "ingestion"))
@@ -32,41 +33,51 @@ if not S3_BUCKET:
     print("ERROR: Missing required configuration.")
     sys.exit(1)
 
+MANIFEST_KEY = "website/api/v1/documents/manifest.json"
+OUTPUT_JSON_KEY = "website/api/v1/schedules/b/transactions.json"
 
-def load_bronze_metadata(s3_client, year: int = 2025) -> pd.DataFrame:
-    """Load bronze CSV with PTR metadata.
+
+def load_manifest_metadata(s3_client) -> pd.DataFrame:
+    """Load bronze manifest with PTR metadata from S3.
 
     Args:
         s3_client: Boto3 S3 client
-        year: Filing year
 
     Returns:
         DataFrame with columns: doc_id, filing_date, first_name, last_name, state_district, filing_type
     """
-    # Try to load from S3 (if uploaded) or local file
-    csv_path = f"/Users/jake/Downloads/congress-disclosures-{year}-11-25.csv"
-
-    print(f"Loading bronze metadata from {csv_path}...")
-    df = pd.read_csv(csv_path)
-
-    # Rename columns to match our schema
-    df = df.rename(columns={
-        "Year": "year",
-        "Filing Date": "filing_date",
-        "First Name": "first_name",
-        "Last Name": "last_name",
-        "State/District": "state_district",
-        "Filing Type": "filing_type",
-        "Document ID": "doc_id",
-        "PDF URL": "pdf_url"
-    })
-
-    # Filter to PTRs only
-    ptrs = df[df["filing_type"] == "P"].copy()
-
-    print(f"Found {len(ptrs)} PTRs in bronze metadata")
-
-    return ptrs
+    print(f"Loading bronze metadata from s3://{S3_BUCKET}/{MANIFEST_KEY}...")
+    
+    try:
+        response = s3_client.get_object(Bucket=S3_BUCKET, Key=MANIFEST_KEY)
+        data = json.loads(response["Body"].read().decode("utf-8"))
+        
+        filings = data.get("filings", [])
+        if not filings:
+            print("⚠️  No filings found in manifest")
+            return pd.DataFrame()
+            
+        df = pd.DataFrame(filings)
+        
+        # Ensure required columns exist
+        required_cols = ["doc_id", "filing_date", "first_name", "last_name", "state_district", "filing_type", "year"]
+        for col in required_cols:
+            if col not in df.columns:
+                df[col] = None
+        
+        # Filter to PTRs only
+        ptrs = df[df["filing_type"] == "P"].copy()
+        
+        print(f"Found {len(ptrs)} PTRs in bronze metadata (from {len(df)} total filings)")
+        
+        return ptrs
+        
+    except s3_client.exceptions.NoSuchKey:
+        print(f"❌ Manifest not found at {MANIFEST_KEY}")
+        return pd.DataFrame()
+    except Exception as e:
+        print(f"❌ Error loading manifest: {e}")
+        return pd.DataFrame()
 
 
 def load_structured_json(s3_client, doc_id: str, year: int) -> Dict[str, Any]:
@@ -80,7 +91,7 @@ def load_structured_json(s3_client, doc_id: str, year: int) -> Dict[str, Any]:
     Returns:
         Structured data dict or None if not found
     """
-    s3_key = f"silver/house/financial/structured/year={year}/doc_id={doc_id}/structured.json"
+    s3_key = f"silver/house/financial/structured/year={year}/doc_id={doc_id}.json"
 
     try:
         response = s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
@@ -89,11 +100,11 @@ def load_structured_json(s3_client, doc_id: str, year: int) -> Dict[str, Any]:
     except s3_client.exceptions.NoSuchKey:
         return None
     except Exception as e:
-        print(f"  ⚠️  Error loading {doc_id}: {e}")
+        # print(f"  ⚠️  Error loading {doc_id}: {e}")
         return None
 
 
-def convert_to_s3_url(doc_id: int, year: int) -> str:
+def convert_to_s3_url(doc_id: str, year: int) -> str:
     """Convert external PDF URL to S3 URL.
 
     Args:
@@ -120,17 +131,26 @@ def flatten_transactions(ptr_metadata: pd.Series, structured_data: Dict[str, Any
 
     filer_info = structured_data.get("filer_info", {})
     extraction_metadata = structured_data.get("extraction_metadata", {})
+    
+    # Get transactions from top-level list (new format) or extract from schedules (old format)
+    extracted_transactions = structured_data.get("transactions", [])
+    
+    # If no top-level transactions, try to extract from Schedule B tables
+    if not extracted_transactions and "schedules" in structured_data:
+        # This is a fallback for older extractions or different formats
+        # For now, we'll rely on the extractor doing its job and populating "transactions"
+        pass
 
-    for idx, trans in enumerate(structured_data.get("transactions", []), 1):
+    for idx, trans in enumerate(extracted_transactions, 1):
         transaction_row = {
-            # From bronze CSV
-            "doc_id": ptr_metadata["doc_id"],
-            "year": ptr_metadata["year"],
+            # From bronze metadata
+            "doc_id": str(ptr_metadata["doc_id"]),
+            "year": int(ptr_metadata["year"]) if pd.notna(ptr_metadata["year"]) else None,
             "filing_date": ptr_metadata["filing_date"],
             "first_name": ptr_metadata["first_name"],
             "last_name": ptr_metadata["last_name"],
             "state_district": ptr_metadata["state_district"],
-            "pdf_url": convert_to_s3_url(ptr_metadata["doc_id"], ptr_metadata["year"]),  # Use S3 URL instead of external URL
+            "pdf_url": convert_to_s3_url(ptr_metadata["doc_id"], ptr_metadata["year"]),
 
             # From structured.json filer_info
             "filer_full_name": filer_info.get("full_name"),
@@ -147,6 +167,7 @@ def flatten_transactions(ptr_metadata: pd.Series, structured_data: Dict[str, Any
             "amount_high": trans.get("amount_high"),
             "amount_column": trans.get("amount_column"),
             "owner_code": trans.get("owner_code"),
+            "ticker": trans.get("ticker"),
 
             # From extraction_metadata
             "extraction_confidence": extraction_metadata.get("confidence_score"),
@@ -165,7 +186,11 @@ def main():
     s3_client = boto3.client("s3", region_name=S3_REGION)
 
     # Load bronze metadata
-    bronze_df = load_bronze_metadata(s3_client)
+    bronze_df = load_manifest_metadata(s3_client)
+    
+    if bronze_df.empty:
+        print("❌ No PTRs found to process.")
+        return 1
 
     # Process each PTR
     all_transactions = []
@@ -177,8 +202,11 @@ def main():
     print()
 
     for idx, row in bronze_df.iterrows():
-        doc_id = row["doc_id"]
-        year = row["year"]
+        doc_id = str(row["doc_id"])
+        try:
+            year = int(row["year"])
+        except (ValueError, TypeError):
+            continue
 
         # Load structured.json
         structured_data = load_structured_json(s3_client, doc_id, year)
@@ -186,7 +214,8 @@ def main():
         if not structured_data:
             no_data_count += 1
             if no_data_count <= 5:  # Only show first few
-                print(f"  ⚠️  {doc_id}: No structured.json found")
+                # print(f"  ⚠️  {doc_id}: No structured.json found")
+                pass
             continue
 
         # Flatten transactions
@@ -198,11 +227,8 @@ def main():
             if success_count <= 10:  # Show first 10
                 print(f"  ✅ {doc_id}: {len(transactions)} transactions ({row['first_name']} {row['last_name']})")
         else:
-            if no_data_count <= 5:
-                print(f"  ⚠️  {doc_id}: 0 transactions extracted")
-
-    if no_data_count > 5:
-        print(f"  ... {no_data_count - 5} more without data")
+            # print(f"  ⚠️  {doc_id}: 0 transactions extracted")
+            pass
 
     print()
     print(f"Total PTRs processed: {len(bronze_df)}")
@@ -213,60 +239,68 @@ def main():
 
     if not all_transactions:
         print("❌ No transactions to save. Process some PTRs first.")
-        return 1
-
+        # We might want to upload an empty list instead of failing
+        # return 1
+    
     # Convert to DataFrame
     transactions_df = pd.DataFrame(all_transactions)
 
     # Show sample
-    print("Sample transactions:")
-    print(transactions_df.head(3)[["first_name", "last_name", "asset_name", "transaction_type", "transaction_date", "amount_range"]].to_string(index=False))
-    print()
+    if not transactions_df.empty:
+        print("Sample transactions:")
+        print(transactions_df.head(3)[["first_name", "last_name", "asset_name", "transaction_type", "transaction_date", "amount_range"]].to_string(index=False))
+        print()
 
-    # Save to parquet
-    parquet_key = "silver/house/financial/ptr_transactions/year=2025/part-0000.parquet"
-    print(f"Saving to s3://{S3_BUCKET}/{parquet_key}...")
+        # Save to parquet
+        parquet_key = "silver/house/financial/ptr_transactions/year=2025/part-0000.parquet"
+        print(f"Saving to s3://{S3_BUCKET}/{parquet_key}...")
 
-    # Convert to parquet bytes
-    import io
-    parquet_buffer = io.BytesIO()
-    transactions_df.to_parquet(parquet_buffer, index=False, engine="pyarrow")
-    parquet_buffer.seek(0)
+        parquet_buffer = io.BytesIO()
+        transactions_df.to_parquet(parquet_buffer, index=False, engine="pyarrow")
+        parquet_buffer.seek(0)
 
-    s3_client.put_object(
-        Bucket=S3_BUCKET,
-        Key=parquet_key,
-        Body=parquet_buffer.getvalue(),
-        ContentType="application/x-parquet"
-    )
+        s3_client.put_object(
+            Bucket=S3_BUCKET,
+            Key=parquet_key,
+            Body=parquet_buffer.getvalue(),
+            ContentType="application/x-parquet"
+        )
 
-    print(f"✅ Saved {len(transactions_df)} transactions to parquet")
+        print(f"✅ Saved {len(transactions_df)} transactions to parquet")
+    else:
+        print("⚠️ No transactions found, skipping parquet generation")
 
     # Generate JSON for website
-    json_key = "ptr_transactions.json"
-    print(f"Generating {json_key} for website...")
+    print(f"Generating {OUTPUT_JSON_KEY} for website...")
 
     # Limit to recent transactions for website (last 1000)
-    recent_transactions = transactions_df.sort_values("filing_date", ascending=False).head(1000)
+    if not transactions_df.empty:
+        recent_transactions = transactions_df.sort_values("filing_date", ascending=False).head(1000)
+        transactions_list = recent_transactions.to_dict("records")
+        included_count = len(recent_transactions)
+    else:
+        transactions_list = []
+        included_count = 0
 
     json_data = {
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "total_ptrs": success_count,
         "total_transactions": len(all_transactions),
-        "transactions_included": len(recent_transactions),
-        "transactions": recent_transactions.to_dict("records")
+        "transactions_included": included_count,
+        "transactions": transactions_list
     }
 
     s3_client.put_object(
         Bucket=S3_BUCKET,
-        Key=json_key,
-        Body=json.dumps(json_data, indent=2),
-        ContentType="application/json"
+        Key=OUTPUT_JSON_KEY,
+        Body=json.dumps(json_data, indent=2, default=str),
+        ContentType="application/json",
+        CacheControl="max-age=300"
     )
 
-    print(f"✅ Saved {len(recent_transactions)} transactions to JSON")
+    print(f"✅ Saved {included_count} transactions to JSON")
     print()
-    print(f"🌐 Website URL: https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{json_key}")
+    print(f"🌐 Website URL: https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{OUTPUT_JSON_KEY}")
     print()
 
     return 0

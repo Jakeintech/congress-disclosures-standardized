@@ -61,6 +61,40 @@ resource "aws_s3_bucket_lifecycle_configuration" "data_lake" {
     }
   }
 
+  # PTR Retention: 7 years
+  rule {
+    id     = "bronze-ptr-retention"
+    status = "Enabled"
+
+    filter {
+      tag {
+        key   = "filing_type"
+        value = "P"
+      }
+    }
+
+    expiration {
+      days = 2555 # 7 years
+    }
+  }
+
+  # Extension Retention: 1 year
+  rule {
+    id     = "bronze-extension-retention"
+    status = "Enabled"
+
+    filter {
+      tag {
+        key   = "filing_type"
+        value = "X"
+      }
+    }
+
+    expiration {
+      days = 365 # 1 year
+    }
+  }
+
   # Silver layer: Transition to Glacier after 1 year (optional)
   dynamic "rule" {
     for_each = var.s3_lifecycle_glacier_days > 0 ? [1] : []

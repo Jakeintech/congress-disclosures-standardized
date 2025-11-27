@@ -388,16 +388,16 @@ function showError() {
 async function loadSilverData() {
     try {
         showSilverLoading();
-        
+
         // Try API endpoint first, fallback to data file
         let response;
         let urlUsed;
-        
+
         try {
             console.log('Loading silver data from API:', SILVER_DOCUMENTS_API_URL);
             response = await fetch(SILVER_DOCUMENTS_API_URL);
             urlUsed = SILVER_DOCUMENTS_API_URL;
-            
+
             if (!response.ok && response.status !== 404) {
                 throw new Error(`API endpoint returned ${response.status}`);
             }
@@ -408,7 +408,7 @@ async function loadSilverData() {
             response = await fetch(`${SILVER_DOCUMENTS_FALLBACK_URL}?t=${cacheBuster}`);
             urlUsed = SILVER_DOCUMENTS_FALLBACK_URL;
         }
-        
+
         console.log('Silver data response status:', response.status, 'from:', urlUsed);
 
         if (!response.ok) {
@@ -481,12 +481,16 @@ function updateSilverStats(data) {
         const pendingDocs = (stats.extraction_stats?.pending || 0).toLocaleString();
         const totalPagesNum = stats.total_pages || docs.reduce((sum, doc) => sum + (doc.pages || 0), 0);
 
+        // Calculate unique filers
+        const uniqueFilers = new Set(docs.map(d => d.member_name)).size;
+
         document.getElementById('silver-total-docs').textContent = totalDocs;
+        document.getElementById('silver-unique-filers').textContent = uniqueFilers.toLocaleString();
         document.getElementById('silver-success').textContent = successDocs;
         document.getElementById('silver-pending').textContent = pendingDocs;
         document.getElementById('silver-total-pages').textContent = totalPagesNum.toLocaleString();
 
-        console.log('Silver stats updated:', { totalDocs, successDocs, pendingDocs, totalPages: totalPagesNum });
+        console.log('Silver stats updated:', { totalDocs, uniqueFilers, successDocs, pendingDocs, totalPages: totalPagesNum });
     } catch (error) {
         console.error('Error updating silver stats:', error);
         throw error;
@@ -757,15 +761,15 @@ function renderExtractedJSON(data) {
                 <div><strong>Filing Type:</strong> ${data.filing_type || 'Unknown'}</div>
                 <div><strong>Pages:</strong> ${data.total_pages || '-'}</div>
                 <div><strong>Extraction Method:</strong> ${data.extraction_method || '-'}</div>
-                <div><strong>Extracted:</strong> ${data.extraction_timestamp ? new Date(data.extraction_timestamp).toLocaleString(undefined, { 
-                    year: 'numeric', 
-                    month: '2-digit', 
-                    day: '2-digit', 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    second: '2-digit',
-                    timeZoneName: 'short'
-                }) : '-'}</div>
+                <div><strong>Extracted:</strong> ${data.extraction_timestamp ? new Date(data.extraction_timestamp).toLocaleString(undefined, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'short'
+    }) : '-'}</div>
             </div>
         </div>
     `;
@@ -814,24 +818,24 @@ function renderErrorOrMetadata(row) {
 
     // Show extraction metadata
     // Format status for display
-    const statusDisplay = extractionStatus === 'success' ? 
+    const statusDisplay = extractionStatus === 'success' ?
         '<span class="badge badge-success">✓ Success</span>' :
-        extractionStatus === 'pending' ? 
+        extractionStatus === 'pending' ?
             '<span class="badge badge-warning">⏳ Pending</span>' :
             extractionStatus === 'failed' ?
                 '<span class="badge badge-error">✗ Failed</span>' :
                 extractionStatus || 'Unknown';
-    
+
     // Format method for display
     const methodDisplay = extractionMethod || 'Not extracted';
-    
+
     // Format pages for display
     const pagesDisplay = pages && pages !== 'Unknown' && pages !== '' ? pages : 'Unknown';
-    
+
     // Format has embedded text
-    const embeddedTextDisplay = hasEmbeddedText === 'true' || hasEmbeddedText === true ? 'Yes' : 
-                                hasEmbeddedText === 'false' || hasEmbeddedText === false ? 'No' : 'Unknown';
-    
+    const embeddedTextDisplay = hasEmbeddedText === 'true' || hasEmbeddedText === true ? 'Yes' :
+        hasEmbeddedText === 'false' || hasEmbeddedText === false ? 'No' : 'Unknown';
+
     html += `
         <div class="metadata-section">
             <h4>Extraction Metadata</h4>
@@ -878,7 +882,7 @@ function renderScheduleTables(tables) {
                     cellValue = cellValue.value;
                 }
                 cellValue = cellValue || '';
-                
+
                 // Convert to string and check if it's a header (contains colon)
                 const cellValueStr = String(cellValue);
                 const tag = rowIdx === 0 && cellValueStr.includes(':') ? 'th' : 'td';

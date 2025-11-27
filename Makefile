@@ -79,7 +79,7 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-seed package-seed-members ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality ## Package all Lambda functions
 
 package-ingest: ## Package house_fd_ingest_zip Lambda
 	@echo "Packaging house_fd_ingest_zip..."
@@ -114,6 +114,18 @@ package-extract: ## Package house_fd_extract_document Lambda
 	@cd $(LAMBDA_DIR)/house_fd_extract_document/dist && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/house_fd_extract_document/function.zip"
 
+package-extract-structured: ## Package house_fd_extract_structured Lambda with all new extractors
+	@echo "Packaging house_fd_extract_structured..."
+	@rm -rf $(LAMBDA_DIR)/house_fd_extract_structured/package $(LAMBDA_DIR)/house_fd_extract_structured/function.zip
+	@mkdir -p $(LAMBDA_DIR)/house_fd_extract_structured/package
+	# No requirements.txt - uses shared lib only
+	@cp $(LAMBDA_DIR)/house_fd_extract_structured/handler.py $(LAMBDA_DIR)/house_fd_extract_structured/package/
+	# Copy entire shared lib with all new extractors
+	@cp -r ingestion/lib $(LAMBDA_DIR)/house_fd_extract_structured/package/lib
+	@cd $(LAMBDA_DIR)/house_fd_extract_structured/package && zip -r ../function.zip . > /dev/null
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/house_fd_extract_structured/function.zip"
+	@ls -lh $(LAMBDA_DIR)/house_fd_extract_structured/function.zip | awk '{print "  Package size:", $$5}'
+
 package-seed: ## Package gold_seed Lambda
 	@echo "Packaging gold_seed..."
 	@rm -rf $(LAMBDA_DIR)/gold_seed/package
@@ -131,6 +143,18 @@ package-seed-members: ## Package gold_seed_members Lambda
 	@cp $(LAMBDA_DIR)/gold_seed_members/handler.py $(LAMBDA_DIR)/gold_seed_members/package/
 	@cd $(LAMBDA_DIR)/gold_seed_members/package && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/gold_seed_members/function.zip"
+
+package-quality: ## Package data_quality_validator Lambda
+	@echo "Packaging data_quality_validator..."
+	@rm -rf $(LAMBDA_DIR)/data_quality_validator/package
+	@mkdir -p $(LAMBDA_DIR)/data_quality_validator/package
+	$(PIP) install -r $(LAMBDA_DIR)/data_quality_validator/requirements.txt -t $(LAMBDA_DIR)/data_quality_validator/package
+	@cp $(LAMBDA_DIR)/data_quality_validator/handler.py $(LAMBDA_DIR)/data_quality_validator/package/
+	@mkdir -p $(LAMBDA_DIR)/data_quality_validator/package/ingestion
+	@cp -r ingestion/lib $(LAMBDA_DIR)/data_quality_validator/package/ingestion/lib
+	@cp -r ingestion/schemas $(LAMBDA_DIR)/data_quality_validator/package/ingestion/schemas
+	@cd $(LAMBDA_DIR)/data_quality_validator/package && zip -r ../function.zip . > /dev/null
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/data_quality_validator/function.zip"
 
 ##@ Testing
 
@@ -167,6 +191,22 @@ format-check: ## Check code formatting without modifying
 check-all: format-check lint type-check test-unit ## Run all checks (format, lint, type, test)
 	@echo "✓ All checks passed!"
 
+##@ Deployment
+
+deploy-extractors: package-extract-structured ## Package and deploy extraction Lambda with new extractors
+	@echo "Uploading house_fd_extract_structured to S3..."
+	@aws s3 cp $(LAMBDA_DIR)/house_fd_extract_structured/function.zip \
+		s3://congress-disclosures-standardized/lambda-deployments/house_fd_extract_structured/function.zip
+	@echo "✓ Uploaded to S3"
+	@echo "Applying Terraform to update Lambda function..."
+	cd $(TERRAFORM_DIR) && terraform apply -target=aws_lambda_function.house_fd_extract_structured -auto-approve
+	@echo "✓ Extraction Lambda deployed with new extractors"
+
+deploy-all-lambdas: package-all ## Package and deploy all Lambdas
+	@echo "Deploying all Lambda functions..."
+	cd $(TERRAFORM_DIR) && terraform apply -auto-approve
+	@echo "✓ All Lambdas deployed"
+
 ##@ Data Operations
 
 ingest-year: ## Ingest data for a specific year (usage: make ingest-year YEAR=2025)
@@ -186,6 +226,40 @@ ingest-year: ## Ingest data for a specific year (usage: make ingest-year YEAR=20
 
 ingest-current: ## Ingest current year
 	$(MAKE) ingest-year YEAR=$(shell date +%Y)
+
+run-silver-pipeline: ## Run Silver pipeline on all Bronze PDFs (re-extract with new extractors)
+	@echo "Running Silver pipeline on all Bronze files..."
+	@echo "This will trigger extraction for all PDFs in Bronze layer"
+	@$(PYTHON) scripts/run_silver_pipeline.py --yes
+	@echo "✓ Silver pipeline triggered"
+
+run-silver-test: ## Run Silver pipeline on limited PDFs (for testing)
+	@echo "Running Silver pipeline on 10 PDFs (test mode)..."
+	@$(PYTHON) scripts/run_silver_pipeline.py --yes --limit 10
+
+aggregate-data: ## Generate all aggregated data files (manifests, transactions)
+	@echo "Generating Bronze manifest..."
+	@$(PYTHON) scripts/build_bronze_manifest.py
+	@echo "Generating PTR transactions..."
+	@$(PYTHON) scripts/generate_ptr_transactions.py
+	@echo "Syncing Parquet to DynamoDB..."
+	@$(PYTHON) scripts/sync_parquet_to_dynamodb.py
+	@echo "Rebuilding Silver manifest (v2)..."
+	@$(PYTHON) scripts/rebuild_silver_manifest.py
+	@echo "Generating Silver manifest API..."
+	@$(PYTHON) scripts/build_silver_manifest_api.py
+	@echo "Building Gold Layer (Facts)..."
+	@$(PYTHON) scripts/build_fact_filings.py
+	@echo "Computing Gold Layer Aggregates..."
+	@$(PYTHON) scripts/compute_agg_document_quality.py
+	@$(PYTHON) scripts/compute_agg_member_trading_stats.py
+	@$(PYTHON) scripts/compute_agg_trending_stocks.py
+	@echo "Generating Gold Layer Manifests..."
+	@$(PYTHON) scripts/generate_document_quality_manifest.py
+	@echo "✓ Data aggregation complete"
+
+run-pipeline: ingest-current run-silver-pipeline aggregate-data ## Run complete pipeline (ingest + extract + aggregate)
+	@echo "✓ Complete pipeline executed"
 
 check-extraction-queue: ## Check SQS extraction queue status
 	@echo "Checking extraction queue status..."

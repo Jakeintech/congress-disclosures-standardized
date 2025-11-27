@@ -38,8 +38,8 @@
       "maxLength": 500
     },
     "pdf_sha256": {
-      "type": "string",
-      "description": "SHA256 hash of PDF content for deduplication",
+      "type": ["string", "null"],
+      "description": "SHA256 hash of PDF content for deduplication (null if extraction failed)",
       "pattern": "^[a-f0-9]{64}$"
     },
     "pdf_file_size_bytes": {
@@ -49,8 +49,8 @@
     },
     "pages": {
       "type": "integer",
-      "description": "Number of pages in PDF",
-      "minimum": 1,
+      "description": "Number of pages in PDF (0 if not yet extracted)",
+      "minimum": 0,
       "maximum": 10000
     },
     "has_embedded_text": {
@@ -65,6 +65,7 @@
         "pending",
         "pypdf",
         "pypdf-budget-limit",
+        "textract",
         "textract-detect-sync",
         "textract-detect-async",
         "textract-analyze",

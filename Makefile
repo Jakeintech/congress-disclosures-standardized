@@ -207,6 +207,20 @@ deploy-all-lambdas: package-all ## Package and deploy all Lambdas
 	cd $(TERRAFORM_DIR) && terraform apply -auto-approve
 	@echo "✓ All Lambdas deployed"
 
+quick-deploy-extract: ## Quick dev cycle: package + deploy extract Lambda
+	@echo "Quick deploying extract Lambda..."
+	@make package-extract
+	@aws lambda update-function-code \
+		--function-name congress-disclosures-development-extract-document \
+		--zip-file fileb://$(LAMBDA_DIR)/house_fd_extract_document/function.zip \
+		--query 'LastUpdateStatus' --output text
+	@echo "Waiting for deployment..."
+	@sleep 5
+	@aws lambda get-function \
+		--function-name congress-disclosures-development-extract-document \
+		--query 'Configuration.LastUpdateStatus' --output text
+	@echo "✓ Extract Lambda deployed"
+
 ##@ Data Operations
 
 ingest-year: ## Ingest data for a specific year (usage: make ingest-year YEAR=2025)
@@ -254,8 +268,10 @@ aggregate-data: ## Generate all aggregated data files (manifests, transactions)
 	@$(PYTHON) scripts/compute_agg_document_quality.py
 	@$(PYTHON) scripts/compute_agg_member_trading_stats.py
 	@$(PYTHON) scripts/compute_agg_trending_stocks.py
+	@$(PYTHON) scripts/compute_agg_network_graph.py
 	@echo "Generating Gold Layer Manifests..."
 	@$(PYTHON) scripts/generate_document_quality_manifest.py
+	@$(PYTHON) scripts/generate_all_gold_manifests.py
 	@echo "✓ Data aggregation complete"
 
 run-pipeline: ingest-current run-silver-pipeline aggregate-data ## Run complete pipeline (ingest + extract + aggregate)
@@ -263,10 +279,48 @@ run-pipeline: ingest-current run-silver-pipeline aggregate-data ## Run complete 
 
 check-extraction-queue: ## Check SQS extraction queue status
 	@echo "Checking extraction queue status..."
-	aws sqs get-queue-attributes \
-		--queue-url $$(aws sqs get-queue-url --queue-name house-fd-extract-queue --query 'QueueUrl' --output text) \
-		--attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	@aws sqs get-queue-attributes \
+		--queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-queue \
+		--attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible ApproximateNumberOfMessagesDelayed \
+		--query 'Attributes' --output table
 	@echo "✓ Queue status retrieved"
+
+purge-extraction-queue: ## Purge extraction queue (clear all messages)
+	@echo "⚠️  WARNING: This will delete ALL messages in the extraction queue!"
+	@read -p "Are you sure? [y/N]: " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "Purging extraction queue..."
+	@aws sqs purge-queue --queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-queue
+	@echo "✓ Extraction queue purged"
+
+purge-dlq: ## Purge dead letter queue
+	@echo "Purging dead letter queue..."
+	@aws sqs purge-queue --queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-dlq
+	@echo "✓ DLQ purged"
+
+check-dlq: ## Check dead letter queue status
+	@echo "Checking DLQ status..."
+	@aws sqs get-queue-attributes \
+		--queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-dlq \
+		--attribute-names ApproximateNumberOfMessages \
+		--query 'Attributes.ApproximateNumberOfMessages' --output text | \
+		xargs -I {} echo "Messages in DLQ: {}"
+
+test-extractions: ## Test and validate extraction results by filing type
+	@echo "Testing extraction results..."
+	@$(PYTHON) scripts/test_extraction_results.py
+
+update-pipeline-status: ## Generate pipeline status JSON for UI dashboard
+	@echo "Generating pipeline status..."
+	@mkdir -p website/data
+	@$(PYTHON) scripts/get_pipeline_status.py > website/data/pipeline_status.json 2>&1
+	@echo "✓ Pipeline status updated: website/data/pipeline_status.json"
+
+upload-pipeline-status: update-pipeline-status ## Upload pipeline status to S3
+	@echo "Uploading pipeline status to website..."
+	@aws s3 cp website/data/pipeline_status.json s3://congress-disclosures-standardized/website/data/pipeline_status.json \
+		--content-type application/json \
+		--cache-control "max-age=30"
+	@echo "✓ Pipeline status uploaded to S3"
 
 ##@ Documentation
 
@@ -303,13 +357,16 @@ clean-all: clean clean-packages ## Clean everything including build artifacts
 ##@ Monitoring
 
 logs-ingest: ## Tail logs for ingest Lambda
-	aws logs tail /aws/lambda/house-fd-ingest-zip --follow
+	aws logs tail /aws/lambda/congress-disclosures-development-ingest-zip --follow
 
 logs-index: ## Tail logs for index Lambda
-	aws logs tail /aws/lambda/house-fd-index-to-silver --follow
+	aws logs tail /aws/lambda/congress-disclosures-development-index-to-silver --follow
 
 logs-extract: ## Tail logs for extract Lambda
-	aws logs tail /aws/lambda/house-fd-extract-document --follow
+	aws logs tail /aws/lambda/congress-disclosures-development-extract-document --follow
+
+logs-extract-recent: ## Show recent extract Lambda logs (last 2min, errors + successes)
+	@aws logs tail /aws/lambda/congress-disclosures-development-extract-document --since 2m --format short | grep -E "(Processing doc_id|Starting text extraction|validation failed|ERROR)" | tail -30
 
 ##@ Utilities
 

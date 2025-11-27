@@ -759,6 +759,40 @@ body {
     color: hsl(var(--muted-foreground));
 }
 
+/* Dashboard Grid Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.stats-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.chart-column {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-column {
+        min-height: 300px;
+    }
+}
+
 /* ========================================
    Silver Layer Sidebar Layout
    ======================================== */

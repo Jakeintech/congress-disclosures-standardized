@@ -35,7 +35,8 @@ S3_SILVER_PREFIX = os.environ.get("S3_SILVER_PREFIX", "silver")
 EXTRACTION_VERSION = os.environ.get("EXTRACTION_VERSION", "1.0.0")
 TEXTRACT_MAX_PAGES_SYNC = int(os.environ.get("TEXTRACT_MAX_PAGES_SYNC", "10"))
 TEXTRACT_MONTHLY_PAGE_LIMIT = int(os.environ.get("TEXTRACT_MONTHLY_PAGE_LIMIT", "1000"))
-STRUCTURED_EXTRACTION_QUEUE_URL = os.environ.get("STRUCTURED_EXTRACTION_QUEUE_URL")
+STRUCTURED_EXTRACTION_QUEUE_URL = os.environ.get("STRUCTURED_EXTRACTION_QUEUE_URL")  # OLD: Textract-based (disabled)
+CODE_EXTRACTION_QUEUE_URL = os.environ.get("CODE_EXTRACTION_QUEUE_URL")  # NEW: Code-based extraction (FREE)
 
 # Initialize SQS client for queuing structured extraction
 sqs_client = boto3.client('sqs')
@@ -400,26 +401,26 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
             start_time=start_time,
         )
 
-        # Step 5: Queue structured extraction for ALL documents (not just PTR)
-        if STRUCTURED_EXTRACTION_QUEUE_URL:
-            logger.info("Queuing document for structured extraction")
+        # Step 5: Queue CODE-BASED structured extraction (FREE - no Textract)
+        if CODE_EXTRACTION_QUEUE_URL:
+            logger.info("Queuing document for CODE-BASED structured extraction (FREE)")
             try:
                 sqs_client.send_message(
-                    QueueUrl=STRUCTURED_EXTRACTION_QUEUE_URL,
+                    QueueUrl=CODE_EXTRACTION_QUEUE_URL,
                     MessageBody=json.dumps({
                         'doc_id': doc_id,
                         'year': year,
-                        's3_text_key': text_s3_key,
+                        'text_s3_key': text_s3_key,  # Changed from s3_text_key for consistency
                         'extraction_method': extraction_result['extraction_method'],
                         'has_embedded_text': extraction_result.get('has_embedded_text', False)
                     })
                 )
-                logger.info(f"✅ Queued structured extraction for doc_id={doc_id}")
+                logger.info(f"✅ Queued code-based extraction for doc_id={doc_id}")
             except Exception as e:
-                logger.error(f"Failed to queue structured extraction: {e}")
+                logger.error(f"Failed to queue code-based extraction: {e}")
                 # Don't fail the entire extraction if queuing fails
         else:
-            logger.warning("STRUCTURED_EXTRACTION_QUEUE_URL not set - skipping structured extraction queuing")
+            logger.warning("CODE_EXTRACTION_QUEUE_URL not set - skipping code-based extraction queuing")
 
         logger.info(f"Document processing complete for doc_id={doc_id}")
 
@@ -473,9 +474,7 @@ def update_document_record(
     updated_record = {
         "doc_id": doc_id,
         "year": year,
-        "pdf_s3_key": (
-            f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
-        ),
+        "pdf_s3_key": s3_pdf_key,  # Use actual S3 key from SQS message, don't reconstruct
         "pdf_sha256": pdf_sha256,
         "pdf_file_size_bytes": pdf_file_size,
         "pages": extraction_result["pages"],
@@ -535,7 +534,7 @@ def handle_extraction_error(doc_id: str, year: int, error: Exception):
             "doc_id": doc_id,
             "year": year,
             "pdf_s3_key": f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf",
-            "pdf_sha256": "",  # Unknown since we failed
+            "pdf_sha256": None,  # Unknown since we failed
             "pdf_file_size_bytes": 0,
             "pages": 0,
             "has_embedded_text": False,

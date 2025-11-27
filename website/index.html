@@ -7,6 +7,7 @@
     <title>Congress Financial Disclosures</title>
     <meta name="description" content="Open-source database of U.S. House financial disclosure reports">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -62,17 +63,23 @@
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
-                            Bronze: Filings
+                            All Filings
                         </button>
                         <button class="tab-trigger" data-tab="silver-filings">
                             <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <circle cx="10" cy="12" r="2"></circle>
                             </svg>
-                            Silver: Data & Analytics
+                            Documents
+                        </button>
+                        <button class="tab-trigger" data-tab="ptr-transactions">
+                            <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                            PTR Transactions
                         </button>
                         <button class="tab-trigger" data-tab="gold-analytics">
                             <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -93,6 +100,7 @@
                         </button>
                     </div>
 
+
                     <!-- Bronze Tab: Filings -->
                     <div class="tab-content active" data-tab="filings">
                         <div class="card">
@@ -101,28 +109,43 @@
                                 <p class="card-description">Browse all House member financial disclosures</p>
                             </div>
                             <div class="card-content">
-                                <!-- Bronze Stats -->
-                                <div class="stats-grid" id="bronze-stats">
-                                    <div class="stat-card" title="Total number of financial disclosure documents filed">
-                                        <div class="stat-value" id="bronze-total-filings">-</div>
-                                        <div class="stat-label">Total Filings</div>
+                                <!-- Bronze Stats & Charts -->
+                                <div class="dashboard-grid">
+                                    <!-- Stats Column -->
+                                    <div class="stats-column">
+                                        <div class="stats-grid" id="bronze-stats">
+                                            <div class="stat-card"
+                                                title="Total number of financial disclosure documents filed">
+                                                <div class="stat-value" id="bronze-total-filings">-</div>
+                                                <div class="stat-label">Total Filings</div>
+                                            </div>
+                                            <div class="stat-card"
+                                                title="Number of unique members who have filed disclosures">
+                                                <div class="stat-value" id="bronze-total-filers">-</div>
+                                                <div class="stat-label">Unique Filers</div>
+                                            </div>
+                                            <div class="stat-card" title="State with the most filings">
+                                                <div class="stat-value" id="bronze-top-state">-</div>
+                                                <div class="stat-label">Most Active State</div>
+                                            </div>
+                                            <div class="stat-card" title="Member with the most filings">
+                                                <div class="stat-value" id="bronze-top-filer"
+                                                    style="font-size: 1.5rem;">-</div>
+                                                <div class="stat-label">Top Filer</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="stat-card" title="Number of unique members who have filed disclosures">
-                                        <div class="stat-value" id="bronze-total-filers">-</div>
-                                        <div class="stat-label">Unique Filers</div>
-                                    </div>
-                                    <div class="stat-card" title="Periodic Transaction Reports (Form P) - stock trades">
-                                        <div class="stat-value" id="bronze-ptrs">-</div>
-                                        <div class="stat-label">PTR Filings</div>
-                                    </div>
-                                    <div class="stat-card" title="Most recent filing year in the dataset">
-                                        <div class="stat-value" id="bronze-latest-year">-</div>
-                                        <div class="stat-label">Latest Year</div>
+
+                                    <!-- Chart Column -->
+                                    <div class="chart-column">
+                                        <div class="chart-container" style="height: 200px; position: relative;">
+                                            <canvas id="bronze-filing-types-chart"></canvas>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Filters -->
-                                <div class="filters">
+                                <div class="filters" style="margin-top: 2rem;">
                                     <input type="text" id="search"
                                         placeholder="Search by name, state, or document ID..." class="input">
                                     <div class="filter-grid">
@@ -223,6 +246,17 @@
                                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                                         </svg>
                                         PTR Transactions
+                                    </button>
+                                    <button class="silver-nav-item" data-silver-view="filing-types">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                            <polyline points="10 9 9 9 8 9"></polyline>
+                                        </svg>
+                                        Filing Types
                                     </button>
                                 </nav>
                             </aside>
@@ -329,32 +363,43 @@
                                                 structured data for each document</p>
                                         </div>
                                         <div class="card-content">
-                                            <!-- Silver Stats -->
-                                            <div class="stats-grid" id="silver-stats">
-                                                <div class="stat-card"
-                                                    title="Total documents processed in the Silver layer">
-                                                    <div class="stat-value" id="silver-total-docs">-</div>
-                                                    <div class="stat-label">Total Documents</div>
+                                            <!-- Silver Stats & Charts -->
+                                            <div class="dashboard-grid">
+                                                <div class="stats-column">
+                                                    <div class="stats-grid" id="silver-stats">
+                                                        <div class="stat-card"
+                                                            title="Total documents processed in the Silver layer">
+                                                            <div class="stat-value" id="silver-total-docs">-</div>
+                                                            <div class="stat-label">Total Documents</div>
+                                                        </div>
+                                                        <div class="stat-card"
+                                                            title="Number of unique members with processed documents">
+                                                            <div class="stat-value" id="silver-unique-filers">-</div>
+                                                            <div class="stat-label">Unique Filers</div>
+                                                        </div>
+                                                        <div class="stat-card"
+                                                            title="Percentage of documents successfully extracted">
+                                                            <div class="stat-value" id="silver-success-rate">-</div>
+                                                            <div class="stat-label">Success Rate</div>
+                                                        </div>
+                                                        <div class="stat-card"
+                                                            title="Average number of pages per document">
+                                                            <div class="stat-value" id="silver-avg-pages">-</div>
+                                                            <div class="stat-label">Avg Pages/Doc</div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="stat-card"
-                                                    title="Number of unique members with processed documents">
-                                                    <div class="stat-value" id="silver-unique-filers">-</div>
-                                                    <div class="stat-label">Unique Filers</div>
-                                                </div>
-                                                <div class="stat-card"
-                                                    title="Documents successfully extracted to structured JSON">
-                                                    <div class="stat-value" id="silver-success">-</div>
-                                                    <div class="stat-label">Extracted Successfully</div>
-                                                </div>
-                                                <div class="stat-card"
-                                                    title="Documents waiting in queue for extraction">
-                                                    <div class="stat-value" id="silver-pending">-</div>
-                                                    <div class="stat-label">Pending Extraction</div>
-                                                </div>
-                                                <div class="stat-card"
-                                                    title="Total number of pages processed across all documents">
-                                                    <div class="stat-value" id="silver-total-pages">-</div>
-                                                    <div class="stat-label">Total Pages</div>
+                                                <div class="chart-column">
+                                                    <div class="charts-row" style="display: flex; gap: 1rem;">
+                                                        <div class="chart-container"
+                                                            style="height: 150px; width: 50%; position: relative;">
+                                                            <canvas id="silver-status-chart"></canvas>
+                                                        </div>
+                                                        <div class="chart-container"
+                                                            style="height: 150px; width: 50%; position: relative;">
+                                                            <canvas id="silver-method-chart"></canvas>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -521,6 +566,77 @@
                                                 See the <strong>Gold Analytics</strong> tab for aggregated insights and
                                                 analysis.
                                             </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Filing Types View -->
+                                <div class="silver-view" data-silver-view="filing-types">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="card-title">📑 Analysis by Filing Type</h2>
+                                            <p class="card-description">Breakdown of documents and extraction status by
+                                                filing type</p>
+                                        </div>
+                                        <div class="card-content">
+                                            <!-- Filing Type Stats Grid -->
+                                            <div class="stats-grid" id="filing-type-stats">
+                                                <!-- Populated by JS -->
+                                            </div>
+
+                                            <!-- Detailed Breakdown -->
+                                            <div style="margin-top: 2rem;">
+                                                <h3
+                                                    style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-primary);">
+                                                    Detailed Breakdown</h3>
+                                                <div class="table-container">
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Filing Type</th>
+                                                                <th>Description</th>
+                                                                <th>Total Docs</th>
+                                                                <th>Extracted</th>
+                                                                <th>Success Rate</th>
+                                                                <th>Avg Pages</th>
+                                                                <th>Actions</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="filing-type-table-body">
+                                                            <!-- Populated by JS -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <!-- Selected Type Documents -->
+                                            <div id="selected-type-section" class="hidden"
+                                                style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+                                                <div class="flex justify-between items-center mb-4">
+                                                    <h3 id="selected-type-title"
+                                                        style="font-size: 1.1rem; color: var(--text-primary);">Documents
+                                                    </h3>
+                                                    <button id="close-type-view" class="btn btn-ghost btn-sm">Close
+                                                        View</button>
+                                                </div>
+
+                                                <div class="table-container">
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Date</th>
+                                                                <th>Member</th>
+                                                                <th>Doc ID</th>
+                                                                <th>Status</th>
+                                                                <th>View</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="selected-type-table-body">
+                                                            <!-- Populated by JS -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -860,72 +976,77 @@
                                 <!-- Sector Analysis View -->
                                 <div class="gold-view" data-gold-view="sector">
                                     <!-- Populated by JavaScript -->
+                                    <!-- Network Graph View -->
+                                    <div class="gold-view" data-gold-view="network">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Downloads Tab -->
-                    <div class="tab-content" data-tab="downloads">
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title">Data Downloads</h2>
-                                <p class="card-description">Access raw indexes and APIs</p>
-                            </div>
-                            <div class="card-content">
-                                <div class="space-y-4">
-                                    <div class="download-item">
-                                        <div class="download-header">
-                                            <h3 class="download-title">Manifest API</h3>
-                                            <span class="badge badge-success">JSON</span>
+                        <!-- Downloads Tab -->
+                        <div class="tab-content" data-tab="downloads">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h2 class="card-title">Data Downloads</h2>
+                                    <p class="card-description">Access raw indexes and APIs</p>
+                                </div>
+                                <div class="card-content">
+                                    <div class="space-y-4">
+                                        <div class="download-item">
+                                            <div class="download-header">
+                                                <h3 class="download-title">Manifest API</h3>
+                                                <span class="badge badge-success">JSON</span>
+                                            </div>
+                                            <p class="download-description">Complete filing metadata in JSON format</p>
+                                            <div class="download-actions">
+                                                <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/manifest.json"
+                                                    class="btn btn-primary" target="_blank">
+                                                    View JSON
+                                                </a>
+                                                <code class="code-inline">GET manifest.json</code>
+                                            </div>
                                         </div>
-                                        <p class="download-description">Complete filing metadata in JSON format</p>
-                                        <div class="download-actions">
-                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/manifest.json"
-                                                class="btn btn-primary" target="_blank">
-                                                View JSON
-                                            </a>
-                                            <code class="code-inline">GET manifest.json</code>
-                                        </div>
-                                    </div>
 
-                                    <div class="download-item">
-                                        <div class="download-header">
-                                            <h3 class="download-title">Bronze: XML Index</h3>
-                                            <span class="badge">439 KB</span>
+                                        <div class="download-item">
+                                            <div class="download-header">
+                                                <h3 class="download-title">Bronze: XML Index</h3>
+                                                <span class="badge">439 KB</span>
+                                            </div>
+                                            <p class="download-description">Official House Clerk XML index for 2025</p>
+                                            <div class="download-actions">
+                                                <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/bronze/house/financial/year=2025/index/2025FD.xml"
+                                                    class="btn btn-primary" download>
+                                                    Download XML
+                                                </a>
+                                                <code class="code-inline">bronze/.../index/2025FD.xml</code>
+                                            </div>
                                         </div>
-                                        <p class="download-description">Official House Clerk XML index for 2025</p>
-                                        <div class="download-actions">
-                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/bronze/house/financial/year=2025/index/2025FD.xml"
-                                                class="btn btn-primary" download>
-                                                Download XML
-                                            </a>
-                                            <code class="code-inline">bronze/.../index/2025FD.xml</code>
-                                        </div>
-                                    </div>
 
-                                    <div class="download-item">
-                                        <div class="download-header">
-                                            <h3 class="download-title">Bronze: TXT Index</h3>
-                                            <span class="badge">84 KB</span>
+                                        <div class="download-item">
+                                            <div class="download-header">
+                                                <h3 class="download-title">Bronze: TXT Index</h3>
+                                                <span class="badge">84 KB</span>
+                                            </div>
+                                            <p class="download-description">Plain text index for 2025</p>
+                                            <div class="download-actions">
+                                                <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/bronze/house/financial/year=2025/index/2025FD.txt"
+                                                    class="btn btn-primary" download>
+                                                    Download TXT
+                                                </a>
+                                                <code class="code-inline">bronze/.../index/2025FD.txt</code>
+                                            </div>
                                         </div>
-                                        <p class="download-description">Plain text index for 2025</p>
-                                        <div class="download-actions">
-                                            <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/bronze/house/financial/year=2025/index/2025FD.txt"
-                                                class="btn btn-primary" download>
-                                                Download TXT
-                                            </a>
-                                            <code class="code-inline">bronze/.../index/2025FD.txt</code>
-                                        </div>
-                                    </div>
 
-                                    <div class="alert alert-info">
-                                        <div class="alert-title">Data Pipeline</div>
-                                        <div class="alert-description">
-                                            <strong>Bronze:</strong> Raw data from House Clerk<br>
-                                            <strong>Silver:</strong> Normalized Parquet tables<br>
-                                            <strong>Gold:</strong> Denormalized analytics tables (Member Trading Stats,
-                                            Trending Stocks, Sector Analysis)
+                                        <div class="alert alert-info">
+                                            <div class="alert-title">Data Pipeline</div>
+                                            <div class="alert-description">
+                                                <strong>Bronze:</strong> Raw data from House Clerk<br>
+                                                <strong>Silver:</strong> Normalized Parquet tables<br>
+                                                <strong>Gold:</strong> Denormalized analytics tables (Member Trading
+                                                Stats,
+                                                Trending Stocks, Sector Analysis)
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -933,7 +1054,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
         </main>
 
         <!-- Footer -->
@@ -951,11 +1071,12 @@
         </footer>
     </div>
 
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="silver_analytics.js"></script>
     <script src="gold_analytics_full.js"></script>
     <script src="gold_analytics.js"></script>
     <script src="document_quality.js"></script>
-    <script src="app.js?v=15"></script>
+    <script src="app.js?v=17"></script>
 </body>
 
 </html>

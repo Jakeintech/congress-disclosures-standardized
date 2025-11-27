@@ -288,7 +288,7 @@ def initialize_document_records(
             "doc_id": doc_id,
             "year": year,
             "pdf_s3_key": pdf_s3_key,
-            "pdf_sha256": "",  # Will be populated by extract Lambda
+            "pdf_sha256": None,  # Will be populated by extract Lambda
             "pdf_file_size_bytes": 0,  # Will be populated
             "pages": 0,  # Will be populated
             "has_embedded_text": False,  # Will be determined

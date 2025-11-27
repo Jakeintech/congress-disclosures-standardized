@@ -1,0 +1,15 @@
+# Code-Based Structured Extraction Lambda Requirements
+# This Lambda uses CODE ONLY (regex, patterns) - NO Textract
+
+# AWS SDK (included in Lambda runtime, but listed for clarity)
+boto3>=1.26.0
+
+# JSON schema validation
+jsonschema>=4.17.0
+
+# Date parsing
+python-dateutil>=2.8.0
+
+# No Textract dependencies
+# No ML/AI dependencies
+# Extractors are in shared lib/ directory (copied during packaging)

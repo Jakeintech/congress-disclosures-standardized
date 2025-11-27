@@ -3,37 +3,16 @@
  * Shows all available Silver layer tables as a GUI over the database
  */
 
-(function() {
+(function () {
     'use strict';
 
     const SILVER_TABLES = [
-        {
-            id: 'filings',
-            name: 'Filings',
-            icon: '📋',
-            description: 'Financial disclosure filings',
-            s3Path: 'silver/house/financial/filings/',
-        },
         {
             id: 'documents',
             name: 'Documents',
             icon: '📄',
             description: 'Extracted document metadata',
             s3Path: 'silver/house/financial/documents/',
-        },
-        {
-            id: 'ptr_transactions',
-            name: 'PTR Transactions',
-            icon: '💼',
-            description: 'Stock trading transactions',
-            s3Path: 'silver/house/financial/ptr_transactions/',
-        },
-        {
-            id: 'structured',
-            name: 'Structured Data',
-            icon: '🔢',
-            description: 'Additional structured extractions',
-            s3Path: 'silver/house/financial/structured/',
         }
     ];
 
@@ -45,7 +24,7 @@
     }
 
     function initSilverAnalytics() {
-        const silverTab = document.querySelector('[data-tab="silver"]');
+        const silverTab = document.querySelector('[data-tab="silver-filings"]');
         if (!silverTab) {
             console.warn('Silver tab not found');
             return;
@@ -71,7 +50,7 @@
     }
 
     function setupSilverSidebar() {
-        const silverTabContent = document.querySelector('[data-tab="silver"]');
+        const silverTabContent = document.querySelector('[data-tab="silver-filings"]');
         if (!silverTabContent) return;
 
         // Create sidebar layout
@@ -113,10 +92,18 @@
         `;
 
         // Replace existing content
-        const cardContent = silverTabContent.querySelector('.card-content');
+        const cardContent = silverTabContent.querySelector('.silver-layer-layout');
         if (cardContent) {
-            cardContent.innerHTML = '';
-            cardContent.appendChild(layout);
+            // If the layout already exists (from static HTML), replace it or bind to it.
+            // But here we are dynamically creating it as per original design.
+            // The static HTML in index.html lines 210-300+ seems to be a hardcoded version.
+            // We should probably replace the *entire* content of the tab to be safe and dynamic.
+            silverTabContent.innerHTML = '';
+            silverTabContent.appendChild(layout);
+        } else {
+            // Fallback if structure is different
+            silverTabContent.innerHTML = '';
+            silverTabContent.appendChild(layout);
         }
 
         // Setup navigation clicks
@@ -174,9 +161,92 @@
 
     function renderSilverTable(view, table, data) {
         const cardContent = view.querySelector('.card-content');
-
-        // Build table from data
         const records = data.records || data.data || data;
+
+        if (table.id === 'documents') {
+            renderDocumentsDashboard(cardContent, table, records);
+        } else {
+            renderDefaultTable(cardContent, table, records);
+        }
+    }
+
+    function renderDocumentsDashboard(container, table, records) {
+        const totalDocs = records.length;
+        const successDocs = records.filter(d => d.extraction_status === 'success').length;
+        const pendingDocs = records.filter(d => d.extraction_status === 'pending').length;
+        const totalPages = records.reduce((sum, d) => sum + (d.pages || 0), 0);
+        const uniqueFilers = new Set(records.map(d => d.member_name)).size;
+
+        const successRate = totalDocs > 0 ? ((successDocs / totalDocs) * 100).toFixed(1) + '%' : '0%';
+        const avgPages = totalDocs > 0 ? (totalPages / totalDocs).toFixed(1) : '0';
+
+        const html = `
+            <div class="dashboard-grid">
+                <div class="stats-column">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${totalDocs.toLocaleString()}</div>
+                            <div class="stat-label">Total Documents</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${uniqueFilers.toLocaleString()}</div>
+                            <div class="stat-label">Unique Filers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${successRate}</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${avgPages}</div>
+                            <div class="stat-label">Avg Pages/Doc</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-column">
+                    <div style="position: relative; height: 200px; width: 100%;">
+                        <canvas id="silver-status-chart-${Date.now()}"></canvas>
+                    </div>
+                </div>
+            </div>
+            ${renderTableHtml(records)}
+            ${renderDownloadSection(table)}
+        `;
+
+        container.innerHTML = html;
+
+        // Render Chart
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+            const statusCounts = { 'Success': 0, 'Pending': 0, 'Failed': 0 };
+            records.forEach(d => {
+                if (d.extraction_status === 'success') statusCounts['Success']++;
+                else if (d.extraction_status === 'pending') statusCounts['Pending']++;
+                else statusCounts['Failed']++;
+            });
+
+            new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['hsl(142, 76%, 60%)', 'hsl(48, 96%, 60%)', 'hsl(0, 84%, 60%)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12 } },
+                        title: { display: true, text: 'Extraction Status' }
+                    }
+                }
+            });
+        }
+    }
+
+    function renderDefaultTable(container, table, records) {
         const sampleRecord = Array.isArray(records) && records[0] ? records[0] : {};
         const columns = Object.keys(sampleRecord);
 
@@ -191,7 +261,17 @@
                     <div class="stat-label">Columns</div>
                 </div>
             </div>
+            ${renderTableHtml(records)}
+            ${renderDownloadSection(table)}
+        `;
+        container.innerHTML = html;
+    }
 
+    function renderTableHtml(records) {
+        const sampleRecord = Array.isArray(records) && records[0] ? records[0] : {};
+        const columns = Object.keys(sampleRecord);
+
+        return `
             <div class="table-container" style="margin-top: 2rem;">
                 <table class="table">
                     <thead>
@@ -203,28 +283,30 @@
                         ${records.slice(0, 100).map(record => `
                             <tr>
                                 ${columns.slice(0, 8).map(col => {
-                                    let value = record[col];
-                                    if (typeof value === 'object') value = JSON.stringify(value);
-                                    if (value === null || value === undefined) value = '-';
-                                    if (typeof value === 'string' && value.length > 50) value = value.substring(0, 50) + '...';
-                                    return `<td>${value}</td>`;
-                                }).join('')}
+            let value = record[col];
+            if (typeof value === 'object') value = JSON.stringify(value);
+            if (value === null || value === undefined) value = '-';
+            if (typeof value === 'string' && value.length > 50) value = value.substring(0, 50) + '...';
+            return `<td>${value}</td>`;
+        }).join('')}
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
             </div>
+        `;
+    }
 
+    function renderDownloadSection(table) {
+        return `
             <div class="alert alert-info" style="margin-top: 2rem;">
                 <div class="alert-title">Download Full Dataset</div>
                 <div class="alert-description">
                     <strong>Parquet:</strong> <a href="https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/${table.s3Path}year=2025/part-0000.parquet" download>Download ${table.name}</a><br>
-                    <strong>Query with:</strong> <code>pd.read_parquet('${tableId}.parquet')</code> or <code>SELECT * FROM '${tableId}.parquet'</code>
+                    <strong>Query with:</strong> <code>pd.read_parquet('${table.id}.parquet')</code> or <code>SELECT * FROM '${table.id}.parquet'</code>
                 </div>
             </div>
         `;
-
-        cardContent.innerHTML = html;
     }
 
     function renderParquetLinks(view, table) {

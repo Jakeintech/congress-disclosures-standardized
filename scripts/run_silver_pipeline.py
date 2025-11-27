@@ -88,7 +88,7 @@ def send_to_extraction_queue(pdf_key):
     message = {
         'doc_id': doc_id,
         'year': year,
-        's3_key': pdf_key
+        's3_pdf_key': pdf_key
     }
 
     try:

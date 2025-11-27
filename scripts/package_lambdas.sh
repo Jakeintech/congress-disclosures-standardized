@@ -130,6 +130,7 @@ package_lambda "house_fd_ingest_zip"
 package_lambda "house_fd_index_to_silver"
 package_lambda "house_fd_extract_document"
 package_lambda "house_fd_extract_structured"
+package_lambda "house_fd_extract_structured_code"  # Code-based extraction (NO Textract)
 package_lambda "gold_seed"
 package_lambda "gold_seed_members"
 

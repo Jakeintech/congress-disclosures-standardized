@@ -3,7 +3,7 @@
  * Handles navigation between different gold layer analytics views
  */
 
-(function() {
+(function () {
     'use strict';
 
     let initialized = false;
@@ -81,6 +81,7 @@
         loadMemberTradingStats();
         loadTrendingStocks();
         loadSectorAnalysis();
+        loadNetworkGraph();
     }
 
     async function loadMemberTradingStats() {
@@ -120,8 +121,23 @@
                     initSectorAnalysis(data);
                 }
             }
-        } catch (err) {
-            console.log('Sector analysis not yet available');
         }
+        } catch (err) {
+        console.log('Sector analysis not yet available');
     }
-})();
+}
+
+    async function loadNetworkGraph() {
+    try {
+        const response = await fetch('https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/data/network_graph.json');
+        if (response.ok) {
+            const data = await response.json();
+            if (typeof initNetworkGraph === 'function') {
+                initNetworkGraph(data);
+            }
+        }
+    } catch (err) {
+        console.log('Network graph not yet available');
+    }
+}
+}) ();

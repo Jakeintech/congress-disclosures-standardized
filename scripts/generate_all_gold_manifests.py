@@ -165,6 +165,81 @@ def generate_sector_analysis_manifest(bucket_name: str):
     logger.info(f"✅ Generated sector_analysis.json ({len(sectors)} sectors)")
 
 
+def generate_network_graph_manifest(bucket_name: str):
+    """Generate network_graph.json manifest."""
+    logger.info("Generating network_graph manifest...")
+
+    s3 = boto3.client('s3')
+    prefix = 'gold/house/financial/aggregates/agg_network_graph/'
+
+    try:
+        response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+        if 'Contents' not in response:
+            logger.warning("No network graph data found")
+            return
+
+        # Read ALL parquet files and concatenate
+        dfs = []
+        for obj in response['Contents']:
+            if obj['Key'].endswith('.parquet'):
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
+                    s3.download_file(bucket_name, obj['Key'], tmp.name)
+                    df = pd.read_parquet(tmp.name)
+                    dfs.append(df)
+                    os.unlink(tmp.name)
+
+        if not dfs:
+            logger.warning("No parquet files found")
+            return
+
+        # Concatenate all DataFrames
+        df = pd.concat(dfs, ignore_index=True)
+
+        # Create nodes and links
+        nodes = []
+        links = []
+        
+        # Unique members and assets
+        members = df['source'].unique()
+        assets = df['target'].unique()
+        
+        for m in members:
+            nodes.append({'id': m, 'group': 'member', 'radius': 10})
+            
+        for a in assets:
+            nodes.append({'id': a, 'group': 'asset', 'radius': 6})
+            
+        for _, row in df.iterrows():
+            links.append({
+                'source': row['source'],
+                'target': row['target'],
+                'value': float(row['weight']),
+                'type': row['type']
+            })
+
+        manifest = {
+            'generated_at': pd.Timestamp.now().isoformat(),
+            'nodes': nodes,
+            'links': links
+        }
+
+        output_dir = Path('website/data')
+        with open(output_dir / 'network_graph.json', 'w') as f:
+            json.dump(manifest, f, indent=2, default=str)
+
+        s3.upload_file(
+            str(output_dir / 'network_graph.json'),
+            bucket_name,
+            'website/data/network_graph.json',
+            ExtraArgs={'ContentType': 'application/json'}
+        )
+
+        logger.info(f"✅ Generated network_graph.json ({len(nodes)} nodes, {len(links)} links)")
+
+    except Exception as e:
+        logger.error(f"Error generating network graph manifest: {e}")
+
+
 def main():
     bucket_name = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
@@ -175,6 +250,7 @@ def main():
     generate_member_trading_manifest(bucket_name)
     generate_trending_stocks_manifest(bucket_name)
     generate_sector_analysis_manifest(bucket_name)
+    generate_network_graph_manifest(bucket_name)
 
     logger.info("\n✅ All manifests generated!")
 

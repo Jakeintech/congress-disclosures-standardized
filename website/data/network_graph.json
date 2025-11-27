@@ -1,0 +1,159 @@
+{
+  "generated_at": "2025-11-26T18:37:14.875937",
+  "nodes": [
+    {
+      "id": "Nancy Pelosi",
+      "group": "member",
+      "radius": 10
+    },
+    {
+      "id": "Dan Crenshaw",
+      "group": "member",
+      "radius": 10
+    },
+    {
+      "id": "Ro Khanna",
+      "group": "member",
+      "radius": 10
+    },
+    {
+      "id": "Michael McCaul",
+      "group": "member",
+      "radius": 10
+    },
+    {
+      "id": "Marjorie Taylor Greene",
+      "group": "member",
+      "radius": 10
+    },
+    {
+      "id": "Earl Blumenauer",
+      "group": "member",
+      "radius": 10
+    },
+    {
+      "id": "NVDA",
+      "group": "asset",
+      "radius": 6
+    },
+    {
+      "id": "MSFT",
+      "group": "asset",
+      "radius": 6
+    },
+    {
+      "id": "AAPL",
+      "group": "asset",
+      "radius": 6
+    },
+    {
+      "id": "TSLA",
+      "group": "asset",
+      "radius": 6
+    },
+    {
+      "id": "GOOGL",
+      "group": "asset",
+      "radius": 6
+    },
+    {
+      "id": "META",
+      "group": "asset",
+      "radius": 6
+    },
+    {
+      "id": "AMD",
+      "group": "asset",
+      "radius": 6
+    },
+    {
+      "id": "XOM",
+      "group": "asset",
+      "radius": 6
+    },
+    {
+      "id": "CVX",
+      "group": "asset",
+      "radius": 6
+    },
+    {
+      "id": "AMZN",
+      "group": "asset",
+      "radius": 6
+    }
+  ],
+  "links": [
+    {
+      "source": "Nancy Pelosi",
+      "target": "NVDA",
+      "value": 5000000.0,
+      "type": "Buy"
+    },
+    {
+      "source": "Nancy Pelosi",
+      "target": "MSFT",
+      "value": 2500000.0,
+      "type": "Buy"
+    },
+    {
+      "source": "Dan Crenshaw",
+      "target": "AAPL",
+      "value": 150000.0,
+      "type": "Sell"
+    },
+    {
+      "source": "Dan Crenshaw",
+      "target": "TSLA",
+      "value": 300000.0,
+      "type": "Buy"
+    },
+    {
+      "source": "Ro Khanna",
+      "target": "GOOGL",
+      "value": 120000.0,
+      "type": "Buy"
+    },
+    {
+      "source": "Ro Khanna",
+      "target": "META",
+      "value": 450000.0,
+      "type": "Sell"
+    },
+    {
+      "source": "Michael McCaul",
+      "target": "NVDA",
+      "value": 1200000.0,
+      "type": "Buy"
+    },
+    {
+      "source": "Michael McCaul",
+      "target": "AMD",
+      "value": 800000.0,
+      "type": "Buy"
+    },
+    {
+      "source": "Marjorie Taylor Greene",
+      "target": "XOM",
+      "value": 50000.0,
+      "type": "Buy"
+    },
+    {
+      "source": "Marjorie Taylor Greene",
+      "target": "CVX",
+      "value": 75000.0,
+      "type": "Buy"
+    },
+    {
+      "source": "Earl Blumenauer",
+      "target": "AMZN",
+      "value": 15000.0,
+      "type": "Sell"
+    },
+    {
+      "source": "Earl Blumenauer",
+      "target": "MSFT",
+      "value": 25000.0,
+      "type": "Buy"
+    }
+  ]
+}

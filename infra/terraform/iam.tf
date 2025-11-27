@@ -93,7 +93,11 @@ resource "aws_iam_role_policy" "lambda_sqs_access" {
         ]
         Resource = [
           aws_sqs_queue.extraction_queue.arn,
-          aws_sqs_queue.extraction_dlq.arn
+          aws_sqs_queue.extraction_dlq.arn,
+          aws_sqs_queue.structured_extraction_queue.arn, # For extract Lambda to queue structured extraction
+          aws_sqs_queue.code_extraction_queue.arn,       # For code-based extraction
+          aws_sqs_queue.code_extraction_dlq.arn,         # Code extraction DLQ
+          aws_sqs_queue.textract_approval_queue.arn      # For human-approved Textract
         ]
       }
     ]

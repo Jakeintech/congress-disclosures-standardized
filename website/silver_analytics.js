@@ -143,7 +143,9 @@
 
         try {
             // Load data from manifest or S3
-            const manifestUrl = `https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver_${tableId}.json`;
+            const manifestUrl = tableId === 'documents'
+                ? `https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/api/v1/documents/silver/manifest.json`
+                : `https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/silver_${tableId}.json`;
             const response = await fetch(manifestUrl);
 
             if (response.ok) {

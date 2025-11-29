@@ -12,6 +12,26 @@ The pipeline automatically:
 
 ## Automation Options
 
+### Full System Reset & Run (Create or Replace)
+
+This is the most robust command, ensuring infrastructure exists, data is clean, and the pipeline runs from scratch.
+
+```mermaid
+graph TD
+    A[Start: make reset-and-run-all] --> B[Deploy Infrastructure]
+    B -->|Terraform Apply| C{Infra Ready?}
+    C -->|Yes| D[Reset Data]
+    D -->|reset_pipeline.py| E[Clear S3 Buckets]
+    D -->|reset_pipeline.py| F[Purge SQS Queues]
+    E --> G[Run Pipeline]
+    F --> G
+    G -->|make run-pipeline| H[Ingest Data]
+    H --> I[Silver Pipeline]
+    I --> J[Aggregate Data]
+    J --> K[Deploy Website]
+    K --> L[End: System Updated]
+```
+
 ### Option 1: GitHub Actions (Recommended)
 
 **Daily automated runs at 2 AM EST**

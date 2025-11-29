@@ -24,14 +24,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def load_fact_ptr_transactions(bucket_name: str) -> pd.DataFrame:
-    """Load PTR transactions from gold layer."""
+def load_fact_filing_type_p_transactions(bucket_name: str) -> pd.DataFrame:
+    """Load Filing Type P transactions from gold layer."""
     s3 = boto3.client('s3')
-    logger.info("Loading PTR transactions...")
+    logger.info("Loading Filing Type P transactions...")
 
-    # For now, we'll create sample data since PTR transactions aren't populated yet
-    # In production, this would load from gold/fact_ptr_transactions/
-    logger.warning("PTR transactions not yet populated - generating sample data")
+    # For now, we'll create sample data since Filing Type P transactions aren't populated yet
+    # In production, this would load from gold/fact_filing_type_p_transactions/
+    logger.warning("Filing Type P transactions not yet populated - generating sample data")
 
     # Create sample trading data
     import numpy as np
@@ -40,6 +40,10 @@ def load_fact_ptr_transactions(bucket_name: str) -> pd.DataFrame:
     # Load members to get realistic member_keys
     from build_fact_filings import load_dim_members
     members_df = load_dim_members(bucket_name)
+
+    if members_df.empty:
+        logger.warning("No members found. Returning empty DataFrame.")
+        return pd.DataFrame(columns=['member_key', 'transaction_type', 'amount_low', 'amount_high', 'transaction_date', 'amount_midpoint'])
 
     # Generate sample transactions for active traders
     sample_size = 500
@@ -68,6 +72,16 @@ def compute_member_trading_stats(transactions_df: pd.DataFrame, members_df: pd.D
     logger.info("Computing member trading statistics...")
 
     stats = []
+
+    if transactions_df.empty:
+        logger.warning("No transactions found. Returning empty stats DataFrame.")
+        return pd.DataFrame(columns=[
+            'member_key', 'total_trades', 'buy_count', 'sell_count', 'buy_sell_ratio',
+            'total_volume', 'avg_transaction_size', 'min_transaction_size',
+            'max_transaction_size', 'avg_days_between_trades', 'most_active_month',
+            'first_transaction_date', 'last_transaction_date', 'period_start', 'period_end',
+            'full_name', 'party', 'state_district'
+        ])
 
     for member_key, member_txs in transactions_df.groupby('member_key'):
         total_trades = len(member_txs)
@@ -166,7 +180,8 @@ def main():
     logger.info("=" * 80)
 
     # Load data
-    transactions_df = load_fact_ptr_transactions(bucket_name)
+    # Load data
+    transactions_df = load_fact_filing_type_p_transactions(bucket_name)
 
     from build_fact_filings import load_dim_members
     members_df = load_dim_members(bucket_name)
@@ -175,9 +190,12 @@ def main():
     stats_df = compute_member_trading_stats(transactions_df, members_df)
 
     logger.info(f"\nSummary:")
-    logger.info(f"  Total members with trades: {len(stats_df)}")
-    logger.info(f"  Total volume: ${stats_df['total_volume'].sum():,.0f}")
-    logger.info(f"  Most active trader: {stats_df.iloc[0]['full_name']} (${stats_df.iloc[0]['total_volume']:,.0f})")
+    if not stats_df.empty:
+        logger.info(f"  Total members with trades: {len(stats_df)}")
+        logger.info(f"  Total volume: ${stats_df['total_volume'].sum():,.0f}")
+        logger.info(f"  Most active trader: {stats_df.iloc[0]['full_name']} (${stats_df.iloc[0]['total_volume']:,.0f})")
+    else:
+        logger.info("  No trading data to summarize.")
 
     # Write to gold layer
     write_to_gold(stats_df, bucket_name)

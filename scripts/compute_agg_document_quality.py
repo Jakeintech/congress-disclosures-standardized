@@ -61,7 +61,17 @@ def load_fact_filings(bucket_name: str) -> pd.DataFrame:
                     os.unlink(tmp.name)
 
     if not dfs:
-        raise ValueError("No fact_filings found")
+        logger.warning("No fact_filings found! Returning empty DataFrame.")
+        return pd.DataFrame(columns=[
+            'member_key', 'filing_type_key', 'filing_date_key', 'doc_id', 'year',
+            'pdf_url', 'pdf_pages', 'pdf_file_size_bytes', 'pdf_sha256',
+            'transaction_count', 'asset_count', 'liability_count', 'position_count',
+            'agreement_count', 'expected_deadline_date', 'days_late', 'is_timely_filed',
+            'is_amendment', 'original_filing_doc_id', 'extraction_method',
+            'extraction_status', 'pdf_type', 'overall_confidence', 'has_extracted_data',
+            'has_structured_data', 'requires_manual_review', 'textract_pages_used',
+            'created_at', 'updated_at', 'filing_date'
+        ])
 
     all_filings = pd.concat(dfs, ignore_index=True)
     logger.info(f"Loaded {len(all_filings):,} filings")
@@ -210,11 +220,27 @@ def compute_document_quality_by_member(
 
         quality_metrics.append(record)
 
+    if not quality_metrics:
+        return pd.DataFrame(columns=[
+            'member_key', 'period_start_date', 'period_end_date', 'total_filings',
+            'ptr_filings', 'annual_filings', 'text_pdf_count', 'image_pdf_count',
+            'hybrid_pdf_count', 'image_pdf_pct', 'avg_confidence_score',
+            'min_confidence_score', 'low_confidence_count', 'manual_review_count',
+            'extraction_failure_count', 'avg_data_completeness_pct',
+            'zero_transaction_filing_count', 'quality_score', 'quality_category',
+            'is_hard_to_process', 'quality_trend', 'days_since_last_filing',
+            'textract_pages_used'
+        ])
+
     return pd.DataFrame(quality_metrics)
 
 
 def write_to_gold(df: pd.DataFrame, bucket_name: str):
     """Write agg_document_quality to gold layer."""
+    if df.empty:
+        logger.warning("DataFrame is empty, skipping write to gold layer.")
+        return
+
     logger.info("Writing to gold layer...")
 
     # Save locally
@@ -296,10 +322,13 @@ def main():
     write_to_gold(quality_df, bucket_name)
 
     logger.info(f"\nSummary:")
-    logger.info(f"  Total members: {len(quality_df)}")
-    logger.info(f"  Flagged as hard to process: {quality_df['is_hard_to_process'].sum()}")
-    logger.info(f"  Average quality score: {quality_df['quality_score'].mean():.1f}")
-    logger.info(f"  Quality breakdown: {quality_df['quality_category'].value_counts().to_dict()}")
+    if not quality_df.empty:
+        logger.info(f"  Total members: {len(quality_df)}")
+        logger.info(f"  Flagged as hard to process: {quality_df['is_hard_to_process'].sum()}")
+        logger.info(f"  Average quality score: {quality_df['quality_score'].mean():.1f}")
+        logger.info(f"  Quality breakdown: {quality_df['quality_category'].value_counts().to_dict()}")
+    else:
+        logger.info("  No data to summarize.")
 
     logger.info("\n✅ agg_document_quality computation complete!")
 

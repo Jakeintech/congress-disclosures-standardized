@@ -38,7 +38,10 @@
       "maxLength": 500
     },
     "pdf_sha256": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "SHA256 hash of PDF content for deduplication (null if extraction failed)",
       "pattern": "^[a-f0-9]{64}$"
     },
@@ -70,13 +73,21 @@
         "textract-detect-async",
         "textract-analyze",
         "tesseract",
+        "direct_text",
+        "ocr_text",
         "failed"
       ]
     },
     "extraction_status": {
       "type": "string",
       "description": "Status of extraction process",
-      "enum": ["pending", "in_progress", "success", "failed", "skipped"]
+      "enum": [
+        "pending",
+        "in_progress",
+        "success",
+        "failed",
+        "skipped"
+      ]
     },
     "extraction_version": {
       "type": "string",
@@ -90,32 +101,50 @@
       "format": "date-time"
     },
     "extraction_error": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Error message if extraction failed",
       "maxLength": 1000
     },
     "extraction_duration_seconds": {
-      "type": ["number", "null"],
+      "type": [
+        "number",
+        "null"
+      ],
       "description": "Duration of extraction process in seconds",
       "minimum": 0
     },
     "text_s3_key": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "S3 key to extracted text file (gzipped)",
       "maxLength": 500
     },
     "json_s3_key": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "S3 key to structured JSON (if using AI extraction)",
       "maxLength": 500
     },
     "textract_job_id": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "AWS Textract job ID (for async jobs)",
       "maxLength": 500
     },
     "char_count": {
-      "type": ["integer", "null"],
+      "type": [
+        "integer",
+        "null"
+      ],
       "description": "Total character count of extracted text",
       "minimum": 0
     },
@@ -134,12 +163,18 @@
       "description": "True if document is image-based but was processed with pypdf due to budget limits. Needs Textract reprocessing in future."
     },
     "filing_date": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Date the disclosure was filed (ISO 8601 date format). Used for processing priority.",
       "format": "date"
     },
     "processing_priority": {
-      "type": ["integer", "null"],
+      "type": [
+        "integer",
+        "null"
+      ],
       "description": "Priority score for processing (higher = process first). Based on filing date.",
       "minimum": 0
     }

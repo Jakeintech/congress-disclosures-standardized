@@ -114,17 +114,17 @@ package-extract: ## Package house_fd_extract_document Lambda
 	@cd $(LAMBDA_DIR)/house_fd_extract_document/dist && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/house_fd_extract_document/function.zip"
 
-package-extract-structured: ## Package house_fd_extract_structured Lambda with all new extractors
-	@echo "Packaging house_fd_extract_structured..."
-	@rm -rf $(LAMBDA_DIR)/house_fd_extract_structured/package $(LAMBDA_DIR)/house_fd_extract_structured/function.zip
-	@mkdir -p $(LAMBDA_DIR)/house_fd_extract_structured/package
-	# No requirements.txt - uses shared lib only
-	@cp $(LAMBDA_DIR)/house_fd_extract_structured/handler.py $(LAMBDA_DIR)/house_fd_extract_structured/package/
+package-extract-structured: ## Package house_fd_extract_structured_code Lambda with all new extractors
+	@echo "Packaging house_fd_extract_structured_code..."
+	@rm -rf $(LAMBDA_DIR)/house_fd_extract_structured_code/package $(LAMBDA_DIR)/house_fd_extract_structured_code/function.zip
+	@mkdir -p $(LAMBDA_DIR)/house_fd_extract_structured_code/package
+	$(PIP) install -r $(LAMBDA_DIR)/house_fd_extract_structured_code/requirements.txt -t $(LAMBDA_DIR)/house_fd_extract_structured_code/package
+	@cp $(LAMBDA_DIR)/house_fd_extract_structured_code/handler.py $(LAMBDA_DIR)/house_fd_extract_structured_code/package/
 	# Copy entire shared lib with all new extractors
-	@cp -r ingestion/lib $(LAMBDA_DIR)/house_fd_extract_structured/package/lib
-	@cd $(LAMBDA_DIR)/house_fd_extract_structured/package && zip -r ../function.zip . > /dev/null
-	@echo "✓ Lambda package created: $(LAMBDA_DIR)/house_fd_extract_structured/function.zip"
-	@ls -lh $(LAMBDA_DIR)/house_fd_extract_structured/function.zip | awk '{print "  Package size:", $$5}'
+	@cp -r ingestion/lib $(LAMBDA_DIR)/house_fd_extract_structured_code/package/lib
+	@cd $(LAMBDA_DIR)/house_fd_extract_structured_code/package && zip -r ../function.zip . > /dev/null
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/house_fd_extract_structured_code/function.zip"
+	@ls -lh $(LAMBDA_DIR)/house_fd_extract_structured_code/function.zip | awk '{print "  Package size:", $$5}'
 
 package-seed: ## Package gold_seed Lambda
 	@echo "Packaging gold_seed..."
@@ -194,13 +194,19 @@ check-all: format-check lint type-check test-unit ## Run all checks (format, lin
 ##@ Deployment
 
 deploy-extractors: package-extract-structured ## Package and deploy extraction Lambda with new extractors
-	@echo "Uploading house_fd_extract_structured to S3..."
-	@aws s3 cp $(LAMBDA_DIR)/house_fd_extract_structured/function.zip \
-		s3://congress-disclosures-standardized/lambda-deployments/house_fd_extract_structured/function.zip
+	@echo "Uploading house_fd_extract_structured_code to S3..."
+	@aws s3 cp $(LAMBDA_DIR)/house_fd_extract_structured_code/function.zip \
+		s3://congress-disclosures-standardized/lambda-deployments/house_fd_extract_structured_code/function.zip
 	@echo "✓ Uploaded to S3"
 	@echo "Applying Terraform to update Lambda function..."
-	cd $(TERRAFORM_DIR) && terraform apply -target=aws_lambda_function.house_fd_extract_structured -auto-approve
+	cd $(TERRAFORM_DIR) && terraform apply -target=aws_lambda_function.extract_structured_code -auto-approve
 	@echo "✓ Extraction Lambda deployed with new extractors"
+
+deploy-website: ## Deploy website to S3
+	@echo "Deploying website to S3..."
+	@aws s3 sync website/ s3://congress-disclosures-standardized/website/ --exclude "*.DS_Store" --exclude "*.bak"
+	@echo "✓ Website deployed to s3://congress-disclosures-standardized/website/"
+	@echo "  URL: https://congress-disclosures-standardized.s3.amazonaws.com/website/index.html"
 
 deploy-all-lambdas: package-all ## Package and deploy all Lambdas
 	@echo "Deploying all Lambda functions..."
@@ -230,7 +236,7 @@ ingest-year: ## Ingest data for a specific year (usage: make ingest-year YEAR=20
 	fi
 	@echo "Triggering ingestion for year $(YEAR)..."
 	aws lambda invoke \
-		--function-name house-fd-ingest-zip \
+		--function-name congress-disclosures-development-ingest-zip \
 		--payload '{"year": $(YEAR)}' \
 		--cli-binary-format raw-in-base64-out \
 		response.json
@@ -252,11 +258,12 @@ run-silver-test: ## Run Silver pipeline on limited PDFs (for testing)
 	@$(PYTHON) scripts/run_silver_pipeline.py --yes --limit 10
 
 aggregate-data: ## Generate all aggregated data files (manifests, transactions)
-	@echo "Generating Bronze manifest..."
+aggregate-data: ## Aggregate all filing types into Gold layer
+	@echo "Aggregating data into Gold layer..."
 	@$(PYTHON) scripts/build_bronze_manifest.py
-	@echo "Generating PTR transactions..."
-	@$(PYTHON) scripts/generate_ptr_transactions.py
-	@echo "Syncing Parquet to DynamoDB..."
+	@$(PYTHON) scripts/generate_type_p_transactions.py
+	@$(PYTHON) scripts/generate_type_a_assets.py
+	@$(PYTHON) scripts/generate_type_t_terminations.py
 	@$(PYTHON) scripts/sync_parquet_to_dynamodb.py
 	@echo "Rebuilding Silver manifest (v2)..."
 	@$(PYTHON) scripts/rebuild_silver_manifest.py
@@ -274,8 +281,11 @@ aggregate-data: ## Generate all aggregated data files (manifests, transactions)
 	@$(PYTHON) scripts/generate_all_gold_manifests.py
 	@echo "✓ Data aggregation complete"
 
-run-pipeline: ingest-current run-silver-pipeline aggregate-data ## Run complete pipeline (ingest + extract + aggregate)
-	@echo "✓ Complete pipeline executed"
+pipeline: ## Smart Pipeline: End-to-end execution with interactive mode (Full/Incremental/Reprocess)
+	@$(PYTHON) scripts/run_smart_pipeline.py
+
+run-pipeline: pipeline ## Alias for pipeline
+	@echo "✓ Pipeline executed via smart runner"
 
 check-extraction-queue: ## Check SQS extraction queue status
 	@echo "Checking extraction queue status..."
@@ -291,6 +301,29 @@ purge-extraction-queue: ## Purge extraction queue (clear all messages)
 	@echo "Purging extraction queue..."
 	@aws sqs purge-queue --queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-queue
 	@echo "✓ Extraction queue purged"
+
+reset-pipeline: ## Reset pipeline (clear S3 silver/gold and purge queues)
+	@echo "Resetting pipeline..."
+	@$(PYTHON) scripts/reset_pipeline.py
+
+reset-and-run-all: ## Full System Reset & Run: Deploy Infra -> Reset Data -> Run Pipeline -> Deploy Website
+	@echo "⚠️  WARNING: This will DEPLOY infrastructure, DELETE ALL DATA, and RE-RUN the pipeline!"
+	@read -p "Are you sure? [y/N]: " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "1. Deploying Infrastructure (Terraform)..."
+	@$(MAKE) deploy-all-lambdas
+	@echo "2. Resetting Data (Clearing S3 & Queues)..."
+	@$(PYTHON) scripts/reset_pipeline.py --force
+	@echo "3. Running Pipeline..."
+	@$(MAKE) run-pipeline
+	@echo "4. Validating Pipeline Integrity..."
+	@$(MAKE) validate-pipeline
+	@echo "5. Deploying Website..."
+	@$(MAKE) deploy-website
+	@echo "✓ Full system reset and execution complete!"
+
+validate-pipeline: ## Validate pipeline integrity (S3 vs XML, Tags, DLQ, Silver Layer)
+	@echo "Validating pipeline integrity..."
+	@$(PYTHON) scripts/validate_pipeline_integrity.py
 
 purge-dlq: ## Purge dead letter queue
 	@echo "Purging dead letter queue..."

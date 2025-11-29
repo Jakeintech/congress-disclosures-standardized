@@ -134,6 +134,8 @@ This enables idempotent re-processing and easy data validation.
 
 ### Phase 1: Ingestion & Extraction
 
+> **Detailed Documentation**: See [Ingestion Pipeline Details](INGESTION_DETAILS.md) for a deep dive into the XML manifest structure and file retrieval logic.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                      Manual Trigger / EventBridge               │

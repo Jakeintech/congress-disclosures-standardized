@@ -151,6 +151,18 @@ def main():
     else:
         print(f"\nProcessing {len(pdfs)} PDFs (--yes flag specified)...")
 
+    # Purge queue to prevent duplicates
+    print("\nPurging extraction queue to prevent duplicates...")
+    try:
+        sqs.purge_queue(QueueUrl=QUEUE_URL)
+        print("✓ Queue purged")
+        import time
+        print("Waiting 60s for purge to stabilize (AWS requirement)...")
+        time.sleep(60)
+    except Exception as e:
+        print(f"⚠️  Could not purge queue (might be empty or purged recently): {e}")
+        print("Continuing...")
+
     # Send to queue
     print("\nQueueing PDFs for extraction...")
     success_count = 0

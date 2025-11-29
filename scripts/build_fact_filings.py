@@ -93,7 +93,11 @@ def load_dim_members(bucket_name: str) -> pd.DataFrame:
                     dfs.append(df)
                     os.unlink(tmp.name)
 
-    result = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+    if not dfs:
+        logger.warning("No dim_members found! Returning empty DataFrame.")
+        return pd.DataFrame(columns=['member_key', 'first_name', 'last_name', 'state_district', 'party', 'full_name'])
+
+    result = pd.concat(dfs, ignore_index=True)
     logger.info(f"Loaded {len(result):,} members")
     return result
 
@@ -126,6 +130,20 @@ def build_fact_filings(filings_df: pd.DataFrame, documents_df: pd.DataFrame, mem
     logger.info("Building fact_filings...")
 
     # Join filings + documents
+    if filings_df.empty:
+        logger.warning("filings_df is empty! Returning empty fact table.")
+        # Return empty DF with expected columns to avoid downstream errors
+        return pd.DataFrame(columns=[
+            'member_key', 'filing_type_key', 'filing_date_key', 'doc_id', 'year',
+            'pdf_url', 'pdf_pages', 'pdf_file_size_bytes', 'pdf_sha256',
+            'transaction_count', 'asset_count', 'liability_count', 'position_count',
+            'agreement_count', 'expected_deadline_date', 'days_late', 'is_timely_filed',
+            'is_amendment', 'original_filing_doc_id', 'extraction_method',
+            'extraction_status', 'pdf_type', 'overall_confidence', 'has_extracted_data',
+            'has_structured_data', 'requires_manual_review', 'textract_pages_used',
+            'created_at', 'updated_at'
+        ])
+
     merged = filings_df.merge(
         documents_df,
         on=['doc_id', 'year'],
@@ -163,10 +181,13 @@ def build_fact_filings(filings_df: pd.DataFrame, documents_df: pd.DataFrame, mem
         except:
             filing_date_key = None
 
-        # Build PDF URL
+        # Build PDF URL (Point to S3 Bronze Cache)
         doc_id = row['doc_id']
         year = row['year']
-        pdf_url = f"https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/{year}/{doc_id}.pdf"
+        # pdf_url = f"https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/{year}/{doc_id}.pdf"
+        # Use S3 URL to ensure we serve the cached file
+        # Path: bronze/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf
+        pdf_url = f"https://congress-disclosures-standardized.s3.amazonaws.com/bronze/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
 
         # Calculate confidence score based on extraction quality
         extraction_status = row.get('extraction_status', 'pending')

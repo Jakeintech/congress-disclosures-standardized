@@ -222,7 +222,7 @@ function setupEventListeners() {
     });
 
     // Silver layer event listeners
-    setupSilverEventListeners();
+    // setupSilverEventListeners(); // Removed: Handled by silver_split_view.js
 
     // PTR transactions event listeners
     setupPTREventListeners();

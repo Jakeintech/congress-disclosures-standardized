@@ -82,5 +82,11 @@ def rebuild_silver_manifest():
     
     return manifest
 
-if __name__ == '__main__':
+def main():
+    """Main entry point."""
     rebuild_silver_manifest()
+    return 0
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())

@@ -45,9 +45,23 @@ def main():
             data = json.loads(response["Body"].read().decode("utf-8"))
             
             # Reformat to match API v1 structure
+            # Reformat to match API v1 structure
+            filings = data.get("filings", [])
+            
+            # Recalculate stats to ensure accuracy
+            unique_members = set()
+            for f in filings:
+                # Create unique member key from name
+                member_key = f"{f.get('last_name', '')}|{f.get('first_name', '')}"
+                unique_members.add(member_key)
+            
+            stats = data.get("stats", {})
+            stats['total_filings'] = len(filings)
+            stats['total_members'] = len(unique_members)
+            
             manifest = {
-                "stats": data.get("stats", {}),
-                "filings": data.get("filings", [])
+                "stats": stats,
+                "filings": filings
             }
             source_used = source_key
             print(f"✅ Loaded from {source_key}: {len(manifest.get('filings', []))} filings")

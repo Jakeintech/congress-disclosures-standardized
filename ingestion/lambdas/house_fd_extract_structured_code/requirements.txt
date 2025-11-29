@@ -10,6 +10,9 @@ jsonschema>=4.17.0
 # Date parsing
 python-dateutil>=2.8.0
 
+# PDF processing (for extractors that may need it)
+pypdf>=4.0.0
+
 # No Textract dependencies
 # No ML/AI dependencies
 # Extractors are in shared lib/ directory (copied during packaging)

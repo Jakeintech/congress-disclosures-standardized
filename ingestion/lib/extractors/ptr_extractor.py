@@ -129,11 +129,13 @@ class PTRExtractor(BaseExtractor):
     def _extract_transactions(self, text: str) -> List[Dict[str, Any]]:
         """Extract transaction records from table.
 
-        PTR format has transactions split across multiple lines:
-        Line 1: Owner + Asset name (first part)
-        Line 2: Asset name (continuation) + (TICKER) [TYPE]
-        Line 3: TransType Date1 Date2 Amount
-        Line N: D: Description
+        PTR format (actual from PDFs):
+        Asset Name (may span lines)
+        (TICKER)  [TYPE]TRANS_TYPE DATE1 DATE2 AMOUNT
+
+        Example:
+        Amazon.com, Inc. - Common Stock
+        (AMZN)  [ST]P 01/02/2025 01/03/2025 $1,001 - $15,000
 
         Args:
             text: Full PDF text
@@ -155,44 +157,62 @@ class PTRExtractor(BaseExtractor):
 
         trans_section = text[trans_start:trans_end]
 
-        # Remove newlines to join multi-line transactions
-        # But preserve line breaks at strategic points
-        trans_text = trans_section.replace('\n', ' ')
-
-        # Pattern to match complete transaction (now on one line after joining)
-        # Format: [Owner] Asset Name (TICKER) [TYPE] TransType Date1 Date2 $Amount
-        # Use lookbehind to ensure we start after a space or owner code
+        # Updated pattern to match actual format:
+        # Asset Name (TICKER) [TYPE] TRANS_TYPE DATE DATE AMOUNT
+        # Note: Ticker can be at end of asset name line
+        # Note: [TYPE] is optional
         pattern = r'''
-            (?:(?<=\s)|(?<=^))                     # Lookbehind for space or start
-            (?P<owner>SP|DC|JT)?\s+                # Optional owner code (with space)
-            (?P<asset>[\w\s\.\-,]+?)\s+            # Asset name (letters, spaces, dots, hyphens, commas)
-            \((?P<ticker>[A-Z]+)\)\s+              # Ticker in parentheses
-            \[(?P<type_code>[A-Z]{2})\]\s+         # Asset type code in brackets
-            (?P<trans_type>[PS])\s+                # Transaction type
-            (?:\(partial\))?\s*                    # Optional "(partial)"
-            (?P<trans_date>\d{2}/\d{2}/\d{4})      # Transaction date
-            (?P<notif_date>\d{2}/\d{2}/\d{4})      # Notification date (may be joined)
-            \s*\$?(?P<amount>[\d,]+\s*-\s*\$?[\d,]+|Over\s+\$?[\d,]+) # Amount
+            (?:\((?P<ticker>[A-Z]{1,5})\))?            # Ticker in parentheses (optional here, might be in asset name)
+            \s*
+            (?:\[(?P<type_code>[A-Z]{2})\])?           # Asset type code in brackets (optional)
+            \s*
+            (?P<trans_type>P|S|Purchase|Sale)          # Transaction type
+            \s+
+            (?P<trans_date>\d{1,2}/\d{1,2}/\d{4})\s+   # Transaction date
+            (?P<notif_date>\d{1,2}/\d{1,2}/\d{4})\s+   # Notification date
+            \$?(?P<amount>[\d,]+\s*-\s*\$?[\d,]+|Over\s+\$[\d,]+)  # Amount range
         '''
 
-        for match in re.finditer(pattern, trans_text, re.VERBOSE | re.IGNORECASE):
-            owner_code = match.group('owner')
-            asset_name = match.group('asset').strip()
+        for match in re.finditer(pattern, trans_section, re.VERBOSE):
             ticker = match.group('ticker')
             asset_type_code = match.group('type_code')
-            trans_type_code = match.group('trans_type')
+            trans_type_raw = match.group('trans_type')
             trans_date_str = match.group('trans_date')
             notif_date_str = match.group('notif_date')
             amount_str = match.group('amount')
 
-            # Clean up asset name (remove extra spaces, owner code if present)
-            if owner_code:
-                asset_name = asset_name.replace(owner_code, '').strip()
+            # Find asset name (look backwards from match start)
+            match_pos = match.start()
+            text_before = trans_section[:match_pos]
+            
+            # Get last 200 chars before match, split by newlines
+            context = text_before[-200:].split('\n')
+            # Asset name is typically the last non-empty line before ticker
+            asset_name = None
+            for line in reversed(context):
+                line = line.strip()
+                # Skip lines that are just "F S: New" or other markers
+                if line and not line.startswith('F S:') and 'ID Owner' not in line and 'Cap .' not in line:
+                    asset_name = line
+                    break
+            
+            # If ticker not in regex, look for it in asset name
+            if not ticker and asset_name:
+                # Look for (TICKER) at end of asset name
+                ticker_match = re.search(r'\((?P<ticker>[A-Z]{1,5})\)$', asset_name)
+                if ticker_match:
+                    ticker = ticker_match.group('ticker')
+                    # Remove ticker from asset name for cleaner display
+                    asset_name = asset_name[:ticker_match.start()].strip()
+
+            if not asset_name:
+                asset_name = "Unknown Asset"
 
             # Determine transaction type
-            trans_type = "Purchase" if trans_type_code == "P" else "Sale"
-            if "(partial)" in match.group(0):
-                trans_type = "Partial Sale"
+            if trans_type_raw.lower() in ['p', 'purchase']:
+                trans_type = "Purchase"
+            else:
+                trans_type = "Sale"
 
             # Parse dates
             trans_date = self.extract_date(trans_date_str)
@@ -201,14 +221,10 @@ class PTRExtractor(BaseExtractor):
             # Parse amount
             amount_low, amount_high, amount_range = self.extract_amount_range(amount_str)
 
-            # Extract description (look for "D:" after this transaction)
-            desc_pattern = rf'{re.escape(match.group(0))}.*?D\s*:\s*(.+?)(?=(?:SP|DC|JT)?\s+\w+.*?\([A-Z]+\)\s+\[[A-Z]{{2}}\]|F\s+S\s+:|$)'
-            desc_match = re.search(desc_pattern, trans_text, re.DOTALL)
-            description = desc_match.group(1).strip() if desc_match else None
-
             transaction = {
-                "owner_code": owner_code,
-                "asset_name": f"{asset_name} - ({ticker})",
+                "owner_code": "SP",  # Default to Self (most common)
+                "asset_name": asset_name,
+                "ticker": ticker,  # Store ticker separately
                 "transaction_type": trans_type,
                 "transaction_date": trans_date,
                 "notification_date": notif_date,

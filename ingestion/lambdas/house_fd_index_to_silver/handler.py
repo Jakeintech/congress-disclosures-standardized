@@ -154,12 +154,19 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         failed_count = 0
         
         if EXTRACTION_QUEUE_URL:
-            for doc in document_records:
+            for filing in filing_records:
                 try:
+                    # Construct filer name
+                    filer_name = f"{filing.get('first_name', '')} {filing.get('last_name', '')}".strip()
+                    
                     message = {
-                        'doc_id': doc['doc_id'],
-                        'year': doc['year'],
-                        's3_pdf_key': doc['pdf_s3_key']
+                        'doc_id': filing['doc_id'],
+                        'year': filing['year'],
+                        's3_pdf_key': filing['pdf_s3_key'],
+                        'filing_type': filing.get('filing_type'),
+                        'filer_name': filer_name,
+                        'filing_date': filing.get('filing_date'),
+                        'state_district': filing.get('state_district')
                     }
                     sqs_client.send_message(
                         QueueUrl=EXTRACTION_QUEUE_URL,

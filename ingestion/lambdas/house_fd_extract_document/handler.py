@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 # Import shared libraries
 from lib import s3_utils, pdf_extractor, parquet_writer  # noqa: E402
+from lib.extraction import ExtractionPipeline, DirectTextExtractor, OCRTextExtractor, ImagePreprocessor  # noqa: E402
 import boto3
 
 # Configure logging
@@ -51,7 +52,10 @@ def update_bronze_pdf_metadata(
     s3_pdf_key: str,
     extraction_result: Dict[str, Any],
     text_s3_key: str,
-    structured_s3_key: str = None
+    filing_type: str = None,
+    filer_name: str = None,
+    filing_date: str = None,
+    state_district: str = None
 ):
     """Update Bronze PDF S3 metadata to track Textract processing.
     
@@ -63,6 +67,10 @@ def update_bronze_pdf_metadata(
         extraction_result: Result from pdf_extractor
         text_s3_key: S3 key of extracted text in Silver
         structured_s3_key: Optional S3 key of structured JSON in Silver
+        filing_type: Optional filing type to tag
+        filer_name: Optional filer name
+        filing_date: Optional filing date
+        state_district: Optional state/district
     """
     try:
         s3_client = boto3.client("s3")
@@ -79,8 +87,16 @@ def update_bronze_pdf_metadata(
             "text-location": text_s3_key,
         }
         
-        if structured_s3_key:
-            metadata["structured-location"] = structured_s3_key
+        if filing_type:
+            metadata["filing-type"] = filing_type
+        if filer_name:
+            metadata["filer-name"] = filer_name
+        if filing_date:
+            metadata["filing-date"] = filing_date
+        if state_district:
+            metadata["state-district"] = state_district
+        
+        # structured_s3_key is optional, passed as parameter if available
         
         s3_client.copy_object(
             Bucket=S3_BUCKET,
@@ -247,11 +263,23 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             doc_id = message_body["doc_id"]
             year = message_body["year"]
             s3_pdf_key = message_body["s3_pdf_key"]
+            filing_type = message_body.get("filing_type")
+            filer_name = message_body.get("filer_name")
+            filing_date = message_body.get("filing_date")
+            state_district = message_body.get("state_district")
 
-            logger.info(f"Processing doc_id={doc_id}, year={year}")
+            logger.info(f"Processing doc_id={doc_id}, year={year}, type={filing_type}")
 
             # Process document
-            process_document(doc_id, year, s3_pdf_key)
+            process_document(
+                doc_id, 
+                year, 
+                s3_pdf_key, 
+                filing_type,
+                filer_name,
+                filing_date,
+                state_district
+            )
 
             logger.info(f"Successfully processed doc_id={doc_id}")
 
@@ -265,16 +293,25 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     return {"batchItemFailures": batch_item_failures}
 
 
-def process_document(doc_id: str, year: int, s3_pdf_key: str):
+def process_document(
+    doc_id: str,
+    year: int,
+    s3_pdf_key: str,
+    filing_type: str = None,
+    filer_name: str = None,
+    filing_date: str = None,
+    state_district: str = None
+):
     """Process a single PDF document.
 
     Args:
         doc_id: Document ID
         year: Filing year
         s3_pdf_key: S3 key of PDF in bronze layer
-
-    Raises:
-        Exception: If processing fails
+        filing_type: Filing type code
+        filer_name: Filer name
+        filing_date: Filing date
+        state_district: State/District
     """
     start_time = datetime.now(timezone.utc)
 
@@ -308,15 +345,37 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
             f"{textract_budget_remaining} remaining"
         )
 
-        # Step 2: Extract text
-        logger.info("Extracting text from PDF")
+        # Step 2: Extract text using new ExtractionPipeline
+        logger.info("Extracting text from PDF using ExtractionPipeline")
 
-        extraction_result = pdf_extractor.extract_text_from_pdf(
-            pdf_path=pdf_path,
-            textract_max_pages_sync=TEXTRACT_MAX_PAGES_SYNC,
-            s3_bucket=S3_BUCKET,
-            s3_key=s3_pdf_key,  # For Textract async if needed
-            textract_budget_remaining=textract_budget_remaining,
+        # Initialize extraction pipeline with fallback strategies
+        pipeline = ExtractionPipeline(
+            min_confidence=0.5,  # Lower threshold for initial extraction
+            min_characters=50,
+            enable_fallback=True
+        )
+
+        # Extract text with automatic strategy selection
+        extraction_pipeline_result = pipeline.extract(str(pdf_path))
+
+        # Convert ExtractionResult to legacy format for compatibility
+        extraction_result = {
+            "text": extraction_pipeline_result.text,
+            "pages": extraction_pipeline_result.page_count,
+            "extraction_method": extraction_pipeline_result.extraction_method,
+            "has_embedded_text": extraction_pipeline_result.extraction_method == "direct_text",
+            "confidence_score": extraction_pipeline_result.confidence_score,
+            "processing_time": extraction_pipeline_result.processing_time_seconds,
+            "quality_metrics": extraction_pipeline_result.quality_metrics,
+            "warnings": extraction_pipeline_result.warnings,
+            "requires_textract_reprocessing": extraction_pipeline_result.confidence_score < 0.3,
+        }
+
+        logger.info(
+            f"Extraction complete: method={extraction_result['extraction_method']}, "
+            f"confidence={extraction_result['confidence_score']:.2%}, "
+            f"chars={len(extraction_result['text'])}, "
+            f"time={extraction_result['processing_time']:.2f}s"
         )
 
         # Step 3: Upload extracted text to silver (partitioned by extraction method)
@@ -385,7 +444,11 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
         update_bronze_pdf_metadata(
             s3_pdf_key=s3_pdf_key,
             extraction_result=extraction_result,
-            text_s3_key=text_s3_key
+            text_s3_key=text_s3_key,
+            filing_type=filing_type,
+            filer_name=filer_name,
+            filing_date=filing_date,
+            state_district=state_district
         )
         
         # Step 4b: Update house_fd_documents record
@@ -394,6 +457,7 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
         update_document_record(
             doc_id=doc_id,
             year=year,
+            s3_pdf_key=s3_pdf_key,
             pdf_sha256=pdf_sha256,
             pdf_file_size=pdf_file_size,
             extraction_result=extraction_result,
@@ -410,9 +474,10 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
                     MessageBody=json.dumps({
                         'doc_id': doc_id,
                         'year': year,
-                        'text_s3_key': text_s3_key,  # Changed from s3_text_key for consistency
+                        'text_s3_key': text_s3_key,
                         'extraction_method': extraction_result['extraction_method'],
-                        'has_embedded_text': extraction_result.get('has_embedded_text', False)
+                        'has_embedded_text': extraction_result.get('has_embedded_text', False),
+                        'filing_type': filing_type  # Pass filing type to next stage
                     })
                 )
                 logger.info(f"✅ Queued code-based extraction for doc_id={doc_id}")
@@ -433,6 +498,7 @@ def process_document(doc_id: str, year: int, s3_pdf_key: str):
 def update_document_record(
     doc_id: str,
     year: int,
+    s3_pdf_key: str,
     pdf_sha256: str,
     pdf_file_size: int,
     extraction_result: Dict[str, Any],

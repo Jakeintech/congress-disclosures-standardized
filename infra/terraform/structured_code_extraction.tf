@@ -52,7 +52,7 @@ resource "aws_sqs_queue_redrive_allow_policy" "code_extraction_dlq_redrive" {
 # CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "extract_structured_code" {
   name              = "/aws/lambda/${local.name_prefix}-extract-structured-code"
-  retention_in_days = var.log_retention_days
+  retention_in_days = var.cloudwatch_log_retention_days
 
   tags = merge(
     local.standard_tags,

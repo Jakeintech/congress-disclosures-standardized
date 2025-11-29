@@ -25,18 +25,27 @@ class BaseExtractor:
         self.pdf_path = pdf_path
         self.pdf_bytes = pdf_bytes
 
-        # Analyze PDF
-        self.analyzer = PDFAnalyzer(pdf_path=pdf_path, pdf_bytes=pdf_bytes)
-        self.analysis = self.analyzer.analyze()
+        # Analyze PDF (only if provided)
+        if pdf_path or pdf_bytes:
+            self.analyzer = PDFAnalyzer(pdf_path=pdf_path, pdf_bytes=pdf_bytes)
+            self.analysis = self.analyzer.analyze()
 
-        self.template_type = self.analysis["template_type"]
-        self.pdf_format = self.analysis["pdf_format"]
-        self.requires_ocr = self.analysis["requires_ocr"]
+            self.template_type = self.analysis["template_type"]
+            self.pdf_format = self.analysis["pdf_format"]
+            self.requires_ocr = self.analysis["requires_ocr"]
+
+            logger.info(f"Initialized extractor: template={self.template_type}, format={self.pdf_format}")
+        else:
+            # Text-only mode (no PDF provided)
+            self.analyzer = None
+            self.analysis = None
+            self.template_type = None
+            self.pdf_format = None
+            self.requires_ocr = False
+            logger.info("Initialized extractor in text-only mode")
 
         # Cache extracted text
         self._text = None
-
-        logger.info(f"Initialized extractor: template={self.template_type}, format={self.pdf_format}")
 
     @property
     def text(self) -> str:
@@ -378,7 +387,7 @@ class BaseExtractor:
             "extraction_timestamp": datetime.utcnow().isoformat() + "Z",
             "extraction_version": "1.0.0",
             "confidence_score": confidence,
-            "pdf_type": self.pdf_format.value,
+            "pdf_type": self.pdf_format.value if self.pdf_format else "text_only",
             "requires_manual_review": confidence < 0.85
         }
 

@@ -68,7 +68,7 @@ def load_manifest_metadata(s3_client) -> pd.DataFrame:
         # Filter to PTRs only
         ptrs = df[df["filing_type"] == "P"].copy()
         
-        print(f"Found {len(ptrs)} PTRs in bronze metadata (from {len(df)} total filings)")
+
         
         return ptrs
         
@@ -91,14 +91,22 @@ def load_structured_json(s3_client, doc_id: str, year: int) -> Dict[str, Any]:
     Returns:
         Structured data dict or None if not found
     """
-    s3_key = f"silver/house/financial/structured/year={year}/doc_id={doc_id}.json"
+    # Updated path structure to match new extractor output
+    s3_key = f"silver/house/financial/structured_code/year={year}/filing_type=P/doc_id={doc_id}.json"
 
     try:
         response = s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
         data = json.loads(response["Body"].read())
         return data
     except s3_client.exceptions.NoSuchKey:
-        return None
+        # Try fallback to old path (backward compatibility)
+        try:
+            old_key = f"silver/house/financial/structured/year={year}/doc_id={doc_id}.json"
+            response = s3_client.get_object(Bucket=S3_BUCKET, Key=old_key)
+            data = json.loads(response["Body"].read())
+            return data
+        except:
+            return None
     except Exception as e:
         # print(f"  ⚠️  Error loading {doc_id}: {e}")
         return None

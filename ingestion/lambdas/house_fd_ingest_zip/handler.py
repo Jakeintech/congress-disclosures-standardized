@@ -83,7 +83,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         # Step 4: Extract and upload PDFs + send to SQS
         logger.info("Step 4: Extracting and uploading PDFs")
-        pdf_count, sqs_message_count = extract_and_upload_pdfs(zip_bytes, year, filing_type_map)
+        skip_existing = event.get("skip_existing", False)
+        pdf_count, sqs_message_count, skipped_count = extract_and_upload_pdfs(zip_bytes, year, filing_type_map, skip_existing)
 
         # Trigger index-to-silver Lambda (synchronous)
         logger.info("Step 5: Triggering index-to-silver Lambda")
@@ -96,6 +97,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "raw_zip_s3_key": raw_zip_key,
             "index_files": index_files,
             "pdfs_uploaded": pdf_count,
+            "pdfs_skipped": skipped_count,
             "sqs_messages_sent": sqs_message_count,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
@@ -256,21 +258,23 @@ except ImportError:
         logger.warning("Could not import metadata_tagger, quality scoring disabled")
         calculate_quality_score = lambda *args: 0.0
 
-def extract_and_upload_pdfs(zip_bytes: bytes, year: int, filing_type_map: Dict[str, str]) -> tuple:
+def extract_and_upload_pdfs(zip_bytes: bytes, year: int, filing_type_map: Dict[str, str], skip_existing: bool = False) -> tuple:
     """Extract and upload PDFs, send SQS messages for extraction.
 
     Args:
         zip_bytes: Zip file bytes
         year: Year
         filing_type_map: Map of DocID to FilingType
+        skip_existing: If True, skip upload if object exists
 
     Returns:
-        Tuple of (pdf_count, sqs_message_count)
+        Tuple of (pdf_count, sqs_message_count, skipped_count)
 
     Raises:
         Exception: If extraction fails
     """
     pdf_count = 0
+    skipped_count = 0
     sqs_message_count = 0
     sqs_messages_batch = []
 
@@ -291,6 +295,23 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int, filing_type_map: Dict[s
 
                 # Determine filing type
                 filing_type = filing_type_map.get(doc_id, "U") # Default to Unknown
+
+                # Construct S3 key
+                s3_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type={filing_type}/pdfs/{doc_id}.pdf"
+
+                # Check if exists (if skip_existing=True)
+                if skip_existing:
+                    try:
+                        s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
+                        logger.debug(f"Skipping existing PDF: {s3_key}")
+                        skipped_count += 1
+                        continue
+                    except ClientError as e:
+                        if e.response['Error']['Code'] != "404":
+                            logger.warning(f"Error checking existence of {s3_key}: {e}")
+                            # Continue to upload if error wasn't 404
+
+                pdf_count += 1
 
                 # Calculate quality score
                 # We need page count and text layer check
@@ -314,9 +335,6 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int, filing_type_map: Dict[s
                 # Ideally filing_type_map should contain more metadata.
                 # For now, use defaults or what we have.
                 quality_score = calculate_quality_score(has_text, page_count, str(year), "Unknown")
-
-                # Upload to S3 with new path structure
-                s3_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type={filing_type}/pdfs/{doc_id}.pdf"
 
                 s3_client.put_object(
                     Bucket=S3_BUCKET,
@@ -363,9 +381,9 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int, filing_type_map: Dict[s
         send_sqs_batch(sqs_messages_batch)
         sqs_message_count += len(sqs_messages_batch)
 
-    logger.info(f"Processed {pdf_count} PDFs, sent {sqs_message_count} SQS messages")
+    logger.info(f"Processed {pdf_count} PDFs, skipped {skipped_count}, sent {sqs_message_count} SQS messages")
 
-    return pdf_count, sqs_message_count
+    return pdf_count, sqs_message_count, skipped_count
 
 
 def send_sqs_batch(messages: List[Dict[str, str]]):

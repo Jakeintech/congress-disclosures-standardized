@@ -185,7 +185,10 @@ def extract_asset_type(text: str) -> str:
     text_lower = text.lower()
     
     # Check for specific keywords
-    if 'common stock' in text_lower or 'class a' in text_lower or 'class b' in text_lower:
+    # Check for Stock Option first to avoid misclassification as Stock
+    if 'stock option' in text_lower or 'option' in text_lower:
+        return "Stock Option"
+    elif 'stock' in text_lower or 'class a' in text_lower or 'class b' in text_lower:
         return "Stock"
     elif 'bond' in text_lower or 'treasury' in text_lower or 'municipal' in text_lower:
         return "Bond"
@@ -205,8 +208,6 @@ def extract_asset_type(text: str) -> str:
         return "Partnership Interest"
     elif 'llc' in text_lower or 'limited liability' in text_lower:
         return "LLC Interest"
-    elif 'stock option' in text_lower or 'option' in text_lower:
-        return "Stock Option"
     elif 'cryptocurrency' in text_lower or 'bitcoin' in text_lower or 'crypto' in text_lower:
         return "Cryptocurrency"
     else:

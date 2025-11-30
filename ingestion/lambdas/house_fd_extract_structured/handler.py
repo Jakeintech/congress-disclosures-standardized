@@ -1,153 +1,295 @@
-# -*- coding: utf-8 -*-
-"""Lambda handler for structured extraction of House FD PDFs using async Textract.
-
-This Lambda is triggered by the SQS queue `structured-extraction-queue`.
-It uses Textract's asynchronous StartDocumentAnalysis API for multi-page PDFs,
-with SNS notifications for job completion. The results are parsed and mapped to 
-schedules A-I JSON schemas.
-"""
-
 import json
 import logging
 import os
-import time
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List
-
 import boto3
+import sys
+from urllib.parse import unquote_plus
+from datetime import datetime
+import time
+import io
+import pypdf
 
+# Configure logging
 logger = logging.getLogger()
-logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
+logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
 
-# Environment variables
-S3_BUCKET = os.getenv("S3_BUCKET_NAME")
-S3_BRONZE_PREFIX = os.getenv("S3_BRONZE_PREFIX", "bronze")
-S3_SILVER_PREFIX = os.getenv("S3_SILVER_PREFIX", "silver")
-SNS_TOPIC_ARN = os.getenv("TEXTRACT_SNS_TOPIC_ARN")
-TEXTRACT_ROLE_ARN = os.getenv("TEXTRACT_ROLE_ARN")
+# AWS Clients
+s3 = boto3.client('s3')
+textract = boto3.client('textract')
+sqs = boto3.client('sqs')
+dynamodb = boto3.client('dynamodb')
 
-s3 = boto3.client("s3")
-textract = boto3.client("textract")
-dynamodb = boto3.resource("dynamodb")
-documents_table = dynamodb.Table("house_fd_documents")
+# Environment Variables
+S3_BRONZE_PREFIX = os.environ.get('S3_BRONZE_PREFIX', 'bronze')
+S3_SILVER_PREFIX = os.environ.get('S3_SILVER_PREFIX', 'silver')
+TEXTRACT_SNS_TOPIC_ARN = os.environ.get('TEXTRACT_SNS_TOPIC_ARN')
+TEXTRACT_ROLE_ARN = os.environ.get('TEXTRACT_ROLE_ARN')
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """Entry point for SQS events.
 
-    Expected message body (JSON):
-    {
-        "doc_id": "1234567",
-        "year": 2025,
-        "filing_type": "A" (optional),
-        "extraction_method": "pypdf" | "textract",
-        "has_embedded_text": true/false
-    }
+def handler(event, context):
     """
-    for record in event.get("Records", []):
-        try:
-            body = json.loads(record["body"])
-            doc_id = body["doc_id"]
-            year = int(body["year"])
-            filing_type = body.get("filing_type")  # Optional
-            logger.info(f"Starting async Textract extraction for {doc_id} ({year}), type={filing_type}")
-            result = process_document_async(doc_id, year, filing_type)
-            if result["status"] == "success":
-                # Update documents table with json_s3_key
-                update_document_record(doc_id, year, result["json_s3_key"])
-                logger.info(f"✅ Structured JSON uploaded for {doc_id}")
-            elif result["status"] == "started":
-                logger.info(f"⏳ Async Textract job started for {doc_id}: {result['job_id']}")
-            else:
-                logger.warning(f"⚠️ Extraction incomplete for {doc_id}: {result['message']}")
-        except Exception as e:
-            logger.error(f"Error processing SQS record: {e}", exc_info=True)
-    return {"statusCode": 200, "body": json.dumps({"message": "Processing complete"})}
-
-def process_document_async(doc_id: str, year: int, filing_type: str = None) -> Dict[str, Any]:
-    """Start async Textract analysis and poll for results.
-
-    For production, we'd use SNS callbacks. For simplicity now, we'll poll inline
-    if the Lambda has time, otherwise return job_id for later processing.
-
-    Args:
-        doc_id: Document ID
-        year: Filing year
-        filing_type: Optional filing type code (A, P, C, etc.) for path resolution
-
-    Returns a dict with keys:
-        - status: "success", "started", or "partial"
-        - data: the structured JSON (if success)
-        - job_id: Textract job ID (if started)
-        - message: error or partial‑extraction info
+    Lambda handler for processing House Financial Disclosure PDFs.
+    
+    This function handles two types of events:
+    1. S3 Event: Triggered when a new PDF is uploaded to Bronze bucket.
+       - Starts async Textract job
+    2. SQS Event: Triggered when Textract job completes (via SNS -> SQS).
+       - Gets Textract results
+       - Extracts structured data
+       - Saves to Silver bucket
     """
-    # 1️⃣ Construct PDF S3 key (try new structure first, fall back to old)
-    if filing_type:
-        pdf_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type={filing_type}/pdfs/{doc_id}.pdf"
+    logger.info(f"Received event: {json.dumps(event)}")
+
+    # Handle S3 Events (New PDF uploaded)
+    if 'Records' in event and 's3' in event['Records'][0]:
+        return handle_s3_event(event)
+    
+    # Handle SQS Events (Textract completion)
+    elif 'Records' in event and 'body' in event['Records'][0]:
+        return handle_sqs_event(event)
+    
     else:
-        # Try to find PDF in any filing_type partition
-        pdf_key = find_pdf_in_bronze(doc_id, year)
-        if not pdf_key:
-            # Fall back to old structure
-            pdf_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
+        logger.warning("Unknown event type")
+        return {"statusCode": 400, "body": "Unknown event type"}
 
-    # Verify PDF exists
-    try:
-        s3.head_object(Bucket=S3_BUCKET, Key=pdf_key)
-        logger.info(f"Found PDF at: {pdf_key}")
-    except Exception as e:
-        return {"status": "partial", "message": f"Failed to find PDF at {pdf_key}: {e}"}
 
-    # 2️⃣ Start async Textract job
-    try:
-        response = textract.start_document_analysis(
-            DocumentLocation={
-                "S3Object": {
-                    "Bucket": S3_BUCKET,
-                    "Name": pdf_key
-                }
-            },
-            FeatureTypes=["FORMS", "TABLES"]
-        )
-        job_id = response["JobId"]
-        logger.info(f"Started Textract job {job_id} for doc_id={doc_id}")
-    except Exception as e:
-        return {"status": "partial", "message": f"Failed to start Textract: {e}"}
-
-    # 3️⃣ Poll for completion (with timeout)
-    max_wait_time = 60  # seconds
-    poll_interval = 2   # seconds
-    elapsed = 0
-    
-    while elapsed < max_wait_time:
-        time.sleep(poll_interval)
-        elapsed += poll_interval
+def handle_s3_event(event):
+    """Handle new PDF upload to S3."""
+    for record in event['Records']:
+        bucket = record['s3']['bucket']['name']
+        key = unquote_plus(record['s3']['object']['key'])
         
+        logger.info(f"Processing new file: s3://{bucket}/{key}")
+        
+        # Parse key to get metadata
+        # Expected format: bronze/house/financial/year=YYYY/filing_type=Type/pdfs/DOCID.pdf
         try:
-            status_response = textract.get_document_analysis(JobId=job_id)
-            status = status_response["JobStatus"]
+            parts = key.split('/')
+            filename = parts[-1]
+            doc_id = filename.replace('.pdf', '')
             
-            if status == "SUCCEEDED":
-                logger.info(f"Textract job {job_id} completed successfully")
-                blocks = get_all_blocks(job_id)
-                structured = parse_textract_blocks(doc_id, year, blocks)
-                json_s3_key = upload_structured_json(doc_id, year, structured)
-                return {"status": "success", "data": structured, "json_s3_key": json_s3_key}
-            elif status == "FAILED":
-                return {"status": "partial", "message": f"Textract job failed: {status_response.get('StatusMessage', 'Unknown error')}"}
-            elif status in ["IN_PROGRESS", "QUEUED"]:
-                logger.debug(f"Job {job_id} still {status}, waiting...")
-                continue
+            # Extract year and filing_type from path if available
+            year = None
+            filing_type = None
+            
+            for part in parts:
+                if part.startswith('year='):
+                    year = int(part.split('=')[1])
+                elif part.startswith('filing_type='):
+                    filing_type = part.split('=')[1]
+            
+            if not year:
+                # Fallback for old structure
+                # bronze/house/financial/year=YYYY/pdfs/YYYY/DOCID.pdf
+                # or bronze/house/financial/year=YYYY/pdfs/DOCID.pdf
+                if 'year=' in key:
+                    year_part = [p for p in parts if p.startswith('year=')][0]
+                    year = int(year_part.split('=')[1])
+                else:
+                    year = datetime.now().year # Fallback
+            
+            logger.info(f"Identified doc_id={doc_id}, year={year}, filing_type={filing_type}")
+            
+            # 1. Try Code-Based Extraction First (Fast, Cheap)
+            try:
+                logger.info("Attempting code-based extraction first...")
+                
+                # Download PDF bytes
+                response = s3.get_object(Bucket=bucket, Key=key)
+                pdf_bytes = response['Body'].read()
+                
+                # Extract text using pypdf
+                pdf_file = io.BytesIO(pdf_bytes)
+                reader = pypdf.PdfReader(pdf_file)
+                text = ""
+                for page in reader.pages:
+                    text += page.extract_text() + "\n"
+                
+                # Determine extractor based on filing type
+                extractor = get_extractor_for_type(filing_type)
+                
+                if extractor:
+                    # Attempt extraction
+                    structured_data = extractor.extract_from_text(text)
+                    
+                    # Check confidence
+                    confidence = structured_data.get("metadata", {}).get("confidence_score", 0.0)
+                    textract_recommended = structured_data.get("data_quality", {}).get("textract_recommended", False)
+                    
+                    if confidence >= 0.85 and not textract_recommended:
+                        logger.info(f"Code-based extraction successful (Confidence: {confidence}). Skipping Textract.")
+                        
+                        # Save to Silver
+                        save_structured_data(bucket, doc_id, year, filing_type, structured_data)
+                        return {"statusCode": 200, "body": "Processed with code-based extraction"}
+                    else:
+                        logger.info(f"Code-based extraction confidence low ({confidence}). Falling back to Textract.")
+                else:
+                    logger.info(f"No specific extractor for type {filing_type}. Falling back to Textract.")
+                    
+            except Exception as e:
+                logger.error(f"Code-based extraction failed: {e}", exc_info=True)
+                # Continue to Textract fallback
+            
+            # 2. Fallback to Textract (Slow, Expensive)
+            logger.info("Starting Textract job...")
+            response = textract.start_document_analysis(
+                DocumentLocation={
+                    'S3Object': {
+                        'Bucket': bucket,
+                        'Name': key
+                    }
+                },
+                FeatureTypes=['TABLES', 'FORMS'],
+                NotificationChannel={
+                    'SNSTopicArn': TEXTRACT_SNS_TOPIC_ARN,
+                    'RoleArn': TEXTRACT_ROLE_ARN
+                },
+                JobTag=doc_id
+            )
+            
+            job_id = response['JobId']
+            logger.info(f"Started Textract Job: {job_id}")
+            
         except Exception as e:
-            logger.error(f"Error polling Textract job {job_id}: {e}")
-            return {"status": "partial", "message": f"Error polling job: {e}"}
-    
-    # Timeout - job is still running
-    logger.warning(f"Textract job {job_id} timeout, will need async completion handler")
-    return {"status": "started", "job_id": job_id, "doc_id": doc_id, "year": year}
+            logger.error(f"Error processing S3 event: {e}")
+            raise e
+            
+    return {"statusCode": 200, "body": "S3 event processed"}
 
-def get_all_blocks(job_id: str) -> List[Dict[str, Any]]:
-    """Get all blocks from a Textract job, handling pagination."""
+
+def handle_sqs_event(event):
+    """Handle SQS message (Textract completion)."""
+    for record in event['Records']:
+        body = json.loads(record['body'])
+        message = json.loads(body['Message'])
+        
+        job_id = message['JobId']
+        status = message['Status']
+        doc_id = message['JobTag'] # We used doc_id as JobTag
+        
+        logger.info(f"Processing Textract completion for JobId={job_id}, DocId={doc_id}, Status={status}")
+        
+        if status == 'SUCCEEDED':
+            try:
+                # Get full Textract results
+                blocks = get_textract_results(job_id)
+                
+                # We need to reconstruct the S3 key to know the year/filing_type
+                # Since we don't have it in the SQS message, we have to find the PDF
+                # Or we could have stored it in DynamoDB when starting the job.
+                # For now, let's search for the PDF in Bronze to get metadata
+                
+                # Try to find year from doc_id (often contains year) or search S3
+                # This is a bit inefficient, ideally we pass metadata through
+                year = 2024 # Default
+                filing_type = None
+                
+                # Attempt to find the file to get metadata
+                pdf_key = find_pdf_in_bronze(doc_id)
+                if pdf_key:
+                    parts = pdf_key.split('/')
+                    for part in parts:
+                        if part.startswith('year='):
+                            year = int(part.split('=')[1])
+                        elif part.startswith('filing_type='):
+                            filing_type = part.split('=')[1]
+                
+                # Parse blocks
+                structured_data = parse_textract_blocks(doc_id, year, filing_type, blocks)
+                
+                # Save to Silver
+                # We need the bucket name, assume same as Bronze prefix
+                bucket = os.environ.get('S3_BUCKET_NAME') 
+                save_structured_data(bucket, doc_id, year, filing_type, structured_data)
+                
+            except Exception as e:
+                logger.error(f"Error processing Textract results: {e}")
+                raise e
+        else:
+            logger.error(f"Textract job failed: {status}")
+            
+    return {"statusCode": 200, "body": "SQS event processed"}
+
+
+def get_extractor_for_type(filing_type):
+    """Get the appropriate extractor class for the filing type."""
+    sys.path.insert(0, '/opt/python')  # Lambda layer path
+    
+    try:
+        if filing_type in ["Annual Report", "Candidate Report", "Form A", "Form B", "A", "B", "N"]:
+            from ingestion.lib.extractors.type_a_b_annual.extractor import TypeABAnnualExtractor
+            return TypeABAnnualExtractor()
+            
+        elif filing_type in ["Periodic Transaction Report", "PTR", "P"]:
+            # PTR is handled by a separate pipeline usually, but if routed here:
+            from ingestion.lib.extractors.ptr_extractor import PTRExtractor
+            return PTRExtractor()
+            
+        elif filing_type in ["Extension Request", "Extension", "X"]:
+            from ingestion.lib.extractors.type_x_extension_request.extractor import TypeXExtensionRequestExtractor
+            return TypeXExtensionRequestExtractor()
+            
+        elif filing_type in ["Campaign Notice", "D"]:
+            from ingestion.lib.extractors.type_d_campaign_notice.extractor import TypeDCampaignNoticeExtractor
+            return TypeDCampaignNoticeExtractor()
+            
+        elif filing_type in ["Withdrawal Notice", "W"]:
+            from ingestion.lib.extractors.type_w_withdrawal_notice.extractor import TypeWWithdrawalNoticeExtractor
+            return TypeWWithdrawalNoticeExtractor()
+            
+        elif filing_type in ["Termination Report", "Termination", "T"]:
+            from ingestion.lib.extractors.type_t_termination.extractor import TypeTTerminationExtractor
+            return TypeTTerminationExtractor()
+            
+    except ImportError as e:
+        logger.warning(f"Could not import extractor for {filing_type}: {e}")
+        return None
+        
+    return None
+
+
+def parse_textract_blocks(doc_id, year, filing_type, blocks):
+    """Parse Textract blocks into structured data using specific extractors."""
+    
+    # If filing_type is unknown, try to classify
+    if not filing_type:
+        filing_type = classify_document_type(blocks)
+        logger.info(f"Classified document as: {filing_type}")
+    
+    extractor = get_extractor_for_type(filing_type)
+    
+    if extractor:
+        # Most extractors now support extract_from_textract
+        # But we prefer extract_from_text if possible. 
+        # Since we are here, code-based failed or wasn't confident.
+        # So we use the Textract-specific method if available
+        if hasattr(extractor, 'extract_from_textract'):
+            return extractor.extract_from_textract(doc_id, year, blocks)
+    
+    # Generic fallback if no specific extractor or method
+    logger.warning(f"No specific Textract extractor for {filing_type}, using generic.")
+    return generic_textract_parse(doc_id, year, blocks)
+
+
+def save_structured_data(bucket, doc_id, year, filing_type, data):
+    """Save structured JSON to Silver layer."""
+    if not filing_type:
+        filing_type = data.get('filing_type', 'Unknown')
+        
+    key = f"{S3_SILVER_PREFIX}/house/financial/year={year}/filing_type={filing_type}/json/{doc_id}.json"
+    
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=json.dumps(data, indent=2),
+        ContentType='application/json'
+    )
+    logger.info(f"Saved structured data to s3://{bucket}/{key}")
+
+
+def get_textract_results(job_id):
+    """Retrieve all blocks from Textract job (handling pagination)."""
     blocks = []
     next_token = None
     
@@ -156,461 +298,80 @@ def get_all_blocks(job_id: str) -> List[Dict[str, Any]]:
             response = textract.get_document_analysis(JobId=job_id, NextToken=next_token)
         else:
             response = textract.get_document_analysis(JobId=job_id)
-        
-        blocks.extend(response.get("Blocks", []))
-        next_token = response.get("NextToken")
+            
+        blocks.extend(response['Blocks'])
+        next_token = response.get('NextToken')
         
         if not next_token:
             break
-    
+            
     return blocks
 
-def parse_textract_blocks(doc_id: str, year: int, blocks: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Parse Textract blocks into structured JSON with schedules A-I.
 
-    This is a comprehensive parser that extracts:
-    - Document header fields (Filing ID, Name, Status, etc.)
-    - Checkboxes (using SELECTION_ELEMENT blocks)
-    - Key-value pairs from FORMS
-    - Table data from TABLES with enhanced parsing (codes, locations, descriptions)
-    - Maps them to the appropriate schedules
-
-    Routes to specialized extractors based on filing type.
-    """
-    # Build block map for relationship lookups
-    block_map = {block["Id"]: block for block in blocks}
-
-    # Extract key-value pairs
-    kv_pairs = extract_key_value_pairs(blocks, block_map)
-
-    # Classify document type first
-    filing_type = classify_document_type(blocks, kv_pairs)
-
-    # Route to specialized extractors based on filing type
-    if filing_type in ["Annual Report", "Candidate Report", "Form A", "Form B"]:
-        # Use FormABExtractor for Form A/B filings
-        try:
-            import sys
-            sys.path.insert(0, '/opt/python')  # Lambda layer path
-            from extractors.form_ab_extractor import FormABExtractor
-
-            extractor = FormABExtractor()
-            structured = extractor.extract_from_textract(doc_id, year, blocks)
-            logger.info(f"Used FormABExtractor for {filing_type} filing")
-            return structured
-        except ImportError as e:
-            logger.warning(f"FormABExtractor not available, falling back to generic: {e}")
-            # Fall through to generic extraction below
-
-    elif filing_type == "Extension Request":
-        # Use ExtensionRequestExtractor for Type X filings
-        try:
-            import sys
-            sys.path.insert(0, '/opt/python')  # Lambda layer path
-            from extractors.extension_request_extractor import ExtensionRequestExtractor
-
-            extractor = ExtensionRequestExtractor()
-            structured = extractor.extract_from_textract(doc_id, year, blocks)
-            logger.info(f"Used ExtensionRequestExtractor for {filing_type} filing")
-            return structured
-        except ImportError as e:
-            logger.warning(f"ExtensionRequestExtractor not available, falling back to generic: {e}")
-            # Fall through to generic extraction below
-
-    elif filing_type == "Campaign Notice":
-        # Use CampaignNoticeExtractor for Type D filings
-        try:
-            import sys
-            sys.path.insert(0, '/opt/python')  # Lambda layer path
-            from extractors.campaign_notice_extractor import CampaignNoticeExtractor
-
-            extractor = CampaignNoticeExtractor()
-            structured = extractor.extract_from_textract(doc_id, year, blocks)
-            logger.info(f"Used CampaignNoticeExtractor for {filing_type} filing")
-            return structured
-        except ImportError as e:
-            logger.warning(f"CampaignNoticeExtractor not available, falling back to generic: {e}")
-
-    elif filing_type == "Withdrawal Notice":
-        # Use WithdrawalNoticeExtractor for Type W filings
-        try:
-            import sys
-            sys.path.insert(0, '/opt/python')  # Lambda layer path
-            from extractors.withdrawal_notice_extractor import WithdrawalNoticeExtractor
-
-            extractor = WithdrawalNoticeExtractor()
-            structured = extractor.extract_from_textract(doc_id, year, blocks)
-            logger.info(f"Used WithdrawalNoticeExtractor for {filing_type} filing")
-            return structured
-        except ImportError as e:
-            logger.warning(f"WithdrawalNoticeExtractor not available, falling back to generic: {e}")
-
-    # Generic extraction for other filing types (PTR, etc.)
-    # Extract document header
-    header = extract_document_header(blocks, kv_pairs)
-
-    # Extract checkboxes
-    checkboxes = extract_checkboxes(blocks, block_map)
-
-    # Extract tables with enhanced parsing
-    tables = extract_tables_enhanced(blocks, block_map)
-
-    # Map to schedules using content-based classification
-    structured = {
-        "doc_id": doc_id,
-        "year": year,
-        "filing_type": filing_type,
-        "document_header": header,
-        "checkboxes": checkboxes,
-        "extraction_timestamp": datetime.utcnow().isoformat(),
-        "extraction_method": "textract_async_enhanced",
-        "total_pages": get_page_count(blocks),
-        "schedules": map_to_schedules(kv_pairs, tables, blocks)
-    }
-
-    return structured
-
-def classify_document_type(blocks: List[Dict], kv_pairs: Dict[str, str]) -> str:
-    """Classify the document type based on text content and form fields."""
-    # 1. Check explicit form fields
-    if "Filing Type" in kv_pairs:
-        return kv_pairs["Filing Type"]
-        
-    # 2. Check first page text for keywords
-    first_page_text = " ".join([
-        b["Text"].upper() 
-        for b in blocks 
-        if b["BlockType"] == "LINE" and b.get("Page", 1) == 1
-    ])
+def find_pdf_in_bronze(doc_id):
+    """Find PDF key in Bronze bucket given doc_id."""
+    # This is a helper to find the file if we lost the path context
+    # In a real production system, we'd query a DynamoDB index
+    bucket = os.environ.get('S3_BUCKET_NAME')
+    prefix = f"{S3_BRONZE_PREFIX}/house/financial/"
     
-    if "PERIODIC TRANSACTION REPORT" in first_page_text:
-        return "Periodic Transaction Report"
-    elif "EXTENSION REQUEST" in first_page_text:
-        return "Extension Request"
-    elif "FINANCIAL DISCLOSURE REPORT" in first_page_text:
-        if "AMENDMENT" in first_page_text:
-            return "Amendment"
-        elif "CANDIDATE" in first_page_text or "NEW FILER" in first_page_text:
-            return "Candidate Report"
-        elif "TERMINATION" in first_page_text or "TERMINATED FILER" in first_page_text:
-            return "Termination Report"
-        return "Annual Report"
-    elif "CAMPAIGN NOTICE" in first_page_text:
-        if "WITHDRAWAL" in first_page_text:
-            return "Withdrawal Notice"
-        return "Campaign Notice"
-    elif "GIFT" in first_page_text and "WAIVER" in first_page_text:
-        return "Gift Waiver Request"
+    # List objects is inefficient but works for fallback
+    paginator = s3.get_paginator('list_objects_v2')
+    for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+        if 'Contents' in page:
+            for obj in page['Contents']:
+                if obj['Key'].endswith(f"/{doc_id}.pdf"):
+                    return obj['Key']
+    return None
 
+
+def classify_document_type(blocks):
+    """Classify document type from Textract blocks."""
+    # Simple keyword search on first page
+    text = ""
+    for block in blocks:
+        if block['BlockType'] == 'LINE' and block.get('Page', 1) == 1:
+            text += block['Text'] + "\n"
+            
+    text = text.upper()
+    
+    if "PERIODIC TRANSACTION REPORT" in text:
+        return "PTR"
+    elif "EXTENSION REQUEST" in text:
+        return "Extension Request"
+    elif "CAMPAIGN NOTICE" in text:
+        return "Campaign Notice"
+    elif "WITHDRAWAL" in text:
+        return "Withdrawal Notice"
+    elif "TERMINATION" in text:
+        return "Termination Report"
+    elif "FINANCIAL DISCLOSURE REPORT" in text:
+        return "Annual Report"
+        
     return "Unknown"
 
-def extract_document_header(blocks: List[Dict], kv_pairs: Dict[str, str]) -> Dict:
-    """Extract document header fields from key-value pairs."""
-    return {
-        "filing_id": kv_pairs.get("Filing ID", ""),
-        "filer_name": kv_pairs.get("Name", ""),
-        "status": kv_pairs.get("Status", ""),
-        "state_district": kv_pairs.get("State/District", ""),
-        "filing_type": kv_pairs.get("Filing Type", ""),
-        "filing_year": kv_pairs.get("Filing Year", ""),
-        "filing_date": kv_pairs.get("Filing Date", "")
-    }
 
-def extract_checkboxes(blocks: List[Dict], block_map: Dict) -> Dict:
-    """Extract checkbox states using SELECTION_ELEMENT blocks."""
-    import re
-    
-    checkboxes = {}
-    
-    for block in blocks:
-        if block.get("BlockType") == "SELECTION_ELEMENT":
-            is_selected = block.get("SelectionStatus") == "SELECTED"
-            
-            # Find nearby text to identify which checkbox this is
-            page = block.get("Page", 1)
-            bbox = block.get("Geometry", {}).get("BoundingBox", {})
-            
-            # Look for text blocks on the same line (similar Y coordinate)
-            nearby_text = []
-            for other_block in blocks:
-                if (other_block.get("BlockType") == "LINE" and 
-                    other_block.get("Page") == page):
-                    other_bbox = other_block.get("Geometry", {}).get("BoundingBox", {})
-                    # Check if roughly on same line (Y coordinates close)
-                    if abs(bbox.get("Top", 0) - other_bbox.get("Top", 0)) < 0.02:
-                        nearby_text.append(other_block.get("Text", ""))
-            
-            # Try to classify based on nearby text
-            context = " ".join(nearby_text).upper()
-            
-            if "IPO" in context or "INITIAL PUBLIC OFFERING" in context:
-                checkboxes["ipo_participation"] = is_selected
-            elif "TRUST" in context:
-                checkboxes["qualified_blind_trusts"] = is_selected
-            elif "EXEMPTION" in context:
-                checkboxes["has_exemptions"] = is_selected
-            elif "TX" in context and "1,000" in context:
-                # This is per-row checkbox, handle in table parsing
-                pass
-            elif "CAP" in context and "GAINS" in context:
-                # This is per-row checkbox, handle in table parsing
-                pass
-    
-    return checkboxes
-
-def extract_tables_enhanced(blocks: List[Dict], block_map: Dict) -> List[Dict]:
-    """Extract tables with enhanced cell parsing for codes and metadata."""
-    import re
-    
-    tables = []
-    
-    for block in blocks:
-        if block["BlockType"] == "TABLE":
-            table_data = parse_table_block_enhanced(block, block_map)
-            tables.append(table_data)
-    
-    return tables
-
-def parse_table_block_enhanced(table_block: Dict, block_map: Dict) -> Dict:
-    """Parse a single TABLE block with enhanced cell parsing."""
-    import re
-    
-    rows = {}
-    
-    if "Relationships" in table_block:
-        for relationship in table_block["Relationships"]:
-            if relationship["Type"] == "CHILD":
-                for cell_id in relationship["Ids"]:
-                    cell = block_map.get(cell_id)
-                    if cell and cell["BlockType"] == "CELL":
-                        row_index = cell.get("RowIndex", 0)
-                        col_index = cell.get("ColumnIndex", 0)
-                        
-                        if row_index not in rows:
-                            rows[row_index] = {}
-                        
-                        # Enhanced cell parsing
-                        cell_text = get_text_from_block(cell, block_map, "Cell")
-                        parsed_cell = parse_cell_with_metadata(cell_text)
-                        
-                        rows[row_index][col_index] = parsed_cell
-    
-    return {"rows": [rows.get(i, {}) for i in sorted(rows.keys())]}
-
-def parse_cell_with_metadata(cell_text: str) -> Dict:
-    """Parse cell to extract codes, locations, descriptions."""
-    import re
-    
-    result = {"value": cell_text}
-    
-    if not cell_text or not cell_text.strip():
-        return result
-    
-    # Extract asset type code [XX]
-    type_match = re.search(r'\[([A-Z]{2})\]', cell_text)
-    if type_match:
-        result["asset_type_code"] = type_match.group(1)
-        # Remove code from value
-        result["value"] = cell_text.replace(type_match.group(0), "").strip()
-    
-    # Extract owner code (SP, JT, DC at start)
-    owner_match = re.match(r'^(SP|JT|DC)\s+(.+)', cell_text)
-    if owner_match:
-        result["owner_code"] = owner_match.group(1)
-        result["value"] = owner_match.group(2)
-    
-    # Extract location
-    location_match = re.search(r'LOCATION:\s*(.+?)(?:\n|$)', cell_text, re.IGNORECASE)
-    if location_match:
-        result["location"] = location_match.group(1).strip()
-    
-    # Extract description
-    desc_match = re.search(r'DESCRIPTION:\s*(.+?)(?:\n|$)', cell_text, re.IGNORECASE)
-    if desc_match:
-        result["description"] = desc_match.group(1).strip()
-    
-    # Extract transaction type (single letter: P, S, E)
-    if len(cell_text.strip()) == 1 and cell_text.strip() in ['P', 'S', 'E']:
-        result["transaction_type_code"] = cell_text.strip()
-    
-    return result
-
-def extract_key_value_pairs(blocks: List[Dict], block_map: Dict) -> Dict[str, str]:
-    """Extract form key-value pairs from Textract blocks."""
+def generic_textract_parse(doc_id, year, blocks):
+    """Generic parser for unknown document types."""
+    # Just dump the raw text and key-values
+    text = ""
     kv_pairs = {}
     
+    block_map = {b['Id']: b for b in blocks}
+    
     for block in blocks:
-        if block["BlockType"] == "KEY_VALUE_SET" and "KEY" in block.get("EntityTypes", []):
-            key_text = get_text_from_block(block, block_map, "Key")
-            value_block = get_value_block(block, block_map)
-            value_text = get_text_from_block(value_block, block_map, "Value") if value_block else ""
-            
-            if key_text:
-                kv_pairs[key_text] = value_text
-    
-    return kv_pairs
-
-
-
-def get_text_from_block(block: Dict, block_map: Dict, context: str = "") -> str:
-    """Extract text from a block and its child WORD blocks."""
-    if not block:
-        return ""
-    
-    text_parts = []
-    
-    if "Relationships" in block:
-        for relationship in block["Relationships"]:
-            if relationship["Type"] == "CHILD":
-                for child_id in relationship["Ids"]:
-                    child = block_map.get(child_id)
-                    if child and child["BlockType"] == "WORD":
-                        text_parts.append(child.get("Text", ""))
-    
-    return " ".join(text_parts).strip()
-
-def get_value_block(key_block: Dict, block_map: Dict) -> Dict:
-    """Get the VALUE block associated with a KEY block."""
-    if "Relationships" in key_block:
-        for relationship in key_block["Relationships"]:
-            if relationship["Type"] == "VALUE":
-                for value_id in relationship["Ids"]:
-                    value_block = block_map.get(value_id)
-                    if value_block and "VALUE" in value_block.get("EntityTypes", []):
-                        return value_block
-    return None
-
-def get_page_count(blocks: List[Dict]) -> int:
-    """Count unique pages in blocks."""
-    pages = set()
-    for block in blocks:
-        if "Page" in block:
-            pages.add(block["Page"])
-    return len(pages)
-
-def map_to_schedules(kv_pairs: Dict[str, str], tables: List[Dict], blocks: List[Dict]) -> Dict:
-    """Map extracted data to schedules A-I using content-based classification.
-    
-    Logic:
-    Inspects the first row (header) of each table to identify keywords specific to each schedule.
-    """
-    schedules = {
-        "A": {"type": "Assets", "data": [], "tables": []},
-        "B": {"type": "Transactions", "data": [], "tables": []},
-        "C": {"type": "Earned Income", "data": [], "tables": []},
-        "D": {"type": "Liabilities", "data": [], "tables": []},
-        "E": {"type": "Positions", "data": [], "tables": []},
-        "F": {"type": "Agreements", "data": [], "tables": []},
-        "G": {"type": "Gifts", "data": [], "tables": []},
-        "H": {"type": "Travel", "data": [], "tables": []},
-        "I": {"type": "Charity", "data": [], "tables": []},
-    }
-    
-    for table in tables:
-        rows = table.get("rows", [])
-        if not rows:
-            continue
-            
-        # Get header text (first row values concatenated)
-        header_text = " ".join(str(val).upper() for val in rows[0].values())
-        
-        # Classification Rules
-        target_schedule = "Unknown"
-        
-        if "ASSET" in header_text and "INCOME" in header_text and "TX." not in header_text:
-            target_schedule = "A" # Assets
-        elif "ASSET" in header_text and ("TRANSACTION" in header_text or "TX." in header_text):
-            target_schedule = "B" # Transactions
-        elif "SOURCE" in header_text and "TYPE" in header_text and "AMOUNT" in header_text:
-            target_schedule = "C" # Earned Income (often shares headers with E)
-            # Disambiguation: Schedule C usually has "Amount", E usually doesn't or is "Positions"
-            if "POSITION" in header_text:
-                target_schedule = "E"
-        elif "CREDITOR" in header_text or "LIABILITY" in header_text:
-            target_schedule = "D" # Liabilities
-        elif "POSITION" in header_text:
-            target_schedule = "E" # Positions
-        elif "PARTIES TO" in header_text or "TERMS OF AGREEMENT" in header_text:
-            target_schedule = "F" # Agreements
-        elif "GIFT" in header_text or ("SOURCE" in header_text and "VALUE" in header_text):
-            target_schedule = "G" # Gifts
-        elif "SOURCE" in header_text and "CITY" in header_text:
-            target_schedule = "H" # Travel
-        elif "CHARITY" in header_text:
-            target_schedule = "I" # Charity
-            
-        # Fallback: if we can't classify, check if it looks like continuation of previous
-        # For now, just append to "Unknown" or log warning
-        
-        if target_schedule in schedules:
-            schedules[target_schedule]["tables"].append(table)
-        else:
-            # Try to disambiguate C vs E based on content if headers are generic
+        if block['BlockType'] == 'LINE':
+            text += block['Text'] + "\n"
+        elif block['BlockType'] == 'KEY_VALUE_SET' and 'KEY' in block.get('EntityTypes', []):
+            # Extract KV (simplified)
             pass
-
-    return schedules
-
-def upload_structured_json(doc_id: str, year: int, data: Dict[str, Any]) -> str:
-    """Write the structured JSON to the silver layer and return the S3 key."""
-    json_key = f"{S3_SILVER_PREFIX}/house/financial/structured/year={year}/doc_id={doc_id}.json"
-    s3.put_object(
-        Bucket=S3_BUCKET,
-        Key=json_key,
-        Body=json.dumps(data, indent=2).encode("utf-8"),
-        ContentType="application/json"
-    )
-    logger.info(f"Uploaded JSON to s3://{S3_BUCKET}/{json_key}")
-    return json_key
-
-def update_document_record(doc_id: str, year: int, json_s3_key: str):
-    """Update the documents DynamoDB table with the json_s3_key."""
-    try:
-        documents_table.update_item(
-            Key={"doc_id": doc_id, "year": year},
-            UpdateExpression="SET json_s3_key = :jsk, json_extraction_timestamp = :ts",
-            ExpressionAttributeValues={
-                ":jsk": json_s3_key,
-                ":ts": datetime.utcnow().isoformat()
-            }
-        )
-        logger.info(f"Updated documents table for {doc_id} with json_s3_key")
-    except Exception as e:
-        logger.error(f"Failed to update documents table for {doc_id}: {e}")
-
-def find_pdf_in_bronze(doc_id: str, year: int) -> Optional[str]:
-    """Find PDF in Bronze layer by searching across filing_type partitions.
-
-    Args:
-        doc_id: Document ID
-        year: Filing year
-
-    Returns:
-        S3 key to PDF, or None if not found
-    """
-    # List all filing_type partitions
-    prefix = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type="
-
-    try:
-        response = s3.list_objects_v2(
-            Bucket=S3_BUCKET,
-            Prefix=prefix,
-            Delimiter='/'
-        )
-
-        # Get all filing_type prefixes
-        for prefix_info in response.get('CommonPrefixes', []):
-            filing_type_prefix = prefix_info['Prefix']
-            # Try to find PDF in this partition
-            pdf_key = f"{filing_type_prefix}pdfs/{doc_id}.pdf"
-
-            try:
-                s3.head_object(Bucket=S3_BUCKET, Key=pdf_key)
-                logger.info(f"Found PDF at: {pdf_key}")
-                return pdf_key
-            except:
-                continue  # Try next partition
-
-    except Exception as e:
-        logger.warning(f"Error searching for PDF in Bronze: {e}")
-
-    return None
+            
+    return {
+        "doc_id": doc_id,
+        "year": year,
+        "filing_type": "Unknown",
+        "raw_text": text,
+        "metadata": {
+            "extraction_method": "generic_textract"
+        }
+    }

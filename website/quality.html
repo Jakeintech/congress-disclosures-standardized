@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Quality - Congress Financial Disclosures</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .flagged-row {
+            background-color: hsl(var(--destructive) / 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🛡️ Document Quality Audit</h2>
+                        <p class="card-description">Tracking the quality and machine-readability of financial
+                            disclosures
+                        </p>
+                    </div>
+                    <div class="card-content">
+                        <!-- Stats -->
+                        <div class="stats-grid" id="quality-stats">
+                            <div class="stat-card">
+                                <div class="stat-value" id="quality-total-members">-</div>
+                                <div class="stat-label">Total Members</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="quality-flagged" style="color: hsl(var(--destructive));">-
+                                </div>
+                                <div class="stat-label">Flagged (Hard to Process)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="quality-avg-score">-</div>
+                                <div class="stat-label">Avg Quality Score</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="quality-updated" style="font-size: 1rem;">-</div>
+                                <div class="stat-label">Last Updated</div>
+                            </div>
+                        </div>
+
+                        <!-- Info Alert -->
+                        <div class="alert alert-info" style="margin-top: 2rem;">
+                            <div class="alert-title">ℹ️ About Quality Scores</div>
+                            <div class="alert-description">
+                                <p>We analyze every disclosure to determine its machine-readability. Scores range from
+                                    <strong>0-100</strong>.
+                                </p>
+                                <ul style="list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem;">
+                                    <li><strong>Excellent (90-100):</strong> Native digital PDFs, easily extracted.</li>
+                                    <li><strong>Good (70-89):</strong> Mostly clean, some OCR required.</li>
+                                    <li><strong>Fair (50-69):</strong> Scanned images, mixed quality.</li>
+                                    <li><strong>Poor (< 50):</strong> Low-quality scans, handwriting, hard to process.
+                                    </li>
+                                </ul>
+                                <p style="margin-top: 0.5rem;"><strong>Flagged Members</strong> consistently submit
+                                    documents that are difficult to process automatically.</p>
+                                <p id="quality-total-filers-note"
+                                    style="margin-top: 0.5rem; font-size: 0.8rem; color: hsl(var(--muted-foreground));">
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Filters -->
+                        <div class="filters">
+                            <input type="text" id="quality-search" placeholder="Search member, state, or party..."
+                                class="input">
+                            <div class="filter-grid">
+                                <select id="quality-party-filter" class="select">
+                                    <option value="">All Parties</option>
+                                    <option value="D">Democrat</option>
+                                    <option value="R">Republican</option>
+                                    <option value="I">Independent</option>
+                                </select>
+                                <select id="quality-category-filter" class="select">
+                                    <option value="">All Categories</option>
+                                    <option value="Excellent">Excellent</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                    <option value="Poor">Poor</option>
+                                </select>
+                                <select id="quality-flagged-filter" class="select">
+                                    <option value="">All Statuses</option>
+                                    <option value="true">Flagged Only</option>
+                                    <option value="false">OK Only</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div id="quality-loading" class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Loading quality data...</p>
+                        </div>
+
+                        <!-- Error State -->
+                        <div id="quality-error" class="error-state hidden">
+                            <p>Unable to load quality data.</p>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div id="quality-data-section" class="data-section hidden">
+                            <div class="table-actions">
+                                <span id="quality-showing-count" class="text-muted">Showing 0 members</span>
+                                <button id="quality-export-csv" class="btn btn-secondary">Export CSV</button>
+                            </div>
+
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th data-sort="full_name">Member</th>
+                                            <th data-sort="party">Party</th>
+                                            <th data-sort="state_district">State</th>
+                                            <th data-sort="total_filings">Filings</th>
+                                            <th data-sort="image_pdf_pct" title="% of filings that are images">Image %
+                                            </th>
+                                            <th data-sort="avg_confidence_score">Avg Conf</th>
+                                            <th data-sort="quality_score">Score</th>
+                                            <th data-sort="quality_category">Category</th>
+                                            <th data-sort="is_hard_to_process">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="quality-table-body">
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="pagination" id="quality-pagination">
+                                <button id="quality-prev-page" class="btn btn-secondary" disabled>Previous</button>
+                                <span id="quality-page-info">Page 1</span>
+                                <button id="quality-next-page" class="btn btn-secondary">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="nav.js"></script>
+    <script src="quality.js"></script>
+</body>
+
+</html>

@@ -319,7 +319,7 @@ reset-and-run-all: ## Full System Reset & Run: Deploy Infra -> Reset Data -> Run
 	@echo "1. Deploying Infrastructure (Terraform)..."
 	@$(MAKE) deploy-all-lambdas
 	@echo "2. Resetting Data (Clearing S3 & Queues)..."
-	@$(PYTHON) scripts/reset_pipeline.py --force
+	@$(PYTHON) scripts/reset_pipeline.py --force --include-bronze
 	@echo "3. Running Pipeline (Full Reset Mode)..."
 	@$(PYTHON) scripts/run_smart_pipeline.py --mode full --year 2025
 	@echo "4. Validating Pipeline Integrity..."

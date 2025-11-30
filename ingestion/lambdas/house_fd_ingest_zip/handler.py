@@ -4,7 +4,7 @@ This Lambda:
 1. Downloads YEARFD.zip from House website
 2. Uploads raw zip to S3 bronze layer
 3. Extracts and uploads index files (XML, TXT)
-4. Extracts and uploads individual PDFs
+4. Extracts and uploads individual PDFs (from zip OR individual downloads)
 5. Sends extraction jobs to SQS queue
 """
 
@@ -14,6 +14,7 @@ import logging
 import os
 import time
 import zipfile
+import concurrent.futures
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
@@ -85,11 +86,6 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         logger.info("Step 4: Extracting and uploading PDFs")
         skip_existing = event.get("skip_existing", False)
         pdf_count, sqs_message_count, skipped_count = extract_and_upload_pdfs(zip_bytes, year, filing_type_map, skip_existing)
-
-        # Trigger index-to-silver Lambda (synchronous)
-        # DEPRECATED: Decoupled for orchestration
-        # logger.info("Step 5: Triggering index-to-silver Lambda")
-        # trigger_index_to_silver(year)
 
         result = {
             "status": "success",
@@ -271,113 +267,70 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int, filing_type_map: Dict[s
 
     Returns:
         Tuple of (pdf_count, sqs_message_count, skipped_count)
-
-    Raises:
-        Exception: If extraction fails
     """
     pdf_count = 0
     skipped_count = 0
     sqs_message_count = 0
     sqs_messages_batch = []
-
+    
+    # Check if zip contains PDFs
+    has_pdfs_in_zip = False
     with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
         for filename in zf.namelist():
             if filename.lower().endswith(".pdf"):
-                pdf_count += 1
-
-                # Extract doc_id from filename (e.g., "8221216.pdf" -> "8221216")
-                doc_id = Path(filename).stem
-
-                logger.debug(
-                    f"Processing PDF {pdf_count}: {filename} (doc_id={doc_id})"
-                )
-
-                # Read PDF
-                pdf_data = zf.read(filename)
-
-                # Determine filing type
-                filing_type = filing_type_map.get(doc_id, "U") # Default to Unknown
-
-                # Construct S3 key
-                s3_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type={filing_type}/pdfs/{doc_id}.pdf"
-
-                # Check if exists (if skip_existing=True)
-                if skip_existing:
-                    try:
-                        s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
-                        logger.debug(f"Skipping existing PDF: {s3_key}")
+                has_pdfs_in_zip = True
+                break
+    
+    if has_pdfs_in_zip:
+        logger.info("Zip contains PDFs, extracting from zip...")
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+            for filename in zf.namelist():
+                if filename.lower().endswith(".pdf"):
+                    # Extract doc_id from filename (e.g., "8221216.pdf" -> "8221216")
+                    doc_id = Path(filename).stem
+                    pdf_data = zf.read(filename)
+                    
+                    result = process_pdf_upload(
+                        doc_id, year, pdf_data, filing_type_map.get(doc_id, "U"), 
+                        filename, skip_existing
+                    )
+                    
+                    if result == "skipped":
                         skipped_count += 1
-                        continue
-                    except ClientError as e:
-                        if e.response['Error']['Code'] != "404":
-                            logger.warning(f"Error checking existence of {s3_key}: {e}")
-                            # Continue to upload if error wasn't 404
-
-                pdf_count += 1
-
-                # Calculate quality score
-                # We need page count and text layer check
-                # This requires parsing the PDF bytes
-                # Since we have pypdf, we can do it
-                page_count = 0
-                has_text = False
+                    elif result:
+                        pdf_count += 1
+                        sqs_messages_batch.append(result)
+                        
+                        if len(sqs_messages_batch) >= 10:
+                            send_sqs_batch(sqs_messages_batch)
+                            sqs_message_count += len(sqs_messages_batch)
+                            sqs_messages_batch = []
+    else:
+        logger.info("Zip does NOT contain PDFs. Downloading individually...")
+        
+        # Use ThreadPoolExecutor for parallel downloads
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+            future_to_doc = {
+                executor.submit(download_and_process_individual_pdf, doc_id, year, filing_type, skip_existing): doc_id
+                for doc_id, filing_type in filing_type_map.items()
+            }
+            
+            for future in concurrent.futures.as_completed(future_to_doc):
+                doc_id = future_to_doc[future]
                 try:
-                    import pypdf
-                    pdf_reader = pypdf.PdfReader(io.BytesIO(pdf_data))
-                    page_count = len(pdf_reader.pages)
-                    if page_count > 0:
-                        text = pdf_reader.pages[0].extract_text()
-                        if text and len(text.strip()) > 50:
-                            has_text = True
+                    result = future.result()
+                    if result == "skipped":
+                        skipped_count += 1
+                    elif result:
+                        pdf_count += 1
+                        sqs_messages_batch.append(result)
+                        
+                        if len(sqs_messages_batch) >= 10:
+                            send_sqs_batch(sqs_messages_batch)
+                            sqs_message_count += len(sqs_messages_batch)
+                            sqs_messages_batch = []
                 except Exception as e:
-                    logger.warning(f"Failed to analyze PDF {filename}: {e}")
-
-                # We don't have member name or filing date easily available here without parsing XML deeper
-                # But we can pass what we have.
-                # Ideally filing_type_map should contain more metadata.
-                # For now, use defaults or what we have.
-                quality_score = calculate_quality_score(has_text, page_count, str(year), "Unknown")
-
-                s3_client.put_object(
-                    Bucket=S3_BUCKET,
-                    Key=s3_key,
-                    Body=pdf_data,
-                    Metadata={
-                        "doc_id": doc_id,
-                        "year": str(year),
-                        "source_filename": filename,
-                        "filing_type": filing_type,
-                        "quality_score": str(quality_score),
-                        "page_count": str(page_count),
-                        "has_text_layer": str(has_text).lower(),
-                        "upload_timestamp": datetime.now(timezone.utc).isoformat(),
-                    },
-                    ContentType="application/pdf",
-                    Tagging=f"doc_id={doc_id}&year={year}&filing_type={filing_type}"
-                )
-
-                logger.debug(f"Uploaded PDF to s3://{S3_BUCKET}/{s3_key}")
-
-                # Prepare SQS message
-                sqs_messages_batch.append(
-                    {
-                        "Id": doc_id,
-                        "MessageBody": json.dumps(
-                            {
-                                "doc_id": doc_id,
-                                "year": year,
-                                "s3_pdf_key": s3_key,
-                                "filing_type": filing_type
-                            }
-                        ),
-                    }
-                )
-
-                # Send batch if we have 10 messages (SQS max batch size)
-                if len(sqs_messages_batch) >= 10:
-                    send_sqs_batch(sqs_messages_batch)
-                    sqs_message_count += len(sqs_messages_batch)
-                    sqs_messages_batch = []
+                    logger.error(f"Failed to process {doc_id}: {e}")
 
     # Send remaining messages
     if sqs_messages_batch:
@@ -387,6 +340,91 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int, filing_type_map: Dict[s
     logger.info(f"Processed {pdf_count} PDFs, skipped {skipped_count}, sent {sqs_message_count} SQS messages")
 
     return pdf_count, sqs_message_count, skipped_count
+
+
+def download_and_process_individual_pdf(doc_id: str, year: int, filing_type: str, skip_existing: bool):
+    """Download individual PDF and process upload."""
+    url = f"{HOUSE_FD_BASE_URL}/{year}/{doc_id}.pdf"
+    
+    # Check if exists first to avoid download
+    s3_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type={filing_type}/pdfs/{doc_id}.pdf"
+    if skip_existing:
+        try:
+            s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
+            return "skipped"
+        except ClientError:
+            pass
+
+    try:
+        response = requests.get(url, timeout=30)
+        if response.status_code == 200:
+            return process_pdf_upload(
+                doc_id, year, response.content, filing_type, f"{doc_id}.pdf", False
+            )
+        else:
+            logger.warning(f"Failed to download {url}: {response.status_code}")
+            return None
+    except Exception as e:
+        logger.warning(f"Error downloading {url}: {e}")
+        return None
+
+
+def process_pdf_upload(doc_id: str, year: int, pdf_data: bytes, filing_type: str, filename: str, skip_existing: bool):
+    """Process PDF upload to S3 and return SQS message dict."""
+    s3_key = f"{S3_BRONZE_PREFIX}/house/financial/year={year}/filing_type={filing_type}/pdfs/{doc_id}.pdf"
+
+    if skip_existing:
+        try:
+            s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
+            return "skipped"
+        except ClientError:
+            pass
+
+    # Calculate quality score
+    page_count = 0
+    has_text = False
+    try:
+        import pypdf
+        pdf_reader = pypdf.PdfReader(io.BytesIO(pdf_data))
+        page_count = len(pdf_reader.pages)
+        if page_count > 0:
+            text = pdf_reader.pages[0].extract_text()
+            if text and len(text.strip()) > 50:
+                has_text = True
+    except Exception as e:
+        logger.warning(f"Failed to analyze PDF {filename}: {e}")
+
+    quality_score = calculate_quality_score(has_text, page_count, str(year), "Unknown")
+
+    s3_client.put_object(
+        Bucket=S3_BUCKET,
+        Key=s3_key,
+        Body=pdf_data,
+        Metadata={
+            "doc_id": doc_id,
+            "year": str(year),
+            "source_filename": filename,
+            "filing_type": filing_type,
+            "quality_score": str(quality_score),
+            "page_count": str(page_count),
+            "has_text_layer": str(has_text).lower(),
+            "upload_timestamp": datetime.now(timezone.utc).isoformat(),
+        },
+        ContentType="application/pdf",
+        Tagging=f"doc_id={doc_id}&year={year}&filing_type={filing_type}"
+    )
+
+    return {
+        "Id": doc_id,
+        "MessageBody": json.dumps(
+            {
+                "doc_id": doc_id,
+                "year": year,
+                "s3_pdf_key": s3_key,
+                "filing_type": filing_type
+            }
+        ),
+    }
 
 
 def send_sqs_batch(messages: List[Dict[str, str]]):

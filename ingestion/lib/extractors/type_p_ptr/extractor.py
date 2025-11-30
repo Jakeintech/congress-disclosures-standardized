@@ -6,7 +6,7 @@ Extracts structured data from PTR forms into house_fd_ptr.json schema.
 import logging
 import re
 from typing import Dict, List, Optional, Any
-from .base_extractor import BaseExtractor
+from ..base_extractor import BaseExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,9 @@ class PTRExtractor(BaseExtractor):
         """
         pdf_properties = pdf_properties or {}
         logger.info("Extracting PTR data from text")
+
+        # Clean text of null bytes and excessive whitespace
+        text = text.replace('\x00', '')
 
         # Extract each section
         filer_info = self._extract_filer_info(text)
@@ -64,51 +67,67 @@ class PTRExtractor(BaseExtractor):
         return result
 
     def _extract_filer_info(self, text: str) -> Dict[str, Any]:
-        """Extract filer information from header.
-
-        Args:
-            text: Full PDF text
-
-        Returns:
-            Filer info dict
-        """
+        """Extract filer information from header."""
+        from ..type_a_b_annual.field_extractors import normalize_date_format
+        
         filer_info = {
             "full_name": None,
             "filer_type": None,
             "state": None,
-            "district": None
+            "district": None,
+            "year": None,
         }
 
-        # Extract name
-        name_match = re.search(r'Name:\s*(.+?)(?:\n|Status:)', text, re.IGNORECASE)
-        if name_match:
-            filer_info["full_name"] = name_match.group(1).strip()
+        # Extract name - try multiple patterns
+        name_patterns = [
+            r'Name:\s*(.+?)(?:\n|Status:|State:)',
+            r'Filer(?:\s+Name)?:\s*(.+?)(?:\n|Status:|State:)',
+            r'(?:^|\n)([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?[A-Z][a-z]+)\s*(?:\n|Status:)',
+        ]
+        
+        for pattern in name_patterns:
+            name_match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
+            if name_match:
+                name = name_match.group(1).strip()
+                # Clean up name (remove excessive whitespace, "Hon.", etc.)
+                name = re.sub(r'\s+', ' ', name)
+                name = re.sub(r'^(?:Hon\.|The Honorable)\s+', '', name, flags=re.IGNORECASE)
+                filer_info["full_name"] = name
+                break
 
-        # Extract status
-        status_match = re.search(r'Status:\s*(Member|Officer or Employee)', text, re.IGNORECASE)
+        # Extract status/type
+        status_match = re.search(r'Status:\s*(Member|Officer\s+or\s+Employee|Employee|Congressional\s+Candidate|Candidate|Former\s+Member)', text, re.IGNORECASE)
         if status_match:
             filer_info["filer_type"] = status_match.group(1).strip()
 
-        # Extract state/district (format: CA11)
-        state_dist_match = re.search(r'State/District:\s*([A-Z]{2})(\d{1,2})', text)
-        if state_dist_match:
-            filer_info["state"] = state_dist_match.group(1)
-            filer_info["district"] = state_dist_match.group(2)
+        # Extract state/district
+        state_dist_patterns = [
+            r'State(?:/|\s+)District:\s*([A-Z]{2})[\s\-]*(\d{1,2})',
+            r'State:\s*([A-Z]{2}).*?District:\s*(\d{1,2})',
+            r'\b([A-Z]{2})[\s\-]*(\d{1,2})\b',
+        ]
+        
+        for pattern in state_dist_patterns:
+            state_dist_match = re.search(pattern, text)
+            if state_dist_match:
+                state = state_dist_match.group(1)
+                district = state_dist_match.group(2)
+                filer_info["state"] = state
+                filer_info["district"] = district
+                break
+        
+        # Extract calendar year (often in header or footer)
+        year_match = re.search(r'\b(20\d{2})\b', text)
+        if year_match:
+            filer_info["year"] = int(year_match.group(1))
 
         logger.debug(f"Extracted filer info: {filer_info}")
         return filer_info
 
     def _extract_ipo_question(self, text: str) -> bool:
-        """Extract IPO shares allocated question response.
-
-        Args:
-            text: Full PDF text
-
-        Returns:
-            True if Yes checked, False otherwise
-        """
+        """Extract IPO shares allocated question response."""
         # Look for IPO section
-        ipo_match = re.search(r'I.*P.*O.*(?:Yes|No)', text, re.DOTALL)
+        ipo_match = re.search(r'I.*P.*O.*(?:Yes|No)', text, re.DOTALL | re.IGNORECASE)
         if not ipo_match:
             return False
 
@@ -118,7 +137,6 @@ class PTRExtractor(BaseExtractor):
         no_pos = ipo_text.find('No')
 
         # If Yes appears and comes before No, likely checked
-        # This is heuristic - better to check for checkbox markers
         if yes_pos != -1 and (no_pos == -1 or yes_pos < no_pos):
             # Look for checkbox markers near "Yes"
             if '☒' in ipo_text[:yes_pos+10] or '[X]' in ipo_text[:yes_pos+10]:
@@ -127,33 +145,20 @@ class PTRExtractor(BaseExtractor):
         return False
 
     def _extract_transactions(self, text: str) -> List[Dict[str, Any]]:
-        """Extract transaction records from table.
-
-        PTR format (actual from PDFs):
-        Asset Name (may span lines)
-        (TICKER)  [TYPE]TRANS_TYPE DATE1 DATE2 AMOUNT
-
-        Example:
-        Amazon.com, Inc. - Common Stock
-        (AMZN)  [ST]P 01/02/2025 01/03/2025 $1,001 - $15,000
-
-        Args:
-            text: Full PDF text
-
-        Returns:
-            List of transaction dicts
-        """
+        """Extract transaction records from table."""
         transactions = []
 
         # Find transaction section (between table header and certification)
-        trans_start = text.find("ID Owner")
-        trans_end = text.find("I CERTIFY")
-        if trans_start == -1:
+        # Handle spaced headers like "I D O w n e r"
+        trans_start_match = re.search(r'(?:ID\s+Owner|I\s*D\s*O\s*w\s*n\s*e\s*r)', text, re.IGNORECASE)
+        trans_end_match = re.search(r'(?:I\s*CERTIFY|I\s*C\s*E\s*R\s*T\s*I\s*F\s*Y)', text, re.IGNORECASE)
+        
+        if not trans_start_match:
             logger.warning("Could not find transaction table start")
             return []
-        if trans_end == -1:
-            # Use end of text if certification not found
-            trans_end = len(text)
+            
+        trans_start = trans_start_match.end()
+        trans_end = trans_end_match.start() if trans_end_match else len(text)
 
         trans_section = text[trans_start:trans_end]
 
@@ -161,19 +166,21 @@ class PTRExtractor(BaseExtractor):
         # Asset Name (TICKER) [TYPE] TRANS_TYPE DATE DATE AMOUNT
         # Note: Ticker can be at end of asset name line
         # Note: [TYPE] is optional
+        # Note: Dates can be smashed together: 01/14/202501/14/2025
+        # Note: Amount can span lines
         pattern = r'''
             (?:\((?P<ticker>[A-Z]{1,5})\))?            # Ticker in parentheses (optional here, might be in asset name)
             \s*
             (?:\[(?P<type_code>[A-Z]{2})\])?           # Asset type code in brackets (optional)
             \s*
-            (?P<trans_type>P|S|Purchase|Sale)          # Transaction type
+            (?P<trans_type>P|S|Purchase|Sale|E)        # Transaction type (E for Exchange)
             \s+
-            (?P<trans_date>\d{1,2}/\d{1,2}/\d{4})\s+   # Transaction date
+            (?P<trans_date>\d{1,2}/\d{1,2}/\d{4})\s*   # Transaction date (allow no space)
             (?P<notif_date>\d{1,2}/\d{1,2}/\d{4})\s+   # Notification date
             \$?(?P<amount>[\d,]+\s*-\s*\$?[\d,]+|Over\s+\$[\d,]+)  # Amount range
         '''
 
-        for match in re.finditer(pattern, trans_section, re.VERBOSE):
+        for match in re.finditer(pattern, trans_section, re.VERBOSE | re.DOTALL):
             ticker = match.group('ticker')
             asset_type_code = match.group('type_code')
             trans_type_raw = match.group('trans_type')
@@ -185,22 +192,38 @@ class PTRExtractor(BaseExtractor):
             match_pos = match.start()
             text_before = trans_section[:match_pos]
             
-            # Get last 200 chars before match, split by newlines
-            context = text_before[-200:].split('\n')
+            # Get last 300 chars before match, split by newlines
+            context = text_before[-300:].split('\n')
             # Asset name is typically the last non-empty line before ticker
             asset_name = None
-            for line in reversed(context):
-                line = line.strip()
+            
+            # Iterate backwards by index to handle duplicate lines correctly
+            for i in range(len(context) - 1, -1, -1):
+                line = context[i].strip()
                 # Skip lines that are just "F S: New" or other markers
-                if line and not line.startswith('F S:') and 'ID Owner' not in line and 'Cap .' not in line:
+                if line and not line.startswith('F S:') and 'ID Owner' not in line and 'Cap .' not in line and not line.startswith('D          :'):
                     asset_name = line
+                    # If line ends with [OP] or [ST], it's likely the asset line
+                    if re.search(r'\[[A-Z]{2}\]$', line):
+                        # Check if previous line is also part of asset name (multi-line asset)
+                        prev_idx = i - 1
+                        if prev_idx >= 0:
+                            prev_line = context[prev_idx].strip()
+                            if prev_line and not prev_line.startswith('F S:') and 'ID Owner' not in prev_line:
+                                asset_name = f"{prev_line} {asset_name}"
                     break
             
+            # Clean owner code from asset name
+            if asset_name:
+                owner_match = re.match(r'^(?:SP|DC|JT|Self|Joint|Spouse|Child)\s+(.+)', asset_name, re.IGNORECASE)
+                if owner_match:
+                    asset_name = owner_match.group(1)
+
             # If ticker not in regex, look for it in asset name
             if not ticker and asset_name:
                 # Look for (TICKER) at end of asset name, allowing for trailing whitespace
                 # Also support tickers with dots like (BRK.B)
-                ticker_match = re.search(r'\((?P<ticker>[A-Z]{1,5}(?:\.[A-Z]{1,2})?)\)\s*$', asset_name)
+                ticker_match = re.search(r'\((?P<ticker>[A-Z]{1,5}(?:\.[A-Z]{1,2})?)\)\s*(?:\[[A-Z]{2}\])?$', asset_name)
                 
                 # If not at end, look for it anywhere in the string if it looks like a ticker
                 if not ticker_match:
@@ -212,6 +235,8 @@ class PTRExtractor(BaseExtractor):
                     # Only remove if it was at the end or clearly separated
                     if asset_name.strip().endswith(f"({ticker})"):
                          asset_name = asset_name[:ticker_match.start()].strip()
+                    # Also remove [ST] or [OP] if present
+                    asset_name = re.sub(r'\s*\[[A-Z]{2}\]\s*$', '', asset_name)
 
             if not asset_name:
                 asset_name = "Unknown Asset"
@@ -219,14 +244,18 @@ class PTRExtractor(BaseExtractor):
             # Determine transaction type
             if trans_type_raw.lower() in ['p', 'purchase']:
                 trans_type = "Purchase"
-            else:
+            elif trans_type_raw.lower() in ['s', 'sale']:
                 trans_type = "Sale"
+            else:
+                trans_type = "Exchange"
 
             # Parse dates
             trans_date = self.extract_date(trans_date_str)
             notif_date = self.extract_date(notif_date_str)
 
             # Parse amount
+            # Clean newlines from amount string
+            amount_str = amount_str.replace('\n', ' ')
             amount_low, amount_high, amount_range = self.extract_amount_range(amount_str)
 
             transaction = {
@@ -248,15 +277,7 @@ class PTRExtractor(BaseExtractor):
         return transactions
 
     def _map_amount_to_column(self, amount_low: Optional[int], amount_high: Optional[int]) -> Optional[str]:
-        """Map amount range to column letter (A-K).
-
-        Args:
-            amount_low: Lower bound of range
-            amount_high: Upper bound of range
-
-        Returns:
-            Column letter (A-K) or None
-        """
+        """Map amount range to column letter (A-K)."""
         if amount_low is None:
             return None
 
@@ -281,14 +302,7 @@ class PTRExtractor(BaseExtractor):
         return None
 
     def _extract_certification(self, text: str) -> Dict[str, Any]:
-        """Extract certification information.
-
-        Args:
-            text: Full PDF text
-
-        Returns:
-            Certification dict
-        """
+        """Extract certification information."""
         cert = {
             "filer_certified": False,
             "filer_signature": None,
@@ -297,13 +311,13 @@ class PTRExtractor(BaseExtractor):
         }
 
         # Look for certification section
-        cert_match = re.search(r'I CERTIFY that the statements.*?STOCK Act', text, re.DOTALL | re.IGNORECASE)
+        cert_match = re.search(r'(?:I\s*CERTIFY|I\s*C\s*E\s*R\s*T\s*I\s*F\s*Y).*?(?:STOCK\s*Act)', text, re.DOTALL | re.IGNORECASE)
         if cert_match:
             cert["filer_certified"] = True
             cert["stock_act_certified"] = True
 
         # Extract signature
-        sig_match = re.search(r'Digitally Signed:\s*(.+?)\s*,\s*(\d{2}/\d{2}/\d{4})', text)
+        sig_match = re.search(r'Digitally Signed:\s*(.+?)\s*,\s*(\d{1,2}/\d{1,2}/\d{4})', text)
         if sig_match:
             cert["filer_signature"] = sig_match.group(1).strip()
             cert["filer_signature_date"] = self.extract_date(sig_match.group(2))
@@ -312,16 +326,7 @@ class PTRExtractor(BaseExtractor):
 
     def _calculate_field_confidence(self, filer_info: Dict, transactions: List[Dict],
                                     certification: Dict) -> Dict[str, float]:
-        """Calculate per-field confidence scores for audit trail.
-
-        Args:
-            filer_info: Extracted filer information
-            transactions: List of extracted transactions
-            certification: Extracted certification info
-
-        Returns:
-            Dict mapping field paths to confidence scores (0-1)
-        """
+        """Calculate per-field confidence scores for audit trail."""
         confidence = {}
 
         # Filer info confidence
@@ -354,16 +359,7 @@ class PTRExtractor(BaseExtractor):
 
     def _calculate_data_completeness(self, filer_info: Dict, transactions: List[Dict],
                                      certification: Dict) -> Dict[str, Any]:
-        """Calculate data completeness metrics for quality assessment.
-
-        Args:
-            filer_info: Extracted filer information
-            transactions: List of extracted transactions
-            certification: Extracted certification info
-
-        Returns:
-            Completeness metrics dict
-        """
+        """Calculate data completeness metrics for quality assessment."""
         # Count expected vs extracted fields
         expected_filer_fields = ["full_name", "filer_type", "state", "district"]
         extracted_filer_fields = sum(1 for f in expected_filer_fields if filer_info.get(f))
@@ -388,10 +384,8 @@ class PTRExtractor(BaseExtractor):
         suspicious = []
 
         # Check for 0 transactions from multi-page PTR
-        if len(transactions) == 0 and hasattr(self.analyzer, 'reader'):
-            page_count = len(self.analyzer.reader.pages)
-            if page_count >= 2:
-                suspicious.append(f"0 transactions extracted from {page_count}-page PTR")
+        if len(transactions) == 0:
+             suspicious.append(f"0 transactions extracted")
 
         # Check for all transactions in same amount range
         if len(transactions) > 3:

@@ -191,7 +191,7 @@
 
         // S3 URL (Internal Cache - Faster/CORS friendly)
         const s3Base = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com`;
-        const s3Url = `${s3Base}/bronze/house/financial/year=${doc.year}/pdfs/${doc.year}/${doc.doc_id}.pdf`;
+        const s3Url = `${s3Base}/bronze/house/financial/year=${doc.year}/filing_type=${doc.filing_type}/pdfs/${doc.doc_id}.pdf`;
 
         // Set download link to official source for "View Original" behavior
         elements['pdf-download-link'].href = officialUrl;
@@ -270,13 +270,6 @@
         const container = elements['silver-data-content'];
         container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading extracted data...</p></div>';
 
-        // Currently only PTRs (Type P) have structured extraction
-        if (doc.filing_type !== 'P') {
-            currentDocData = null; // No structured data
-            renderAuditView();
-            return;
-        }
-
         try {
             // Construct path for structured data
             // silver/house/financial/structured_code/year=YYYY/filing_type=X/doc_id=ID.json
@@ -317,9 +310,14 @@
                     <div class="alert alert-info">
                         <div class="alert-title">Extraction Not Available</div>
                         <div class="alert-description">
-                            Structured data extraction is currently only available for <strong>Periodic Transaction Reports (PTR)</strong>.
+                            Structured data has not yet been extracted for this document.
                             <br><br>
-                            This document is a <strong>${getFilingTypeLabel(doc ? doc.filing_type : '')}</strong>.
+                            Document Type: <strong>${getFilingTypeLabel(doc ? doc.filing_type : '')}</strong>
+                            <br>
+                            Document ID: <code>${doc ? doc.doc_id : 'Unknown'}</code>
+                            <br><br>
+                            <em>Note: Extraction is available for all major filing types including PTR, Annual, Termination, Extension, and Notices. 
+                            This document may be pending extraction or may have encountered an error during processing.</em>
                         </div>
                     </div>
                 `;
@@ -596,10 +594,13 @@ ${mermaidCode}
         const labels = {
             'P': 'Periodic Transaction',
             'A': 'Annual',
+            'B': 'New Filer',
             'T': 'Termination',
-            'N': 'New Filer',
+            'X': 'Extension Request',
+            'D': 'Campaign Notice',
+            'W': 'Withdrawal',
             'M': 'Amendment',
-            'D': 'Annual (Original)'
+            'N': 'New Filer Notification'
         };
         return labels[code] || code;
     }

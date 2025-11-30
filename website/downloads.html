@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads - Congress Financial Disclosures</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📥 Data Downloads</h2>
+                        <p class="card-description">Access raw and processed datasets</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="alert alert-info">
+                            <div class="alert-title">Open Data</div>
+                            <div class="alert-description">
+                                All data is available for free under the MIT license. We encourage researchers,
+                                journalists, and developers to use this data to promote transparency.
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                            <!-- Bronze Layer -->
+                            <div class="card border">
+                                <div class="card-header">
+                                    <h3 class="text-lg font-semibold">🥉 Bronze Layer (Raw PDFs)</h3>
+                                    <p class="text-sm text-muted">Original PDF files downloaded from the House Clerk.
+                                    </p>
+                                </div>
+                                <div class="card-content">
+                                    <p class="text-sm mb-4">Organized by Year > Filing Type > Doc ID.</p>
+                                    <a href="https://congress-disclosures-standardized.s3.amazonaws.com/bronze/"
+                                        target="_blank" class="btn btn-secondary w-full">Browse S3 Bucket</a>
+                                </div>
+                            </div>
+
+                            <!-- Silver Layer -->
+                            <div class="card border">
+                                <div class="card-header">
+                                    <h3 class="text-lg font-semibold">🥈 Silver Layer (Structured JSON)</h3>
+                                    <p class="text-sm text-muted">Extracted data in machine-readable JSON format.</p>
+                                </div>
+                                <div class="card-content">
+                                    <p class="text-sm mb-4">One JSON file per PDF document.</p>
+                                    <a href="https://congress-disclosures-standardized.s3.amazonaws.com/silver/"
+                                        target="_blank" class="btn btn-secondary w-full">Browse S3 Bucket</a>
+                                </div>
+                            </div>
+
+                            <!-- Gold Layer -->
+                            <div class="card border">
+                                <div class="card-header">
+                                    <h3 class="text-lg font-semibold">🥇 Gold Layer (Aggregated)</h3>
+                                    <p class="text-sm text-muted">Analytics-ready datasets used for this website.</p>
+                                </div>
+                                <div class="card-content">
+                                    <ul class="space-y-2 mb-4">
+                                        <li>
+                                            <a href="https://congress-disclosures-standardized.s3.amazonaws.com/website/data/member_trading_stats.json"
+                                                class="link">Member Trading Stats (JSON)</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://congress-disclosures-standardized.s3.amazonaws.com/website/data/trending_stocks.json"
+                                                class="link">Trending Stocks (JSON)</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://congress-disclosures-standardized.s3.amazonaws.com/website/data/sector_analysis.json"
+                                                class="link">Sector Analysis (JSON)</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://congress-disclosures-standardized.s3.amazonaws.com/website/data/network_graph.json"
+                                                class="link">Network Graph (JSON)</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- API -->
+                            <div class="card border">
+                                <div class="card-header">
+                                    <h3 class="text-lg font-semibold">🔌 API Access</h3>
+                                    <p class="text-sm text-muted">Programmatic access to the data.</p>
+                                </div>
+                                <div class="card-content">
+                                    <p class="text-sm mb-4">We provide a static file API served directly from S3.</p>
+                                    <div class="bg-surface-hover p-2 rounded text-xs font-mono mb-4">
+                                        https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/api/v1/
+                                    </div>
+                                    <a href="#" class="btn btn-secondary w-full disabled">Documentation Coming Soon</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="nav.js"></script>
+</body>
+
+</html>

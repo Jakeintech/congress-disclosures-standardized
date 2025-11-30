@@ -6,7 +6,7 @@ This script clears all data from Silver and Gold layers in S3 and purges SQS que
 to allow for a clean re-run of the pipeline.
 
 Usage:
-    python scripts/reset_pipeline.py [--force]
+    python scripts/reset_pipeline.py [--force] [--include-bronze]
 """
 
 import argparse
@@ -81,10 +81,16 @@ def purge_queues():
 def main():
     parser = argparse.ArgumentParser(description="Reset pipeline data")
     parser.add_argument("--force", action="store_true", help="Skip confirmation prompt")
+    parser.add_argument("--include-bronze", action="store_true", help="Also clear Bronze layer (raw data)")
     args = parser.parse_args()
+
+    if args.include_bronze:
+        PREFIXES_TO_CLEAR.append("bronze/")
 
     if not args.force:
         print("⚠️  WARNING: This will DELETE ALL DATA in Silver and Gold layers and PURGE all queues!")
+        if args.include_bronze:
+            print("⚠️  WARNING: BRONZE LAYER (RAW DATA) WILL ALSO BE DELETED!")
         print(f"   Bucket: {BUCKET_NAME}")
         print(f"   Prefixes: {', '.join(PREFIXES_TO_CLEAR)}")
         print(f"   Queues: {', '.join(QUEUES_TO_PURGE)}")

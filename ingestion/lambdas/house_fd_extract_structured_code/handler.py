@@ -30,10 +30,12 @@ S3_SILVER_PREFIX = os.environ.get('S3_SILVER_PREFIX', 'silver')
 TEXTRACT_APPROVAL_QUEUE_URL = os.environ.get('TEXTRACT_APPROVAL_QUEUE_URL')  # For low-confidence docs
 
 # Import extractors
-from lib.extractors.ptr_extractor import PTRExtractor
-from lib.extractors.type_ab_extractor import TypeABExtractor
-from lib.extractors.type_t_extractor import TypeTExtractor
-from lib.extractors.type_x_extractor import TypeXExtractor
+from lib.extractors.type_p_ptr.extractor import PTRExtractor
+from lib.extractors.type_a_b_annual.extractor import TypeABAnnualExtractor
+from lib.extractors.type_t_termination.extractor import TypeTTerminationExtractor
+from lib.extractors.type_x_extension_request.extractor import TypeXExtensionRequestExtractor
+from lib.extractors.type_d_campaign_notice.extractor import TypeDCampaignNoticeExtractor
+from lib.extractors.type_w_withdrawal_notice.extractor import TypeWWithdrawalNoticeExtractor
 # PDFAnalyzer not needed - we work with pre-extracted text
 
 
@@ -143,9 +145,11 @@ def extract_structured_data(doc_id: str, year: int, text: str, filing_type: str)
 
     Routes to appropriate extractor based on filing type code:
     - P: PTRExtractor
-    - A, B: TypeABExtractor
-    - T: TypeTExtractor
-    - X: TypeXExtractor
+    - A, B: TypeABAnnualExtractor
+    - T: TypeTTerminationExtractor
+    - X: TypeXExtensionRequestExtractor
+    - D: TypeDCampaignNoticeExtractor
+    - W: TypeWWithdrawalNoticeExtractor
     - Others: Generic fallback
     """
     
@@ -154,12 +158,16 @@ def extract_structured_data(doc_id: str, year: int, text: str, filing_type: str)
     
     if filing_type == "P":
         extractor = PTRExtractor()
-    elif filing_type in ["A", "C"]: # Assuming 'C' maps to TypeABExtractor for Form B
-        extractor = TypeABExtractor()
+    elif filing_type in ["A", "B", "C"]: # A=Annual, B=New Filer, C=Candidate (often same form)
+        extractor = TypeABAnnualExtractor()
     elif filing_type == "T":
-        extractor = TypeTExtractor()
+        extractor = TypeTTerminationExtractor()
     elif filing_type == "X":
-        extractor = TypeXExtractor()
+        extractor = TypeXExtensionRequestExtractor()
+    elif filing_type == "D":
+        extractor = TypeDCampaignNoticeExtractor()
+    elif filing_type == "W":
+        extractor = TypeWWithdrawalNoticeExtractor()
         
     if extractor:
         try:

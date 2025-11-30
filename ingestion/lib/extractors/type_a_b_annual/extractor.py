@@ -5,13 +5,13 @@ Extracts structured data from Form A (Annual) and Form B (New Filer) reports.
 
 import logging
 import re
-from typing import Dict, List, Any
-from .base_extractor import BaseExtractor
+from typing import Dict, List, Any, Optional
+from ..base_extractor import BaseExtractor
 
 logger = logging.getLogger(__name__)
 
 
-class TypeABExtractor(BaseExtractor):
+class TypeABAnnualExtractor(BaseExtractor):
     """Extract structured data from Annual and New Filer reports."""
 
     def extract_from_text(self, text: str, pdf_properties: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -27,14 +27,21 @@ class TypeABExtractor(BaseExtractor):
         pdf_properties = pdf_properties or {}
         logger.info("Extracting Annual/New Filer data from text")
 
+        # Clean text of null bytes and excessive whitespace
+        text = text.replace('\x00', '')
+
         # Extract sections
         filer_info = self._extract_filer_info(text)
         
         # Extract main schedules
         assets = self._extract_assets_and_income(text)
+        earned_income = self._extract_earned_income(text)
         liabilities = self._extract_liabilities(text)
         positions = self._extract_positions(text)
         agreements = self._extract_agreements(text)
+        gifts = self._extract_gifts(text)
+        travel = self._extract_travel(text)
+        charity = self._extract_charity(text)
         
         # Extract certification
         certification = self._extract_certification(text)
@@ -60,16 +67,22 @@ class TypeABExtractor(BaseExtractor):
                 "is_amendment": False,  # TODO: detect
                 "filing_type": filer_info.get("filing_type", "A") 
             },
-            "assets_and_income": assets,
-            "liabilities": liabilities,
-            "positions": positions,
-            "agreements": agreements,
+            "schedule_a": assets,
+            "schedule_c": earned_income,
+            "schedule_d": liabilities,
+            "schedule_e": positions,
+            "schedule_f": agreements,
+            "schedule_g": gifts,
+            "schedule_h": travel,
+            "schedule_i": charity,
             "certification": certification,
             "filing_metadata": {
                 "asset_count": len(assets),
                 "liability_count": len(liabilities),
                 "position_count": len(positions),
-                "agreement_count": len(agreements)
+                "agreement_count": len(agreements),
+                "gift_count": len(gifts),
+                "travel_count": len(travel)
             },
             "data_quality": {
                 "completeness_metrics": completeness_metrics,
@@ -91,18 +104,8 @@ class TypeABExtractor(BaseExtractor):
         return result
 
     def _extract_filer_info(self, text: str) -> Dict[str, Any]:
-        """Extract filer information from header.
-        
-        Extracts:
-        - Full name
-        - Filer type/status (Member, Officer or Employee)
-        - Position
-        - State/District
-        - Calendar year
-        - Filing period (start/end dates)
-        - Filing type (A, N, or B)
-        """
-        from .annual_field_extractors import normalize_date_format
+        """Extract filer information from header."""
+        from .field_extractors import normalize_date_format
         
         filer_info = {
             "full_name": None,
@@ -135,7 +138,8 @@ class TypeABExtractor(BaseExtractor):
                 break
 
         # Extract status/type
-        status_match = re.search(r'Status:\s*(Member|Officer\s+or\s+Employee|Employee)', text, re.IGNORECASE)
+        # Added "Candidate" and "Former Member" to regex
+        status_match = re.search(r'Status:\s*(Member|Officer\s+or\s+Employee|Employee|Congressional\s+Candidate|Candidate|Former\s+Member)', text, re.IGNORECASE)
         if status_match:
             filer_info["filer_type"] = status_match.group(1).strip()
 
@@ -160,7 +164,6 @@ class TypeABExtractor(BaseExtractor):
                 filer_info["position"] = "U.S. Senator"
 
         # Extract state/district
-        # Patterns: "CA12", "CA-12", "CA 12", "State/District: CA12"
         state_dist_patterns = [
             r'State(?:/|\s+)District:\s*([A-Z]{2})[\s\-]*(\d{1,2})',
             r'State:\s*([A-Z]{2}).*?District:\s*(\d{1,2})',
@@ -197,6 +200,7 @@ class TypeABExtractor(BaseExtractor):
             r'Calendar Year:\s*(\d{4})',
             r'Reporting Year:\s*(\d{4})',
             r'Year:\s*(\d{4})',
+            r'Filing Year:\s*(\d{4})',
             r'\b(20\d{2})\b',  # Generic 4-digit year
         ]
         
@@ -204,7 +208,6 @@ class TypeABExtractor(BaseExtractor):
             year_match = re.search(pattern, text)
             if year_match:
                 year = int(year_match.group(1))
-                # Sanity check (reasonable filing years)
                 if 2012 <= year <= 2030:
                     filer_info["year"] = year
                     break
@@ -222,17 +225,8 @@ class TypeABExtractor(BaseExtractor):
         return filer_info
 
     def _extract_assets_and_income(self, text: str) -> List[Dict[str, Any]]:
-        """Extract Schedule A: Assets and "Unearned" Income.
-        
-        Schedule A format typically includes:
-        - Asset/Income Source (name/description)
-        - Owner (SP=Spouse, DC=Dependent Child, JT=Joint, Self)
-        - Asset Type (Stock, Bond, Real Property, etc.)
-        - Asset Value (range in dollar amounts)
-        - Income Type (Dividends, Rent, Interest, Capital Gains, etc.)
-        - Income Amount (range in dollar amounts)
-        """
-        from .annual_field_extractors import (
+        """Extract Schedule A: Assets and "Unearned" Income."""
+        from .field_extractors import (
             extract_asset_value_range,
             extract_income_type,
             parse_owner_code,
@@ -244,84 +238,55 @@ class TypeABExtractor(BaseExtractor):
         
         assets = []
         
-        # Find Schedule A section
-        # Starts with "Schedule A" and ends with next schedule or end of document
+        # Find Schedule A section - handle "S A: A 'U' I" and other variations
         section_match = re.search(
-            r'Schedule\s+A[:\s\-]*.*?(?:Assets.*?Income|Part\s+I).*?\n(.*?)(?=\n\s*Schedule\s+[BCD]|\n\s*Part\s+[IVX]{1,4}(?!\s*Continuation)|\Z)',
+            r'(?:Schedule\s+A|S\s*A).*?(?:Assets|A\s*"U"\s*I).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[BCDEFGHI]|\n\s*Part\s+[IVX]{1,4}|\Z)',
             text,
             re.DOTALL | re.IGNORECASE
         )
         
         if not section_match:
-            logger.debug("Schedule A section not found in document")
             return []
             
         section_text = section_match.group(1)
-        
-        # Pattern to match asset table rows
-        # Format varies but typically: [ID#] [Owner] [Asset Name] [Type] [Value] [Income Type] [Income]
-        # Multi-line assets are common (name spans multiple lines)
-        
-        # Split into lines and process
         lines = section_text.split('\n')
-        current_asset = None
         asset_buffer = []
         
-        for i, line in enumerate(lines):
+        for line in lines:
             line_stripped = line.strip()
-            
-            # Skip empty lines and headers
             if not line_stripped or len(line_stripped) < 3:
                 continue
-            if re.search(r'Owner|Asset|Income|Description|Value|Type', line_stripped, re.IGNORECASE) and len(line_stripped) < 50:
-                continue  # Likely a header
+            # Skip headers and footers
+            if re.search(r'Owner|Asset|Income|Description|Value|Type|Investment|Vehicle|abbreviations|house\.gov|Current Year|Preceding Year|Filing Year', line_stripped, re.IGNORECASE):
+                continue
+            if "None disclosed" in line_stripped:
+                continue
+            if "I CERTIFY" in line_stripped or "Digitally Signed" in line_stripped:
+                break
                 
-            # Check if this looks like start of new asset entry
-            # Indicators: starts with owner code, or number, or clear asset pattern
-            owner_code_match = re.match(r'^(SP|DC|JT|Self|Joint|Spouse|Child)\s+', line_stripped, re.IGNORECASE)
-            numbered_match = re.match(r'^\d{1,3}[\.\)]\s+', line_stripped)
+            # Check if line contains a value range
+            has_value_range = re.search(r'(\$[\d,]+\s*[-–]\s*\$[\d,]+|Over\s+\$[\d,]+)', line_stripped)
             
-            # Check for value range patterns which indicate we're in the data portion
-            has_value_range = re.search(r'\$[\d,]+\s*[-–]\s*\$[\d,]+', line_stripped)
-            has_income_indicator = re.search(r'(?:Dividend|Interest|Rent|Capital Gain|None)', line_stripped, re.IGNORECASE)
-            
-            # If we have a clear new entry or value patterns, process previous buffer
-            if (owner_code_match or numbered_match or (has_value_range and current_asset)) and asset_buffer:
-                # Process the buffered asset
-                asset_data = self._parse_asset_entry(' '.join(asset_buffer))
-                if asset_data:
-                    assets.append(asset_data)
-                asset_buffer = []
-            
-            # Add current line to buffer
             asset_buffer.append(line_stripped)
             
-            # If line has value/income patterns, it's likely complete - process immediately
-            if has_value_range and has_income_indicator and len(asset_buffer) <= 3:
-                asset_data = self._parse_asset_entry(' '.join(asset_buffer))
+            # Safety valve for buffer size
+            if len(asset_buffer) > 10:
+                asset_buffer = []
+                continue
+            
+            if has_value_range:
+                # End of entry, parse buffer
+                full_entry = ' '.join(asset_buffer)
+                asset_data = self._parse_asset_entry(full_entry)
                 if asset_data:
                     assets.append(asset_data)
                 asset_buffer = []
         
-        # Process any remaining buffered asset
-        if asset_buffer:
-            asset_data = self._parse_asset_entry(' '.join(asset_buffer))
-            if asset_data:
-                assets.append(asset_data)
-        
-        logger.info(f"Extracted {len(assets)} assets from Schedule A")
         return assets
     
     def _parse_asset_entry(self, entry_text: str) -> Optional[Dict[str, Any]]:
-        """Parse a single asset entry into structured fields.
-        
-        Args:
-            entry_text: Combined text for one asset (may be multi-line)
-            
-        Returns:
-            Dictionary with parsed asset fields, or None if invalid
-        """
-        from .annual_field_extractors import (
+        """Parse a single asset entry."""
+        from .field_extractors import (
             extract_asset_value_range,
             extract_income_type,
             parse_owner_code,
@@ -334,11 +299,10 @@ class TypeABExtractor(BaseExtractor):
         if not entry_text or len(entry_text) < 5:
             return None
         
-        # Initialize asset dict
         asset = {
             "asset_name": None,
-            "owner_code": None,
-            "description": entry_text,  # Keep full text for reference
+            "owner_code": parse_owner_code(entry_text),
+            "description": entry_text,
             "asset_type": None,
             "ticker_symbol": None,
             "value_low": None,
@@ -350,28 +314,25 @@ class TypeABExtractor(BaseExtractor):
             "income_category": None
         }
         
-        # Extract owner code (first occurrence)
-        asset["owner_code"] = parse_owner_code(entry_text)
+        # Handle smashed text: "$15,001 - $50,000Dividends"
+        entry_text = re.sub(r'(\$[\d,]+)(Dividends|Interest|Rent|Capital|None)', r'\1 \2', entry_text)
         
-        # Extract value range (first dollar amount range found)
         value_range_match = re.search(r'(\$[\d,]+\s*[-–]\s*\$[\d,]+|Over\s+\$[\d,]+|None(?:\s+\(or\s+less\s+than\s+\$[\d,]+\))?)', entry_text, re.IGNORECASE)
-        if value_range_match:
-            value_text = value_range_match.group(1)
-            asset["value_low"], asset["value_high"] = extract_asset_value_range(value_text)
-            if asset["value_low"] is not None:
-                asset["value_category"] = map_value_to_disclosure_category(asset["value_low"], asset["value_high"])
+        if not value_range_match:
+            # Require a value range for a valid asset
+            return None
+            
+        value_text = value_range_match.group(1)
+        asset["value_low"], asset["value_high"] = extract_asset_value_range(value_text)
+        if asset["value_low"] is not None:
+            asset["value_category"] = map_value_to_disclosure_category(asset["value_low"], asset["value_high"])
         
-        # Extract income type and amount
-        # Income section typically follows value section
         income_match = re.search(r'(Dividend|Interest|Rent|Capital Gain|None|Royalt|Earned)', entry_text, re.IGNORECASE)
         if income_match:
             asset["income_type"] = extract_income_type(income_match.group(1))
-            
-            # Look for income amount after income type
-            # Find all dollar ranges, take the second one (first is value, second is income)
             all_ranges = re.findall(r'\$[\d,]+\s*[-–]\s*\$[\d,]+', entry_text)
             if len(all_ranges) >= 2:
-                income_range_text = all_ranges[1]
+                income_range_text = all_ranges[-1]
                 asset["income_amount_low"], asset["income_amount_high"] = extract_asset_value_range(income_range_text)
                 if asset["income_amount_low"] is not None:
                     asset["income_category"] = map_value_to_disclosure_category(asset["income_amount_low"], asset["income_amount_high"])
@@ -380,83 +341,171 @@ class TypeABExtractor(BaseExtractor):
                 asset["income_amount_high"] = 0
                 asset["income_category"] = "None"
         
-        # Extract asset name (everything before the value range, after owner code)
-        # Remove owner code prefix if present
         name_text = entry_text
         owner_prefix_match = re.match(r'^(?:SP|DC|JT|Self|Joint|Spouse|Child)\s+', name_text, re.IGNORECASE)
         if owner_prefix_match:
             name_text = name_text[owner_prefix_match.end():]
-        
-        # Remove numbering if present
         name_text = re.sub(r'^\d{1,3}[\.\)]\s+', '', name_text)
         
-        # Asset name is everything up to the first value range
         if value_range_match:
             name_text = name_text[:value_range_match.start()]
         
         asset["asset_name"] = clean_asset_name(name_text)
-        
-        # Classify asset type
         asset["asset_type"] = extract_asset_type(asset["asset_name"])
         
-        # Extract ticker if it's a stock
-        if asset["asset_type"] in ["Stock", "ETF"]:
+        if asset["asset_type"] in ["Stock", "ETF", "Stock Option"]:
             asset["ticker_symbol"] = extract_ticker_symbol(asset["asset_name"])
         
-        # Validate - must have at least a name
         if not asset["asset_name"] or len(asset["asset_name"]) < 3:
             return None
         
         return asset
 
-    def _extract_liabilities(self, text: str) -> List[Dict[str, Any]]:
-        """Extract Schedule D: Liabilities."""
-        liabilities = []
-        section_match = re.search(r'Schedule D.*?\n(.*?)(?=\n\s*Schedule [EF]|\n\s*S\s+[EF]|\Z)', 
+    def _extract_earned_income(self, text: str) -> List[Dict[str, Any]]:
+        """Extract Schedule C: Earned Income."""
+        income = []
+        section_match = re.search(r'(?:Schedule\s+C|S\s*C).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[DEFGHI]|\n\s*Part|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)
             lines = section_text.split('\n')
             for line in lines:
                 line = line.strip()
-                if len(line) > 10 and "ID Owner Creditor" not in line:
+                if not line or "None disclosed" in line: continue
+                if re.search(r'Source|Type|Amount|Current Year|Preceding Year', line, re.IGNORECASE): continue
+                
+                structured_match = re.search(r'Source:\s*(.*?)(?:\s+Type:|\s+Amount:|$)', line, re.IGNORECASE)
+                if structured_match:
+                    income.append({
+                        "source": structured_match.group(1).strip(),
+                        "type": "Earned Income",
+                        "amount": None
+                    })
+                    continue
+
+                if len(line.split()) >= 2 and len(line) < 200 and re.match(r'^[A-Z]', line):
+                    income.append({
+                        "source": line,
+                        "type": "Earned Income",
+                        "amount": None 
+                    })
+        return income
+
+    def _extract_liabilities(self, text: str) -> List[Dict[str, Any]]:
+        """Extract Schedule D: Liabilities."""
+        liabilities = []
+        section_match = re.search(r'(?:Schedule\s+D|S\s*D).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[EFGHI]|\n\s*Part|\Z)', 
+                                 text, re.DOTALL | re.IGNORECASE)
+        if section_match:
+            section_text = section_match.group(1)
+            lines = section_text.split('\n')
+            for line in lines:
+                line = line.strip()
+                if not line or "None disclosed" in line: continue
+                if re.search(r'Creditor|Date|Incurred|Amount', line, re.IGNORECASE): continue
+                
+                has_value_range = re.search(r'(\$[\d,]+\s*[-–]\s*\$[\d,]+|Over\s+\$[\d,]+)', line)
+                if has_value_range:
                     liabilities.append({
-                        "creditor_name": line,
+                        "creditor_name": line[:has_value_range.start()].strip(),
                         "owner_code": self.extract_owner_code(line)
                     })
         return liabilities
 
     def _extract_positions(self, text: str) -> List[Dict[str, Any]]:
-        """Extract Schedule J: Positions."""
+        """Extract Schedule E: Positions."""
         positions = []
-        section_match = re.search(r'Schedule J.*?\n(.*?)(?=\n\s*Schedule|\n\s*S\s+|\Z)', 
+        section_match = re.search(r'(?:Schedule\s+E|S\s*E).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[FGHI]|\n\s*Part|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)
             lines = section_text.split('\n')
             for line in lines:
                 line = line.strip()
-                if len(line) > 10 and "Position" not in line:
+                if not line or "None disclosed" in line: continue
+                if re.search(r'Position|Name|Organization', line, re.IGNORECASE): continue
+                
+                if len(line) > 5 and len(line) < 200 and re.match(r'^[A-Z]', line):
                     positions.append({
                         "position_title": line
                     })
         return positions
 
     def _extract_agreements(self, text: str) -> List[Dict[str, Any]]:
-        """Extract Schedule IX: Agreements."""
+        """Extract Schedule F: Agreements."""
         agreements = []
-        section_match = re.search(r'Schedule IX.*?\n(.*?)(?=\n\s*Schedule|\n\s*S\s+|\Z)', 
+        section_match = re.search(r'(?:Schedule\s+F|S\s*F).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[GHI]|\n\s*Part|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)
             lines = section_text.split('\n')
             for line in lines:
                 line = line.strip()
-                if len(line) > 10 and "Date Parties" not in line:
+                if not line or "None disclosed" in line: continue
+                if re.search(r'Date|Parties|Terms', line, re.IGNORECASE): continue
+                
+                if len(line) > 10 and re.match(r'^[A-Z]', line):
                     agreements.append({
                         "agreement_description": line
                     })
         return agreements
+
+    def _extract_gifts(self, text: str) -> List[Dict[str, Any]]:
+        """Extract Schedule G: Gifts."""
+        gifts = []
+        section_match = re.search(r'(?:Schedule\s+G|S\s*G).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[HI]|\n\s*Part|\Z)', 
+                                 text, re.DOTALL | re.IGNORECASE)
+        if section_match:
+            section_text = section_match.group(1)
+            lines = section_text.split('\n')
+            for line in lines:
+                line = line.strip()
+                if not line or "None disclosed" in line: continue
+                if re.search(r'Source|Description|Value', line, re.IGNORECASE): continue
+                
+                if len(line) > 5 and re.match(r'^[A-Z]', line):
+                    gifts.append({
+                        "source": line
+                    })
+        return gifts
+
+    def _extract_travel(self, text: str) -> List[Dict[str, Any]]:
+        """Extract Schedule H: Travel."""
+        travel = []
+        section_match = re.search(r'(?:Schedule\s+H|S\s*H).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[I]|\n\s*Part|\Z)', 
+                                 text, re.DOTALL | re.IGNORECASE)
+        if section_match:
+            section_text = section_match.group(1)
+            lines = section_text.split('\n')
+            for line in lines:
+                line = line.strip()
+                if not line or "None disclosed" in line: continue
+                if re.search(r'Source|Date|City|State', line, re.IGNORECASE): continue
+                
+                if len(line) > 5 and re.match(r'^[A-Z]', line):
+                    travel.append({
+                        "source": line
+                    })
+        return travel
+
+    def _extract_charity(self, text: str) -> List[Dict[str, Any]]:
+        """Extract Schedule I: Charity."""
+        charity = []
+        section_match = re.search(r'(?:Schedule\s+I|S\s*I).*?\n(.*?)(?=\n\s*(?:Schedule|S)|\Z)', 
+                                 text, re.DOTALL | re.IGNORECASE)
+        if section_match:
+            section_text = section_match.group(1)
+            lines = section_text.split('\n')
+            for line in lines:
+                line = line.strip()
+                if not line or "None disclosed" in line: continue
+                if re.search(r'Source|Date|Amount', line, re.IGNORECASE): continue
+                
+                if len(line) > 5 and re.match(r'^[A-Z]', line):
+                    charity.append({
+                        "source": line
+                    })
+        return charity
 
     def _extract_certification(self, text: str) -> Dict[str, Any]:
         """Extract certification information."""
@@ -469,7 +518,7 @@ class TypeABExtractor(BaseExtractor):
         if "I CERTIFY" in text:
             cert["filer_certified"] = True
 
-        sig_match = re.search(r'Digitally Signed:\s*(.+?)\s*,\s*(\d{2}/\d{2}/\d{4})', text)
+        sig_match = re.search(r'Digitally Signed:\s*(.+?)\s*,\s*(\d{1,2}/\d{1,2}/\d{4})', text)
         if sig_match:
             cert["filer_signature"] = sig_match.group(1).strip()
             cert["filer_signature_date"] = self.extract_date(sig_match.group(2))
@@ -477,29 +526,16 @@ class TypeABExtractor(BaseExtractor):
         return cert
 
     def _calculate_field_confidence(self, filer_info: Dict, assets: List[Dict], cert: Dict) -> Dict[str, float]:
-        """Calculate per-field confidence scores for audit trail.
-        
-        Provides granular confidence metrics for each extracted field to support
-        quality assessment and identify areas needing review.
-        
-        Args:
-            filer_info: Extracted filer information
-            assets: List of extracted assets
-            cert: Extracted certification info
-            
-        Returns:
-            Dict mapping field paths to confidence scores (0-1)
-        """
+        """Calculate per-field confidence scores."""
         confidence = {}
         
         # Filer info confidence
         if filer_info.get("full_name"):
-            # High confidence if name looks valid (has first and last)
             name = filer_info["full_name"]
             if len(name.split()) >= 2:
                 confidence["filer_info.full_name"] = 0.95
             else:
-                confidence["filer_info.full_name"] = 0.60  # Might be incomplete
+                confidence["filer_info.full_name"] = 0.60
         else:
             confidence["filer_info.full_name"] = 0.0
             
@@ -514,45 +550,35 @@ class TypeABExtractor(BaseExtractor):
             confidence["filer_info.state"] = 0.0
             
         if filer_info.get("year"):
-            confidence["filer_info.year"] = 1.0  # Year is very reliable
+            confidence["filer_info.year"] = 1.0
         else:
             confidence["filer_info.year"] = 0.0
             
         # Assets confidence
         if assets:
-            # Calculate average confidence across all assets
             asset_confidences = []
-            
             for asset in assets:
                 asset_conf = 0.0
                 fields_checked = 0
-                
-                # Check critical fields
                 if asset.get("asset_name") and len(asset["asset_name"]) > 3:
                     asset_conf += 1.0
                 fields_checked += 1
-                
                 if asset.get("owner_code"):
                     asset_conf += 1.0
                 fields_checked += 1
-                    
                 if asset.get("value_low") is not None:
                     asset_conf += 1.0
                 fields_checked += 1
-                    
                 if asset.get("asset_type") and asset["asset_type"] != "Unknown":
-                    asset_conf += 0.5  # Type inference is less certain
+                    asset_conf += 0.5
                 fields_checked += 1
-                
-                # Average for this asset
                 if fields_checked > 0:
                     asset_confidences.append(asset_conf / fields_checked)
             
-            # Overall asset extraction confidence
             if asset_confidences:
                 avg_confidence = sum(asset_confidences) / len(asset_confidences)
                 confidence["assets.overall"] = avg_confidence
-                confidence["assets.count"] = len(assets) / max(len(assets) + 10, 50)  # Normalize by expected count
+                confidence["assets.count"] = len(assets) / max(len(assets) + 10, 50)
             else:
                 confidence["assets.overall"] = 0.0
         else:
@@ -562,7 +588,7 @@ class TypeABExtractor(BaseExtractor):
         if cert.get("filer_certified"):
             confidence["certification.certified"] = 1.0
         else:
-            confidence["certification.certified"] = 0.3  # Might be present but not detected
+            confidence["certification.certified"] = 0.3
             
         if cert.get("filer_signature"):
             confidence["certification.signature"] = 0.95
@@ -574,19 +600,7 @@ class TypeABExtractor(BaseExtractor):
     def _calculate_data_completeness(self, filer_info: Dict, assets: List[Dict], 
                                     liabilities: List[Dict], positions: List[Dict],
                                     agreements: List[Dict], certification: Dict) -> Dict[str, Any]:
-        """Calculate data completeness metrics for quality assessment.
-        
-        Args:
-            filer_info: Extracted filer information
-            assets: List of extracted assets
-            liabilities: List of extracted liabilities
-            positions: List of extracted positions
-            agreements: List of extracted agreements
-            certification: Extracted certification info
-            
-        Returns:
-            Completeness metrics dict
-        """
+        """Calculate data completeness metrics."""
         metrics = {
             "filer_info_completeness": 0.0,
             "schedule_a_completeness": 0.0,
@@ -596,7 +610,6 @@ class TypeABExtractor(BaseExtractor):
             "populated_schedules": []
         }
         
-        # Filer info completeness (6 critical fields)
         filer_fields = ["full_name", "filer_type", "state", "year", "filing_type"]
         filer_populated = sum(1 for f in filer_fields if filer_info.get(f))
         metrics["filer_info_completeness"] = filer_populated / len(filer_fields)
@@ -606,9 +619,7 @@ class TypeABExtractor(BaseExtractor):
         if not filer_info.get("year"):
             metrics["missing_critical_fields"].append("filer_info.year")
         
-        # Schedule A (Assets) completeness
         if assets:
-            # Check what percentage of assets have complete data
             complete_assets = 0
             for asset in assets:
                 required_fields = ["asset_name", "owner_code", "value_low"]
@@ -622,7 +633,6 @@ class TypeABExtractor(BaseExtractor):
         else:
             metrics["schedule_a_completeness"] = 0.0
             
-        # Schedule D (Liabilities) completeness
         if liabilities:
             metrics["schedule_d_completeness"] = 1.0
             metrics["populated_schedules"].append("Schedule D (Liabilities)")
@@ -630,23 +640,18 @@ class TypeABExtractor(BaseExtractor):
         else:
             metrics["schedule_d_completeness"] = 0.0
             
-        # Schedule J (Positions) tracking
         if positions:
-            metrics["populated_schedules"].append("Schedule J (Positions)")
-            metrics["schedule_j_count"] = len(positions)
+            metrics["populated_schedules"].append("Schedule E (Positions)")
+            metrics["schedule_e_count"] = len(positions)
             
-        # Schedule IX (Agreements) tracking
         if agreements:
-            metrics["populated_schedules"].append("Schedule IX (Agreements)")
-            metrics["schedule_ix_count"] = len(agreements)
+            metrics["populated_schedules"].append("Schedule F (Agreements)")
+            metrics["schedule_f_count"] = len(agreements)
         
-        # Certification completeness
         cert_fields = ["filer_certified", "filer_signature"]
         cert_populated = sum(1 for f in cert_fields if certification.get(f))
         metrics["certification_completeness"] = cert_populated / len(cert_fields)
         
-        # Overall completeness (weighted average)
-        # Filer info: 30%, Assets: 50%, Certification: 20%
         metrics["overall_completeness"] = (
             metrics["filer_info_completeness"] * 0.3 +
             metrics["schedule_a_completeness"] * 0.5 +
@@ -654,4 +659,3 @@ class TypeABExtractor(BaseExtractor):
         )
         
         return metrics
-

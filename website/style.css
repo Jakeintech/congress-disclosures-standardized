@@ -975,11 +975,11 @@ body {
 }
 
 .gold-view {
-    display: none;
+    display: none !important;
 }
 
 .gold-view.active {
-    display: block;
+    display: block !important;
 }
 
 /* Responsive */

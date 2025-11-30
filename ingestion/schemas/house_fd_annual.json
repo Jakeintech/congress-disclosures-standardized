@@ -1,0 +1,550 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "House Financial Disclosure - Annual/New Filer Report",
+    "description": "Schema for Type A (Annual) and Type N/B (New Filer/Candidate) financial disclosures extracted from PDF text",
+    "type": "object",
+    "required": [
+        "doc_id",
+        "year",
+        "filing_type",
+        "filer_info",
+        "extraction_metadata"
+    ],
+    "properties": {
+        "doc_id": {
+            "type": "string",
+            "description": "Unique document identifier"
+        },
+        "year": {
+            "type": "integer",
+            "description": "Filing year",
+            "minimum": 2012,
+            "maximum": 2030
+        },
+        "filing_type": {
+            "type": "string",
+            "enum": [
+                "A",
+                "N",
+                "B",
+                "T"
+            ],
+            "description": "Filing type code: A=Annual, N=New Filer, B=Candidate, T=Termination"
+        },
+        "filer_info": {
+            "type": "object",
+            "description": "Information about the filer",
+            "properties": {
+                "full_name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Full name of the filer"
+                },
+                "filer_type": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "Member",
+                        "Officer or Employee",
+                        "Employee",
+                        null
+                    ],
+                    "description": "Status of filer"
+                },
+                "position": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Position or office held"
+                },
+                "state": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "pattern": "^[A-Z]{2}$",
+                    "description": "Two-letter state code"
+                },
+                "district": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "pattern": "^\\d{1,2}$",
+                    "description": "Congressional district number"
+                },
+                "state_district": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Combined state and district code (e.g., CA12)"
+                },
+                "year": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "description": "Calendar year for the report"
+                },
+                "filing_period_start": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date",
+                    "description": "Start date of filing period (ISO 8601)"
+                },
+                "filing_period_end": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date",
+                    "description": "End date of filing period (ISO 8601)"
+                },
+                "filing_type": {
+                    "type": "string",
+                    "description": "Type of filing (A, N, B, T)"
+                }
+            }
+        },
+        "report_type": {
+            "type": "object",
+            "properties": {
+                "is_amendment": {
+                    "type": "boolean",
+                    "description": "Whether this is an amended report"
+                },
+                "filing_type": {
+                    "type": "string",
+                    "description": "Filing type classification"
+                }
+            }
+        },
+        "assets_and_income": {
+            "type": "array",
+            "description": "Schedule A: Assets and 'Unearned' Income",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "asset_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Name or description of the asset"
+                    },
+                    "owner_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "Self",
+                            "SP",
+                            "DC",
+                            "JT",
+                            null
+                        ],
+                        "description": "Owner code: Self, SP=Spouse, DC=Dependent Child, JT=Joint"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Full text description of the asset entry"
+                    },
+                    "asset_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "Stock",
+                            "Bond",
+                            "Mutual Fund",
+                            "ETF",
+                            "Real Property",
+                            "Retirement Account",
+                            "Bank Account",
+                            "Trust",
+                            "Partnership Interest",
+                            "LLC Interest",
+                            "Stock Option",
+                            "Cryptocurrency",
+                            "Other",
+                            "Unknown",
+                            null
+                        ],
+                        "description": "Classified type of asset"
+                    },
+                    "ticker_symbol": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^[A-Z]{1,5}$",
+                        "description": "Stock ticker symbol (if applicable)"
+                    },
+                    "value_low": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Lower bound of asset value range"
+                    },
+                    "value_high": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Upper bound of asset value range (null for 'Over X')"
+                    },
+                    "value_category": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "A",
+                            "B",
+                            "C",
+                            "D",
+                            "E",
+                            "F",
+                            "G",
+                            "H",
+                            "I",
+                            "J",
+                            "None",
+                            "Unknown",
+                            null
+                        ],
+                        "description": "Disclosure category letter for value range"
+                    },
+                    "income_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "Dividends",
+                            "Rent",
+                            "Interest",
+                            "Capital Gains",
+                            "Capital Gains (Long-Term)",
+                            "Capital Gains (Short-Term)",
+                            "Earned Income",
+                            "Royalties",
+                            "None",
+                            "Other",
+                            "Unknown",
+                            null
+                        ],
+                        "description": "Type of income generated"
+                    },
+                    "income_amount_low": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Lower bound of income amount range"
+                    },
+                    "income_amount_high": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Upper bound of income amount range"
+                    },
+                    "income_category": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "A",
+                            "B",
+                            "C",
+                            "D",
+                            "E",
+                            "F",
+                            "G",
+                            "H",
+                            "I",
+                            "J",
+                            "None",
+                            "Unknown",
+                            null
+                        ],
+                        "description": "Disclosure category letter for income range"
+                    }
+                }
+            }
+        },
+        "liabilities": {
+            "type": "array",
+            "description": "Schedule D: Liabilities (debts over $10,000)",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "creditor_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Name of creditor"
+                    },
+                    "owner_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Owner code for the liability"
+                    },
+                    "type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Type of liability"
+                    },
+                    "amount_range": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Amount range category"
+                    }
+                }
+            }
+        },
+        "positions": {
+            "type": "array",
+            "description": "Schedule J: Positions held outside US Government",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "position_title": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Title or position held"
+                    },
+                    "organization": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Organization name"
+                    }
+                }
+            }
+        },
+        "agreements": {
+            "type": "array",
+            "description": "Schedule IX: Compensation agreements and arrangements",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "agreement_description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Description of the agreement"
+                    },
+                    "parties": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Parties involved"
+                    },
+                    "date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Date of agreement"
+                    }
+                }
+            }
+        },
+        "certification": {
+            "type": "object",
+            "description": "Certification and signature information",
+            "properties": {
+                "filer_certified": {
+                    "type": "boolean",
+                    "description": "Whether the filer certified the report"
+                },
+                "filer_signature": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Filer's signature (if digitally signed)"
+                },
+                "filer_signature_date": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date",
+                    "description": "Date of signature"
+                }
+            }
+        },
+        "filing_metadata": {
+            "type": "object",
+            "description": "Metadata about the filing content",
+            "properties": {
+                "asset_count": {
+                    "type": "integer",
+                    "description": "Number of assets disclosed"
+                },
+                "liability_count": {
+                    "type": "integer",
+                    "description": "Number of liabilities disclosed"
+                },
+                "position_count": {
+                    "type": "integer",
+                    "description": "Number of positions disclosed"
+                },
+                "agreement_count": {
+                    "type": "integer",
+                    "description": "Number of agreements disclosed"
+                }
+            }
+        },
+        "data_quality": {
+            "type": "object",
+            "description": "Data quality and completeness metrics",
+            "properties": {
+                "completeness_metrics": {
+                    "type": "object",
+                    "properties": {
+                        "filer_info_completeness": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "description": "Completeness score for filer information (0-1)"
+                        },
+                        "schedule_a_completeness": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "description": "Completeness score for Schedule A (0-1)"
+                        },
+                        "overall_completeness": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "description": "Overall completeness score (0-1)"
+                        },
+                        "missing_critical_fields": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "List of critical fields that are missing"
+                        },
+                        "populated_schedules": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "List of schedules that have data"
+                        }
+                    }
+                },
+                "confidence_score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Overall extraction confidence (0-1)"
+                },
+                "textract_recommended": {
+                    "type": "boolean",
+                    "description": "Whether Textract-based extraction is recommended for better quality"
+                },
+                "extraction_issues": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of extraction issues encountered"
+                }
+            }
+        },
+        "extraction_metadata": {
+            "type": "object",
+            "required": [
+                "confidence",
+                "method"
+            ],
+            "properties": {
+                "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Overall confidence score for extraction (0-1)"
+                },
+                "method": {
+                    "type": "string",
+                    "enum": [
+                        "regex",
+                        "textract",
+                        "hybrid"
+                    ],
+                    "description": "Extraction method used"
+                },
+                "extraction_version": {
+                    "type": "string",
+                    "description": "Version of the extractor"
+                },
+                "extraction_timestamp": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "When the extraction was performed"
+                },
+                "field_confidence": {
+                    "type": "object",
+                    "description": "Confidence scores for individual fields",
+                    "additionalProperties": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "textract_recommended": {
+                    "type": "boolean",
+                    "description": "Whether Textract extraction is recommended"
+                },
+                "missing_fields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of expected fields that are missing"
+                }
+            }
+        },
+        "extracted_text_content": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Full extracted text from the PDF (for audit/debugging)"
+        }
+    }
+}

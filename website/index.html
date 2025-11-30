@@ -8,6 +8,7 @@
     <meta name="description" content="Open-source database of U.S. House financial disclosure reports">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -304,6 +305,7 @@
                                                 <select id="audit-view-select" class="select"
                                                     style="padding: 0.25rem 0.5rem; font-size: 0.8rem; width: auto;">
                                                     <option value="structured">Structured Data</option>
+                                                    <option value="pipeline">Extraction Pipeline</option>
                                                     <option value="raw_json">Raw JSON</option>
                                                     <option value="extracted_text">Extracted Text</option>
                                                 </select>

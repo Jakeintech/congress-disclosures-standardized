@@ -324,6 +324,8 @@
                     </div>
                 `;
             }
+        } else if (view === 'pipeline') {
+            renderPipelineView(container, doc, currentDocData);
         } else if (view === 'raw_json') {
             // Show currentDocData if available, else show the basic doc object
             const dataToShow = currentDocData || doc;
@@ -338,6 +340,143 @@
         }
     }
 
+    function renderPipelineView(container, doc, data) {
+        if (!doc) {
+            container.innerHTML = '<div class="alert alert-warning">No document selected</div>';
+            return;
+        }
+
+        const meta = data ? data.extraction_metadata : null;
+        const method = meta ? meta.method : 'unknown';
+        const confidence = meta ? meta.confidence_score : 0;
+        const textLength = meta ? meta.text_length : 0;
+        const textractRec = meta ? meta.textract_recommended : false;
+        const timestamp = meta ? meta.extraction_timestamp : 'N/A';
+
+        // Build Mermaid diagram
+        const diagramId = `mermaid-${Date.now()}`;
+        let mermaidCode = `flowchart TD
+    Start([PDF Document<br/>${doc.doc_id}]) --> PDF[PDF Analysis]
+    PDF -->|Format Check| Method{Extraction Method}
+    `;
+
+        if (method === 'code_based' || method === 'direct_text') {
+            mermaidCode += `
+    Method -->|Text-based PDF| DirectText[Direct Text Extraction]
+    DirectText -->|Raw Text| Parse[Parse with RegEx]
+    Parse -->|Extract Fields| Struct[Structured Data]
+    Struct --> Conf{Confidence Check}
+    Conf -->|${(confidence * 100).toFixed(0)}%| Done([Complete])
+    
+    style DirectText fill:#10b981,stroke:#059669,color:#fff
+    style Parse fill:#3b82f6,stroke:#2563eb,color:#fff
+    style Struct fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    style Done fill:#22c55e,stroke:#16a34a,color:#fff
+            `;
+        } else if (method === 'ocr' || method === 'textract') {
+            mermaidCode += `
+    Method -->|Image-based PDF| OCR[OCR/Textract]
+    OCR -->|Scanned Text| Parse[Parse with RegEx]
+    Parse -->|Extract Fields| Struct[Structured Data]
+    Struct --> Conf{Confidence Check}
+    Conf -->|${(confidence * 100).toFixed(0)}%| Done([Complete])
+    
+    style OCR fill:#f59e0b,stroke:#d97706,color:#fff
+    style Parse fill:#3b82f6,stroke:#2563eb,color:#fff
+    style Struct fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    style Done fill:#22c55e,stroke:#16a34a,color:#fff
+            `;
+        } else {
+            mermaidCode += `
+    Method -->|Unknown| Unknown[No Extraction]
+    Unknown --> Failed([Failed/Pending])
+    
+    style Unknown fill:#ef4444,stroke:#dc2626,color:#fff
+    style Failed fill:#dc2626,stroke:#b91c1c,color:#fff
+            `;
+        }
+
+        // Create HTML
+        let html = `
+            <div class="data-section">
+                <div class="data-section-title">🔄 Extraction Pipeline</div>
+                <div class="alert alert-info" style="margin-bottom: 1rem;">
+                    <div class="alert-title">How This Document Was Processed</div>
+                    <div class="alert-description">
+                        This diagram shows the step-by-step process used to extract structured data from the PDF.
+                        Each node represents a processing stage, and the color indicates the type of operation.
+                    </div>
+                </div>
+                
+                <div class="mermaid-container" style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div class="mermaid" id="${diagramId}">
+${mermaidCode}
+                    </div>
+                </div>
+
+                <div class="data-section-title">📊 Extraction Metadata</div>
+                <div class="metadata-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="padding: 0.75rem; background: var(--surface-hover); border-radius: 4px;">
+                        <div style="font-size: 0.7rem; color: var(--muted-foreground); margin-bottom: 0.25rem;">Method</div>
+                        <div style="font-size: 0.9rem; font-weight: 600;">${method || 'Unknown'}</div>
+                    </div>
+                    <div style="padding: 0.75rem; background: var(--surface-hover); border-radius: 4px;">
+                        <div style="font-size: 0.7rem; color: var(--muted-foreground); margin-bottom: 0.25rem;">Confidence</div>
+                        <div style="font-size: 0.9rem; font-weight: 600;">${confidence ? (confidence * 100).toFixed(1) + '%' : 'N/A'}</div>
+                    </div>
+                    <div style="padding: 0.75rem; background: var(--surface-hover); border-radius: 4px;">
+                        <div style="font-size: 0.7rem; color: var(--muted-foreground); margin-bottom: 0.25rem;">Text Length</div>
+                        <div style="font-size: 0.9rem; font-weight: 600;">${textLength ? textLength.toLocaleString() + ' chars' : 'N/A'}</div>
+                    </div>
+                    <div style="padding: 0.75rem; background: var(--surface-hover); border-radius: 4px;">
+                        <div style="font-size: 0.7rem; color: var(--muted-foreground); margin-bottom: 0.25rem;">Processed At</div>
+                        <div style="font-size: 0.9rem; font-weight: 600;">${timestamp ? new Date(timestamp).toLocaleString() : 'N/A'}</div>
+                    </div>
+                </div>
+
+                ${textractRec ? `
+                <div class="alert alert-warning">
+                    <div class="alert-title">⚠️ Textract Recommended</div>
+                    <div class="alert-description">
+                        This PDF appears to be image-based. OCR/Textract extraction may be needed for better results.
+                    </div>
+                </div>
+                ` : ''}
+
+                <details style="margin-top: 1rem;">
+                    <summary style="cursor: pointer; color: hsl(var(--primary)); font-size: 0.9rem; font-weight: 600;">🔍 Troubleshooting Guide</summary>
+                    <div style="margin-top: 0.75rem; padding: 1rem; background: var(--surface-hover); border-radius: 4px; font-size: 0.85rem;">
+                        <h4 style="margin: 0 0 0.5rem 0;">Pipeline Stages Explained:</h4>
+                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                            <li><strong>PDF Analysis:</strong> Initial inspection of PDF format and structure</li>
+                            <li><strong>Extraction Method:</strong> Determines if text is embedded (direct) or requires OCR</li>
+                            <li><strong>Direct Text/OCR:</strong> Extracts raw text from the document</li>
+                            <li><strong>Parse with RegEx:</strong> Uses pattern matching to identify fields</li>
+                            <li><strong>Structured Data:</strong> Organizes extracted info into JSON format</li>
+                            <li><strong>Confidence Check:</strong> Validates extraction quality</li>
+                        </ul>
+                        <h4 style="margin: 1rem 0 0.5rem 0;">Common Issues:</h4>
+                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                            <li><strong>Low Confidence (&lt;80%):</strong> Check if PDF is scanned or has unusual formatting</li>
+                            <li><strong>Missing Transactions:</strong> RegEx patterns may need adjustment</li>
+                            <li><strong>Textract Recommended:</strong> PDF is image-based, consider enabling OCR</li>
+                        </ul>
+                    </div>
+                </details>
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+        // Initialize Mermaid rendering
+        if (window.mermaid) {
+            mermaid.initialize({ startOnLoad: false, theme: 'default' });
+            mermaid.run({ querySelector: `#${diagramId}` });
+        } else {
+            console.error('Mermaid library not loaded');
+        }
+    }
+
     async function loadText(docId) {
         const doc = allDocuments.find(d => d.doc_id === docId);
         if (!doc) return;
@@ -346,7 +485,7 @@
         container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading text...</p></div>';
 
         try {
-            const path = `silver/house/financial/text/year=${doc.year}/doc_id=${doc.doc_id}/raw_text.txt.gz`;
+            const path = `silver/house/financial/text/extraction_method=direct_text/year=${doc.year}/doc_id=${doc.doc_id}/raw_text.txt.gz`;
             const url = `${API_BASE}/${path}`;
             const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to load text');

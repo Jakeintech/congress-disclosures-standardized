@@ -320,8 +320,8 @@ reset-and-run-all: ## Full System Reset & Run: Deploy Infra -> Reset Data -> Run
 	@$(MAKE) deploy-all-lambdas
 	@echo "2. Resetting Data (Clearing S3 & Queues)..."
 	@$(PYTHON) scripts/reset_pipeline.py --force
-	@echo "3. Running Pipeline..."
-	@$(MAKE) run-pipeline
+	@echo "3. Running Pipeline (Full Reset Mode)..."
+	@$(PYTHON) scripts/run_smart_pipeline.py --mode full --year 2025
 	@echo "4. Validating Pipeline Integrity..."
 	@$(MAKE) validate-pipeline
 	@echo "5. Deploying Website..."

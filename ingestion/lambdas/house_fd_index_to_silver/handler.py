@@ -154,6 +154,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         failed_count = 0
         
         if EXTRACTION_QUEUE_URL:
+            batch = []
             for filing in filing_records:
                 try:
                     # Construct filer name
@@ -168,14 +169,35 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'filing_date': filing.get('filing_date'),
                         'state_district': filing.get('state_district')
                     }
-                    sqs_client.send_message(
-                        QueueUrl=EXTRACTION_QUEUE_URL,
-                        MessageBody=json.dumps(message)
-                    )
-                    queued_count += 1
+                    
+                    batch.append({
+                        'Id': filing['doc_id'],
+                        'MessageBody': json.dumps(message)
+                    })
+                    
+                    if len(batch) >= 10:
+                        sqs_client.send_message_batch(
+                            QueueUrl=EXTRACTION_QUEUE_URL,
+                            Entries=batch
+                        )
+                        queued_count += len(batch)
+                        batch = []
+                        
                 except Exception as e:
-                    logger.error(f"Failed to queue doc {doc['doc_id']}: {e}")
+                    logger.error(f"Failed to process doc {filing.get('doc_id')}: {e}")
                     failed_count += 1
+            
+            # Send remaining messages
+            if batch:
+                try:
+                    sqs_client.send_message_batch(
+                        QueueUrl=EXTRACTION_QUEUE_URL,
+                        Entries=batch
+                    )
+                    queued_count += len(batch)
+                except Exception as e:
+                    logger.error(f"Failed to send final batch: {e}")
+                    failed_count += len(batch)
             
             logger.info(f"✅ Queued {queued_count} extraction jobs ({failed_count} failed)")
         else:

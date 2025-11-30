@@ -45,6 +45,11 @@ setup: install ## Initial setup: create .env, install deps
 	@echo "  2. Run 'make init' to initialize Terraform"
 	@echo "  3. Run 'make plan' to see infrastructure changes"
 
+fresh-start: setup init deploy-auto ## Complete fresh start: Setup -> Init -> Deploy -> Ingest 2025
+	@echo "🚀 Starting Fresh Installation..."
+	@$(MAKE) ingest-year YEAR=2025
+	@echo "✓ Fresh start complete! Data is ingesting."
+
 ##@ Terraform
 
 init: ## Initialize Terraform
@@ -106,7 +111,7 @@ package-extract: ## Package house_fd_extract_document Lambda
 	@echo "Packaging house_fd_extract_document..."
 	@rm -rf $(LAMBDA_DIR)/house_fd_extract_document/dist $(LAMBDA_DIR)/house_fd_extract_document/function.zip
 	@mkdir -p $(LAMBDA_DIR)/house_fd_extract_document/dist/
-	$(PIP) install -r $(LAMBDA_DIR)/house_fd_extract_document/requirements.txt -t $(LAMBDA_DIR)/house_fd_extract_document/dist
+	$(PIP) install --platform manylinux2014_x86_64 --implementation cp --python-version 3.11 --only-binary=:all: --upgrade -r $(LAMBDA_DIR)/house_fd_extract_document/requirements.txt -t $(LAMBDA_DIR)/house_fd_extract_document/dist
 	@cp $(LAMBDA_DIR)/house_fd_extract_document/handler.py $(LAMBDA_DIR)/house_fd_extract_document/dist/
 	# Copy entire shared schemas directory to ensure all files are included
 	@cp -r ingestion/schemas $(LAMBDA_DIR)/house_fd_extract_document/dist/
@@ -279,6 +284,8 @@ aggregate-data: ## Aggregate all filing types into Gold layer
 	@echo "Generating Gold Layer Manifests..."
 	@$(PYTHON) scripts/generate_document_quality_manifest.py
 	@$(PYTHON) scripts/generate_all_gold_manifests.py
+	@echo "Generating Pipeline Error Report..."
+	@$(PYTHON) scripts/generate_pipeline_errors.py
 	@echo "✓ Data aggregation complete"
 
 pipeline: ## Smart Pipeline: End-to-end execution with interactive mode (Full/Incremental/Reprocess)

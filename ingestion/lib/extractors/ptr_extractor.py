@@ -198,12 +198,20 @@ class PTRExtractor(BaseExtractor):
             
             # If ticker not in regex, look for it in asset name
             if not ticker and asset_name:
-                # Look for (TICKER) at end of asset name
-                ticker_match = re.search(r'\((?P<ticker>[A-Z]{1,5})\)$', asset_name)
+                # Look for (TICKER) at end of asset name, allowing for trailing whitespace
+                # Also support tickers with dots like (BRK.B)
+                ticker_match = re.search(r'\((?P<ticker>[A-Z]{1,5}(?:\.[A-Z]{1,2})?)\)\s*$', asset_name)
+                
+                # If not at end, look for it anywhere in the string if it looks like a ticker
+                if not ticker_match:
+                     ticker_match = re.search(r'\((?P<ticker>[A-Z]{1,5}(?:\.[A-Z]{1,2})?)\)', asset_name)
+
                 if ticker_match:
                     ticker = ticker_match.group('ticker')
                     # Remove ticker from asset name for cleaner display
-                    asset_name = asset_name[:ticker_match.start()].strip()
+                    # Only remove if it was at the end or clearly separated
+                    if asset_name.strip().endswith(f"({ticker})"):
+                         asset_name = asset_name[:ticker_match.start()].strip()
 
             if not asset_name:
                 asset_name = "Unknown Asset"

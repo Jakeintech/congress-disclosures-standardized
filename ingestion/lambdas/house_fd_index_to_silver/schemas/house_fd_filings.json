@@ -1,23 +1,125 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "House Financial Disclosure Filing",
+  "title": "House Financial Disclosure Filings",
+  "description": "Schema for normalized House FD filing metadata (silver layer)",
   "type": "object",
+  "required": [
+    "doc_id",
+    "year",
+    "filing_date",
+    "filing_type",
+    "first_name",
+    "last_name",
+    "state_district",
+    "pdf_s3_key",
+    "silver_ingest_ts",
+    "source_system"
+  ],
   "properties": {
-    "doc_id": {"type": "string"},
-    "year": {"type": "integer"},
-    "filing_date": {"type": "string"},
-    "filing_type": {"type": "string"},
-    "prefix": {"type": ["string", "null"]},
-    "first_name": {"type": "string"},
-    "last_name": {"type": "string"},
-    "suffix": {"type": ["string", "null"]},
-    "state_district": {"type": "string"},
-    "raw_xml_path": {"type": "string"},
-    "raw_txt_path": {"type": "string"},
-    "pdf_s3_key": {"type": "string"},
-    "bronze_ingest_ts": {"type": "string"},
-    "silver_ingest_ts": {"type": "string"},
-    "source_system": {"type": "string"}
+    "doc_id": {
+      "type": "string",
+      "description": "Unique document identifier from House index",
+      "minLength": 1
+    },
+    "year": {
+      "type": "integer",
+      "description": "Filing year",
+      "minimum": 2008,
+      "maximum": 2100
+    },
+    "filing_date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Date filing was submitted (ISO 8601 format or MM/DD/YYYY)",
+      "pattern": "^(\\d{4}-\\d{2}-\\d{2}|\\d{2}/\\d{2}/\\d{4})$"
+    },
+    "filing_type": {
+      "type": "string",
+      "description": "Filing type code (e.g., 'A' for Annual, 'N' for New Member)",
+      "minLength": 1,
+      "maxLength": 2
+    },
+    "prefix": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Title prefix (e.g., 'Hon.', 'Dr.')",
+      "maxLength": 20
+    },
+    "first_name": {
+      "type": "string",
+      "description": "Filer first name",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Filer last name",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "suffix": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Name suffix (e.g., 'Jr.', 'III')",
+      "maxLength": 20
+    },
+    "state_district": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "State and district (e.g., 'CA11' or 'CA-11')",
+      "pattern": "^([A-Z]{2}[0-9]{0,2}|[A-Z]{2}-[0-9]{1,2})?$"
+    },
+    "raw_xml_path": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "S3 key to source XML index file",
+      "maxLength": 500
+    },
+    "raw_txt_path": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "S3 key to source TXT index file",
+      "maxLength": 500
+    },
+    "pdf_s3_key": {
+      "type": "string",
+      "description": "S3 key to PDF in bronze layer",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "bronze_ingest_ts": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Timestamp when zip was ingested (ISO 8601)",
+      "format": "date-time"
+    },
+    "silver_ingest_ts": {
+      "type": "string",
+      "description": "Timestamp when this row was created/updated (ISO 8601)",
+      "format": "date-time"
+    },
+    "source_system": {
+      "type": "string",
+      "description": "Source system identifier",
+      "enum": [
+        "house_fd"
+      ],
+      "default": "house_fd"
+    }
   },
-  "required": ["doc_id", "year"]
+  "additionalProperties": false
 }

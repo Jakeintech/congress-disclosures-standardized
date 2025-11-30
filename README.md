@@ -1,165 +1,71 @@
-# Congress Financial Disclosures - Standardized Data Pipeline
+# Congress Disclosures Standardized
 
-A transparent, open-source pipeline for converting U.S. House of Representatives financial disclosure reports into structured, queryable data.
+A robust, serverless data pipeline for ingesting, extracting, and analyzing US Congress financial disclosures.
 
-## Overview
-
-This project downloads official House financial disclosure PDFs from [disclosures-clerk.house.gov](https://disclosures-clerk.house.gov/FinancialDisclosure), extracts their contents, and stores them in a **medallion architecture data lake** (bronze/silver/gold) on AWS S3.
-
-**Browse the data**: [Public Website](http://congress-disclosures-standardized.s3-website-us-east-1.amazonaws.com/website/) - Search and explore all financial disclosure filings with a clean, modern interface.
-
-### Key Features
-
-- **Public website**: Browse and search all filings via [static website](http://congress-disclosures-standardized.s3-website-us-east-1.amazonaws.com/website/)
-- **Transparent & reproducible**: Every transformation is auditable with full provenance tracking
-- **Legally compliant**: Built for transparency/research/news use per 5 U.S.C. § 13107
-- **AWS-native**: Uses Lambda, S3, SQS, and Textract for scalable, cost-effective processing
-- **Open source**: MIT licensed, infrastructure-as-code with Terraform
-- **Free tier optimized**: Entire infrastructure designed to stay within AWS free tier limits
-
-### Current Status: Phase 1 (Bronze + Silver)
-
-**Implemented:**
-- Bronze layer: Raw ingestion of zip files, XML/TXT indexes, and PDFs
-- Silver layer: Normalized Parquet tables (`house_fd_filings`, `house_fd_documents`, `house_fd_text`)
-- PDF text extraction: pypdf for text-based PDFs, AWS Textract for image-based PDFs
-- Public website: Static S3-hosted website for browsing and searching filings
-- Manifest API: Auto-generated manifest.json with all filing metadata
-
-**Planned (Phase 2):**
-- Gold layer: Cleaned, denormalized query-facing tables
-- Structured extraction: Parsing assets, transactions, liabilities into JSON schema
-- Member ID crosswalk: Mapping to Congress.gov bioguide IDs
-- Public API: Query interface for researchers and journalists
-
-## Architecture
-
-### Data Lake Structure
-
-```
-s3://congress-disclosures/
-  bronze/house/financial/
-    year=2025/
-      raw_zip/2025FD.zip
-      index/2025FD.xml, 2025FD.txt
-      pdfs/2025/{DocID}.pdf
-
-  silver/house/financial/
-    filings/year=2025/*.parquet        # Normalized filing metadata
-    documents/year=2025/*.parquet      # PDF extraction status
-    text/year=2025/doc_id={DocID}/...  # Extracted text
-
-  gold/house/financial/                # (Phase 2)
-    filings_flat/*.parquet
-    holdings/*.parquet
-    transactions/*.parquet
-```
-
-### Processing Flow
-
-```
-1. house_fd_ingest_zip Lambda
-   └─> Downloads YEARFD.zip from House website
-   └─> Uploads to S3 bronze layer
-   └─> Sends PDF extraction jobs to SQS
-
-2. house_fd_index_to_silver Lambda
-   └─> Parses XML index into Parquet table
-
-3. house_fd_extract_document Lambda (triggered by SQS)
-   └─> Downloads PDF from S3
-   └─> Extracts text (pypdf or Textract)
-   └─> Uploads to silver layer
-```
-
-## Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
+- **Python 3.11+**
+- **Terraform**
+- **AWS CLI** (configured with credentials)
+- **Make**
 
-- AWS account with credentials configured
-- Terraform 1.5+
-- Python 3.11+
-- Make (optional, for convenience commands)
+### Quick Start (Fresh Install)
 
-### Deployment
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/Jakeintech/congress-disclosures-standardized.git
+    cd congress-disclosures-standardized
+    ```
 
-1. **Clone and navigate to repo**:
-   ```bash
-   git clone https://github.com/Jakeintech/congress-disclosures-standardized.git
-   cd congress-disclosures-standardized
-   ```
+2.  **Setup Environment**:
+    ```bash
+    make setup
+    # Edit .env with your specific configuration if needed
+    ```
 
-2. **Configure Terraform variables**:
-   ```bash
-   cd infra/terraform
-   cp terraform.tfvars.example terraform.tfvars
-   # Edit terraform.tfvars with your AWS region, bucket name, etc.
-   ```
+3.  **Deploy Infrastructure**:
+    ```bash
+    make init
+    make deploy
+    ```
 
-3. **Deploy infrastructure**:
-   ```bash
-   make init    # Initialize Terraform
-   make plan    # Review changes
-   make deploy  # Apply infrastructure
-   ```
+4.  **Run Pipeline (Ingest & Process)**:
+    ```bash
+    make run-pipeline
+    ```
 
-4. **Trigger ingestion for a year**:
-   ```bash
-   aws lambda invoke \
-     --function-name house-fd-ingest-zip \
-     --payload '{"year": 2025}' \
-     response.json
-   ```
+5.  **View Website**:
+    ```bash
+    make deploy-website
+    # URL will be printed in the output
+    ```
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
+## 🛠️ Pipeline Operations
 
-## Legal & Compliance
+The pipeline is orchestrated by `scripts/run_smart_pipeline.py` and supports several modes:
 
-This project is designed for **transparency, research, and news purposes** in accordance with the Ethics in Government Act.
+*   **Full Reset**: `make reset-and-run-all`
+    *   Deploys Infra -> Wipes Data -> Ingests -> Extracts -> Aggregates -> Deploys Website.
+    *   *Use with caution!*
 
-**Prohibited uses** (per 5 U.S.C. § 13107):
-- Commercial purposes (except news/media disseminating to public)
-- Determining or establishing credit ratings
-- Soliciting money (political, charitable, or otherwise)
+*   **Daily Update**:
+    *   Run automatically via GitHub Actions (`daily_incremental.yml`).
+    *   Manually: `python3 scripts/run_smart_pipeline.py --mode incremental`
 
-See [docs/LEGAL_NOTES.md](docs/LEGAL_NOTES.md) for full legal context.
+*   **Reprocess Existing Data**:
+    *   `python3 scripts/run_smart_pipeline.py --mode reprocess`
 
-## Project Structure
+## 🏗️ Architecture
 
-```
-/
-├── infra/terraform/        # Infrastructure-as-code
-├── ingestion/
-│   ├── lambdas/           # Lambda function handlers
-│   ├── lib/               # Shared Python libraries
-│   └── schemas/           # JSON schemas for validation
-├── tests/                 # Unit and integration tests
-├── docs/                  # Documentation
-└── .github/workflows/     # CI/CD pipelines
-```
+*   **Bronze Layer**: Raw Zips and PDFs from House Clerk.
+*   **Silver Layer**: Extracted text and structured JSON (Parquet).
+*   **Gold Layer**: Aggregated facts, stats, and network graphs (Parquet/JSON).
+*   **Orchestration**: Python script + AWS Lambda + SQS (Sequential execution).
 
-## Data Sources
+## 🤝 Contributing
 
-- **House Financial Disclosures**: https://disclosures-clerk.house.gov/FinancialDisclosure
-- **Yearly zip pattern**: `https://disclosures-clerk.house.gov/public_disc/financial-pdfs/{YEAR}FD.zip`
-- **PDF pattern**: `https://disclosures-clerk.house.gov/public_disc/financial-pdfs/{YEAR}/{DocID}.pdf`
-
-## Contributing
-
-Contributions welcome! Please read our contribution guidelines and code of conduct before submitting PRs.
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Disclaimer
-
-This dataset is derived from official public financial disclosure reports made available by the U.S. House of Representatives. The original reports are available at [disclosures-clerk.house.gov](https://disclosures-clerk.house.gov/FinancialDisclosure).
-
-Data has been transformed and extracted by automated processes and **may contain errors**. This project is for transparency & research purposes only and is not affiliated with Congress or any government entity.
-
-## Contact & Support
-
-- **Issues**: [GitHub Issues](https://github.com/Jakeintech/congress-disclosures-standardized/issues)
-- **Documentation**: [docs/](docs/)
-- **Architecture details**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+1.  Run checks before committing:
+    ```bash
+    make check-contrib
+    ```

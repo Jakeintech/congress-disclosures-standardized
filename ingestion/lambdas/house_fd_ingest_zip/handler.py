@@ -87,8 +87,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         pdf_count, sqs_message_count, skipped_count = extract_and_upload_pdfs(zip_bytes, year, filing_type_map, skip_existing)
 
         # Trigger index-to-silver Lambda (synchronous)
-        logger.info("Step 5: Triggering index-to-silver Lambda")
-        trigger_index_to_silver(year)
+        # DEPRECATED: Decoupled for orchestration
+        # logger.info("Step 5: Triggering index-to-silver Lambda")
+        # trigger_index_to_silver(year)
 
         result = {
             "status": "success",
@@ -184,6 +185,7 @@ def upload_raw_zip(zip_bytes: bytes, s3_key: str, metadata: Dict[str, str], year
         Body=zip_bytes,
         Metadata=upload_metadata,
         ContentType="application/zip",
+        Tagging=f"year={year}&ingest_version={EXTRACTION_VERSION}"
     )
 
     logger.info(f"Uploaded raw zip to s3://{S3_BUCKET}/{s3_key}")
@@ -351,6 +353,7 @@ def extract_and_upload_pdfs(zip_bytes: bytes, year: int, filing_type_map: Dict[s
                         "upload_timestamp": datetime.now(timezone.utc).isoformat(),
                     },
                     ContentType="application/pdf",
+                    Tagging=f"doc_id={doc_id}&year={year}&filing_type={filing_type}"
                 )
 
                 logger.debug(f"Uploaded PDF to s3://{S3_BUCKET}/{s3_key}")
@@ -408,43 +411,3 @@ def send_sqs_batch(messages: List[Dict[str, str]]):
     except ClientError as e:
         logger.error(f"Failed to send SQS batch: {e}")
         raise
-
-
-def trigger_index_to_silver(year: int):
-    """Trigger index-to-silver Lambda synchronously.
-
-    Args:
-        year: Year to process
-
-    Raises:
-        ClientError: If invocation fails
-    """
-    lambda_client = boto3.client("lambda")
-
-    # Get function name from environment or construct it
-    function_name = os.environ.get(
-        "INDEX_TO_SILVER_FUNCTION_NAME",
-        (
-            f"congress-disclosures-{os.environ.get('ENVIRONMENT', 'development')}"
-            f"-index-to-silver"
-        ),
-    )
-
-    try:
-        response = lambda_client.invoke(
-            FunctionName=function_name,
-            InvocationType="RequestResponse",  # Synchronous
-            Payload=json.dumps({"year": year}),
-        )
-
-        # Parse response
-        response_payload = json.loads(response["Payload"].read())
-
-        if response.get("StatusCode") == 200:
-            logger.info(f"Successfully triggered index-to-silver: {response_payload}")
-        else:
-            logger.warning(f"Index-to-silver returned non-200: {response_payload}")
-
-    except Exception as e:
-        # Don't fail ingestion if index processing fails - it can be retried manually
-        logger.warning(f"Failed to trigger index-to-silver Lambda: {e}")

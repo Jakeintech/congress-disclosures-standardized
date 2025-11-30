@@ -183,7 +183,7 @@ def get_textract_pages_used_this_month() -> int:
         return 0
 
 
-def download_pdf_from_house_website(doc_id: str, year: int, s3_pdf_key: str, pdf_path: Path):
+def download_pdf_from_house_website(doc_id: str, year: int, s3_pdf_key: str, pdf_path: Path, filing_type: str = None):
     """Download PDF from House website and upload to bronze layer.
 
     Args:
@@ -191,12 +191,17 @@ def download_pdf_from_house_website(doc_id: str, year: int, s3_pdf_key: str, pdf
         year: Filing year
         s3_pdf_key: S3 key to upload to
         pdf_path: Local path to save PDF
+        filing_type: Filing type code (e.g. 'P' for PTR)
 
     Raises:
         Exception: If download or upload fails
     """
     # House PDF URL pattern
-    house_url = f"https://disclosures-clerk.house.gov/public_disc/financial-pdfs/{year}/{doc_id}.pdf"
+    # Type P (PTR) documents are stored in a different directory
+    if filing_type == 'P':
+        house_url = f"https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/{year}/{doc_id}.pdf"
+    else:
+        house_url = f"https://disclosures-clerk.house.gov/public_disc/financial-pdfs/{year}/{doc_id}.pdf"
 
     logger.info(f"Downloading from House website: {house_url}")
 
@@ -323,7 +328,7 @@ def process_document(
         # Check if PDF exists in bronze layer, if not download from House website
         if not s3_utils.s3_object_exists(S3_BUCKET, s3_pdf_key):
             logger.info(f"PDF not in bronze, downloading from House website: {doc_id}")
-            download_pdf_from_house_website(doc_id, year, s3_pdf_key, pdf_path)
+            download_pdf_from_house_website(doc_id, year, s3_pdf_key, pdf_path, filing_type)
         else:
             logger.info(f"Downloading PDF from bronze: s3://{S3_BUCKET}/{s3_pdf_key}")
             s3_utils.download_file_from_s3(S3_BUCKET, s3_pdf_key, pdf_path)

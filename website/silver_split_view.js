@@ -174,11 +174,14 @@
     // PDF Handling
     async function loadPDF(doc) {
         // Official URL (Source of Truth)
-        const officialUrl = `https://disclosures-clerk.house.gov/public_disc/financial-pdfs/${doc.year}/${doc.doc_id}.pdf`;
+        let officialUrl = `https://disclosures-clerk.house.gov/public_disc/financial-pdfs/${doc.year}/${doc.doc_id}.pdf`;
+        if (doc.filing_type === 'P') {
+            officialUrl = `https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/${doc.year}/${doc.doc_id}.pdf`;
+        }
 
         // S3 URL (Internal Cache - Faster/CORS friendly)
         const s3Base = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com`;
-        const s3Url = `${s3Base}/bronze/house/financial/disclosures/year=${doc.year}/doc_id=${doc.doc_id}/${doc.doc_id}.pdf`;
+        const s3Url = `${s3Base}/bronze/house/financial/year=${doc.year}/pdfs/${doc.year}/${doc.doc_id}.pdf`;
 
         // Set download link to official source for "View Original" behavior
         elements['pdf-download-link'].href = officialUrl;

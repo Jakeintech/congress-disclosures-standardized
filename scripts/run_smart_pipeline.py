@@ -63,6 +63,43 @@ def purge_queue():
     except Exception as e:
         print(f"⚠️  Purge failed (might be empty): {e}")
 
+def wait_for_extraction(timeout_minutes=60):
+    """Wait for extraction queue to drain."""
+    print(f"\nWaiting for extraction to complete (timeout: {timeout_minutes}m)...")
+    url = get_queue_url()
+    if not url:
+        print("⚠️  Could not find extraction queue.")
+        return False
+        
+    start_time = time.time()
+    while (time.time() - start_time) < (timeout_minutes * 60):
+        try:
+            response = sqs.get_queue_attributes(
+                QueueUrl=url,
+                AttributeNames=['ApproximateNumberOfMessages', 'ApproximateNumberOfMessagesNotVisible']
+            )
+            attributes = response['Attributes']
+            visible = int(attributes.get('ApproximateNumberOfMessages', 0))
+            inflight = int(attributes.get('ApproximateNumberOfMessagesNotVisible', 0))
+            total = visible + inflight
+            
+            if total == 0:
+                print("\n✓ Extraction queue empty. Silver layer processing complete.")
+                # Wait a bit more to ensure eventual consistency / last writes
+                time.sleep(30)
+                return True
+                
+            elapsed = int(time.time() - start_time)
+            print(f"\r⏳ Processing: {visible} queued, {inflight} in-flight (Elapsed: {elapsed}s)   ", end="", flush=True)
+            time.sleep(10)
+            
+        except Exception as e:
+            print(f"\n⚠️  Error checking queue: {e}")
+            time.sleep(10)
+            
+    print(f"\n❌ Timeout waiting for extraction after {timeout_minutes} minutes.")
+    return False
+
 def run_ingestion(year, skip_existing=False):
     """Trigger ingestion Lambda."""
     print(f"Triggering ingestion for {year} (skip_existing={skip_existing})...")
@@ -144,7 +181,8 @@ def run_aggregation():
         "compute_agg_trending_stocks",
         "compute_agg_network_graph",
         "generate_document_quality_manifest",
-        "generate_all_gold_manifests"
+        "generate_all_gold_manifests",
+        "generate_pipeline_errors"
     ]
     
     for module_name in modules:
@@ -159,6 +197,35 @@ def reset_data(year):
     # For now, we rely on ingestion overwrite or manual reset
     # Implementing full S3 delete is risky without explicit confirmation
     pass
+
+def trigger_index_to_silver(year):
+    """Trigger index-to-silver Lambda."""
+    print(f"Triggering Silver Layer (Index Processing) for {year}...")
+    
+    # Get function name dynamically if possible, or use default
+    function_name = f"congress-disclosures-development-index-to-silver"
+    
+    payload = {"year": year}
+    
+    try:
+        response = lambda_client.invoke(
+            FunctionName=function_name,
+            InvocationType='RequestResponse',
+            Payload=json.dumps(payload)
+        )
+        
+        response_payload = json.loads(response['Payload'].read())
+        
+        if response.get('StatusCode') != 200 or response_payload.get('status') == 'error':
+            print(f"❌ Silver Init failed: {response_payload}")
+            return False
+            
+        print(f"✓ Silver Init complete: {json.dumps(response_payload, indent=2)}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Failed to invoke index-to-silver lambda: {e}")
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="Smart Pipeline Runner")
@@ -202,22 +269,35 @@ def main():
         # Run ingestion (overwrite)
         if not run_ingestion(args.year, skip_existing=False):
             return 1
-        # Ingestion triggers extraction automatically
+        
+        # Trigger Silver Layer Init (Index Processing)
+        if not trigger_index_to_silver(args.year):
+            return 1
         
     elif mode == "incremental":
         # Run ingestion (skip existing)
         if not run_ingestion(args.year, skip_existing=True):
             return 1
-        # Ingestion triggers extraction ONLY for new files
         
+        # Trigger Silver Layer Init (Index Processing)
+        if not trigger_index_to_silver(args.year):
+            return 1
+
     elif mode == "reprocess":
-        # Run Silver pipeline script
-        if not run_silver_pipeline():
+        # Run Silver pipeline script (which triggers index-to-silver internally or we do it here)
+        # For consistency, let's trigger it here if reprocess means "re-index and re-extract"
+        if not trigger_index_to_silver(args.year):
             return 1
             
     elif mode == "aggregate":
         pass # Just skip to aggregation
         
+    # Wait for extraction to complete before aggregation
+    if mode in ["full", "incremental", "reprocess"]:
+        if not wait_for_extraction():
+            print("❌ Extraction failed or timed out. Skipping aggregation.")
+            return 1
+
     # Always run aggregation at the end (unless failed)
     if not run_aggregation():
         return 1

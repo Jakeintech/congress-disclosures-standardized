@@ -41,24 +41,25 @@ def get_xml_manifest(year):
         return None
 
 def get_s3_pdfs(year):
-    """Lists all PDF DocIDs present in the Bronze layer."""
-    prefix = f"bronze/house/financial/year={year}/pdfs/{year}/"
+    """Lists all PDF DocIDs present in the Bronze layer for the given year."""
+    # Use a broad prefix to capture all possible PDF locations under the year.
+    prefix = f"bronze/house/financial/year={year}/"
     print(f"🔎 Scanning S3 prefix: s3://{BUCKET_NAME}/{prefix}")
-    
+
     pdfs = set()
     paginator = s3.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=prefix)
-    
     for page in pages:
         if 'Contents' in page:
             for obj in page['Contents']:
-                # Extract DocID from key: .../123456.pdf -> 123456
-                filename = obj['Key'].split('/')[-1]
-                if filename.endswith('.pdf'):
-                    doc_id = filename.replace('.pdf', '')
-                    pdfs.add(doc_id)
-    
-    print(f"✓ Found {len(pdfs)} PDFs in S3")
+                key = obj['Key']
+                if not key.lower().endswith('.pdf'):
+                    continue
+                # Extract doc_id from the filename (last component) without extension
+                filename = key.split('/')[-1]
+                doc_id = filename.replace('.pdf', '')
+                pdfs.add(doc_id)
+    print(f"✓ Found {len(pdfs)} PDFs in S3 under year {year}")
     return pdfs
 
 def check_s3_tags(bucket, key, expected_tags):
@@ -184,6 +185,83 @@ def analyze_extraction_quality(year, sample_size=20):
 
     print("-" * 60)
     return all_types_ok
+
+def get_queue_url(queue_name):
+    """Helper to get SQS queue URL."""
+    try:
+        response = sqs.get_queue_url(QueueName=queue_name)
+        return response['QueueUrl']
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'AWS.SimpleQueueService.NonExistentQueue':
+            print(f"❌ SQS queue '{queue_name}' does not exist.")
+        else:
+            print(f"❌ Error getting queue URL for '{queue_name}': {e}")
+        return None
+
+def check_lambda_health(lambda_names):
+    """Helper: Verify each Lambda is Active and has recent logs."""
+    client = boto3.client('lambda')
+    all_ok = True
+    for name in lambda_names:
+        try:
+            cfg = client.get_function_configuration(FunctionName=name)
+            state = cfg.get('State', 'Unknown')
+            if state != 'Active':
+                print(f"❌ Lambda {name} not active (state={state})")
+                all_ok = False
+            else:
+                print(f"✅ Lambda {name} is active")
+        except Exception as e:
+            print(f"❌ Error checking lambda {name}: {e}")
+            all_ok = False
+    return all_ok
+
+def check_cloudwatch_logs(log_groups):
+    """Helper: Check if log streams exist for CloudWatch log groups."""
+    logs = boto3.client('logs')
+    all_ok = True
+    for lg in log_groups:
+        try:
+            streams = logs.describe_log_streams(logGroupName=lg, orderBy='LastEventTime', descending=True, limit=1)
+            if streams.get('logStreams'):
+                print(f"✅ Logs present for {lg}")
+            else:
+                print(f"⚠️  No log streams found for {lg}")
+                all_ok = False
+        except Exception as e:
+            print(f"❌ Error accessing logs for {lg}: {e}")
+            all_ok = False
+    return all_ok
+
+def check_dlq():
+    """Checks both DLQ and main extraction queue for stuck messages."""
+    print("🔎 Checking DLQ and main SQS queues...")
+    dlq_url = get_queue_url("congress-disclosures-development-extract-dlq")
+    main_url = get_queue_url("congress-disclosures-development-extract-queue")
+    
+    def attrs(url):
+        try:
+            resp = sqs.get_queue_attributes(QueueUrl=url, AttributeNames=['ApproximateNumberOfMessages','ApproximateNumberOfMessagesNotVisible'])
+            return int(resp['Attributes'].get('ApproximateNumberOfMessages',0)), int(resp['Attributes'].get('ApproximateNumberOfMessagesNotVisible',0))
+        except Exception as e:
+            print(f"❌ Unable to get attributes for {url}: {e}")
+            return 0,0
+            
+    dlq_msg, dlq_vis = attrs(dlq_url) if dlq_url else (0,0)
+    main_msg, main_vis = attrs(main_url) if main_url else (0,0)
+    
+    if dlq_msg or dlq_vis:
+        print(f"⚠️  DLQ has {dlq_msg} pending and {dlq_vis} in-flight messages")
+        return False
+    else:
+        print("✅ DLQ is empty")
+    
+    if main_msg:
+        print(f"⚠️  Extraction queue has {main_msg} messages waiting")
+        return False
+    else:
+        print("✅ Extraction queue is empty")
+    return True
 
 def main():
     parser = argparse.ArgumentParser(description="Validate pipeline integrity")

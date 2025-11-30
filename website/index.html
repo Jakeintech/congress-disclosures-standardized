@@ -7,6 +7,7 @@
     <title>Congress Financial Disclosures</title>
     <meta name="description" content="Open-source database of U.S. House financial disclosure reports">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -290,11 +291,23 @@
                                     <!-- Right: Data Viewer -->
                                     <div class="split-pane-right" id="silver-pane-right">
                                         <div class="data-header">
-                                            <h2 id="data-doc-title"
-                                                style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem;">
-                                                Document Data</h2>
-                                            <div id="data-doc-meta"
-                                                style="font-size: 0.8rem; color: hsl(var(--muted-foreground));"></div>
+                                            <div
+                                                style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                                <div>
+                                                    <h2 id="data-doc-title"
+                                                        style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem;">
+                                                        Document Data</h2>
+                                                    <div id="data-doc-meta"
+                                                        style="font-size: 0.8rem; color: hsl(var(--muted-foreground));">
+                                                    </div>
+                                                </div>
+                                                <select id="audit-view-select" class="select"
+                                                    style="padding: 0.25rem 0.5rem; font-size: 0.8rem; width: auto;">
+                                                    <option value="structured">Structured Data</option>
+                                                    <option value="raw_json">Raw JSON</option>
+                                                    <option value="extracted_text">Extracted Text</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div id="silver-data-content" class="data-content">
                                             <!-- Populated by JS -->

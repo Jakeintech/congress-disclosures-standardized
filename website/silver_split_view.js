@@ -14,6 +14,8 @@
     let allDocuments = [];
     let filteredDocuments = [];
     let currentDocId = null;
+    let currentDocData = null; // Store structured data
+    let currentDocText = null; // Store extracted text
     let pdfDoc = null;
     let pdfPageNum = 1;
     let pdfScale = 1.0;
@@ -38,7 +40,7 @@
             'silver-empty-state', 'silver-content-pane', 'silver-pane-left', 'silver-pane-right',
             'silver-resizer', 'silver-pdf-canvas', 'silver-data-content',
             'pdf-prev', 'pdf-next', 'pdf-zoom-in', 'pdf-zoom-out', 'pdf-page-num', 'pdf-page-count', 'pdf-download-link',
-            'data-doc-title', 'data-doc-meta'
+            'data-doc-title', 'data-doc-meta', 'audit-view-select'
         ];
 
         ids.forEach(id => {
@@ -53,6 +55,10 @@
         elements['silver-type-filter'].addEventListener('change', filterDocuments);
         elements['silver-year-filter'].addEventListener('change', filterDocuments);
         elements['silver-refresh-btn'].addEventListener('click', loadSilverDocuments);
+
+        if (elements['audit-view-select']) {
+            elements['audit-view-select'].addEventListener('change', renderAuditView);
+        }
 
         // PDF Controls
         elements['pdf-prev'].addEventListener('click', onPrevPage);
@@ -151,6 +157,10 @@
 
     window.selectDocument = async function (docId) {
         currentDocId = docId;
+        currentDocData = null;
+        currentDocText = null;
+        if (elements['audit-view-select']) elements['audit-view-select'].value = 'structured';
+
         renderDocumentList(); // Update active state
 
         const doc = allDocuments.find(d => d.doc_id === docId);
@@ -262,19 +272,8 @@
 
         // Currently only PTRs (Type P) have structured extraction
         if (doc.filing_type !== 'P') {
-            container.innerHTML = `
-                <div class="alert alert-info">
-                    <div class="alert-title">Extraction Not Available</div>
-                    <div class="alert-description">
-                        Structured data extraction is currently only available for <strong>Periodic Transaction Reports (PTR)</strong>.
-                        <br><br>
-                        This document is a <strong>${getFilingTypeLabel(doc.filing_type)}</strong>. You can view the original PDF on the left.
-                    </div>
-                </div>
-                <div class="json-display">
-                    <pre style="font-size: 0.8rem; overflow: auto;">${JSON.stringify(doc, null, 2)}</pre>
-                </div>
-            `;
+            currentDocData = null; // No structured data
+            renderAuditView();
             return;
         }
 
@@ -287,26 +286,87 @@
             const response = await fetch(url);
             if (!response.ok) {
                 if (response.status === 403 || response.status === 404) {
-                    container.innerHTML = `
-                        <div class="alert alert-warning">
-                            <div class="alert-title">Data Not Available</div>
-                            <div class="alert-description">Structured extraction is pending or not available for this document.</div>
-                        </div>
-                        <div class="json-display">
-                            <pre style="font-size: 0.8rem; overflow: auto;">${JSON.stringify(doc, null, 2)}</pre>
-                        </div>
-                    `;
+                    currentDocData = null;
+                    renderAuditView();
                     return;
                 }
                 throw new Error('Failed to load data');
             }
 
             const data = await response.json();
-            renderStructuredData(data, container);
+            currentDocData = data;
+            renderAuditView();
 
         } catch (error) {
             console.error('Error loading data:', error);
             container.innerHTML = `<div class="error-state">Failed to load extracted data.</div>`;
+        }
+    }
+
+    async function renderAuditView() {
+        const view = elements['audit-view-select'] ? elements['audit-view-select'].value : 'structured';
+        const container = elements['silver-data-content'];
+        const doc = allDocuments.find(d => d.doc_id === currentDocId);
+
+        if (view === 'structured') {
+            if (currentDocData) {
+                renderStructuredData(currentDocData, container);
+            } else {
+                // Fallback if structured data isn't loaded
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <div class="alert-title">Extraction Not Available</div>
+                        <div class="alert-description">
+                            Structured data extraction is currently only available for <strong>Periodic Transaction Reports (PTR)</strong>.
+                            <br><br>
+                            This document is a <strong>${getFilingTypeLabel(doc ? doc.filing_type : '')}</strong>.
+                        </div>
+                    </div>
+                `;
+            }
+        } else if (view === 'raw_json') {
+            // Show currentDocData if available, else show the basic doc object
+            const dataToShow = currentDocData || doc;
+            container.innerHTML = `<div class="json-display"><pre style="font-size: 0.8rem; overflow: auto;">${JSON.stringify(dataToShow, null, 2)}</pre></div>`;
+        } else if (view === 'extracted_text') {
+            if (!currentDocText) {
+                await loadText(currentDocId);
+            }
+            // Check again after load
+            const text = currentDocText || 'No text content available.';
+            container.innerHTML = `<div class="text-display" style="white-space: pre-wrap; font-family: monospace; font-size: 0.8rem; padding: 1rem; background: var(--surface-hover); border-radius: 4px; overflow: auto; height: 100%;">${escapeHtml(text)}</div>`;
+        }
+    }
+
+    async function loadText(docId) {
+        const doc = allDocuments.find(d => d.doc_id === docId);
+        if (!doc) return;
+
+        const container = elements['silver-data-content'];
+        container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading text...</p></div>';
+
+        try {
+            const path = `silver/house/financial/text/year=${doc.year}/doc_id=${doc.doc_id}/raw_text.txt.gz`;
+            const url = `${API_BASE}/${path}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to load text');
+
+            const blob = await response.blob();
+            const arrayBuffer = await blob.arrayBuffer();
+
+            // Decompress using pako if available, else try simple text decode
+            try {
+                if (window.pako) {
+                    currentDocText = pako.inflate(new Uint8Array(arrayBuffer), { to: 'string' });
+                } else {
+                    currentDocText = "Error: Pako library not loaded.";
+                }
+            } catch (e) {
+                console.error('Decompression failed', e);
+                currentDocText = "Error: Could not decompress text (Invalid GZIP).";
+            }
+        } catch (e) {
+            currentDocText = "Error: Could not load text (404 Not Found or Access Denied).";
         }
     }
 
@@ -370,22 +430,22 @@
             `;
         }
 
-        // Raw JSON Toggle
-        html += `
-            <div class="data-section">
-                <details>
-                    <summary style="cursor: pointer; color: hsl(var(--primary)); font-size: 0.9rem;">View Raw JSON</summary>
-                    <div class="json-display" style="margin-top: 0.5rem;">
-                        <pre style="font-size: 0.75rem; overflow: auto; max-height: 300px;">${JSON.stringify(data, null, 2)}</pre>
-                    </div>
-                </details>
-            </div>
-        `;
+        // Raw JSON Toggle - REMOVED (Moved to Audit View Dropdown)
 
         container.innerHTML = html;
     }
 
     // Utilities
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function setListLoading(isLoading) {
         const list = elements['silver-doc-list'];
         if (isLoading) {

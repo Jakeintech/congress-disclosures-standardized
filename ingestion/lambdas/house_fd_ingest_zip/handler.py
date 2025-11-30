@@ -96,6 +96,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "pdfs_uploaded": pdf_count,
             "pdfs_skipped": skipped_count,
             "sqs_messages_sent": sqs_message_count,
+            "index_entry_count": len(filing_type_map),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 

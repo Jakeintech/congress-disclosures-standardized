@@ -232,6 +232,20 @@ quick-deploy-extract: ## Quick dev cycle: package + deploy extract Lambda
 		--query 'Configuration.LastUpdateStatus' --output text
 	@echo "✓ Extract Lambda deployed"
 
+quick-deploy-ingest: ## Quick dev cycle: package + deploy ingest Lambda
+	@echo "Quick deploying ingest Lambda..."
+	@make package-ingest
+	@aws lambda update-function-code \
+		--function-name congress-disclosures-development-ingest-zip \
+		--zip-file fileb://$(LAMBDA_DIR)/house_fd_ingest_zip/function.zip \
+		--query 'LastUpdateStatus' --output text
+	@echo "Waiting for deployment..."
+	@sleep 5
+	@aws lambda get-function \
+		--function-name congress-disclosures-development-ingest-zip \
+		--query 'Configuration.LastUpdateStatus' --output text
+	@echo "✓ Ingest Lambda deployed"
+
 ##@ Data Operations
 
 ingest-year: ## Ingest data for a specific year (usage: make ingest-year YEAR=2025)

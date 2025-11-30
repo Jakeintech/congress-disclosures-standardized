@@ -60,8 +60,15 @@ def purge_queue():
         sqs.purge_queue(QueueUrl=url)
         print("✓ Queue purged. Waiting 60s for stabilization...")
         time.sleep(60)
+    except sqs.exceptions.PurgeQueueInProgress:
+        print("⚠️  Purge in progress (rate limited). Waiting 60s...")
+        time.sleep(60)
     except Exception as e:
-        print(f"⚠️  Purge failed (might be empty): {e}")
+        if "PurgeQueueInProgress" in str(e):
+            print("⚠️  Purge in progress (rate limited). Waiting 60s...")
+            time.sleep(60)
+        else:
+            print(f"⚠️  Purge failed (might be empty): {e}")
 
 def wait_for_extraction(timeout_minutes=60):
     """Wait for extraction queue to drain."""

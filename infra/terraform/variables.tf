@@ -233,3 +233,9 @@ variable "budget_daily_limit" {
   type        = string
   default     = "0.50"
 }
+
+variable "tesseract_layer_arn" {
+  description = "ARN of Lambda Layer containing Tesseract binaries (e.g., Klayers)"
+  type        = string
+  default     = "arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p311-tesseract:1"
+}

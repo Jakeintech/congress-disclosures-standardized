@@ -283,7 +283,10 @@ aggregate-data: ## Aggregate all filing types into Gold layer
 	@$(PYTHON) scripts/generate_type_p_transactions.py
 	@$(PYTHON) scripts/generate_type_a_assets.py
 	@$(PYTHON) scripts/generate_type_t_terminations.py
+	@$(PYTHON) scripts/generate_type_t_terminations.py
 	@$(PYTHON) scripts/sync_parquet_to_dynamodb.py
+	@echo "Building Dimensions..."
+	@$(PYTHON) scripts/build_dim_members_simple.py
 	@echo "Rebuilding Silver manifest (v2)..."
 	@$(PYTHON) scripts/rebuild_silver_manifest.py
 	@echo "Generating Silver manifest API..."

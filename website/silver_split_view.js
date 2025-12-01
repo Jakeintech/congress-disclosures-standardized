@@ -191,7 +191,8 @@
 
         // S3 URL (Internal Cache - Faster/CORS friendly)
         const s3Base = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com`;
-        const s3Url = `${s3Base}/bronze/house/financial/year=${doc.year}/filing_type=${doc.filing_type}/pdfs/${doc.doc_id}.pdf`;
+        // Note: Ingestion lambda currently stores PDFs at .../year=YYYY/pdfs/YYYY/DOCID.pdf
+        const s3Url = `${s3Base}/bronze/house/financial/year=${doc.year}/pdfs/${doc.year}/${doc.doc_id}.pdf`;
 
         // Set download link to official source for "View Original" behavior
         elements['pdf-download-link'].href = officialUrl;
@@ -206,15 +207,20 @@
             console.error('Error loading PDF from S3:', error);
 
             // Show error in PDF container with link to official source
-            const container = elements['silver-pdf-canvas'].parentElement;
-            container.innerHTML = `
-                <div class="error-state" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
-                    <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
-                    <h3>PDF Not Available</h3>
-                    <p>Unable to load the document PDF from our cache.</p>
-                    <a href="${officialUrl}" target="_blank" class="btn btn-primary" style="margin-top: 1rem;">Try Official Source</a>
-                </div>
-            `;
+            const canvas = elements['silver-pdf-canvas'];
+            const container = canvas ? canvas.parentElement : null;
+
+            if (container) {
+                container.innerHTML = `
+                    <div class="error-state" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
+                        <h3>PDF Not Available</h3>
+                        <p>Unable to load the document PDF from our cache.</p>
+                        <p style="font-size: 0.8rem; color: var(--muted-foreground); margin-bottom: 1rem;">${s3Url}</p>
+                        <a href="${officialUrl}" target="_blank" class="btn btn-primary" style="margin-top: 1rem;">Try Official Source</a>
+                    </div>
+                `;
+            }
         }
     }
 

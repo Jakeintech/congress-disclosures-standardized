@@ -76,7 +76,9 @@ resource "aws_lambda_function" "extract_structured_code" {
   source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_extract_structured_code/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_extract_structured_code/function.zip") : null
 
   timeout     = 180 # 3 minutes (code-based extraction is fast)
-  memory_size = 512 # Less memory than Textract-based extraction
+  memory_size = 1024 # Needs more memory for OCR
+
+  layers = [var.tesseract_layer_arn]
 
   environment {
     variables = {

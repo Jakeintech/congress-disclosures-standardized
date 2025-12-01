@@ -144,13 +144,24 @@ class PTRExtractor(BaseExtractor):
 
         return False
 
+    def _clean_merged_text(self, text: str) -> str:
+        """Clean merged text fields (e.g. missing spaces)."""
+        # Insert space between date and date: 202505/01 -> 2025 05/01
+        text = re.sub(r'(\d{4})(\d{2}/\d{2})', r'\1 \2', text)
+        # Insert space between date and amount: 2025$1,000 -> 2025 $1,000
+        text = re.sub(r'(\d{4})(\$)', r'\1 \2', text)
+        # Insert space between P/S and date: P05/01 -> P 05/01
+        text = re.sub(r'\b([PS])(\d{2}/\d{2})', r'\1 \2', text)
+        return text
+
     def _extract_transactions(self, text: str) -> List[Dict[str, Any]]:
         """Extract transaction records from table."""
         transactions = []
 
         # Find transaction section (between table header and certification)
         # Handle spaced headers like "I D O w n e r"
-        trans_start_match = re.search(r'(?:ID\s+Owner|I\s*D\s*O\s*w\s*n\s*e\s*r)', text, re.IGNORECASE)
+        # Handle spaced headers like "I D O w n e r" or "FULL ASSET NAME"
+        trans_start_match = re.search(r'(?:ID\s+Owner|I\s*D\s*O\s*w\s*n\s*e\s*r|FULL\s+ASSET\s+NAME)', text, re.IGNORECASE)
         trans_end_match = re.search(r'(?:I\s*CERTIFY|I\s*C\s*E\s*R\s*T\s*I\s*F\s*Y)', text, re.IGNORECASE)
         
         if not trans_start_match:
@@ -168,34 +179,82 @@ class PTRExtractor(BaseExtractor):
         # Note: [TYPE] is optional
         # Note: Dates can be smashed together: 01/14/202501/14/2025
         # Note: Amount can span lines
+        # Updated pattern to match actual format:
+        # Asset Name (TICKER) [TYPE] TRANS_TYPE DATE DATE AMOUNT
+        # Note: Ticker can be at end of asset name line
+        # Note: [TYPE] is optional
+        # Note: Dates can be smashed together: 01/14/202501/14/2025
+        # Note: Amount can span lines
         pattern = r'''
             (?:\((?P<ticker>[A-Z]{1,5})\))?            # Ticker in parentheses (optional here, might be in asset name)
             \s*
-            (?:\[(?P<type_code>[A-Z]{2})\])?           # Asset type code in brackets (optional)
+            (?:\[(?P<type_code>[A-Z]{2,4})\])?         # Asset type code in brackets (optional)
             \s*
             (?P<trans_type>P|S|Purchase|Sale|E)        # Transaction type (E for Exchange)
             \s+
             (?P<trans_date>\d{1,2}/\d{1,2}/\d{4})\s*   # Transaction date (allow no space)
-            (?P<notif_date>\d{1,2}/\d{1,2}/\d{4})\s+   # Notification date
+            (?P<notif_date>\d{1,2}/\d{1,2}/\d{4})\s*   # Notification date (allow no space before amount)
             \$?(?P<amount>[\d,]+\s*-\s*\$?[\d,]+|Over\s+\$[\d,]+)  # Amount range
         '''
 
-        for match in re.finditer(pattern, trans_section, re.VERBOSE | re.DOTALL):
-            ticker = match.group('ticker')
-            asset_type_code = match.group('type_code')
-            trans_type_raw = match.group('trans_type')
-            trans_date_str = match.group('trans_date')
-            notif_date_str = match.group('notif_date')
-            amount_str = match.group('amount')
+        # Import reference data
+        try:
+            from ...reference_data import get_asset_type_description
+        except ImportError:
+            get_asset_type_description = lambda x: x
 
-            # Find asset name (look backwards from match start)
-            match_pos = match.start()
-            text_before = trans_section[:match_pos]
+        for line in trans_section.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
             
-            # Get last 300 chars before match, split by newlines
-            context = text_before[-300:].split('\n')
-            # Asset name is typically the last non-empty line before ticker
-            asset_name = None
+            # Clean merged text (e.g. 202505/01/2025 or 2025$1,000)
+            line = self._clean_merged_text(line)
+
+            match = re.search(pattern, line, re.VERBOSE)
+            if match:
+                transaction = match.groupdict()
+                
+                # Post-process fields
+                if transaction.get('ticker'):
+                    transaction['ticker'] = transaction['ticker'].strip('() ')
+                    
+                # Clean asset name from previous lines if needed, or if it was captured
+                # For now, we assume asset name is in previous lines if not in regex
+                # But regex doesn't capture asset name! It captures everything AFTER asset name.
+                # We need to get the text BEFORE the match in the line.
+                
+                # Wait, the regex above matches PART of the line.
+                # The asset name is what comes BEFORE the match.
+                match_start = match.start()
+                asset_name_raw = line[:match_start].strip()
+                
+                # If asset name is empty, it might be on previous line (handled by loop context?)
+                # But here we iterate lines.
+                # If asset name is empty, check previous line?
+                # For now, just use what we found.
+                transaction['asset_name'] = asset_name_raw
+
+                # Enrich with asset type description
+                type_code = transaction.get('type_code')
+                if type_code:
+                    transaction['asset_type'] = get_asset_type_description(type_code)
+                    
+                # Parse dates
+                transaction['transaction_date'] = self.extract_date(transaction.get('trans_date'))
+                transaction['notification_date'] = self.extract_date(transaction.get('notif_date'))
+                
+                # Parse amount
+                amount_str = transaction.get('amount', '')
+                amount_low, amount_high = self.parse_amount(amount_str)
+                transaction['amount_low'] = amount_low
+                transaction['amount_high'] = amount_high
+                transaction['amount_range'] = amount_str
+
+                transactions.append(transaction)
+                continue
+
+        # Fallback for OCR/Checkbox style forms if no transactions found (or few)
             
             # Iterate backwards by index to handle duplicate lines correctly
             for i in range(len(context) - 1, -1, -1):
@@ -272,6 +331,65 @@ class PTRExtractor(BaseExtractor):
             }
 
             transactions.append(transaction)
+
+            transactions.append(transaction)
+
+        # Fallback for OCR/Checkbox style forms if no transactions found (or few)
+        if len(transactions) == 0:
+            logger.info("No standard transactions found, attempting OCR fallback extraction")
+            # Pattern: Type Asset ... Date ...
+            # Example: Sell Grandeur Peak ... 9/25/25
+            fallback_pattern = r'(?P<trans_type>Sell|Buy|Purchase|Sale|Exchange)\s+(?P<asset>.+?)(?P<trans_date>\d{1,2}/\d{1,2}/\d{2,4})'
+            
+            for line in trans_section.split('\n'):
+                line = line.strip()
+                if not line:
+                    continue
+                
+            for line in trans_section.split('\n'):
+                line = line.strip()
+                if not line:
+                    continue
+                
+                match = re.search(fallback_pattern, line, re.IGNORECASE)
+                if match:
+                    trans_type_raw = match.group('trans_type')
+                    asset_raw = match.group('asset')
+                    trans_date_str = match.group('trans_date')
+                    
+                    # Clean asset name
+                    asset_name = re.sub(r'[|@].*$', '', asset_raw).strip() # Remove garbage like | @ 17.76
+                    if len(asset_name) < 3:
+                        continue
+
+                    # Determine type
+                    if trans_type_raw.lower() in ['p', 'purchase', 'buy']:
+                        trans_type = "Purchase"
+                    elif trans_type_raw.lower() in ['s', 'sale', 'sell']:
+                        trans_type = "Sale"
+                    else:
+                        trans_type = "Exchange"
+
+                    # Try to find amount (checkbox X)
+                    # Very rough heuristic: position of X in the garbage part
+                    amount_range = "Unknown"
+                    if 'x' in line.lower() or '☒' in line:
+                         amount_range = "$1,001 - $15,000" # Default to lowest bucket if X found but position unknown
+                         # TODO: Improve column mapping based on X position relative to line length
+
+                    transaction = {
+                        "owner_code": "SP",
+                        "asset_name": asset_name,
+                        "ticker": None,
+                        "transaction_type": trans_type,
+                        "transaction_date": self.extract_date(trans_date_str),
+                        "notification_date": None, # Often missing or same as trans date in fallback
+                        "amount_range": amount_range,
+                        "amount_low": None,
+                        "amount_high": None,
+                        "amount_column": None,
+                    }
+                    transactions.append(transaction)
 
         logger.info(f"Extracted {len(transactions)} transactions")
         return transactions

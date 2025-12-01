@@ -361,7 +361,11 @@ def process_document(
         )
 
         # Extract text with automatic strategy selection
-        extraction_pipeline_result = pipeline.extract(str(pdf_path))
+        extraction_pipeline_result = pipeline.extract(
+            str(pdf_path),
+            s3_bucket=S3_BUCKET,
+            s3_key=s3_pdf_key
+        )
 
         # Convert ExtractionResult to legacy format for compatibility
         extraction_result = {

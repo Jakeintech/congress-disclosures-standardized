@@ -79,12 +79,23 @@ def lambda_handler(event, context):
             # Download and decompress text
             text = download_text(text_s3_key)
 
-            if not text or len(text.strip()) < 100:
-                logger.warning(f"Text too short ({len(text)} chars), skipping doc_id={doc_id}")
+            # Download PDF for OCR fallback (optional, but helpful for image PDFs)
+            pdf_bytes = None
+            try:
+                # Construct PDF path: bronze/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf
+                # Note: Current data structure does NOT use filing_type partition for PDFs
+                pdf_s3_key = f"bronze/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
+                pdf_bytes = download_bytes(pdf_s3_key)
+                logger.info(f"Downloaded PDF: {len(pdf_bytes)} bytes")
+            except Exception as e:
+                logger.warning(f"Could not download PDF for {doc_id} (path: {pdf_s3_key}): {e}")
+
+            if (not text or len(text.strip()) < 100) and not pdf_bytes:
+                logger.warning(f"Text too short ({len(text) if text else 0} chars) and no PDF, skipping doc_id={doc_id}")
                 continue
 
             # Route to appropriate extractor
-            result = extract_structured_data(doc_id, year, text, filing_type)
+            result = extract_structured_data(doc_id, year, text, filing_type, pdf_bytes=pdf_bytes)
             
             # Ensure filing_type is in the result for S3 partitioning
             if 'filing_type' not in result:
@@ -139,7 +150,15 @@ def download_text(s3_key: str) -> str:
     return text
 
 
-def extract_structured_data(doc_id: str, year: int, text: str, filing_type: str) -> Dict[str, Any]:
+def download_bytes(s3_key: str) -> bytes:
+    """Download raw bytes from S3."""
+    # logger.info(f"Downloading bytes from s3://{S3_BUCKET}/{s3_key}")
+    response = s3.get_object(Bucket=S3_BUCKET, Key=s3_key)
+    return response['Body'].read()
+
+
+
+def extract_structured_data(doc_id: str, year: int, text: str, filing_type: str, pdf_bytes: bytes = None) -> Dict[str, Any]:
     """
     Extract structured data based on filing type using code-based extractors.
 
@@ -156,23 +175,41 @@ def extract_structured_data(doc_id: str, year: int, text: str, filing_type: str)
     # Initialize appropriate extractor
     extractor = None
     
+    # Initialize with PDF bytes if available (for OCR fallback)
+    extractor_kwargs = {"pdf_bytes": pdf_bytes} if pdf_bytes else {}
+    
     if filing_type == "P":
-        extractor = PTRExtractor()
-    elif filing_type in ["A", "B", "C"]: # A=Annual, B=New Filer, C=Candidate (often same form)
-        extractor = TypeABAnnualExtractor()
+        extractor = PTRExtractor(**extractor_kwargs)
+    elif filing_type in ["A", "B", "C"]:
+        extractor = TypeABAnnualExtractor(**extractor_kwargs)
     elif filing_type == "T":
-        extractor = TypeTTerminationExtractor()
+        extractor = TypeTTerminationExtractor(**extractor_kwargs)
     elif filing_type == "X":
-        extractor = TypeXExtensionRequestExtractor()
+        extractor = TypeXExtensionRequestExtractor(**extractor_kwargs)
     elif filing_type == "D":
-        extractor = TypeDCampaignNoticeExtractor()
+        extractor = TypeDCampaignNoticeExtractor(**extractor_kwargs)
     elif filing_type == "W":
-        extractor = TypeWWithdrawalNoticeExtractor()
+        extractor = TypeWWithdrawalNoticeExtractor(**extractor_kwargs)
         
     if extractor:
         try:
-            # Extract data
-            result = extractor.extract_from_text(text)
+            # Extract data using fallback strategy (Text -> OCR)
+            # If text is provided, BaseExtractor uses it first.
+            # If text is empty/bad and pdf_bytes provided, it tries OCR.
+            
+            # We need to manually inject the text if we want to skip re-extraction
+            if text and hasattr(extractor, '_text'):
+                 extractor._text = text
+                 # Also set format to TEXT if text is good? 
+                 # BaseExtractor logic is: if pdf_format is TEXT, use text.
+                 # If we pass pdf_bytes, it analyzes it.
+                 # If we don't pass pdf_bytes, it's text-only mode.
+            
+            if pdf_bytes:
+                result = extractor.extract_with_fallback()
+            else:
+                # Text-only mode
+                result = extractor.extract_from_text(text)
             
             # Add common metadata
             result["doc_id"] = doc_id

@@ -122,18 +122,43 @@ class BaseExtractor:
 
         try:
             # Convert PDF pages to images
-            images = convert_from_path(self.pdf_path, dpi=300)
+            if self.pdf_path:
+                images = convert_from_path(self.pdf_path, dpi=300)
+            elif self.pdf_bytes:
+                from pdf2image import convert_from_bytes
+                images = convert_from_bytes(self.pdf_bytes, dpi=300)
+            else:
+                raise ValueError("No PDF path or bytes provided for OCR")
+                
             logger.info(f"Converted {len(images)} PDF pages to images")
 
             # OCR each page
             ocr_text_pages = []
+            # Initialize preprocessor
+            try:
+                from ..extraction.image_preprocessor import ImagePreprocessor
+                preprocessor = ImagePreprocessor()
+                logger.info("Image preprocessor initialized")
+            except ImportError as e:
+                logger.warning(f"Could not import ImagePreprocessor: {e}")
+                preprocessor = None
+
             for i, image in enumerate(images, 1):
                 logger.info(f"OCR processing page {i}/{len(images)}...")
+                
+                # Preprocess image if available
+                if preprocessor:
+                    try:
+                        image = preprocessor.preprocess(image)
+                    except Exception as e:
+                        logger.warning(f"Preprocessing failed for page {i}: {e}")
+
                 text = pytesseract.image_to_string(image, lang='eng')
                 ocr_text_pages.append(text)
 
             # Combine all pages
             full_text = "\n\n".join(ocr_text_pages)
+            self._text = full_text # Store OCR text for debugging/access
             logger.info(f"OCR extracted {len(full_text)} characters total")
 
             # Use the same text extraction method, just with OCR'd text

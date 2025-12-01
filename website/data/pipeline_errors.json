@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-11-30T22:32:36.959531",
+  "generated_at": "2025-12-01T17:17:45.010055",
   "year": 2025,
   "summary": {
     "total_manifest_docs": 1628,
@@ -9,384 +9,34 @@
   },
   "errors": [
     {
-      "doc_id": "9115679",
+      "doc_id": "8221238",
       "error_type": "Extraction Failed",
       "severity": "High",
       "message": "Structured data not found in Silver layer.",
       "details": "Lambda failed or timed out.",
-      "filer_name": "Khanna, Rohit",
+      "filer_name": "Smith, Adrian",
       "filing_type": "P",
-      "date": "10/3/2025"
+      "date": "11/14/2025"
     },
     {
-      "doc_id": "8220992",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Davidson, Beth",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "8220945",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Oberweis, James",
-      "filing_type": "C",
-      "date": "4/29/2025"
-    },
-    {
-      "doc_id": "8220822",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Crank, Jeffrey",
-      "filing_type": "G",
-      "date": "4/2/2025"
-    },
-    {
-      "doc_id": "9115635",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
-      "filing_type": "P",
-      "date": "9/4/2025"
-    },
-    {
-      "doc_id": "9115636",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Martinez, Tekita",
-      "filing_type": "D",
-      "date": "8/25/2025"
-    },
-    {
-      "doc_id": "8221090",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Powell, Denise",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "9115621",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Johnson, Jacob",
-      "filing_type": "C",
-      "date": "8/13/2025"
-    },
-    {
-      "doc_id": "8221211",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Noveletsky, Hollie T.",
-      "filing_type": "X",
-      "date": "10/23/2025"
-    },
-    {
-      "doc_id": "8220895",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Sullivan, Maura Corby",
-      "filing_type": "X",
-      "date": "5/9/2025"
-    },
-    {
-      "doc_id": "9115671",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Khanna, Rohit",
-      "filing_type": "P",
-      "date": "8/7/2025"
-    },
-    {
-      "doc_id": "9115659",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Fitzgerald, Edward O'Donnell",
-      "filing_type": "D",
-      "date": "9/22/2025"
-    },
-    {
-      "doc_id": "8220906",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Khanna, Rohit",
-      "filing_type": "P",
-      "date": "5/12/2025"
-    },
-    {
-      "doc_id": "9115637",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Braun, John",
-      "filing_type": "X",
-      "date": "9/8/2025"
-    },
-    {
-      "doc_id": "8220738",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Posey, Bill",
-      "filing_type": "T",
-      "date": "1/21/2025"
-    },
-    {
-      "doc_id": "9115684",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McCaul, Michael T.",
-      "filing_type": "P",
-      "date": "10/10/2025"
-    },
-    {
-      "doc_id": "8220780",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Sherman, Brad",
-      "filing_type": "P",
-      "date": "3/3/2025"
-    },
-    {
-      "doc_id": "8220796",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Gonzalez, Vicente",
-      "filing_type": "P",
-      "date": "3/13/2025"
-    },
-    {
-      "doc_id": "8221242",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "McMahon, Linda Diane",
-      "filing_type": "W",
-      "date": null
-    },
-    {
-      "doc_id": "9115623",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
-      "filing_type": "P",
-      "date": "8/27/2025"
-    },
-    {
-      "doc_id": "8220757",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Wied, Tony",
-      "filing_type": "P",
-      "date": "2/10/2025"
-    },
-    {
-      "doc_id": "8220892",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Riker, Brandon",
-      "filing_type": "X",
-      "date": "5/9/2025"
-    },
-    {
-      "doc_id": "8221120",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McCaul, Michael T.",
-      "filing_type": "P",
-      "date": "6/9/2025"
-    },
-    {
-      "doc_id": "9115681",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Cognetti, Paige",
-      "filing_type": "X",
-      "date": "10/7/2025"
-    },
-    {
-      "doc_id": "8220765",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Wagner, Ann",
-      "filing_type": "P",
-      "date": "2/14/2025"
-    },
-    {
-      "doc_id": "8220988",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Menefee, Christian D.",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "9115664",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McCaul, Michael T.",
-      "filing_type": "P",
-      "date": "8/12/2025"
-    },
-    {
-      "doc_id": "8221071",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Mayfield, Darius",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "8220766",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Lamborn, Doug",
-      "filing_type": "T",
-      "date": "2/11/2025"
-    },
-    {
-      "doc_id": "8220736",
+      "doc_id": "8220735",
       "error_type": "Extraction Pending",
       "severity": "Info",
       "message": "Structured extraction not yet supported for this type.",
       "details": "Parser not implemented.",
       "filer_name": "Phillips, Dean",
       "filing_type": "B",
-      "date": "1/31/2025"
+      "date": "1/23/2025"
     },
     {
-      "doc_id": "9115640",
+      "doc_id": "8220978",
       "error_type": "Extraction Pending",
       "severity": "Info",
       "message": "Structured extraction not yet supported for this type.",
       "details": "Parser not implemented.",
-      "filer_name": "Little, Matt",
-      "filing_type": "C",
-      "date": "8/30/2025"
-    },
-    {
-      "doc_id": "8221237",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Fleischmann, Charles J. \"Chuck\"",
-      "filing_type": "P",
-      "date": "11/14/2025"
-    },
-    {
-      "doc_id": "8221168",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Limon, Santos M.",
+      "filer_name": "Johnston, Mark Edmund",
       "filing_type": "X",
-      "date": "6/26/2025"
-    },
-    {
-      "doc_id": "8221145",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Martinez Nucete, Leo",
-      "filing_type": "X",
-      "date": "6/12/2025"
-    },
-    {
-      "doc_id": "9115571",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Plumb, Nicholas Lee",
-      "filing_type": "D",
-      "date": "5/14/2025"
-    },
-    {
-      "doc_id": "8221231",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Khanna, Rohit",
-      "filing_type": "P",
-      "date": "11/6/2025"
-    },
-    {
-      "doc_id": "9115633",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Jasser, M. Zuhdi",
-      "filing_type": "X",
-      "date": "9/4/2025"
-    },
-    {
-      "doc_id": "8221212",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McClain, Lisa",
-      "filing_type": "P",
-      "date": "10/23/2025"
+      "date": "6/2/2025"
     },
     {
       "doc_id": "9115696",
@@ -399,484 +49,34 @@
       "date": "10/21/2025"
     },
     {
-      "doc_id": "9115634",
+      "doc_id": "9115627",
       "error_type": "Extraction Pending",
       "severity": "Info",
       "message": "Structured extraction not yet supported for this type.",
       "details": "Parser not implemented.",
-      "filer_name": "Elkind, Liam",
-      "filing_type": "X",
-      "date": "9/4/2025"
-    },
-    {
-      "doc_id": "8220881",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Whitesides, George",
-      "filing_type": "X",
-      "date": "5/9/2025"
-    },
-    {
-      "doc_id": "9115546",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
-      "filing_type": "P",
-      "date": "7/23/2025"
-    },
-    {
-      "doc_id": "8220845",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Gonzalez, Vicente",
-      "filing_type": "P",
-      "date": "4/30/2025"
-    },
-    {
-      "doc_id": "8220784",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Bennett, Rebecca",
-      "filing_type": "X",
-      "date": "3/10/2025"
-    },
-    {
-      "doc_id": "8220868",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Gagnier, Christina",
-      "filing_type": "X",
-      "date": "5/9/2025"
-    },
-    {
-      "doc_id": "9115658",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Trimble, Jacob",
-      "filing_type": "D",
-      "date": "9/22/2025"
-    },
-    {
-      "doc_id": "8221222",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Hathaway, Joe",
-      "filing_type": "X",
-      "date": "11/4/2025"
-    },
-    {
-      "doc_id": "8221179",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "McCombs, John",
-      "filing_type": "D",
-      "date": "6/23/2025"
-    },
-    {
-      "doc_id": "8220827",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Khanna, Rohit",
-      "filing_type": "P",
-      "date": "4/10/2025"
-    },
-    {
-      "doc_id": "8220737",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Luetkemeyer, Blaine",
-      "filing_type": "T",
-      "date": "1/16/2025"
-    },
-    {
-      "doc_id": "9115549",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Smith, Adrian",
-      "filing_type": "P",
-      "date": "7/24/2025"
-    },
-    {
-      "doc_id": "9115692",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Bean, Melissa Luburich",
-      "filing_type": "X",
-      "date": "10/16/2025"
-    },
-    {
-      "doc_id": "9115632",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Banks, Ashley",
-      "filing_type": "D",
-      "date": "9/2/2025"
-    },
-    {
-      "doc_id": "8221169",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Pargeter, Evan George",
-      "filing_type": "W",
-      "date": null
-    },
-    {
-      "doc_id": "8221173",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McCaul, Michael T.",
-      "filing_type": "P",
-      "date": "7/7/2025"
-    },
-    {
-      "doc_id": "8220864",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Chakalian, Paul",
-      "filing_type": "X",
-      "date": "5/9/2025"
-    },
-    {
-      "doc_id": "8221220",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Jensen, Brett",
-      "filing_type": "X",
-      "date": "11/4/2025"
-    },
-    {
-      "doc_id": "9115565",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "McGowan, Chris",
-      "filing_type": "X",
-      "date": "8/5/2025"
-    },
-    {
-      "doc_id": "8221189",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Oppenheim, Jesse",
-      "filing_type": "X",
-      "date": "7/15/2025"
-    },
-    {
-      "doc_id": "8221180",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Lombardo, Todd",
-      "filing_type": "D",
-      "date": "7/14/2025"
-    },
-    {
-      "doc_id": "8220836",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Wagner, Ann",
-      "filing_type": "P",
-      "date": "4/16/2025"
-    },
-    {
-      "doc_id": "8221115",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Caraveo, Yadira",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "8221186",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Andrew, Philip Jerome",
-      "filing_type": "X",
-      "date": "7/15/2025"
-    },
-    {
-      "doc_id": "8220783",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Khanna, Rohit",
-      "filing_type": "P",
-      "date": "3/6/2025"
-    },
-    {
-      "doc_id": "8220750",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Khanna, Rohit",
-      "filing_type": "P",
-      "date": "2/6/2025"
-    },
-    {
-      "doc_id": "8221223",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
-      "filing_type": "P",
-      "date": "11/5/2025"
-    },
-    {
-      "doc_id": "8220828",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Raskin, Jamie",
-      "filing_type": "P",
-      "date": "4/9/2025"
-    },
-    {
-      "doc_id": "8221094",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Salas, Rudy",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "9115564",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Lucchetti, Andrew",
-      "filing_type": "X",
-      "date": "8/5/2025"
-    },
-    {
-      "doc_id": "8221233",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Wied, Tony",
-      "filing_type": "P",
-      "date": "11/10/2025"
-    },
-    {
-      "doc_id": "8220886",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Friedman, Jason",
-      "filing_type": "X",
-      "date": "5/9/2025"
-    },
-    {
-      "doc_id": "8221215",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Gordon, Deanna",
-      "filing_type": "C",
-      "date": "10/17/2025"
-    },
-    {
-      "doc_id": "8220844",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
-      "filing_type": "P",
-      "date": "5/1/2025"
-    },
-    {
-      "doc_id": "8221218",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Pearson, Justin J.",
-      "filing_type": "X",
-      "date": "11/4/2025"
-    },
-    {
-      "doc_id": "9115693",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Duffin, Michael Christian",
-      "filing_type": "X",
-      "date": "10/16/2025"
-    },
-    {
-      "doc_id": "8221240",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Minton, Daniel Patrick",
-      "filing_type": "D",
-      "date": "11/8/2025"
-    },
-    {
-      "doc_id": "9115626",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Twedt-Ball, Clinton Gene",
+      "filer_name": "Meade, Perry",
       "filing_type": "X",
       "date": "8/27/2025"
     },
     {
-      "doc_id": "8221238",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Smith, Adrian",
-      "filing_type": "P",
-      "date": "11/14/2025"
-    },
-    {
-      "doc_id": "8220903",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Wied, Tony",
-      "filing_type": "P",
-      "date": "5/13/2025"
-    },
-    {
-      "doc_id": "8220902",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Fleischmann, Charles J. \"Chuck\"",
-      "filing_type": "P",
-      "date": "5/13/2025"
-    },
-    {
-      "doc_id": "8220891",
+      "doc_id": "8221221",
       "error_type": "Extraction Pending",
       "severity": "Info",
       "message": "Structured extraction not yet supported for this type.",
       "details": "Parser not implemented.",
-      "filer_name": "Rakov, Jake",
+      "filer_name": "Barnett, Michaela",
       "filing_type": "X",
-      "date": "5/9/2025"
+      "date": "11/4/2025"
     },
     {
-      "doc_id": "8221177",
+      "doc_id": "8220780",
       "error_type": "Extraction Failed",
       "severity": "High",
       "message": "Structured data not found in Silver layer.",
       "details": "Lambda failed or timed out.",
-      "filer_name": "Wied, Tony",
+      "filer_name": "Sherman, Brad",
       "filing_type": "P",
-      "date": "7/9/2025"
-    },
-    {
-      "doc_id": "8220904",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McCaul, Michael T.",
-      "filing_type": "P",
-      "date": "5/12/2025"
-    },
-    {
-      "doc_id": "8220982",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Reinmann, Jessica",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "8220980",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Johnson, Jacob",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "9115661",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Redmond, Hampton",
-      "filing_type": "O",
-      "date": "9/18/2025"
-    },
-    {
-      "doc_id": "8220799",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Wied, Tony",
-      "filing_type": "P",
-      "date": "3/14/2025"
+      "date": "3/3/2025"
     },
     {
       "doc_id": "8221124",
@@ -889,12 +89,782 @@
       "date": "6/10/2025"
     },
     {
+      "doc_id": "8220980",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Johnson, Jacob",
+      "filing_type": "X",
+      "date": "6/2/2025"
+    },
+    {
+      "doc_id": "8221207",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Bottcher, Erik",
+      "filing_type": "X",
+      "date": "10/23/2025"
+    },
+    {
+      "doc_id": "8221235",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Jakious, Rick",
+      "filing_type": "X",
+      "date": "11/12/2025"
+    },
+    {
+      "doc_id": "8220906",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Khanna, Rohit",
+      "filing_type": "P",
+      "date": "5/12/2025"
+    },
+    {
+      "doc_id": "8220796",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Gonzalez, Vicente",
+      "filing_type": "P",
+      "date": "3/13/2025"
+    },
+    {
+      "doc_id": "9115660",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Valleza, Andres R.",
+      "filing_type": "D",
+      "date": "9/19/2025"
+    },
+    {
+      "doc_id": "8220757",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Wied, Tony",
+      "filing_type": "P",
+      "date": "2/10/2025"
+    },
+    {
+      "doc_id": "8221234",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Dezevallos, Shelly",
+      "filing_type": "X",
+      "date": "11/12/2025"
+    },
+    {
+      "doc_id": "8221210",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Ollivant, Douglas",
+      "filing_type": "X",
+      "date": "10/23/2025"
+    },
+    {
+      "doc_id": "8220799",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Wied, Tony",
+      "filing_type": "P",
+      "date": "3/14/2025"
+    },
+    {
+      "doc_id": "8220783",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Khanna, Rohit",
+      "filing_type": "P",
+      "date": "3/6/2025"
+    },
+    {
+      "doc_id": "8221216",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Albers, Troy",
+      "filing_type": "C",
+      "date": "10/22/2025"
+    },
+    {
+      "doc_id": "8221151",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Baker, Samuel Goodman",
+      "filing_type": "W",
+      "date": null
+    },
+    {
+      "doc_id": "8220992",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Davidson, Beth",
+      "filing_type": "X",
+      "date": "6/2/2025"
+    },
+    {
+      "doc_id": "8221222",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Hathaway, Joe",
+      "filing_type": "X",
+      "date": "11/4/2025"
+    },
+    {
+      "doc_id": "9115692",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Bean, Melissa Luburich",
+      "filing_type": "X",
+      "date": "10/16/2025"
+    },
+    {
+      "doc_id": "8220903",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Wied, Tony",
+      "filing_type": "P",
+      "date": "5/13/2025"
+    },
+    {
+      "doc_id": "8221214",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Ficker, Robin",
+      "filing_type": "C",
+      "date": "10/27/2025"
+    },
+    {
+      "doc_id": "9115684",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McCaul, Michael T.",
+      "filing_type": "P",
+      "date": "10/10/2025"
+    },
+    {
+      "doc_id": "9115689",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "10/16/2025"
+    },
+    {
+      "doc_id": "8220725",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Blunt Rochester, Lisa",
+      "filing_type": "E",
+      "date": "1/21/2025"
+    },
+    {
+      "doc_id": "9115571",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Plumb, Nicholas Lee",
+      "filing_type": "D",
+      "date": "5/14/2025"
+    },
+    {
+      "doc_id": "8220809",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Gonzalez, Vicente",
+      "filing_type": "P",
+      "date": "3/31/2025"
+    },
+    {
+      "doc_id": "8220750",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Khanna, Rohit",
+      "filing_type": "P",
+      "date": "2/6/2025"
+    },
+    {
+      "doc_id": "8220784",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Bennett, Rebecca",
+      "filing_type": "X",
+      "date": "3/10/2025"
+    },
+    {
+      "doc_id": "8221212",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McClain, Lisa",
+      "filing_type": "P",
+      "date": "10/23/2025"
+    },
+    {
+      "doc_id": "8221173",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McCaul, Michael T.",
+      "filing_type": "P",
+      "date": "7/7/2025"
+    },
+    {
+      "doc_id": "8221227",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Robson, Alexander Thomas",
+      "filing_type": "D",
+      "date": "10/11/2025"
+    },
+    {
+      "doc_id": "9115564",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Lucchetti, Andrew",
+      "filing_type": "X",
+      "date": "8/5/2025"
+    },
+    {
+      "doc_id": "9115659",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Fitzgerald, Edward O'Donnell",
+      "filing_type": "D",
+      "date": "9/22/2025"
+    },
+    {
+      "doc_id": "9115635",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "9/4/2025"
+    },
+    {
+      "doc_id": "8220827",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Khanna, Rohit",
+      "filing_type": "P",
+      "date": "4/10/2025"
+    },
+    {
+      "doc_id": "8220770",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Sherman, Brad",
+      "filing_type": "P",
+      "date": "2/25/2025"
+    },
+    {
+      "doc_id": "8220868",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Gagnier, Christina",
+      "filing_type": "X",
+      "date": "5/9/2025"
+    },
+    {
       "doc_id": "8220989",
       "error_type": "Extraction Pending",
       "severity": "Info",
       "message": "Structured extraction not yet supported for this type.",
       "details": "Parser not implemented.",
       "filer_name": "Operana-Foxx, Deja Cherise",
+      "filing_type": "X",
+      "date": "6/2/2025"
+    },
+    {
+      "doc_id": "8220844",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "5/1/2025"
+    },
+    {
+      "doc_id": "8220720",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Banks, James E Hon",
+      "filing_type": "E",
+      "date": "1/7/2025"
+    },
+    {
+      "doc_id": "8220904",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McCaul, Michael T.",
+      "filing_type": "P",
+      "date": "5/12/2025"
+    },
+    {
+      "doc_id": "8220764",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Smith, Adrian",
+      "filing_type": "P",
+      "date": "2/13/2025"
+    },
+    {
+      "doc_id": "8220755",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "2/12/2025"
+    },
+    {
+      "doc_id": "8221233",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Wied, Tony",
+      "filing_type": "P",
+      "date": "11/10/2025"
+    },
+    {
+      "doc_id": "9115677",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McCaul, Michael T.",
+      "filing_type": "P",
+      "date": "9/11/2025"
+    },
+    {
+      "doc_id": "8220736",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Phillips, Dean",
+      "filing_type": "B",
+      "date": "1/31/2025"
+    },
+    {
+      "doc_id": "9115681",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Cognetti, Paige",
+      "filing_type": "X",
+      "date": "10/7/2025"
+    },
+    {
+      "doc_id": "9115683",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Allen, Mary Theresa",
+      "filing_type": "C",
+      "date": "9/27/2025"
+    },
+    {
+      "doc_id": "8220845",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Gonzalez, Vicente",
+      "filing_type": "P",
+      "date": "4/30/2025"
+    },
+    {
+      "doc_id": "9115676",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Khanna, Rohit",
+      "filing_type": "P",
+      "date": "9/9/2025"
+    },
+    {
+      "doc_id": "8221113",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Little, Matt",
+      "filing_type": "X",
+      "date": "6/6/2025"
+    },
+    {
+      "doc_id": "8220766",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Lamborn, Doug",
+      "filing_type": "T",
+      "date": "2/11/2025"
+    },
+    {
+      "doc_id": "8220945",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Oberweis, James",
+      "filing_type": "C",
+      "date": "4/29/2025"
+    },
+    {
+      "doc_id": "9115634",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Elkind, Liam",
+      "filing_type": "X",
+      "date": "9/4/2025"
+    },
+    {
+      "doc_id": "9115664",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McCaul, Michael T.",
+      "filing_type": "P",
+      "date": "8/12/2025"
+    },
+    {
+      "doc_id": "8220765",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Wagner, Ann",
+      "filing_type": "P",
+      "date": "2/14/2025"
+    },
+    {
+      "doc_id": "8220794",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Fong, Vince",
+      "filing_type": "G",
+      "date": "3/10/2025"
+    },
+    {
+      "doc_id": "8221217",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Bailey, Melissa",
+      "filing_type": "C",
+      "date": "10/27/2025"
+    },
+    {
+      "doc_id": "8221219",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Nemorin, Dalourny",
+      "filing_type": "X",
+      "date": "11/4/2025"
+    },
+    {
+      "doc_id": "9115633",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Jasser, M. Zuhdi",
+      "filing_type": "X",
+      "date": "9/4/2025"
+    },
+    {
+      "doc_id": "9115661",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Redmond, Hampton",
+      "filing_type": "O",
+      "date": "9/18/2025"
+    },
+    {
+      "doc_id": "9115671",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Khanna, Rohit",
+      "filing_type": "P",
+      "date": "8/7/2025"
+    },
+    {
+      "doc_id": "8221211",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Noveletsky, Hollie T.",
+      "filing_type": "X",
+      "date": "10/23/2025"
+    },
+    {
+      "doc_id": "8221231",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Khanna, Rohit",
+      "filing_type": "P",
+      "date": "11/6/2025"
+    },
+    {
+      "doc_id": "8220891",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Rakov, Jake",
+      "filing_type": "X",
+      "date": "5/9/2025"
+    },
+    {
+      "doc_id": "8221179",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "McCombs, John",
+      "filing_type": "D",
+      "date": "6/23/2025"
+    },
+    {
+      "doc_id": "8220958",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "5/20/2025"
+    },
+    {
+      "doc_id": "8221168",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Limon, Santos M.",
+      "filing_type": "X",
+      "date": "6/26/2025"
+    },
+    {
+      "doc_id": "8220747",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Bilirakis, Gus M.",
+      "filing_type": "P",
+      "date": "2/6/2025"
+    },
+    {
+      "doc_id": "8221237",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Fleischmann, Charles J. \"Chuck\"",
+      "filing_type": "P",
+      "date": "11/14/2025"
+    },
+    {
+      "doc_id": "8221155",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Ojeda, Richard N.",
+      "filing_type": "C",
+      "date": "6/10/2025"
+    },
+    {
+      "doc_id": "8221241",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Aleman, Katherine",
+      "filing_type": "W",
+      "date": null
+    },
+    {
+      "doc_id": "8220768",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Sherman, Brad",
+      "filing_type": "P",
+      "date": "2/20/2025"
+    },
+    {
+      "doc_id": "8220754",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McCaul, Michael T.",
+      "filing_type": "P",
+      "date": "2/11/2025"
+    },
+    {
+      "doc_id": "8221242",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "McMahon, Linda Diane",
+      "filing_type": "W",
+      "date": null
+    },
+    {
+      "doc_id": "8221123",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "6/11/2025"
+    },
+    {
+      "doc_id": "9115626",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Twedt-Ball, Clinton Gene",
+      "filing_type": "X",
+      "date": "8/27/2025"
+    },
+    {
+      "doc_id": "8221228",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McCaul, Michael T.",
+      "filing_type": "P",
+      "date": "11/10/2025"
+    },
+    {
+      "doc_id": "9115621",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Johnson, Jacob",
+      "filing_type": "C",
+      "date": "8/13/2025"
+    },
+    {
+      "doc_id": "8221189",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Oppenheim, Jesse",
+      "filing_type": "X",
+      "date": "7/15/2025"
+    },
+    {
+      "doc_id": "8221115",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Caraveo, Yadira",
       "filing_type": "X",
       "date": "6/2/2025"
     },
@@ -909,196 +879,6 @@
       "date": "6/2/2025"
     },
     {
-      "doc_id": "8220889",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Latimer, George",
-      "filing_type": "X",
-      "date": "5/9/2025"
-    },
-    {
-      "doc_id": "8220978",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Johnston, Mark Edmund",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "8220764",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Smith, Adrian",
-      "filing_type": "P",
-      "date": "2/13/2025"
-    },
-    {
-      "doc_id": "8221113",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Little, Matt",
-      "filing_type": "X",
-      "date": "6/6/2025"
-    },
-    {
-      "doc_id": "8221234",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Dezevallos, Shelly",
-      "filing_type": "X",
-      "date": "11/12/2025"
-    },
-    {
-      "doc_id": "8220782",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
-      "filing_type": "P",
-      "date": "3/6/2025"
-    },
-    {
-      "doc_id": "8221030",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Coleman, Tayhlor",
-      "filing_type": "X",
-      "date": "6/2/2025"
-    },
-    {
-      "doc_id": "8221208",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Knapp, Jason",
-      "filing_type": "X",
-      "date": "10/23/2025"
-    },
-    {
-      "doc_id": "8220725",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Blunt Rochester, Lisa",
-      "filing_type": "E",
-      "date": "1/21/2025"
-    },
-    {
-      "doc_id": "8220862",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Bynum, Janelle",
-      "filing_type": "X",
-      "date": "5/9/2025"
-    },
-    {
-      "doc_id": "8220755",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
-      "filing_type": "P",
-      "date": "2/12/2025"
-    },
-    {
-      "doc_id": "9115572",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Light, David",
-      "filing_type": "D",
-      "date": "8/4/2025"
-    },
-    {
-      "doc_id": "9115670",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Fleischmann, Charles J. \"Chuck\"",
-      "filing_type": "P",
-      "date": "8/15/2025"
-    },
-    {
-      "doc_id": "8221176",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Khanna, Rohit",
-      "filing_type": "P",
-      "date": "7/9/2025"
-    },
-    {
-      "doc_id": "8220931",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Mayfield, Darius",
-      "filing_type": "X",
-      "date": "5/15/2025"
-    },
-    {
-      "doc_id": "8221081",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Lepage, Paul",
-      "filing_type": "C",
-      "date": "6/4/2025"
-    },
-    {
-      "doc_id": "8220930",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Knott, Brad",
-      "filing_type": "X",
-      "date": "5/15/2025"
-    },
-    {
-      "doc_id": "8221155",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Ojeda, Richard N.",
-      "filing_type": "C",
-      "date": "6/10/2025"
-    },
-    {
-      "doc_id": "8221188",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Kingston, James Morris",
-      "filing_type": "X",
-      "date": "7/15/2025"
-    },
-    {
       "doc_id": "9115665",
       "error_type": "Extraction Failed",
       "severity": "High",
@@ -1107,156 +887,6 @@
       "filer_name": "Wied, Tony",
       "filing_type": "P",
       "date": "8/6/2025"
-    },
-    {
-      "doc_id": "9115687",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Scharer, Gene Paul",
-      "filing_type": "D",
-      "date": "9/24/2025"
-    },
-    {
-      "doc_id": "8221210",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Ollivant, Douglas",
-      "filing_type": "X",
-      "date": "10/23/2025"
-    },
-    {
-      "doc_id": "8220973",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Trahan, Lori",
-      "filing_type": "G",
-      "date": "5/28/2025"
-    },
-    {
-      "doc_id": "9115563",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Penn, Krista",
-      "filing_type": "D",
-      "date": "7/2/2025"
-    },
-    {
-      "doc_id": "8221239",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "McMahon, Linda Diane",
-      "filing_type": "D",
-      "date": "11/14/2025"
-    },
-    {
-      "doc_id": "9115677",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McCaul, Michael T.",
-      "filing_type": "P",
-      "date": "9/11/2025"
-    },
-    {
-      "doc_id": "9115683",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Allen, Mary Theresa",
-      "filing_type": "C",
-      "date": "9/27/2025"
-    },
-    {
-      "doc_id": "8221181",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Papanu, Amy",
-      "filing_type": "W",
-      "date": null
-    },
-    {
-      "doc_id": "8220959",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Pusczek, Amanda Noelle",
-      "filing_type": "D",
-      "date": "5/21/2025"
-    },
-    {
-      "doc_id": "8221221",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Barnett, Michaela",
-      "filing_type": "X",
-      "date": "11/4/2025"
-    },
-    {
-      "doc_id": "8221216",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Albers, Troy",
-      "filing_type": "C",
-      "date": "10/22/2025"
-    },
-    {
-      "doc_id": "8220939",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Harrigan, Pat",
-      "filing_type": "X",
-      "date": "5/15/2025"
-    },
-    {
-      "doc_id": "8220731",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Self, Keith Alan",
-      "filing_type": "P",
-      "date": "1/23/2025"
-    },
-    {
-      "doc_id": "8220747",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Bilirakis, Gus M.",
-      "filing_type": "P",
-      "date": "2/6/2025"
-    },
-    {
-      "doc_id": "8221214",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Ficker, Robin",
-      "filing_type": "C",
-      "date": "10/27/2025"
     },
     {
       "doc_id": "8221236",
@@ -1269,224 +899,34 @@
       "date": "11/12/2025"
     },
     {
-      "doc_id": "8220720",
+      "doc_id": "9115658",
       "error_type": "Extraction Pending",
       "severity": "Info",
       "message": "Structured extraction not yet supported for this type.",
       "details": "Parser not implemented.",
-      "filer_name": "Banks, James E Hon",
-      "filing_type": "E",
-      "date": "1/7/2025"
-    },
-    {
-      "doc_id": "8221151",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Baker, Samuel Goodman",
-      "filing_type": "W",
-      "date": null
-    },
-    {
-      "doc_id": "8220946",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Crump, Laverne Barlette",
+      "filer_name": "Trimble, Jacob",
       "filing_type": "D",
-      "date": "5/16/2025"
+      "date": "9/22/2025"
     },
     {
-      "doc_id": "8220832",
+      "doc_id": "8220889",
       "error_type": "Extraction Pending",
       "severity": "Info",
       "message": "Structured extraction not yet supported for this type.",
       "details": "Parser not implemented.",
-      "filer_name": "Bresnahan, Rob",
-      "filing_type": "G",
-      "date": "4/14/2025"
-    },
-    {
-      "doc_id": "8220768",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Sherman, Brad",
-      "filing_type": "P",
-      "date": "2/20/2025"
-    },
-    {
-      "doc_id": "8220809",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Gonzalez, Vicente",
-      "filing_type": "P",
-      "date": "3/31/2025"
-    },
-    {
-      "doc_id": "8220792",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Pettersen, Brittany Louise",
-      "filing_type": "G",
-      "date": "3/10/2025"
-    },
-    {
-      "doc_id": "9115662",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McCaul, Michael T.",
-      "filing_type": "P",
-      "date": "9/25/2025"
-    },
-    {
-      "doc_id": "9115660",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Valleza, Andres R.",
-      "filing_type": "D",
-      "date": "9/19/2025"
-    },
-    {
-      "doc_id": "8220754",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McCaul, Michael T.",
-      "filing_type": "P",
-      "date": "2/11/2025"
-    },
-    {
-      "doc_id": "8220794",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Fong, Vince",
-      "filing_type": "G",
-      "date": "3/10/2025"
-    },
-    {
-      "doc_id": "8220958",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
-      "filing_type": "P",
-      "date": "5/20/2025"
-    },
-    {
-      "doc_id": "8221209",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Matthews, Karen",
+      "filer_name": "Latimer, George",
       "filing_type": "X",
-      "date": "10/23/2025"
+      "date": "5/9/2025"
     },
     {
-      "doc_id": "8221243",
+      "doc_id": "8221218",
       "error_type": "Extraction Pending",
       "severity": "Info",
       "message": "Structured extraction not yet supported for this type.",
       "details": "Parser not implemented.",
-      "filer_name": "Mosolf, Patrick",
-      "filing_type": "D",
-      "date": "11/13/2025"
-    },
-    {
-      "doc_id": "9115686",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Self, Keith Alan",
-      "filing_type": "P",
-      "date": "10/14/2025"
-    },
-    {
-      "doc_id": "8221146",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Dunung, Sanjyot",
+      "filer_name": "Pearson, Justin J.",
       "filing_type": "X",
-      "date": "6/12/2025"
-    },
-    {
-      "doc_id": "9115676",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Khanna, Rohit",
-      "filing_type": "P",
-      "date": "9/9/2025"
-    },
-    {
-      "doc_id": "8221241",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Aleman, Katherine",
-      "filing_type": "W",
-      "date": null
-    },
-    {
-      "doc_id": "8221235",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Jakious, Rick",
-      "filing_type": "X",
-      "date": "11/12/2025"
-    },
-    {
-      "doc_id": "8220833",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Davis, Chance",
-      "filing_type": "D",
-      "date": "4/3/2025"
-    },
-    {
-      "doc_id": "8220735",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Phillips, Dean",
-      "filing_type": "B",
-      "date": "1/23/2025"
-    },
-    {
-      "doc_id": "8221217",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Bailey, Melissa",
-      "filing_type": "C",
-      "date": "10/27/2025"
+      "date": "11/4/2025"
     },
     {
       "doc_id": "8220877",
@@ -1499,6 +939,86 @@
       "date": "5/9/2025"
     },
     {
+      "doc_id": "8220931",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Mayfield, Darius",
+      "filing_type": "X",
+      "date": "5/15/2025"
+    },
+    {
+      "doc_id": "9115636",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Martinez, Tekita",
+      "filing_type": "D",
+      "date": "8/25/2025"
+    },
+    {
+      "doc_id": "9115686",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Self, Keith Alan",
+      "filing_type": "P",
+      "date": "10/14/2025"
+    },
+    {
+      "doc_id": "8221215",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Gordon, Deanna",
+      "filing_type": "C",
+      "date": "10/17/2025"
+    },
+    {
+      "doc_id": "8221240",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Minton, Daniel Patrick",
+      "filing_type": "D",
+      "date": "11/8/2025"
+    },
+    {
+      "doc_id": "8221181",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Papanu, Amy",
+      "filing_type": "W",
+      "date": null
+    },
+    {
+      "doc_id": "8220832",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Bresnahan, Rob",
+      "filing_type": "G",
+      "date": "4/14/2025"
+    },
+    {
+      "doc_id": "9115632",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Banks, Ashley",
+      "filing_type": "D",
+      "date": "9/2/2025"
+    },
+    {
       "doc_id": "8220753",
       "error_type": "Extraction Failed",
       "severity": "High",
@@ -1507,96 +1027,6 @@
       "filer_name": "Fleischmann, Charles J. \"Chuck\"",
       "filing_type": "P",
       "date": "2/10/2025"
-    },
-    {
-      "doc_id": "9115688",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "MacHo, John Dominic",
-      "filing_type": "D",
-      "date": "9/30/2025"
-    },
-    {
-      "doc_id": "8221123",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
-      "filing_type": "P",
-      "date": "6/11/2025"
-    },
-    {
-      "doc_id": "9115627",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Meade, Perry",
-      "filing_type": "X",
-      "date": "8/27/2025"
-    },
-    {
-      "doc_id": "8220834",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "McCaul, Michael T.",
-      "filing_type": "P",
-      "date": "4/17/2025"
-    },
-    {
-      "doc_id": "8221187",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Coleman, Tayhlor",
-      "filing_type": "X",
-      "date": "7/15/2025"
-    },
-    {
-      "doc_id": "8220960",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Kuster, Ann M.",
-      "filing_type": "T",
-      "date": "5/22/2025"
-    },
-    {
-      "doc_id": "8221207",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Bottcher, Erik",
-      "filing_type": "X",
-      "date": "10/23/2025"
-    },
-    {
-      "doc_id": "8221227",
-      "error_type": "Extraction Pending",
-      "severity": "Info",
-      "message": "Structured extraction not yet supported for this type.",
-      "details": "Parser not implemented.",
-      "filer_name": "Robson, Alexander Thomas",
-      "filing_type": "D",
-      "date": "10/11/2025"
-    },
-    {
-      "doc_id": "8220770",
-      "error_type": "Extraction Failed",
-      "severity": "High",
-      "message": "Structured data not found in Silver layer.",
-      "details": "Lambda failed or timed out.",
-      "filer_name": "Sherman, Brad",
-      "filing_type": "P",
-      "date": "2/25/2025"
     },
     {
       "doc_id": "8220824",
@@ -1609,24 +1039,564 @@
       "date": "4/4/2025"
     },
     {
-      "doc_id": "9115689",
+      "doc_id": "8220930",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Knott, Brad",
+      "filing_type": "X",
+      "date": "5/15/2025"
+    },
+    {
+      "doc_id": "8221090",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Powell, Denise",
+      "filing_type": "X",
+      "date": "6/2/2025"
+    },
+    {
+      "doc_id": "8221169",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Pargeter, Evan George",
+      "filing_type": "W",
+      "date": null
+    },
+    {
+      "doc_id": "8221176",
       "error_type": "Extraction Failed",
       "severity": "High",
       "message": "Structured data not found in Silver layer.",
       "details": "Lambda failed or timed out.",
-      "filer_name": "Rogers, Harold Dallas",
+      "filer_name": "Khanna, Rohit",
       "filing_type": "P",
-      "date": "10/16/2025"
+      "date": "7/9/2025"
     },
     {
-      "doc_id": "8221228",
+      "doc_id": "8221030",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Coleman, Tayhlor",
+      "filing_type": "X",
+      "date": "6/2/2025"
+    },
+    {
+      "doc_id": "8220886",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Friedman, Jason",
+      "filing_type": "X",
+      "date": "5/9/2025"
+    },
+    {
+      "doc_id": "8221081",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Lepage, Paul",
+      "filing_type": "C",
+      "date": "6/4/2025"
+    },
+    {
+      "doc_id": "8220738",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Posey, Bill",
+      "filing_type": "T",
+      "date": "1/21/2025"
+    },
+    {
+      "doc_id": "8220828",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Raskin, Jamie",
+      "filing_type": "P",
+      "date": "4/9/2025"
+    },
+    {
+      "doc_id": "8221239",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "McMahon, Linda Diane",
+      "filing_type": "D",
+      "date": "11/14/2025"
+    },
+    {
+      "doc_id": "8220881",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Whitesides, George",
+      "filing_type": "X",
+      "date": "5/9/2025"
+    },
+    {
+      "doc_id": "8221180",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Lombardo, Todd",
+      "filing_type": "D",
+      "date": "7/14/2025"
+    },
+    {
+      "doc_id": "8220862",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Bynum, Janelle",
+      "filing_type": "X",
+      "date": "5/9/2025"
+    },
+    {
+      "doc_id": "8221120",
       "error_type": "Extraction Failed",
       "severity": "High",
       "message": "Structured data not found in Silver layer.",
       "details": "Lambda failed or timed out.",
       "filer_name": "McCaul, Michael T.",
       "filing_type": "P",
-      "date": "11/10/2025"
+      "date": "6/9/2025"
+    },
+    {
+      "doc_id": "8220982",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Reinmann, Jessica",
+      "filing_type": "X",
+      "date": "6/2/2025"
+    },
+    {
+      "doc_id": "9115688",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "MacHo, John Dominic",
+      "filing_type": "D",
+      "date": "9/30/2025"
+    },
+    {
+      "doc_id": "9115637",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Braun, John",
+      "filing_type": "X",
+      "date": "9/8/2025"
+    },
+    {
+      "doc_id": "9115687",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Scharer, Gene Paul",
+      "filing_type": "D",
+      "date": "9/24/2025"
+    },
+    {
+      "doc_id": "8220864",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Chakalian, Paul",
+      "filing_type": "X",
+      "date": "5/9/2025"
+    },
+    {
+      "doc_id": "9115546",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "7/23/2025"
+    },
+    {
+      "doc_id": "8221188",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Kingston, James Morris",
+      "filing_type": "X",
+      "date": "7/15/2025"
+    },
+    {
+      "doc_id": "8220822",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Crank, Jeffrey",
+      "filing_type": "G",
+      "date": "4/2/2025"
+    },
+    {
+      "doc_id": "8220959",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Pusczek, Amanda Noelle",
+      "filing_type": "D",
+      "date": "5/21/2025"
+    },
+    {
+      "doc_id": "8220960",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Kuster, Ann M.",
+      "filing_type": "T",
+      "date": "5/22/2025"
+    },
+    {
+      "doc_id": "8220902",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Fleischmann, Charles J. \"Chuck\"",
+      "filing_type": "P",
+      "date": "5/13/2025"
+    },
+    {
+      "doc_id": "8220836",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Wagner, Ann",
+      "filing_type": "P",
+      "date": "4/16/2025"
+    },
+    {
+      "doc_id": "8220973",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Trahan, Lori",
+      "filing_type": "G",
+      "date": "5/28/2025"
+    },
+    {
+      "doc_id": "8220895",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Sullivan, Maura Corby",
+      "filing_type": "X",
+      "date": "5/9/2025"
+    },
+    {
+      "doc_id": "8221223",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "11/5/2025"
+    },
+    {
+      "doc_id": "8221145",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Martinez Nucete, Leo",
+      "filing_type": "X",
+      "date": "6/12/2025"
+    },
+    {
+      "doc_id": "8221220",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Jensen, Brett",
+      "filing_type": "X",
+      "date": "11/4/2025"
+    },
+    {
+      "doc_id": "9115670",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Fleischmann, Charles J. \"Chuck\"",
+      "filing_type": "P",
+      "date": "8/15/2025"
+    },
+    {
+      "doc_id": "8221243",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Mosolf, Patrick",
+      "filing_type": "D",
+      "date": "11/13/2025"
+    },
+    {
+      "doc_id": "8221187",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Coleman, Tayhlor",
+      "filing_type": "X",
+      "date": "7/15/2025"
+    },
+    {
+      "doc_id": "9115679",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Khanna, Rohit",
+      "filing_type": "P",
+      "date": "10/3/2025"
+    },
+    {
+      "doc_id": "9115549",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Smith, Adrian",
+      "filing_type": "P",
+      "date": "7/24/2025"
+    },
+    {
+      "doc_id": "8220892",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Riker, Brandon",
+      "filing_type": "X",
+      "date": "5/9/2025"
+    },
+    {
+      "doc_id": "8220737",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Luetkemeyer, Blaine",
+      "filing_type": "T",
+      "date": "1/16/2025"
+    },
+    {
+      "doc_id": "8221209",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Matthews, Karen",
+      "filing_type": "X",
+      "date": "10/23/2025"
+    },
+    {
+      "doc_id": "8221208",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Knapp, Jason",
+      "filing_type": "X",
+      "date": "10/23/2025"
+    },
+    {
+      "doc_id": "9115565",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "McGowan, Chris",
+      "filing_type": "X",
+      "date": "8/5/2025"
+    },
+    {
+      "doc_id": "8220988",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Menefee, Christian D.",
+      "filing_type": "X",
+      "date": "6/2/2025"
+    },
+    {
+      "doc_id": "9115563",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Penn, Krista",
+      "filing_type": "D",
+      "date": "7/2/2025"
+    },
+    {
+      "doc_id": "8220731",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Self, Keith Alan",
+      "filing_type": "P",
+      "date": "1/23/2025"
+    },
+    {
+      "doc_id": "8221094",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Salas, Rudy",
+      "filing_type": "X",
+      "date": "6/2/2025"
+    },
+    {
+      "doc_id": "9115693",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Duffin, Michael Christian",
+      "filing_type": "X",
+      "date": "10/16/2025"
+    },
+    {
+      "doc_id": "8221177",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Wied, Tony",
+      "filing_type": "P",
+      "date": "7/9/2025"
+    },
+    {
+      "doc_id": "8220792",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Pettersen, Brittany Louise",
+      "filing_type": "G",
+      "date": "3/10/2025"
+    },
+    {
+      "doc_id": "8220834",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McCaul, Michael T.",
+      "filing_type": "P",
+      "date": "4/17/2025"
+    },
+    {
+      "doc_id": "8220833",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Davis, Chance",
+      "filing_type": "D",
+      "date": "4/3/2025"
+    },
+    {
+      "doc_id": "9115640",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Little, Matt",
+      "filing_type": "C",
+      "date": "8/30/2025"
+    },
+    {
+      "doc_id": "8220939",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Harrigan, Pat",
+      "filing_type": "X",
+      "date": "5/15/2025"
+    },
+    {
+      "doc_id": "8221186",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Andrew, Philip Jerome",
+      "filing_type": "X",
+      "date": "7/15/2025"
+    },
+    {
+      "doc_id": "9115572",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Light, David",
+      "filing_type": "D",
+      "date": "8/4/2025"
+    },
+    {
+      "doc_id": "8220782",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "3/6/2025"
+    },
+    {
+      "doc_id": "9115623",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "Rogers, Harold Dallas",
+      "filing_type": "P",
+      "date": "8/27/2025"
     },
     {
       "doc_id": "8220728",
@@ -1639,14 +1609,44 @@
       "date": "1/28/2025"
     },
     {
-      "doc_id": "8221219",
+      "doc_id": "8221071",
       "error_type": "Extraction Pending",
       "severity": "Info",
       "message": "Structured extraction not yet supported for this type.",
       "details": "Parser not implemented.",
-      "filer_name": "Nemorin, Dalourny",
+      "filer_name": "Mayfield, Darius",
       "filing_type": "X",
-      "date": "11/4/2025"
+      "date": "6/2/2025"
+    },
+    {
+      "doc_id": "9115662",
+      "error_type": "Extraction Failed",
+      "severity": "High",
+      "message": "Structured data not found in Silver layer.",
+      "details": "Lambda failed or timed out.",
+      "filer_name": "McCaul, Michael T.",
+      "filing_type": "P",
+      "date": "9/25/2025"
+    },
+    {
+      "doc_id": "8220946",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Crump, Laverne Barlette",
+      "filing_type": "D",
+      "date": "5/16/2025"
+    },
+    {
+      "doc_id": "8221146",
+      "error_type": "Extraction Pending",
+      "severity": "Info",
+      "message": "Structured extraction not yet supported for this type.",
+      "details": "Parser not implemented.",
+      "filer_name": "Dunung, Sanjyot",
+      "filing_type": "X",
+      "date": "6/12/2025"
     }
   ]
 }

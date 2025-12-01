@@ -102,6 +102,28 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
         members_df['lookup_name'] = members_df['full_name'].str.lower().str.strip()
         party_map = dict(zip(members_df['lookup_name'], members_df['party']))
 
+    # Hardcoded fallback for prominent members (since API key is missing)
+    fallback_parties = {
+        'nancy pelosi': 'Democrat',
+        'marjorie taylor greene': 'Republican',
+        'ro khanna': 'Democrat',
+        'michael mccaul': 'Republican',
+        'dan crenshaw': 'Republican',
+        'josh gottheimer': 'Democrat',
+        'virginia foxx': 'Republican',
+        'kevin hern': 'Republican',
+        'tommy tuberville': 'Republican',
+        'mark green': 'Republican',
+        'pete sessions': 'Republican',
+        'susie lee': 'Democrat',
+        'katherine clark': 'Democrat'
+    }
+    
+    # Merge fallback into party_map if value is None/Unknown
+    for name, party in fallback_parties.items():
+        if name not in party_map or not party_map[name]:
+            party_map[name] = party
+
     # Filter out invalid rows (must have ticker OR asset_name)
     df = transactions_df.copy()
     

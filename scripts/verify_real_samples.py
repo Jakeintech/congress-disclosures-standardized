@@ -104,8 +104,14 @@ def main():
         logger.error("No PDFs found!")
         return
         
-    # Test specific failed doc
-    sample_keys = ["bronze/house/financial/year=2025/pdfs/2025/20030439.pdf"]
+    # Sample random 10
+    sample_keys = random.sample(keys, min(10, len(keys)))
+    
+    # Also include our problematic doc if not in sample
+    # Fix path: bronze/house/financial/year=2025/pdfs/2025/9115689.pdf
+    problem_doc = "bronze/house/financial/year=2025/pdfs/2025/9115689.pdf"
+    if problem_doc not in sample_keys:
+        sample_keys.append(problem_doc)
         
     results = []
     for key in sample_keys:

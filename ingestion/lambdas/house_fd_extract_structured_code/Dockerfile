@@ -5,10 +5,11 @@ FROM --platform=linux/amd64 public.ecr.aws/lambda/python:3.11
 WORKDIR ${LAMBDA_TASK_ROOT}
 
 # Install system dependencies for OCR (Tesseract and Poppler) and OpenCV
-# Amazon Linux 2023 uses dnf
-RUN dnf update -y && \
-    dnf install -y tesseract tesseract-langpack-eng poppler-utils mesa-libGL glib2 && \
-    dnf clean all
+# Install system dependencies for OCR (Tesseract and Poppler) and OpenCV
+# Amazon Linux 2 uses yum
+RUN yum update -y && \
+    yum install -y tesseract poppler-utils mesa-libGL glib2 && \
+    yum clean all
 
 # Copy requirements file
 COPY ingestion/lambdas/house_fd_extract_structured_code/requirements.txt .

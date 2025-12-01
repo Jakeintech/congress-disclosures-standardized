@@ -246,93 +246,15 @@ class PTRExtractor(BaseExtractor):
                 
                 # Parse amount
                 amount_str = transaction.get('amount', '')
-                amount_low, amount_high = self.parse_amount(amount_str)
+                amount_low, amount_high, amount_range = self.extract_amount_range(amount_str)
                 transaction['amount_low'] = amount_low
                 transaction['amount_high'] = amount_high
-                transaction['amount_range'] = amount_str
+                transaction['amount_range'] = amount_range
 
                 transactions.append(transaction)
                 continue
 
-        # Fallback for OCR/Checkbox style forms if no transactions found (or few)
-            
-            # Iterate backwards by index to handle duplicate lines correctly
-            for i in range(len(context) - 1, -1, -1):
-                line = context[i].strip()
-                # Skip lines that are just "F S: New" or other markers
-                if line and not line.startswith('F S:') and 'ID Owner' not in line and 'Cap .' not in line and not line.startswith('D          :'):
-                    asset_name = line
-                    # If line ends with [OP] or [ST], it's likely the asset line
-                    if re.search(r'\[[A-Z]{2}\]$', line):
-                        # Check if previous line is also part of asset name (multi-line asset)
-                        prev_idx = i - 1
-                        if prev_idx >= 0:
-                            prev_line = context[prev_idx].strip()
-                            if prev_line and not prev_line.startswith('F S:') and 'ID Owner' not in prev_line:
-                                asset_name = f"{prev_line} {asset_name}"
-                    break
-            
-            # Clean owner code from asset name
-            if asset_name:
-                owner_match = re.match(r'^(?:SP|DC|JT|Self|Joint|Spouse|Child)\s+(.+)', asset_name, re.IGNORECASE)
-                if owner_match:
-                    asset_name = owner_match.group(1)
 
-            # If ticker not in regex, look for it in asset name
-            if not ticker and asset_name:
-                # Look for (TICKER) at end of asset name, allowing for trailing whitespace
-                # Also support tickers with dots like (BRK.B)
-                ticker_match = re.search(r'\((?P<ticker>[A-Z]{1,5}(?:\.[A-Z]{1,2})?)\)\s*(?:\[[A-Z]{2}\])?$', asset_name)
-                
-                # If not at end, look for it anywhere in the string if it looks like a ticker
-                if not ticker_match:
-                     ticker_match = re.search(r'\((?P<ticker>[A-Z]{1,5}(?:\.[A-Z]{1,2})?)\)', asset_name)
-
-                if ticker_match:
-                    ticker = ticker_match.group('ticker')
-                    # Remove ticker from asset name for cleaner display
-                    # Only remove if it was at the end or clearly separated
-                    if asset_name.strip().endswith(f"({ticker})"):
-                         asset_name = asset_name[:ticker_match.start()].strip()
-                    # Also remove [ST] or [OP] if present
-                    asset_name = re.sub(r'\s*\[[A-Z]{2}\]\s*$', '', asset_name)
-
-            if not asset_name:
-                asset_name = "Unknown Asset"
-
-            # Determine transaction type
-            if trans_type_raw.lower() in ['p', 'purchase']:
-                trans_type = "Purchase"
-            elif trans_type_raw.lower() in ['s', 'sale']:
-                trans_type = "Sale"
-            else:
-                trans_type = "Exchange"
-
-            # Parse dates
-            trans_date = self.extract_date(trans_date_str)
-            notif_date = self.extract_date(notif_date_str)
-
-            # Parse amount
-            # Clean newlines from amount string
-            amount_str = amount_str.replace('\n', ' ')
-            amount_low, amount_high, amount_range = self.extract_amount_range(amount_str)
-
-            transaction = {
-                "owner_code": "SP",  # Default to Self (most common)
-                "asset_name": asset_name,
-                "ticker": ticker,  # Store ticker separately
-                "transaction_type": trans_type,
-                "transaction_date": trans_date,
-                "notification_date": notif_date,
-                "amount_range": amount_range,
-                "amount_low": amount_low,
-                "amount_high": amount_high,
-                "amount_column": self._map_amount_to_column(amount_low, amount_high),
-            }
-
-            transactions.append(transaction)
-
-            transactions.append(transaction)
 
         # Fallback for OCR/Checkbox style forms if no transactions found (or few)
         if len(transactions) == 0:

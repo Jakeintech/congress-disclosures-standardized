@@ -251,6 +251,24 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
     total_transactions = sum(n['transaction_count'] for n in nodes.values())
     max_degree = max(degree.values()) if degree else 1
 
+    # --- Aggregation Logic ---
+    # Create aggregated nodes for Parties
+    agg_nodes = {}
+    agg_links = {}  # (Party, Asset) -> {value, count}
+
+    # Initialize Party Nodes
+    parties = ['Democrat', 'Republican']
+    for p in parties:
+        agg_nodes[p] = {
+            'id': p,
+            'group': 'party_agg',
+            'value': 0,
+            'transaction_count': 0,
+            'party': p,
+            'radius': 40, # Fixed large radius for aggregate nodes
+            'importance_score': 1.0
+        }
+
     # Convert nodes dict to list and calculate sophisticated importance scores
     node_list = []
     for node_id, n in nodes.items():
@@ -285,6 +303,14 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
                 (degree_norm * 0.30) +           # Portfolio diversity
                 (tx_count_norm * 0.30)           # Trading activity
             )
+            
+            # Assign parentId for hierarchy
+            party = n.get('party')
+            if party in parties:
+                n['parentId'] = party
+                # Accumulate to aggregate node
+                agg_nodes[party]['value'] += n['value']
+                agg_nodes[party]['transaction_count'] += n['transaction_count']
         
         n['importance_score'] = importance_score
         
@@ -299,6 +325,39 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
         n['radius'] = max(3, min(25, radius))  # Clamp between 3-25
         
         node_list.append(n)
+
+    # Aggregate Links
+    # Iterate through original links to build aggregated links
+    for link in links:
+        source_id = link['source']
+        target_id = link['target']
+        
+        # Check if source is a member (it should be)
+        if source_id in nodes and nodes[source_id]['group'] == 'member':
+            party = nodes[source_id].get('party')
+            if party in parties:
+                key = (party, target_id)
+                if key not in agg_links:
+                    agg_links[key] = {'value': 0, 'count': 0, 'types': set()}
+                
+                agg_links[key]['value'] += link['value']
+                agg_links[key]['count'] += link['count']
+                agg_links[key]['types'].add(link['type'])
+
+    # Convert agg_links to list
+    agg_link_list = []
+    for (source, target), data in agg_links.items():
+        agg_link_list.append({
+            'source': source,
+            'target': target,
+            'value': data['value'],
+            'count': data['count'],
+            'type': 'mixed' if len(data['types']) > 1 else list(data['types'])[0],
+            'is_aggregated': True
+        })
+
+    # Add aggregated nodes to the main list (or keep separate? Let's keep separate list for clarity in JSON)
+    agg_node_list = list(agg_nodes.values())
 
     # Calculate summary stats
     member_nodes = [n for n in node_list if n['group'] == 'member']
@@ -345,12 +404,15 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
     }
 
     logger.info(f"Generated {len(node_list)} nodes and {len(links)} links")
+    logger.info(f"Generated {len(agg_node_list)} aggregated nodes and {len(agg_link_list)} aggregated links")
     logger.info(f"Party coverage: {metadata['data_quality']['party_coverage']*100:.1f}%")
     
     return {
         'metadata': metadata,
         'nodes': node_list,
         'links': links,
+        'aggregated_nodes': agg_node_list,
+        'aggregated_links': agg_link_list,
         'summary_stats': summary_stats
     }
 

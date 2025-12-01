@@ -1,5 +1,5 @@
 /**
- * Enhanced Network Graph with SNA Filtering and Interactive Features
+ * Enhanced Network Graph with Hierarchical Drill-Down
  */
 
 let originalData = null;
@@ -9,6 +9,9 @@ let currentSvg = null;
 let labelsVisible = true;
 let currentViewMode = 'detailed';
 let selectedNode = null;
+
+// State for hierarchical view
+let expandedGroups = new Set(); // Stores IDs of expanded aggregated nodes (e.g., 'Democrat', 'Republican')
 
 document.addEventListener('DOMContentLoaded', () => {
     loadNetworkGraph();
@@ -20,12 +23,15 @@ async function loadNetworkGraph() {
         const response = await fetch('https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/data/network_graph.json');
         if (response.ok) {
             originalData = await response.json();
-            filteredData = JSON.parse(JSON.stringify(originalData)); // Deep copy
-            updateStats(originalData);
+            // Initialize with no groups expanded
+            expandedGroups.clear();
+
+            // Initial filter application
             applyFilters();
         }
     } catch (err) {
         console.log('Network graph not yet available:', err);
+        document.getElementById('network-graph-container').innerHTML = `<div class="error-state"><p>Error loading graph data. Please try again later.</p></div>`;
     }
 }
 
@@ -46,6 +52,13 @@ function setupEventListeners() {
             document.querySelectorAll('.view-mode-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             currentViewMode = e.target.dataset.mode;
+
+            if (currentViewMode === 'overview') {
+                expandedGroups.clear();
+            } else if (currentViewMode === 'detailed') {
+                expandedGroups.add('Democrat');
+                expandedGroups.add('Republican');
+            }
             applyFilters();
         });
     });
@@ -70,12 +83,17 @@ function applyFilters() {
     const volumeThreshold = parseInt(document.getElementById('volume-threshold')?.value || 0);
     const searchQuery = document.getElementById('member-search')?.value.toLowerCase() || '';
 
+    // 1. Filter Base Nodes (Members and Assets)
     let nodes = JSON.parse(JSON.stringify(originalData.nodes));
     let links = JSON.parse(JSON.stringify(originalData.links));
+    let aggNodes = JSON.parse(JSON.stringify(originalData.aggregated_nodes || []));
+    let aggLinks = JSON.parse(JSON.stringify(originalData.aggregated_links || []));
 
-    // Apply party filter
+    // Apply party filter (affects members)
     if (partyFilter !== 'all') {
         nodes = nodes.filter(n => n.group === 'asset' || n.party === partyFilter);
+        // Also filter agg nodes if they match the party
+        aggNodes = aggNodes.filter(n => n.party === partyFilter);
     }
 
     // Apply chamber filter
@@ -86,61 +104,98 @@ function applyFilters() {
     // Apply search filter
     if (searchQuery) {
         nodes = nodes.filter(n => n.id.toLowerCase().includes(searchQuery));
+        // If searching, we might want to auto-expand relevant groups, but for now let's just filter
     }
 
-    // Get valid node IDs after filtering
-    const validNodeIds = new Set(nodes.map(n => n.id));
+    // 2. Determine Visible Nodes based on Expansion State
+    let visibleNodes = [];
+    let visibleNodeIds = new Set();
 
-    // Filter links based on remaining nodes
-    links = links.filter(l => {
-        const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
-        const targetId = typeof l.target === 'object' ? l.target.id : l.target;
-        return validNodeIds.has(sourceId) && validNodeIds.has(targetId);
+    // Add Asset Nodes (always visible if they pass filters)
+    const assetNodes = nodes.filter(n => n.group === 'asset');
+    visibleNodes.push(...assetNodes);
+    assetNodes.forEach(n => visibleNodeIds.add(n.id));
+
+    // Add Member Nodes OR Aggregated Nodes
+    const parties = ['Democrat', 'Republican'];
+
+    parties.forEach(party => {
+        // If party is filtered out, skip
+        if (partyFilter !== 'all' && partyFilter !== party) return;
+
+        if (expandedGroups.has(party)) {
+            // Show individual members
+            const partyMembers = nodes.filter(n => n.party === party && n.group === 'member');
+            visibleNodes.push(...partyMembers);
+            partyMembers.forEach(n => visibleNodeIds.add(n.id));
+        } else {
+            // Show aggregated node
+            const aggNode = aggNodes.find(n => n.id === party);
+            if (aggNode) {
+                visibleNodes.push(aggNode);
+                visibleNodeIds.add(aggNode.id);
+            }
+        }
     });
 
-    // Apply transaction type filter
+    // Add 'Unknown' or other parties members directly for now (or group them if we had an 'Other' agg node)
+    const otherMembers = nodes.filter(n => !parties.includes(n.party) && n.group === 'member');
+    visibleNodes.push(...otherMembers);
+    otherMembers.forEach(n => visibleNodeIds.add(n.id));
+
+
+    // 3. Determine Visible Links
+    let visibleLinks = [];
+
+    // Case A: Member <-> Asset (when group is expanded)
+    const memberLinks = links.filter(l => {
+        const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+        const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+        return visibleNodeIds.has(sourceId) && visibleNodeIds.has(targetId);
+    });
+    visibleLinks.push(...memberLinks);
+
+    // Case B: Aggregated Node <-> Asset (when group is collapsed)
+    const activeAggNodes = parties.filter(p => !expandedGroups.has(p) && visibleNodeIds.has(p));
+
+    activeAggNodes.forEach(party => {
+        // Find aggregated links for this party
+        const partyAggLinks = aggLinks.filter(l => l.source === party);
+        partyAggLinks.forEach(l => {
+            if (visibleNodeIds.has(l.target)) {
+                visibleLinks.push(l);
+            }
+        });
+    });
+
+    // Apply transaction type filter to links
     if (txTypeFilter !== 'all') {
-        links = links.filter(l => l.type?.toLowerCase().includes(txTypeFilter));
+        visibleLinks = visibleLinks.filter(l => l.type?.toLowerCase().includes(txTypeFilter) || l.type === 'mixed');
     }
 
     // Apply volume threshold
     if (volumeThreshold > 0) {
-        links = links.filter(l => l.value >= volumeThreshold);
+        visibleLinks = visibleLinks.filter(l => l.value >= volumeThreshold);
     }
 
-    // Recalculate connected nodes (remove orphans)
+    // Remove orphan nodes (optional, but keeps graph clean)
     const connectedNodeIds = new Set();
-    links.forEach(l => {
+    visibleLinks.forEach(l => {
         const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
         const targetId = typeof l.target === 'object' ? l.target.id : l.target;
         connectedNodeIds.add(sourceId);
         connectedNodeIds.add(targetId);
     });
-    nodes = nodes.filter(n => connectedNodeIds.has(n.id));
 
-    // Apply view mode transformations
-    if (currentViewMode === 'ego' && selectedNode) {
-        const egoNodeIds = new Set([selectedNode]);
-        links.forEach(l => {
-            const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
-            const targetId = typeof l.target === 'object' ? l.target.id : l.target;
-            if (sourceId === selectedNode || targetId === selectedNode) {
-                egoNodeIds.add(sourceId);
-                egoNodeIds.add(targetId);
-            }
-        });
-        nodes = nodes.filter(n => egoNodeIds.has(n.id));
-        links = links.filter(l => {
-            const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
-            const targetId = typeof l.target === 'object' ? l.target.id : l.target;
-            return egoNodeIds.has(sourceId) && egoNodeIds.has(targetId);
-        });
-    }
+    // Always keep aggregated nodes visible even if no links (they act as anchors)
+    activeAggNodes.forEach(id => connectedNodeIds.add(id));
+
+    visibleNodes = visibleNodes.filter(n => connectedNodeIds.has(n.id));
 
     filteredData = {
         ...originalData,
-        nodes,
-        links
+        nodes: visibleNodes,
+        links: visibleLinks
     };
 
     updateStats(filteredData);
@@ -150,42 +205,52 @@ function applyFilters() {
 function updateStats(data) {
     document.getElementById('stat-nodes').textContent = data.nodes?.length || 0;
     document.getElementById('stat-links').textContent = data.links?.length || 0;
-    document.getElementById('stat-transactions').textContent = data.summary_stats?.total_transactions?.toLocaleString() || '-';
+    document.getElementById('stat-transactions').textContent = originalData?.summary_stats?.total_transactions?.toLocaleString() || '-';
 }
 
 function renderGraph(data) {
     const container = document.getElementById('network-graph-container');
     if (!container) return;
 
-    container.innerHTML = `
-        <div style="height: 700px; border: 1px solid #e5e7eb; border-radius: 8px; position: relative; overflow: hidden; background: #f8f9fa;">
-            <div id="network-svg" style="width: 100%; height: 100%;"></div>
-            
-            <!-- Legend -->
-            <div style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <div style="font-weight: 600; margin-bottom: 8px;">Legend</div>
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444;"></div>
-                    <span>Republican</span>
+    // Only create container structure once
+    if (!document.getElementById('network-svg')) {
+        container.innerHTML = `
+            <div style="height: 700px; border: 1px solid #e5e7eb; border-radius: 8px; position: relative; overflow: hidden; background: #f8f9fa;">
+                <div id="network-svg" style="width: 100%; height: 100%;"></div>
+                
+                <!-- Legend -->
+                <div style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <div style="font-weight: 600; margin-bottom: 8px;">Legend</div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444;"></div>
+                        <span>Republican</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #3b82f6;"></div>
+                        <span>Democrat</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <div style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid #3b82f6; background: rgba(59, 130, 246, 0.2);"></div>
+                        <span>Aggregated Group</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #10b981;"></div>
+                        <span>Asset</span>
+                    </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #3b82f6;"></div>
-                    <span>Democrat</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #9ca3af;"></div>
-                    <span>Other/Unknown</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #10b981;"></div>
-                    <span>Asset</span>
+
+                <!-- Tooltip -->
+                <div id="tooltip" style="position: absolute; display: none; background: rgba(0,0,0,0.85); color: white; padding: 10px; border-radius: 6px; font-size: 0.85rem; pointer-events: none; z-index: 100; max-width: 300px;"></div>
+                
+                <!-- Instructions -->
+                <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.8); padding: 8px; border-radius: 4px; font-size: 0.75rem; color: #666;">
+                    Click group nodes to expand/collapse.<br>
+                    Drag nodes to rearrange.<br>
+                    Scroll to zoom.
                 </div>
             </div>
-
-            <!-- Tooltip -->
-            <div id="tooltip" style="position: absolute; display: none; background: rgba(0,0,0,0.85); color: white; padding: 10px; border-radius: 6px; font-size: 0.85rem; pointer-events: none; z-index: 100; max-width: 300px;"></div>
-        </div>
-    `;
+        `;
+    }
 
     renderD3(data);
 }
@@ -196,6 +261,9 @@ function renderD3(data) {
     const width = element.clientWidth;
     const height = element.clientHeight;
 
+    // Clear previous SVG if it exists to prevent duplicates during hot reloads, 
+    // but ideally we want to update existing simulation. 
+    // For simplicity in this refactor, we'll re-render but try to preserve positions if possible.
     d3.select(selector).selectAll("*").remove();
 
     const svg = d3.select(selector)
@@ -214,11 +282,20 @@ function renderD3(data) {
 
     svg.call(zoom);
 
-    // Get node sizing metric
+    // Double click background to reset/collapse all
+    svg.on("dblclick.zoom", null); // Disable default zoom double click
+    svg.on("dblclick", () => {
+        expandedGroups.clear();
+        applyFilters();
+    });
+
+    // Process Nodes for Sizing
     const sizeBy = document.getElementById('node-size-by')?.value || 'volume';
     const nodes = data.nodes.map(n => {
         let newRadius;
-        if (sizeBy === 'count') {
+        if (n.group === 'party_agg') {
+            newRadius = 40; // Fixed size for aggregators
+        } else if (sizeBy === 'count') {
             newRadius = Math.log((n.transaction_count || 0) + 1) * 2;
         } else if (sizeBy === 'degree') {
             newRadius = Math.log((n.degree || 0) + 1) * 2;
@@ -227,148 +304,131 @@ function renderD3(data) {
         }
         return {
             ...n,
-            calculatedRadius: Math.max(3, Math.min(20, newRadius))
+            calculatedRadius: Math.max(3, Math.min(50, newRadius))
         };
     });
 
     const links = data.links.map(l => ({ ...l }));
 
-    // Calculate community cluster positions for better layout
-    const communities = {};
-    const memberNodes = nodes.filter(n => n.group === 'member');
-
-    memberNodes.forEach(n => {
-        const communityId = n.community_id || 'Unknown';
-        if (!communities[communityId]) {
-            communities[communityId] = [];
-        }
-        communities[communityId].push(n);
-    });
-
-    // Assign radial positions for communities (arrange around circle)
-    const communityIds = Object.keys(communities);
-    const angleStep = (2 * Math.PI) / communityIds.length;
-    const clusterRadius = Math.min(width, height) * 0.3;
-
-    communityIds.forEach((id, i) => {
-        const angle = i * angleStep;
-        const cx = width / 2 + Math.cos(angle) * clusterRadius;
-        const cy = height / 2 + Math.sin(angle) * clusterRadius;
-        communities[id].forEach(node => {
-            node.clusterX = cx;
-            node.clusterY = cy;
-        });
-    });
-
-    // Enhanced simulation with clustering forces
+    // Simulation Setup
     const simulation = d3.forceSimulation(nodes)
         .force("link", d3.forceLink(links).id(d => d.id).distance(d => {
-            // Shorter links within same community, longer between different communities
-            if (d.source.community_id && d.target.community_id &&
-                d.source.community_id === d.target.community_id) {
-                return 80;
-            }
+            // Aggregated links are stronger/shorter
+            if (d.is_aggregated) return 100;
             return 150;
-        }).strength(0.5))
+        }).strength(d => d.is_aggregated ? 0.8 : 0.3))
         .force("charge", d3.forceManyBody()
             .strength(d => {
-                // Stronger repulsion for member nodes to spread them out
-                return d.group === 'member' ? -300 : -150;
+                if (d.group === 'party_agg') return -1000;
+                return -200;
             })
         )
         .force("center", d3.forceCenter(width / 2, height / 2))
         .force("collide", d3.forceCollide()
-            .radius(d => d.calculatedRadius + 5)  // Add padding between nodes
+            .radius(d => d.calculatedRadius + 5)
             .strength(0.8)
         )
-        // Add clustering force - pull members towards their community centers
-        .force("cluster", alpha => {
-            memberNodes.forEach(n => {
-                if (n.clusterX !== undefined) {
-                    const k = alpha * 0.1;  // Clustering strength
-                    n.vx -= (n.x - n.clusterX) * k;
-                    n.vy -= (n.y - n.clusterY) * k;
+        .force("x", d3.forceX(width / 2).strength(0.05))
+        .force("y", d3.forceY(height / 2).strength(0.05));
+
+    // Custom Clustering Force
+    // Pull members towards their party center (if expanded) or just generally group them
+    simulation.force("cluster", alpha => {
+        const partyCenters = {
+            'Democrat': { x: width * 0.3, y: height * 0.5 },
+            'Republican': { x: width * 0.7, y: height * 0.5 }
+        };
+
+        nodes.forEach(d => {
+            if (d.group === 'party_agg') {
+                // Pull agg nodes to their designated sides
+                const target = partyCenters[d.id];
+                if (target) {
+                    d.vx -= (d.x - target.x) * alpha * 0.1;
+                    d.vy -= (d.y - target.y) * alpha * 0.1;
                 }
-            });
-        })
-        // Add party-based grouping - pull same-party members closer
-        .force("party", alpha => {
-            const parties = {};
-            memberNodes.forEach(n => {
-                const party = n.party || 'Unknown';
-                if (!parties[party]) parties[party] = [];
-                parties[party].push(n);
-            });
-
-            Object.values(parties).forEach(partyNodes => {
-                if (partyNodes.length < 2) return;
-
-                // Calculate centroid for this party
-                let cx = 0, cy = 0;
-                partyNodes.forEach(n => {
-                    cx += n.x || 0;
-                    cy += n.y || 0;
-                });
-                cx /= partyNodes.length;
-                cy /= partyNodes.length;
-
-                // Pull nodes towards party centroid
-                partyNodes.forEach(n => {
-                    const k = alpha * 0.05;  // Party clustering strength
-                    n.vx -= (n.x - cx) * k;
-                    n.vy -= (n.y - cy) * k;
-                });
-            });
+            } else if (d.group === 'member') {
+                // Pull members towards their party side
+                const target = partyCenters[d.party];
+                if (target) {
+                    d.vx -= (d.x - target.x) * alpha * 0.05;
+                    d.vy -= (d.y - target.y) * alpha * 0.05;
+                }
+            }
         });
+    });
 
     currentSimulation = simulation;
 
-    // Links
+    // Draw Links
     const link = g.append("g")
         .selectAll("line")
         .data(links)
         .join("line")
-        .attr("stroke-width", d => Math.max(1, Math.sqrt((d.value || 0) / 50000)))
+        .attr("stroke-width", d => {
+            if (d.is_aggregated) return Math.max(2, Math.sqrt((d.value || 0) / 100000));
+            return Math.max(1, Math.sqrt((d.value || 0) / 50000));
+        })
         .attr("stroke", d => {
+            if (d.is_aggregated) return '#6b7280'; // Neutral for aggregated
             const type = (d.type || '').toLowerCase();
             if (type.includes('purchase') || type.includes('buy')) return '#22c55e';
             if (type.includes('sale') || type.includes('sell')) return '#ef4444';
             return '#9ca3af';
         })
-        .attr("stroke-opacity", 0.4);
+        .attr("stroke-opacity", d => d.is_aggregated ? 0.6 : 0.4);
 
-    // Nodes
+    // Draw Nodes
     const node = g.append("g")
-        .selectAll("circle")
+        .selectAll("g") // Group for circle + label
         .data(nodes)
-        .join("circle")
+        .join("g")
+        .call(drag(simulation));
+
+    // Node Circles
+    node.append("circle")
         .attr("r", d => d.calculatedRadius)
         .attr("fill", d => {
+            if (d.group === 'party_agg') {
+                return d.id === 'Democrat' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+            }
             if (d.group === 'asset') return '#10b981';
             if (d.party === 'Republican') return '#ef4444';
             if (d.party === 'Democrat') return '#3b82f6';
             return '#9ca3af';
         })
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 1.5)
+        .attr("stroke", d => {
+            if (d.group === 'party_agg') {
+                return d.id === 'Democrat' ? '#3b82f6' : '#ef4444';
+            }
+            return "#fff";
+        })
+        .attr("stroke-width", d => d.group === 'party_agg' ? 3 : 1.5)
+        .attr("stroke-dasharray", d => d.group === 'party_agg' ? "5,5" : "none")
         .style("cursor", "pointer")
-        .call(drag(simulation))
         .on("click", (event, d) => {
-            selectedNode = d.id;
-            if (currentViewMode === 'ego') {
+            if (d.group === 'party_agg') {
+                // Expand group
+                expandedGroups.add(d.id);
                 applyFilters();
+            } else if (d.group === 'member') {
+                // Maybe highlight ego network?
+                selectedNode = d.id;
+                // Optional: trigger ego view
             }
         });
 
-    // Labels
-    const label = g.append("g")
-        .selectAll("text")
-        .data(nodes)
-        .join("text")
-        .attr("dx", 12)
-        .attr("dy", ".35em")
-        .text(d => d.calculatedRadius > 5 ? d.id : '')
-        .style("font-size", "10px")
+    // Node Labels (Inside for Agg, Outside for others)
+    node.append("text")
+        .text(d => {
+            if (d.group === 'party_agg') return d.id;
+            return d.calculatedRadius > 5 ? d.id : '';
+        })
+        .attr("dx", d => d.group === 'party_agg' ? 0 : 12)
+        .attr("dy", d => d.group === 'party_agg' ? 5 : ".35em")
+        .attr("text-anchor", d => d.group === 'party_agg' ? "middle" : "start")
+        .style("font-size", d => d.group === 'party_agg' ? "14px" : "10px")
+        .style("font-weight", d => d.group === 'party_agg' ? "bold" : "normal")
         .style("pointer-events", "none")
         .style("fill", "#374151")
         .style("text-shadow", "1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff")
@@ -381,7 +441,6 @@ function renderD3(data) {
         // Highlight
         node.style("opacity", 0.1);
         link.style("opacity", 0.05);
-        label.style("opacity", 0.1);
 
         const connectedIds = new Set([d.id]);
         link.filter(l => l.source.id === d.id || l.target.id === d.id)
@@ -392,20 +451,24 @@ function renderD3(data) {
             });
 
         node.filter(n => connectedIds.has(n.id)).style("opacity", 1);
-        label.filter(n => connectedIds.has(n.id)).style("opacity", labelsVisible ? 1 : 0).text(n => n.id);
 
         // Tooltip content
         const formatMoney = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: "compact" }).format(val);
         let content = `<strong>${d.id}</strong><br>`;
-        if (d.group === 'member') {
-            content += `Party: ${d.party || 'Unknown'}<br>`;
-            content += `Chamber: ${d.chamber || 'Unknown'}<br>`;
-            if (d.state) content += `State: ${d.state}<br>`;
-            if (d.community_id) content += `Community: ${d.community_id}<br>`;
+
+        if (d.group === 'party_agg') {
+            content += `<em>Click to expand</em><br>`;
+            content += `Total Volume: ${formatMoney(d.value || 0)}<br>`;
+            content += `Transactions: ${d.transaction_count || 0}`;
+        } else {
+            if (d.group === 'member') {
+                content += `Party: ${d.party || 'Unknown'}<br>`;
+                content += `Chamber: ${d.chamber || 'Unknown'}<br>`;
+            }
+            content += `Volume: ${formatMoney(d.value || 0)}<br>`;
+            content += `Transactions: ${d.transaction_count || 0}<br>`;
+            content += `Connections: ${d.degree || 0}`;
         }
-        content += `Volume: ${formatMoney(d.value || 0)}<br>`;
-        content += `Transactions: ${d.transaction_count || 0}<br>`;
-        content += `Connections: ${d.degree || 0}`;
 
         tooltip.style("display", "block")
             .html(content)
@@ -414,8 +477,7 @@ function renderD3(data) {
     })
         .on("mouseout", () => {
             node.style("opacity", 1);
-            link.style("opacity", 0.4);
-            label.style("opacity", labelsVisible ? 1 : 0).text(d => d.calculatedRadius > 5 ? d.id : '');
+            link.style("opacity", d => d.is_aggregated ? 0.6 : 0.4);
             tooltip.style("display", "none");
         });
 
@@ -426,13 +488,7 @@ function renderD3(data) {
             .attr("x2", d => d.target.x)
             .attr("y2", d => d.target.y);
 
-        node
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y);
-
-        label
-            .attr("x", d => d.x)
-            .attr("y", d => d.y);
+        node.attr("transform", d => `translate(${d.x},${d.y})`);
     });
 
     currentSvg = svg;
@@ -464,6 +520,7 @@ function drag(simulation) {
 
 function resetView() {
     selectedNode = null;
+    expandedGroups.clear();
     document.getElementById('party-filter').value = 'all';
     document.getElementById('chamber-filter').value = 'all';
     document.getElementById('transaction-type-filter').value = 'all';
@@ -481,13 +538,14 @@ function toggleLabels() {
 function exportFiltered() {
     if (!filteredData || !filteredData.links) return;
 
-    const headers = ['Source', 'Target', 'Type', 'Value', 'Count'];
+    const headers = ['Source', 'Target', 'Type', 'Value', 'Count', 'IsAggregated'];
     const rows = filteredData.links.map(l => [
         typeof l.source === 'object' ? l.source.id : l.source,
         typeof l.target === 'object' ? l.target.id : l.target,
         l.type || '',
         l.value || 0,
-        l.count || 0
+        l.count || 0,
+        l.is_aggregated || false
     ]);
 
     const csv = [headers.join(','), ...rows.map(row => row.map(c => `"${c}"`).join(','))].join('\n');

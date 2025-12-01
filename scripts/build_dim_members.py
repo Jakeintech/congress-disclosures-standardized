@@ -20,8 +20,12 @@ import pandas as pd
 import boto3
 from datetime import datetime
 import logging
+from dotenv import load_dotenv
 
-from ingestion.lib.enrichment import CongressAPIEnricher
+# Load environment variables from .env file
+load_dotenv()
+
+from ingestion.lib.simple_member_lookup import SimpleMemberLookup
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -70,21 +74,26 @@ def load_unique_members_from_silver(bucket_name: str) -> pd.DataFrame:
     return unique_members
 
 
-def enrich_members(members_df: pd.DataFrame, congress_enricher: CongressAPIEnricher) -> pd.DataFrame:
-    """Enrich members with Congress.gov API."""
-    logger.info("Enriching members with Congress.gov API...")
+def enrich_members(members_df: pd.DataFrame, member_lookup: SimpleMemberLookup) -> pd.DataFrame:
+    """Enrich members using simple member lookup."""
+    logger.info("Enriching members...")
 
     enriched_records = []
 
     for idx, row in members_df.iterrows():
         logger.info(f"  [{idx+1}/{len(members_df)}] {row['first_name']} {row['last_name']} ({row['state']})")
 
-        # Enrich with Congress API
-        enriched = congress_enricher.enrich_member(
-            first_name=row['first_name'],
-            last_name=row['last_name'],
-            state=row['state'],
-            district=row['district']
+        # Clean names: strip state codes from names if present
+        # (e.g., "McHenry NC" -> "McHenry", "Thomas Davis TN" -> "Thomas Davis")
+        import re
+        clean_first_name = re.sub(r'\s+[A-Z]{2}$', '', str(row['first_name'])).strip()
+        clean_last_name = re.sub(r'\s+[A-Z]{2}$', '', str(row['last_name'])).strip()
+        
+        # Use simple member lookup
+        enriched = member_lookup.enrich_member(
+            first_name=clean_first_name,
+            last_name=clean_last_name,
+            state=row['state']
         )
 
         # Build dim_members record
@@ -168,23 +177,41 @@ def main():
     logger.info("Building dim_members dimension table")
     logger.info("=" * 80)
 
-    # Initialize enrichers
-    congress_enricher = CongressAPIEnricher(use_cache=True)
+    # Initialize simple member lookup
+    member_lookup = SimpleMemberLookup()
 
     # Load unique members from silver layer
     members_df = load_unique_members_from_silver(bucket_name)
 
-    # Enrich with Congress API
-    enriched_df = enrich_members(members_df, congress_enricher)
+    # Enrich with member lookup
+    enriched_df = enrich_members(members_df, member_lookup)
 
     # Assign surrogate keys
     final_df = assign_member_keys(enriched_df)
 
+    # Calculate stats
+    total = len(final_df)
+    with_party = final_df['party'].notna().sum()
+    with_bio = final_df['bioguide_id'].notna().sum()
+    enrichment_rate = (with_bio / total * 100) if total > 0 else 0
+    party_rate = (with_party / total * 100) if total > 0 else 0
+
     logger.info(f"\nEnrichment summary:")
-    logger.info(f"  Total members: {len(final_df)}")
-    logger.info(f"  With bioguide ID: {final_df['bioguide_id'].notna().sum()}")
-    logger.info(f"  With party: {final_df['party'].notna().sum()}")
-    logger.info(f"  Enrichment rate: {(final_df['bioguide_id'].notna().sum() / len(final_df) * 100):.1f}%")
+    logger.info(f"  Total members: {total}")
+    logger.info(f"  With bioguide ID: {with_bio} ({enrichment_rate:.1f}%)")
+    logger.info(f"  With party: {with_party} ({party_rate:.1f}%)")
+
+    # Validate data quality
+    try:
+        from ingestion.lib.api_contracts import assert_data_quality
+        # We set a lower threshold for now since we're just starting to fix it
+        # But we expect at least 50% party coverage with fallbacks
+        assert_data_quality(total, with_party, threshold=0.5)
+    except ImportError:
+        logger.warning("Could not import data quality assertions")
+    except ValueError as e:
+        logger.error(f"❌ Data Quality Check Failed: {e}")
+        # We don't exit here yet, as we want to write what we have, but we log loud error
 
     # Write to gold layer
     write_to_gold(final_df, bucket_name)

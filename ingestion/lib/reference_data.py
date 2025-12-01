@@ -83,3 +83,68 @@ def get_asset_type_description(code: str) -> str:
     if not code:
         return None
     return ASSET_TYPE_CODES.get(code.upper(), "Unknown")
+
+
+# Fallback data for when API enrichment fails
+# This ensures we at least have party data for prominent members in the graph
+MEMBER_PARTY_MAP = {
+    # Leadership & Prominent (Democrat)
+    "nancy pelosi": "Democrat",
+    "hakeem jeffries": "Democrat",
+    "katherine clark": "Democrat",
+    "pete aguilar": "Democrat",
+    "ro khanna": "Democrat",
+    "alexandria ocasio-cortez": "Democrat",
+    "rashida tlaib": "Democrat",
+    "ilhan omar": "Democrat",
+    "adam schiff": "Democrat",
+    "jamie raskin": "Democrat",
+    "josh gottheimer": "Democrat",
+    "susie lee": "Democrat",
+    "earl blumenauer": "Democrat",
+    "maxine waters": "Democrat",
+    "rosa delauro": "Democrat",
+    "richard neal": "Democrat",
+    "jim clyburn": "Democrat",
+    "steny hoyer": "Democrat",
+    
+    # Leadership & Prominent (Republican)
+    "mike johnson": "Republican",
+    "steve scalise": "Republican",
+    "tom emmer": "Republican",
+    "elise stefanik": "Republican",
+    "marjorie taylor greene": "Republican",
+    "matt gaetz": "Republican",
+    "jim jordan": "Republican",
+    "james comer": "Republican",
+    "virginia foxx": "Republican",
+    "michael mccaul": "Republican",
+    "dan crenshaw": "Republican",
+    "kevin hern": "Republican",
+    "tommy tuberville": "Republican", # Senate but often in data
+    "mark green": "Republican",
+    "pete sessions": "Republican",
+    "chip roy": "Republican",
+    "lauren boebert": "Republican",
+    "thomas massie": "Republican",
+    "patrick mchenry": "Republican",
+    "french hill": "Republican"
+}
+
+def normalize_member_name(first: str, last: str) -> str:
+    """Normalize member name for lookup."""
+    return f"{first} {last}".lower().strip()
+
+def get_member_party(first: str, last: str) -> str:
+    """
+    Get party from static map.
+    
+    Args:
+        first: First name
+        last: Last name
+        
+    Returns:
+        'Democrat', 'Republican', or None
+    """
+    name = normalize_member_name(first, last)
+    return MEMBER_PARTY_MAP.get(name)

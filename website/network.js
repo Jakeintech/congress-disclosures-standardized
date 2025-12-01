@@ -188,6 +188,7 @@ function createStatItem(label, value) {
 function applyFilters() {
     if (!originalData) return;
 
+    const aggregationMode = document.getElementById('aggregation-mode')?.value || 'party';
     const partyFilter = document.getElementById('party-filter')?.value || 'all';
     const chamberFilter = document.getElementById('chamber-filter')?.value || 'all';
     const txTypeFilter = document.getElementById('transaction-type-filter')?.value || 'all';
@@ -203,7 +204,6 @@ function applyFilters() {
     // Apply party filter (affects members)
     if (partyFilter !== 'all') {
         nodes = nodes.filter(n => n.group === 'asset' || n.party === partyFilter);
-        // Also filter agg nodes if they match the party
         aggNodes = aggNodes.filter(n => n.party === partyFilter);
     }
 
@@ -215,10 +215,9 @@ function applyFilters() {
     // Apply search filter
     if (searchQuery) {
         nodes = nodes.filter(n => n.id.toLowerCase().includes(searchQuery));
-        // If searching, we might want to auto-expand relevant groups, but for now let's just filter
     }
 
-    // 2. Determine Visible Nodes based on Expansion State
+    // 2. Determine Visible Nodes based on Aggregation Mode and Expansion State
     let visibleNodes = [];
     let visibleNodeIds = new Set();
 
@@ -227,38 +226,77 @@ function applyFilters() {
     visibleNodes.push(...assetNodes);
     assetNodes.forEach(n => visibleNodeIds.add(n.id));
 
-    // Add Member Nodes OR Aggregated Nodes
-    const parties = ['Democrat', 'Republican'];
+    // Handle different aggregation modes
+    if (aggregationMode === 'none') {
+        // No aggregation - show all individual members
+        const memberNodes = nodes.filter(n => n.group === 'member');
+        visibleNodes.push(...memberNodes);
+        memberNodes.forEach(n => visibleNodeIds.add(n.id));
+    } else if (aggregationMode === 'party') {
+        // Party aggregation (existing logic)
+        const parties = ['Democrat', 'Republican'];
+        parties.forEach(party => {
+            if (partyFilter !== 'all' && partyFilter !== party) return;
 
-    parties.forEach(party => {
-        // If party is filtered out, skip
-        if (partyFilter !== 'all' && partyFilter !== party) return;
-
-        if (expandedGroups.has(party)) {
-            // Show individual members
-            const partyMembers = nodes.filter(n => n.party === party && n.group === 'member');
-            visibleNodes.push(...partyMembers);
-            partyMembers.forEach(n => visibleNodeIds.add(n.id));
-        } else {
-            // Show aggregated node
-            const aggNode = aggNodes.find(n => n.id === party);
-            if (aggNode) {
-                visibleNodes.push(aggNode);
-                visibleNodeIds.add(aggNode.id);
+            if (expandedGroups.has(party)) {
+                const partyMembers = nodes.filter(n => n.party === party && n.group === 'member');
+                visibleNodes.push(...partyMembers);
+                partyMembers.forEach(n => visibleNodeIds.add(n.id));
+            } else {
+                const aggNode = aggNodes.find(n => n.id === party);
+                if (aggNode) {
+                    visibleNodes.push(aggNode);
+                    visibleNodeIds.add(aggNode.id);
+                }
             }
-        }
-    });
+        });
 
-    // Add 'Unknown' or other parties members directly for now (or group them if we had an 'Other' agg node)
-    const otherMembers = nodes.filter(n => !parties.includes(n.party) && n.group === 'member');
-    visibleNodes.push(...otherMembers);
-    otherMembers.forEach(n => visibleNodeIds.add(n.id));
+        // Add 'Unknown' or other parties members directly
+        const otherMembers = nodes.filter(n => !parties.includes(n.party) && n.group === 'member');
+        visibleNodes.push(...otherMembers);
+        otherMembers.forEach(n => visibleNodeIds.add(n.id));
+    } else if (aggregationMode === 'chamber') {
+        // Chamber aggregation
+        const chambers = ['House', 'Senate'];
+        chambers.forEach(chamber => {
+            if (chamberFilter !== 'all' && chamberFilter !== chamber) return;
 
+            if (expandedGroups.has(chamber)) {
+                const chamberMembers = nodes.filter(n => n.chamber === chamber && n.group === 'member');
+                visibleNodes.push(...chamberMembers);
+                chamberMembers.forEach(n => visibleNodeIds.add(n.id));
+            } else {
+                // Create virtual aggregated node for chamber
+                const chamberMembers = nodes.filter(n => n.chamber === chamber && n.group === 'member');
+                if (chamberMembers.length > 0) {
+                    const aggNode = {
+                        id: chamber,
+                        group: 'chamber_agg',
+                        value: chamberMembers.reduce((sum, m) => sum + (m.value || 0), 0),
+                        transaction_count: chamberMembers.reduce((sum, m) => sum + (m.transaction_count || 0), 0),
+                        chamber: chamber
+                    };
+                    visibleNodes.push(aggNode);
+                    visibleNodeIds.add(aggNode.id);
+                }
+            }
+        });
+    } else if (aggregationMode === 'state') {
+        // State aggregation - show all members (simplified for now)
+        const memberNodes = nodes.filter(n => n.group === 'member');
+        visibleNodes.push(...memberNodes);
+        memberNodes.forEach(n => visibleNodeIds.add(n.id));
+    } else if (aggregationMode === 'asset_sector') {
+        // Asset sector aggregation - show all members (simplified for now)
+        const memberNodes = nodes.filter(n => n.group === 'member');
+        visibleNodes.push(...memberNodes);
+        memberNodes.forEach(n => visibleNodeIds.add(n.id));
+    }
 
     // 3. Determine Visible Links
     let visibleLinks = [];
 
-    // Case A: Member <-> Asset (when group is expanded)
+    // Member <-> Asset links
     const memberLinks = links.filter(l => {
         const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
         const targetId = typeof l.target === 'object' ? l.target.id : l.target;
@@ -266,18 +304,57 @@ function applyFilters() {
     });
     visibleLinks.push(...memberLinks);
 
-    // Case B: Aggregated Node <-> Asset (when group is collapsed)
-    const activeAggNodes = parties.filter(p => !expandedGroups.has(p) && visibleNodeIds.has(p));
+    // Aggregated links (for party mode when collapsed)
+    if (aggregationMode === 'party') {
+        const parties = ['Democrat', 'Republican'];
+        const activeAggNodes = parties.filter(p => !expandedGroups.has(p) && visibleNodeIds.has(p));
 
-    activeAggNodes.forEach(party => {
-        // Find aggregated links for this party
-        const partyAggLinks = aggLinks.filter(l => l.source === party);
-        partyAggLinks.forEach(l => {
-            if (visibleNodeIds.has(l.target)) {
-                visibleLinks.push(l);
+        activeAggNodes.forEach(party => {
+            const partyAggLinks = aggLinks.filter(l => l.source === party);
+            partyAggLinks.forEach(l => {
+                if (visibleNodeIds.has(l.target)) {
+                    visibleLinks.push(l);
+                }
+            });
+        });
+    } else if (aggregationMode === 'chamber') {
+        // For chamber aggregation, aggregate links from chamber members
+        const chambers = ['House', 'Senate'];
+        chambers.forEach(chamber => {
+            if (!expandedGroups.has(chamber) && visibleNodeIds.has(chamber)) {
+                // Create aggregated links from all chamber members to assets
+                const chamberMembers = nodes.filter(n => n.chamber === chamber && n.group === 'member');
+                const chamberMemberIds = new Set(chamberMembers.map(m => m.id));
+
+                const assetConnections = {};
+                links.forEach(l => {
+                    const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                    const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+
+                    if (chamberMemberIds.has(sourceId) && visibleNodeIds.has(targetId)) {
+                        if (!assetConnections[targetId]) {
+                            assetConnections[targetId] = { value: 0, count: 0, types: new Set() };
+                        }
+                        assetConnections[targetId].value += l.value || 0;
+                        assetConnections[targetId].count += l.count || 1;
+                        assetConnections[targetId].types.add(l.type);
+                    }
+                });
+
+                // Add aggregated links
+                Object.entries(assetConnections).forEach(([assetId, data]) => {
+                    visibleLinks.push({
+                        source: chamber,
+                        target: assetId,
+                        value: data.value,
+                        count: data.count,
+                        type: data.types.size > 1 ? 'mixed' : Array.from(data.types)[0],
+                        is_aggregated: true
+                    });
+                });
             }
         });
-    });
+    }
 
     // Apply transaction type filter to links
     if (txTypeFilter !== 'all') {
@@ -289,7 +366,7 @@ function applyFilters() {
         visibleLinks = visibleLinks.filter(l => l.value >= volumeThreshold);
     }
 
-    // Remove orphan nodes (optional, but keeps graph clean)
+    // Remove orphan nodes
     const connectedNodeIds = new Set();
     visibleLinks.forEach(l => {
         const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
@@ -297,9 +374,6 @@ function applyFilters() {
         connectedNodeIds.add(sourceId);
         connectedNodeIds.add(targetId);
     });
-
-    // Always keep aggregated nodes visible even if no links (they act as anchors)
-    activeAggNodes.forEach(id => connectedNodeIds.add(id));
 
     visibleNodes = visibleNodes.filter(n => connectedNodeIds.has(n.id));
 
@@ -511,6 +585,9 @@ function renderD3(data) {
             if (d.group === 'party_agg') {
                 return d.id === 'Democrat' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)';
             }
+            if (d.group === 'chamber_agg') {
+                return d.id === 'House' ? 'rgba(34, 197,94, 0.2)' : 'rgba(168, 85, 247, 0.2)';
+            }
             if (d.group === 'asset') return '#10b981';
             if (d.party === 'Republican') return '#ef4444';
             if (d.party === 'Democrat') return '#3b82f6';
@@ -520,10 +597,13 @@ function renderD3(data) {
             if (d.group === 'party_agg') {
                 return d.id === 'Democrat' ? '#3b82f6' : '#ef4444';
             }
+            if (d.group === 'chamber_agg') {
+                return d.id === 'House' ? '#22c55e' : '#a855f7';
+            }
             return "#fff";
         })
-        .attr("stroke-width", d => d.group === 'party_agg' ? 3 : 1.5)
-        .attr("stroke-dasharray", d => d.group === 'party_agg' ? "5,5" : "none")
+        .attr("stroke-width", d => (d.group === 'party_agg' || d.group === 'chamber_agg') ? 3 : 1.5)
+        .attr("stroke-dasharray", d => (d.group === 'party_agg' || d.group === 'chamber_agg') ? "5,5" : "none")
         .style("cursor", "pointer")
         .on("click", (event, d) => {
             event.stopPropagation(); // Prevent background click

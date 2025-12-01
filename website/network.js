@@ -33,12 +33,24 @@ function initNetworkGraph(data) {
                 <p class="card-description">Connections between Members and Assets based on trading activity</p>
             </div>
             <div class="card-content">
-                <div class="graph-container" style="height: 600px; border: 1px solid var(--border-color); border-radius: 8px; position: relative; overflow: hidden;">
+                <div class="graph-container" style="height: 700px; border: 1px solid var(--border-color); border-radius: 8px; position: relative; overflow: hidden; background: #f8f9fa;">
                     <div id="network-graph" style="width: 100%; height: 100%;"></div>
-                    <div class="graph-legend" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.8rem;">
-                        <div class="flex items-center gap-2 mb-1"><div class="w-3 h-3 rounded-full bg-blue-500"></div> Member</div>
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div> Asset</div>
+                    
+                    <!-- Legends -->
+                    <div class="graph-legend" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        <div class="font-bold mb-2">Nodes</div>
+                        <div class="flex items-center gap-2 mb-1"><div class="w-3 h-3 rounded-full" style="background: #ef4444;"></div> Republican</div>
+                        <div class="flex items-center gap-2 mb-1"><div class="w-3 h-3 rounded-full" style="background: #3b82f6;"></div> Democrat</div>
+                        <div class="flex items-center gap-2 mb-1"><div class="w-3 h-3 rounded-full" style="background: #9ca3af;"></div> Other/Unknown</div>
+                        <div class="flex items-center gap-2 mb-3"><div class="w-3 h-3 rounded-full" style="background: #10b981;"></div> Asset</div>
+                        
+                        <div class="font-bold mb-2">Transactions</div>
+                        <div class="flex items-center gap-2 mb-1"><div class="w-3 h-1" style="background: #22c55e;"></div> Buy</div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-1" style="background: #ef4444;"></div> Sell</div>
                     </div>
+
+                    <!-- Tooltip -->
+                    <div id="graph-tooltip" style="position: absolute; display: none; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 4px; font-size: 0.8rem; pointer-events: none; z-index: 10;"></div>
                 </div>
 
                 <div class="table-actions mt-4">
@@ -64,27 +76,35 @@ function renderD3Graph(nodes, links, selector) {
         .append("svg")
         .attr("width", width)
         .attr("height", height)
-        .call(d3.zoom().on("zoom", (event) => {
+        .call(d3.zoom().scaleExtent([0.1, 8]).on("zoom", (event) => {
             g.attr("transform", event.transform);
         }))
         .append("g");
 
     const g = svg.append("g");
 
+    // Simulation setup
     const simulation = d3.forceSimulation(nodes)
         .force("link", d3.forceLink(links).id(d => d.id).distance(100))
-        .force("charge", d3.forceManyBody().strength(-300))
+        .force("charge", d3.forceManyBody().strength(-200))
         .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collide", d3.forceCollide().radius(d => d.radius + 5));
+        .force("collide", d3.forceCollide().radius(d => d.radius + 2).iterations(2));
 
+    // Links
     const link = g.append("g")
-        .attr("stroke", "#999")
         .attr("stroke-opacity", 0.6)
         .selectAll("line")
         .data(links)
         .join("line")
-        .attr("stroke-width", d => Math.sqrt(d.value / 100000)); // Scale width by volume
+        .attr("stroke-width", d => Math.max(1, Math.sqrt(d.value / 50000))) // Scale width
+        .attr("stroke", d => {
+            const type = (d.type || '').toLowerCase();
+            if (type.includes('purchase') || type.includes('buy')) return '#22c55e'; // Green
+            if (type.includes('sale') || type.includes('sell')) return '#ef4444'; // Red
+            return '#9ca3af'; // Gray
+        });
 
+    // Nodes
     const node = g.append("g")
         .attr("stroke", "#fff")
         .attr("stroke-width", 1.5)
@@ -92,22 +112,78 @@ function renderD3Graph(nodes, links, selector) {
         .data(nodes)
         .join("circle")
         .attr("r", d => d.radius)
-        .attr("fill", d => d.group === 'member' ? '#3b82f6' : '#10b981')
+        .attr("fill", d => {
+            if (d.group === 'asset') return '#10b981'; // Green for Assets
+            // Party colors for Members
+            if (d.party === 'Republican') return '#ef4444';
+            if (d.party === 'Democrat') return '#3b82f6';
+            return '#9ca3af'; // Gray
+        })
         .call(drag(simulation));
 
-    node.append("title")
-        .text(d => d.id);
-
+    // Labels (only for larger nodes to reduce clutter)
     const label = g.append("g")
         .selectAll("text")
         .data(nodes)
         .join("text")
         .attr("dx", 12)
         .attr("dy", ".35em")
-        .text(d => d.id)
+        .text(d => d.radius > 5 ? d.id : '')
         .style("font-size", "10px")
         .style("pointer-events", "none")
-        .style("fill", "var(--text-primary)");
+        .style("fill", "#374151")
+        .style("text-shadow", "1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff");
+
+    // Tooltip Logic
+    const tooltip = d3.select("#graph-tooltip");
+
+    node.on("mouseover", (event, d) => {
+        // Highlight logic
+        node.style("opacity", 0.1);
+        link.style("opacity", 0.05);
+        label.style("opacity", 0.1);
+
+        // Select neighbors
+        const connectedNodeIds = new Set();
+        connectedNodeIds.add(d.id);
+
+        link.filter(l => l.source.id === d.id || l.target.id === d.id)
+            .style("opacity", 1)
+            .each(l => {
+                connectedNodeIds.add(l.source.id);
+                connectedNodeIds.add(l.target.id);
+            });
+
+        node.filter(n => connectedNodeIds.has(n.id))
+            .style("opacity", 1);
+
+        label.filter(n => connectedNodeIds.has(n.id))
+            .style("opacity", 1)
+            .text(n => n.id); // Show label on hover even if small
+
+        // Tooltip content
+        const formatMoney = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: "compact" }).format(val);
+
+        let content = `<strong>${d.id}</strong><br>`;
+        if (d.group === 'member') {
+            content += `Party: ${d.party || 'Unknown'}<br>`;
+        }
+        content += `Volume: ${formatMoney(d.value)}`;
+
+        tooltip.style("display", "block")
+            .html(content)
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 10) + "px");
+    })
+        .on("mouseout", () => {
+            // Reset styles
+            node.style("opacity", 1);
+            link.style("opacity", 0.6);
+            label.style("opacity", 1)
+                .text(d => d.radius > 5 ? d.id : ''); // Reset labels
+
+            tooltip.style("display", "none");
+        });
 
     simulation.on("tick", () => {
         link
@@ -152,12 +228,13 @@ function drag(simulation) {
 
 function exportNetworkCSV() {
     if (!window.networkData) return;
-    const headers = ['Source', 'Target', 'Type', 'Value'];
+    const headers = ['Source', 'Target', 'Type', 'Value', 'Count'];
     const rows = window.networkData.links.map(l => [
         l.source.id || l.source,
         l.target.id || l.target,
         l.type,
-        l.value
+        l.value,
+        l.count || 1
     ]);
 
     const csv = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');

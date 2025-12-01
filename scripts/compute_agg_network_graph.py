@@ -47,20 +47,90 @@ def load_transactions(bucket_name: str) -> pd.DataFrame:
         logger.warning("No transaction data found.")
         return pd.DataFrame()
 
+    if not dfs:
+        logger.warning("No transaction data found.")
+        return pd.DataFrame()
+
     result = pd.concat(dfs, ignore_index=True)
     logger.info(f"Loaded {len(result):,} transactions")
     return result
 
-def generate_network_graph_data(transactions_df: pd.DataFrame):
+def load_dim_members(bucket_name: str) -> pd.DataFrame:
+    """Load dim_members for party lookup."""
+    s3 = boto3.client('s3')
+    logger.info("Loading dim_members...")
+
+    prefix = 'gold/house/financial/dimensions/dim_members/'
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
+
+    dfs = []
+    for page in pages:
+        for obj in page.get('Contents', []):
+            if obj['Key'].endswith('.parquet'):
+                try:
+                    import tempfile
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
+                        s3.download_file(bucket_name, obj['Key'], tmp.name)
+                        df = pd.read_parquet(tmp.name)
+                        dfs.append(df)
+                        os.unlink(tmp.name)
+                except Exception as e:
+                    logger.warning(f"Failed to read {obj['Key']}: {e}")
+
+    if not dfs:
+        logger.warning("No dim_members found.")
+        return pd.DataFrame()
+
+    result = pd.concat(dfs, ignore_index=True)
+    # Create a lookup key: "FirstName LastName" -> Party
+    result['full_name'] = result['first_name'] + ' ' + result['last_name']
+    logger.info(f"Loaded {len(result):,} members")
+    return result
+
+def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.DataFrame):
     """Generate network graph nodes and edges from transactions."""
     if transactions_df.empty:
         return {'nodes': [], 'links': []}
 
     logger.info("Generating network graph data...")
 
-    # Filter out invalid tickers
+    # Create Party Lookup
+    party_map = {}
+    if not members_df.empty:
+        # Normalize names for better matching
+        members_df['lookup_name'] = members_df['full_name'].str.lower().str.strip()
+        party_map = dict(zip(members_df['lookup_name'], members_df['party']))
+
+    # Filter out invalid rows (must have ticker OR asset_name)
     df = transactions_df.copy()
-    df = df[df['ticker'].notna() & (df['ticker'] != '--') & (df['ticker'] != 'N/A')]
+    
+    # Create a target column: use ticker if available, else try to extract from asset_name
+    import re
+    
+    def get_target(row):
+        # 1. Try explicit ticker
+        ticker = row.get('ticker')
+        if ticker and ticker != '--' and ticker != 'N/A':
+            return ticker
+        
+        asset = row.get('asset_name')
+        if not asset:
+            return None
+            
+        # 2. Try to extract ticker from parenthesis e.g. "Apple Inc (AAPL)"
+        # Look for 1-5 uppercase letters in parens
+        match = re.search(r'\(([A-Z]{1,5})\)', asset)
+        if match:
+            return match.group(1)
+            
+        # 3. Fallback to truncated asset name
+        return asset[:20] + '...' if len(asset) > 20 else asset
+
+    df['target_node'] = df.apply(get_target, axis=1)
+    
+    # Filter where we have a target
+    df = df[df['target_node'].notna()]
     
     # Calculate estimated amount
     def estimate_amount(row):
@@ -78,14 +148,12 @@ def generate_network_graph_data(transactions_df: pd.DataFrame):
     # Create Full Name
     df['member_name'] = df['first_name'] + ' ' + df['last_name']
 
-    # Aggregate Edges: Member -> Ticker
-    # We sum the volume (estimated amount)
-    edges_df = df.groupby(['member_name', 'ticker', 'transaction_type']).agg({
-        'estimated_amount': 'sum'
-    }).reset_index()
-
-    # Filter low volume edges to keep graph readable (optional, can adjust threshold)
-    # edges_df = edges_df[edges_df['estimated_amount'] > 5000] 
+    # Aggregate Edges: Member -> Target Node
+    # We sum the volume (estimated amount) and count transactions
+    edges_df = df.groupby(['member_name', 'target_node', 'transaction_type']).agg({
+        'estimated_amount': 'sum',
+        'transaction_date': 'count' # Use date to count rows
+    }).rename(columns={'transaction_date': 'count'}).reset_index()
 
     nodes = {}
     links = []
@@ -93,13 +161,17 @@ def generate_network_graph_data(transactions_df: pd.DataFrame):
     # Process Edges
     for _, row in edges_df.iterrows():
         source = row['member_name']
-        target = row['ticker']
+        target = row['target_node']
         value = row['estimated_amount']
+        count = row['count']
         tx_type = row['transaction_type']
 
         # Add Nodes
         if source not in nodes:
-            nodes[source] = {'id': source, 'group': 'member', 'value': 0}
+            # Lookup Party
+            party = party_map.get(source.lower().strip(), 'Unknown')
+            nodes[source] = {'id': source, 'group': 'member', 'value': 0, 'party': party}
+        
         if target not in nodes:
             nodes[target] = {'id': target, 'group': 'asset', 'value': 0}
 
@@ -112,6 +184,7 @@ def generate_network_graph_data(transactions_df: pd.DataFrame):
             'source': source,
             'target': target,
             'value': value,
+            'count': int(count),
             'type': tx_type
         })
 
@@ -149,9 +222,10 @@ def main():
 
     # Load Data
     transactions_df = load_transactions(S3_BUCKET)
+    members_df = load_dim_members(S3_BUCKET)
 
     # Generate Graph
-    graph_data = generate_network_graph_data(transactions_df)
+    graph_data = generate_network_graph_data(transactions_df, members_df)
 
     # Write to S3
     write_to_s3(graph_data, S3_BUCKET)

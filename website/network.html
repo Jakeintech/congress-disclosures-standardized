@@ -17,6 +17,21 @@
             <div class="container">
                 <!-- Controls Panel -->
                 <div class="controls-panel">
+                    <!-- Aggregation Mode -->
+                    <div class="control-section aggregation-mode-section">
+                        <h4>Aggregation Mode</h4>
+                        <select id="aggregation-mode" class="select">
+                            <option value="party">By Party</option>
+                            <option value="chamber">By Chamber</option>
+                            <option value="state">By State</option>
+                            <option value="asset_sector">By Asset Sector</option>
+                            <option value="none">No Aggregation</option>
+                        </select>
+                        <p class="text-muted" style="font-size: 0.75rem; margin-top: 0.5rem;">
+                            Choose how to group members in the network visualization
+                        </p>
+                    </div>
+
                     <!-- View Mode Selection -->
                     <div class="control-section view-mode-section">
                         <h4>View Mode</h4>
@@ -93,6 +108,39 @@
                             <p><strong>Transactions:</strong> <span id="stat-transactions">-</span></p>
                         </div>
                     </div>
+
+                    <!-- Advanced Settings -->
+                    <div class="control-section advanced-section">
+                        <h4>Advanced Settings</h4>
+                        <div class="slider-control">
+                            <label>
+                                <span>Link Distance</span>
+                                <span class="slider-value" id="link-distance-value">150</span>
+                            </label>
+                            <input type="range" id="link-distance" min="50" max="300" step="10" value="150">
+                        </div>
+                        <div class="slider-control">
+                            <label>
+                                <span>Charge Strength</span>
+                                <span class="slider-value" id="charge-strength-value">-200</span>
+                            </label>
+                            <input type="range" id="charge-strength" min="-500" max="-50" step="10" value="-200">
+                        </div>
+                        <div class="slider-control">
+                            <label>
+                                <span>Collision Radius</span>
+                                <span class="slider-value" id="collision-radius-value">5</span>
+                            </label>
+                            <input type="range" id="collision-radius" min="0" max="20" step="1" value="5">
+                        </div>
+                        <div class="slider-control">
+                            <label>
+                                <span>Clustering Force</span>
+                                <span class="slider-value" id="clustering-force-value">0.05</span>
+                            </label>
+                            <input type="range" id="clustering-force" min="0" max="0.2" step="0.01" value="0.05">
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Network Graph -->
@@ -100,6 +148,22 @@
                     <div class="loading-state">
                         <div class="spinner"></div>
                         <p>Loading network graph...</p>
+                    </div>
+                </div>
+
+                <!-- Details Sidebar -->
+                <div id="details-sidebar" class="sidebar hidden">
+                    <div class="sidebar-header">
+                        <h2 id="sidebar-title">Node Details</h2>
+                        <button id="close-sidebar" class="close-btn">&times;</button>
+                    </div>
+                    <div class="sidebar-content">
+                        <div id="sidebar-stats" class="stats-grid">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="sidebar-lists" class="lists-container">
+                            <!-- Populated by JS -->
+                        </div>
                     </div>
                 </div>
             </div>

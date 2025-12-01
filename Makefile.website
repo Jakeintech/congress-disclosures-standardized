@@ -1,10 +1,10 @@
 # Website Deployment Makefile
 # Use: make -f Makefile.website deploy-website
 
-.PHONY: deploy-website increment-version sync-website rebuild-manifests rebuild-ptr-api rebuild-silver-api
+.PHONY: deploy-website increment-version sync-website rebuild-manifests rebuild-ptr-api rebuild-silver-api rebuild-aggregates
 
 # Auto-increment app.js version and deploy entire website
-deploy-website: increment-version rebuild-manifests rebuild-silver-api rebuild-ptr-api sync-website
+deploy-website: increment-version rebuild-manifests rebuild-aggregates rebuild-silver-api rebuild-ptr-api sync-website
 	@echo "✅ Website deployed successfully!"
 	@echo "🌐 URL: https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/index.html"
 
@@ -34,6 +34,22 @@ rebuild-ptr-api:
 	@echo "📊 Rebuilding PTR transactions API..."
 	python3 scripts/aggregate_schedule_b.py
 	@echo "✅ PTR transactions API rebuilt"
+
+# Rebuild all analytics aggregates (network graph, trading stats, trending stocks, document quality)
+rebuild-aggregates:
+	@echo "📊 Computing analytics aggregates..."
+	@echo "  → Document quality..."
+	python3 scripts/compute_agg_document_quality.py
+	@echo "  → Member trading stats..."
+	python3 scripts/compute_agg_member_trading_stats.py
+	@echo "  → Trending stocks..."
+	python3 scripts/compute_agg_trending_stocks.py
+	@echo "  → Network graph..."
+	python3 scripts/compute_agg_network_graph.py
+	@echo "  → Generating manifests..."
+	python3 scripts/generate_document_quality_manifest.py
+	python3 scripts/generate_all_gold_manifests.py
+	@echo "✅ Analytics aggregates computed"
 
 # Sync website to S3 with proper cache headers
 sync-website:

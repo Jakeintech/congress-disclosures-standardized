@@ -207,8 +207,22 @@ deploy-extractors: package-extract-structured ## Package and deploy extraction L
 	cd $(TERRAFORM_DIR) && terraform apply -target=aws_lambda_function.extract_structured_code -auto-approve
 	@echo "✓ Extraction Lambda deployed with new extractors"
 
-deploy-website: ## Deploy website to S3
-	@echo "Deploying website to S3..."
+deploy-website: ## Deploy website to S3 (regenerates all analytics data first)
+	@echo "📊 Regenerating analytics data..."
+	@echo "  → Document quality..."
+	@$(PYTHON) scripts/compute_agg_document_quality.py
+	@echo "  → Member trading stats..."
+	@$(PYTHON) scripts/compute_agg_member_trading_stats.py
+	@echo "  → Trending stocks..."
+	@$(PYTHON) scripts/compute_agg_trending_stocks.py
+	@echo "  → Network graph..."
+	@$(PYTHON) scripts/compute_agg_network_graph.py
+	@echo "  → Generating manifests..."
+	@$(PYTHON) scripts/generate_document_quality_manifest.py
+	@$(PYTHON) scripts/generate_all_gold_manifests.py
+	@echo "✅ Analytics data regenerated"
+	@echo ""
+	@echo "🚀 Deploying website to S3..."
 	@aws s3 sync website/ s3://congress-disclosures-standardized/website/ --exclude "*.DS_Store" --exclude "*.bak"
 	@echo "✓ Website deployed to s3://congress-disclosures-standardized/website/"
 	@echo "  URL: https://congress-disclosures-standardized.s3.amazonaws.com/website/index.html"

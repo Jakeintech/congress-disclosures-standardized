@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-01T10:17:42.176208",
+  "generated_at": "2025-12-01T12:54:14.456487",
   "total_members": 370,
   "total_trades": 500,
   "total_volume": 105059500.0,
@@ -41,7 +41,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Paula Williams Swift",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA40"
     },
     {
@@ -141,7 +141,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "George Whitesides",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA27"
     },
     {
@@ -201,7 +201,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Cathy McMorris Rodgers",
-      "party": null,
+      "party": "Republican",
       "state_district": "WA05"
     },
     {
@@ -261,7 +261,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Lisa Blunt Rochester",
-      "party": null,
+      "party": "Democrat",
       "state_district": "DE00"
     },
     {
@@ -401,7 +401,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Anna G. Eshoo",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA16"
     },
     {
@@ -421,7 +421,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Rohit Khanna",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA17"
     },
     {
@@ -481,7 +481,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Marcus J. Molinaro",
-      "party": null,
+      "party": "Republican",
       "state_district": "NY19"
     },
     {
@@ -521,7 +521,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Scott H. Peters",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA50"
     },
     {
@@ -541,7 +541,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Gian A. Jones",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NY04"
     },
     {
@@ -621,7 +621,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Richard W. Allen",
-      "party": null,
+      "party": "Republican",
       "state_district": "GA12"
     },
     {
@@ -641,7 +641,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "John David Hancock",
-      "party": null,
+      "party": "Republican",
       "state_district": "OH01"
     },
     {
@@ -681,7 +681,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Gregorio Kilili Camacho Sablan",
-      "party": null,
+      "party": "Democrat",
       "state_district": "MP00"
     },
     {
@@ -701,7 +701,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Isabelle A. Harman",
-      "party": null,
+      "party": "Democrat",
       "state_district": "PA10"
     },
     {
@@ -721,7 +721,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Lori Trahan",
-      "party": null,
+      "party": "Democrat",
       "state_district": "MA03"
     },
     {
@@ -741,7 +741,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Charles J. \"Chuck\" Fleischmann",
-      "party": null,
+      "party": "Republican",
       "state_district": "TN03"
     },
     {
@@ -781,7 +781,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Rick Larsen",
-      "party": null,
+      "party": "Democrat",
       "state_district": "WA02"
     },
     {
@@ -801,7 +801,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Sholdon Daniels",
-      "party": null,
+      "party": "Democrat",
       "state_district": "TX30"
     },
     {
@@ -841,7 +841,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Gilbert Cisneros",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA31"
     },
     {
@@ -881,7 +881,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jenniffer Gonzalez-Colon",
-      "party": null,
+      "party": "Republican",
       "state_district": "PR00"
     },
     {
@@ -921,7 +921,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Ritchie John Torres",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NY15"
     },
     {
@@ -1021,7 +1021,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Chellie Pingree",
-      "party": null,
+      "party": "Democrat",
       "state_district": "ME01"
     },
     {
@@ -1121,7 +1121,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jeromie Patrick Whalen",
-      "party": null,
+      "party": "Republican",
       "state_district": "MA01"
     },
     {
@@ -1181,7 +1181,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "John Cavanaugh",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NE02"
     },
     {
@@ -1301,7 +1301,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "James French Hill",
-      "party": null,
+      "party": "Republican",
       "state_district": "AR02"
     },
     {
@@ -1321,7 +1321,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Pat Harrigan",
-      "party": null,
+      "party": "Republican",
       "state_district": "NC10"
     },
     {
@@ -1341,7 +1341,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Carol Devine Miller",
-      "party": null,
+      "party": "Republican",
       "state_district": "WV01"
     },
     {
@@ -1461,7 +1461,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Anderson Drew Ferguson",
-      "party": null,
+      "party": "Republican",
       "state_district": "GA03"
     },
     {
@@ -1521,7 +1521,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Robert B. Aderholt",
-      "party": null,
+      "party": "Republican",
       "state_district": "AL04"
     },
     {
@@ -1541,7 +1541,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Nancy Pelosi",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA11"
     },
     {
@@ -1621,7 +1621,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "David Trone",
-      "party": null,
+      "party": "Democrat",
       "state_district": "MD06"
     },
     {
@@ -1761,7 +1761,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Richard Hudspeth",
-      "party": null,
+      "party": "Republican",
       "state_district": "NC11"
     },
     {
@@ -1841,7 +1841,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Joe Hathaway",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NJ11"
     },
     {
@@ -1901,7 +1901,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Beth Davidson",
-      "party": null,
+      "party": "Republican",
       "state_district": "NY17"
     },
     {
@@ -2101,7 +2101,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Gavin Solomon",
-      "party": null,
+      "party": "Republican",
       "state_district": "NY11"
     },
     {
@@ -2161,7 +2161,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Robert Christopher Stephens",
-      "party": null,
+      "party": "Democrat",
       "state_district": "GA12"
     },
     {
@@ -2201,7 +2201,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Bradley S. Schneider",
-      "party": null,
+      "party": "Democrat",
       "state_district": "IL10"
     },
     {
@@ -2221,7 +2221,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "April McClain Delaney",
-      "party": null,
+      "party": "Democrat",
       "state_district": "MD06"
     },
     {
@@ -2301,7 +2301,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Ferguson Porter",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA41"
     },
     {
@@ -2381,7 +2381,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Mark Robert Gordon",
-      "party": null,
+      "party": "Democrat",
       "state_district": "AZ01"
     },
     {
@@ -2401,7 +2401,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Brian Allen Montgomery",
-      "party": null,
+      "party": "Democrat",
       "state_district": "GA01"
     },
     {
@@ -2541,7 +2541,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Donald W. Norcross",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NJ01"
     },
     {
@@ -2601,7 +2601,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Gavin Solomon",
-      "party": null,
+      "party": "Republican",
       "state_district": "NY12"
     },
     {
@@ -2681,7 +2681,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jorge Rivas",
-      "party": null,
+      "party": "Democrat",
       "state_district": "AZ07"
     },
     {
@@ -2781,7 +2781,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Travis Edwards",
-      "party": null,
+      "party": "Democrat",
       "state_district": "TX05"
     },
     {
@@ -2881,7 +2881,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Michael James Mr Barkley",
-      "party": null,
+      "party": "Independent",
       "state_district": "CA05"
     },
     {
@@ -2901,7 +2901,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Greg Landsman",
-      "party": null,
+      "party": "Democrat",
       "state_district": "OH01"
     },
     {
@@ -3161,7 +3161,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Mike Kelly",
-      "party": null,
+      "party": "Republican",
       "state_district": "PA16"
     },
     {
@@ -3181,7 +3181,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jared Moskowitz",
-      "party": null,
+      "party": "Democrat",
       "state_district": "FL23"
     },
     {
@@ -3301,7 +3301,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Emily Randall",
-      "party": null,
+      "party": "Democrat",
       "state_district": "WA06"
     },
     {
@@ -3441,7 +3441,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Mike Simmons",
-      "party": null,
+      "party": "Republican",
       "state_district": "IL09"
     },
     {
@@ -3521,7 +3521,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Dan Brown",
-      "party": null,
+      "party": "Republican",
       "state_district": "SC01"
     },
     {
@@ -3541,7 +3541,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Randy Fine",
-      "party": null,
+      "party": "Republican",
       "state_district": "FL06"
     },
     {
@@ -3581,7 +3581,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Chuck Hubbard",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NC05"
     },
     {
@@ -3621,7 +3621,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Kimberly Hardy",
-      "party": null,
+      "party": "Republican",
       "state_district": "NC07"
     },
     {
@@ -3681,7 +3681,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "James Martin",
-      "party": null,
+      "party": "Republican",
       "state_district": "FL21"
     },
     {
@@ -3741,7 +3741,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Matt Cartwright",
-      "party": null,
+      "party": "Democrat",
       "state_district": "PA08"
     },
     {
@@ -3841,7 +3841,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Derek Kilmer",
-      "party": null,
+      "party": "Democrat",
       "state_district": "WA06"
     },
     {
@@ -3901,7 +3901,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Vicente Gonzalez",
-      "party": null,
+      "party": "Democrat",
       "state_district": "TX34"
     },
     {
@@ -3921,7 +3921,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Greg Steube",
-      "party": null,
+      "party": "Republican",
       "state_district": "FL17"
     },
     {
@@ -4041,7 +4041,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Lisa Vedernikova Khanna",
-      "party": null,
+      "party": "Democrat",
       "state_district": "VA01"
     },
     {
@@ -4321,7 +4321,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jason Pearce",
-      "party": null,
+      "party": "Republican",
       "state_district": "TX04"
     },
     {
@@ -4381,7 +4381,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Mary Peltola",
-      "party": null,
+      "party": "Democrat",
       "state_district": "AK00"
     },
     {
@@ -4481,7 +4481,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Debbie Dingell",
-      "party": null,
+      "party": "Democrat",
       "state_district": "MI06"
     },
     {
@@ -4501,7 +4501,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Suzzanna Tanner",
-      "party": null,
+      "party": "Democrat",
       "state_district": "WA03"
     },
     {
@@ -4541,7 +4541,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Zachary Ketchum",
-      "party": null,
+      "party": "Republican",
       "state_district": "MI03"
     },
     {
@@ -4661,7 +4661,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Thomas Gary Barnes",
-      "party": null,
+      "party": "Democrat",
       "state_district": "AL04"
     },
     {
@@ -4721,7 +4721,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Charlie McClintock",
-      "party": null,
+      "party": "Republican",
       "state_district": "IA02"
     },
     {
@@ -4801,7 +4801,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Shannon Leigh Taylor",
-      "party": null,
+      "party": "Republican",
       "state_district": "VA01"
     },
     {
@@ -4821,7 +4821,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Russell Tyler Cleveland",
-      "party": null,
+      "party": "Republican",
       "state_district": "MT01"
     },
     {
@@ -4921,7 +4921,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jimmy Rodriguez",
-      "party": null,
+      "party": "Democrat",
       "state_district": "AZ07"
     },
     {
@@ -5001,7 +5001,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jerry Lee Carl",
-      "party": null,
+      "party": "Republican",
       "state_district": "AL01"
     },
     {
@@ -5081,7 +5081,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Grace F. Napolitano",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA31"
     },
     {
@@ -5161,7 +5161,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Gavin Solomon",
-      "party": null,
+      "party": "Republican",
       "state_district": "CT01"
     },
     {
@@ -5181,7 +5181,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Justin Douglas",
-      "party": null,
+      "party": "Republican",
       "state_district": "PA10"
     },
     {
@@ -5261,7 +5261,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Sheri Biggs",
-      "party": null,
+      "party": "Republican",
       "state_district": "SC03"
     },
     {
@@ -5301,7 +5301,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Stuart Cooper",
-      "party": null,
+      "party": "Democrat",
       "state_district": "TN07"
     },
     {
@@ -5401,7 +5401,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Suzan K. DelBene",
-      "party": null,
+      "party": "Democrat",
       "state_district": "WA01"
     },
     {
@@ -5441,7 +5441,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Elissa Slotkin",
-      "party": null,
+      "party": "Democrat",
       "state_district": "MI07"
     },
     {
@@ -5521,7 +5521,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Byron Donalds",
-      "party": null,
+      "party": "Republican",
       "state_district": "FL19"
     },
     {
@@ -5621,7 +5621,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Ann Wagner",
-      "party": null,
+      "party": "Republican",
       "state_district": "MO02"
     },
     {
@@ -5641,7 +5641,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Rudy C. Yakym",
-      "party": null,
+      "party": "Republican",
       "state_district": "IN02"
     },
     {
@@ -5661,7 +5661,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jason Knight",
-      "party": null,
+      "party": "Republican",
       "state_district": "TN07"
     },
     {
@@ -5701,7 +5701,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "David J. Taylor",
-      "party": null,
+      "party": "Republican",
       "state_district": "OH02"
     },
     {
@@ -5801,7 +5801,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jeffrey Crank",
-      "party": null,
+      "party": "Republican",
       "state_district": "CO05"
     },
     {
@@ -5821,7 +5821,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Cherlynn Stevenson",
-      "party": null,
+      "party": "Democrat",
       "state_district": "KY06"
     },
     {
@@ -5861,7 +5861,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Dave Min",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA47"
     },
     {
@@ -5941,7 +5941,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Laurel Lee",
-      "party": null,
+      "party": "Republican",
       "state_district": "FL15"
     },
     {
@@ -5961,7 +5961,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Keith Alan Self",
-      "party": null,
+      "party": "Republican",
       "state_district": "TX03"
     },
     {
@@ -6021,7 +6021,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Doug Lamborn",
-      "party": null,
+      "party": "Republican",
       "state_district": "CO05"
     },
     {
@@ -6101,7 +6101,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Deanna Gordon",
-      "party": null,
+      "party": "Democrat",
       "state_district": "KY06"
     },
     {
@@ -6201,7 +6201,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Greg Howard",
-      "party": null,
+      "party": "Democrat",
       "state_district": "AL05"
     },
     {
@@ -6281,7 +6281,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Cyril Jefferson",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NC06"
     },
     {
@@ -6361,7 +6361,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Gerald E. Connolly",
-      "party": null,
+      "party": "Democrat",
       "state_district": "VA11"
     },
     {
@@ -6441,7 +6441,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Laura Friedman",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA30"
     },
     {
@@ -6461,7 +6461,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Patrick Ryan",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NY18"
     },
     {
@@ -6501,7 +6501,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Brad Sherman",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA32"
     },
     {
@@ -6581,7 +6581,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "David Clayton",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NC05"
     },
     {
@@ -6601,7 +6601,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Seth Moulton",
-      "party": null,
+      "party": "Democrat",
       "state_district": "MA06"
     },
     {
@@ -6641,7 +6641,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Carlos De La Cruz",
-      "party": null,
+      "party": "Republican",
       "state_district": "TX35"
     },
     {
@@ -6661,7 +6661,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Jasen D. Cartwright",
-      "party": null,
+      "party": "Democrat",
       "state_district": "MI09"
     },
     {
@@ -6741,7 +6741,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "David P. Joyce",
-      "party": null,
+      "party": "Republican",
       "state_district": "OH14"
     },
     {
@@ -6841,7 +6841,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Tony Wied",
-      "party": null,
+      "party": "Republican",
       "state_district": "WI08"
     },
     {
@@ -6961,7 +6961,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Nick B. Tran",
-      "party": null,
+      "party": "Democrat",
       "state_district": "TX02"
     },
     {
@@ -7001,7 +7001,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Zackary Blake Huffman",
-      "party": null,
+      "party": "Democrat",
       "state_district": "AR02"
     },
     {
@@ -7081,7 +7081,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Max Miller",
-      "party": null,
+      "party": "Republican",
       "state_district": "OH07"
     },
     {
@@ -7121,7 +7121,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Wiley Nickel",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NC13"
     },
     {
@@ -7141,7 +7141,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Amanda Edwards",
-      "party": null,
+      "party": "Democrat",
       "state_district": "TX18"
     },
     {
@@ -7161,7 +7161,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Kathy Manning",
-      "party": null,
+      "party": "Democrat",
       "state_district": "NC06"
     },
     {
@@ -7301,7 +7301,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Ronald R. Huffman",
-      "party": null,
+      "party": "Democrat",
       "state_district": "CA25"
     },
     {
@@ -7321,7 +7321,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "Roger Williams",
-      "party": null,
+      "party": "Republican",
       "state_district": "TX25"
     },
     {
@@ -7381,7 +7381,7 @@
       "period_start": "2025-01-01",
       "period_end": "2025-12-31",
       "full_name": "William Lawrence",
-      "party": null,
+      "party": "Democrat",
       "state_district": "MI07"
     },
     {

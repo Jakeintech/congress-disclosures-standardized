@@ -36,6 +36,9 @@ async function loadNetworkGraph() {
 }
 
 function setupEventListeners() {
+    // Aggregation mode
+    document.getElementById('aggregation-mode')?.addEventListener('change', applyFilters);
+
     // Filter controls
     document.getElementById('party-filter')?.addEventListener('change', applyFilters);
     document.getElementById('chamber-filter')?.addEventListener('change', applyFilters);
@@ -72,6 +75,114 @@ function setupEventListeners() {
     document.getElementById('reset-view')?.addEventListener('click', resetView);
     document.getElementById('toggle-labels')?.addEventListener('click', toggleLabels);
     document.getElementById('export-filtered')?.addEventListener('click', exportFiltered);
+    // Sidebar controls
+    document.getElementById('close-sidebar')?.addEventListener('click', closeSidebar);
+
+    // Advanced settings sliders
+    document.getElementById('link-distance')?.addEventListener('input', (e) => {
+        document.getElementById('link-distance-value').textContent = e.target.value;
+        debounce(applyFilters, 300)();
+    });
+    document.getElementById('charge-strength')?.addEventListener('input', (e) => {
+        document.getElementById('charge-strength-value').textContent = e.target.value;
+        debounce(applyFilters, 300)();
+    });
+    document.getElementById('collision-radius')?.addEventListener('input', (e) => {
+        document.getElementById('collision-radius-value').textContent = e.target.value;
+        debounce(applyFilters, 300)();
+    });
+    document.getElementById('clustering-force')?.addEventListener('input', (e) => {
+        document.getElementById('clustering-force-value').textContent = e.target.value;
+        debounce(applyFilters, 300)();
+    });
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('details-sidebar');
+    sidebar.classList.add('hidden');
+    // Deselect node visual
+    if (currentSvg) {
+        currentSvg.selectAll('circle').attr('stroke', d => {
+            if (d.group === 'party_agg') {
+                return d.id === 'Democrat' ? '#3b82f6' : '#ef4444';
+            }
+            return "#fff";
+        }).attr('stroke-width', d => d.group === 'party_agg' ? 3 : 1.5);
+    }
+    selectedNode = null;
+}
+
+function showSidebar(d) {
+    const sidebar = document.getElementById('details-sidebar');
+    const title = document.getElementById('sidebar-title');
+    const stats = document.getElementById('sidebar-stats');
+    const lists = document.getElementById('sidebar-lists');
+
+    sidebar.classList.remove('hidden');
+    title.textContent = d.id;
+
+    const formatMoney = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: "compact" }).format(val);
+
+    // 1. Stats
+    let statsHtml = '';
+    if (d.group === 'member') {
+        statsHtml += createStatItem('Party', d.party);
+        statsHtml += createStatItem('Chamber', d.chamber);
+        statsHtml += createStatItem('Total Volume', formatMoney(d.value));
+        statsHtml += createStatItem('Transactions', d.transaction_count);
+    } else if (d.group === 'asset') {
+        statsHtml += createStatItem('Type', 'Asset');
+        statsHtml += createStatItem('Unique Traders', d.degree);
+        statsHtml += createStatItem('Total Volume', formatMoney(d.value));
+        statsHtml += createStatItem('Transactions', d.transaction_count);
+    } else if (d.group === 'party_agg') {
+        statsHtml += createStatItem('Type', 'Party Group');
+        statsHtml += createStatItem('Total Volume', formatMoney(d.value));
+        statsHtml += createStatItem('Transactions', d.transaction_count);
+    }
+    stats.innerHTML = statsHtml;
+
+    // 2. Lists (Top Connections)
+    let listHtml = '';
+
+    // Find connected links
+    const connectedLinks = filteredData.links.filter(l => {
+        const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+        const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+        return sourceId === d.id || targetId === d.id;
+    });
+
+    // Sort by value
+    connectedLinks.sort((a, b) => b.value - a.value);
+
+    const topLinks = connectedLinks.slice(0, 10);
+
+    if (topLinks.length > 0) {
+        listHtml += `<h3>Top Connections</h3>`;
+        topLinks.forEach(l => {
+            const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+            const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+            const otherId = sourceId === d.id ? targetId : sourceId;
+
+            listHtml += `
+                <div class="list-item">
+                    <span class="list-item-name">${otherId}</span>
+                    <span class="list-item-value">${formatMoney(l.value)}</span>
+                </div>
+            `;
+        });
+    }
+
+    lists.innerHTML = listHtml;
+}
+
+function createStatItem(label, value) {
+    return `
+        <div class="stat-item">
+            <div class="stat-label">${label}</div>
+            <div class="stat-value">${value}</div>
+        </div>
+    `;
 }
 
 function applyFilters() {
@@ -245,6 +356,7 @@ function renderGraph(data) {
                 <!-- Instructions -->
                 <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.8); padding: 8px; border-radius: 4px; font-size: 0.75rem; color: #666;">
                     Click group nodes to expand/collapse.<br>
+                    Click any node for details.<br>
                     Drag nodes to rearrange.<br>
                     Scroll to zoom.
                 </div>
@@ -286,6 +398,7 @@ function renderD3(data) {
     svg.on("dblclick.zoom", null); // Disable default zoom double click
     svg.on("dblclick", () => {
         expandedGroups.clear();
+        closeSidebar();
         applyFilters();
     });
 
@@ -310,22 +423,28 @@ function renderD3(data) {
 
     const links = data.links.map(l => ({ ...l }));
 
+    // Get advanced settings values
+    const linkDistance = parseInt(document.getElementById('link-distance')?.value || 150);
+    const chargeStrength = parseInt(document.getElementById('charge-strength')?.value || -200);
+    const collisionRadius = parseInt(document.getElementById('collision-radius')?.value || 5);
+    const clusteringForce = parseFloat(document.getElementById('clustering-force')?.value || 0.05);
+
     // Simulation Setup
     const simulation = d3.forceSimulation(nodes)
         .force("link", d3.forceLink(links).id(d => d.id).distance(d => {
             // Aggregated links are stronger/shorter
-            if (d.is_aggregated) return 100;
-            return 150;
+            if (d.is_aggregated) return linkDistance * 0.67;
+            return linkDistance;
         }).strength(d => d.is_aggregated ? 0.8 : 0.3))
         .force("charge", d3.forceManyBody()
             .strength(d => {
-                if (d.group === 'party_agg') return -1000;
-                return -200;
+                if (d.group === 'party_agg') return chargeStrength * 5;
+                return chargeStrength;
             })
         )
         .force("center", d3.forceCenter(width / 2, height / 2))
         .force("collide", d3.forceCollide()
-            .radius(d => d.calculatedRadius + 5)
+            .radius(d => d.calculatedRadius + collisionRadius)
             .strength(0.8)
         )
         .force("x", d3.forceX(width / 2).strength(0.05))
@@ -351,8 +470,8 @@ function renderD3(data) {
                 // Pull members towards their party side
                 const target = partyCenters[d.party];
                 if (target) {
-                    d.vx -= (d.x - target.x) * alpha * 0.05;
-                    d.vy -= (d.y - target.y) * alpha * 0.05;
+                    d.vx -= (d.x - target.x) * alpha * clusteringForce;
+                    d.vy -= (d.y - target.y) * alpha * clusteringForce;
                 }
             }
         });
@@ -407,14 +526,23 @@ function renderD3(data) {
         .attr("stroke-dasharray", d => d.group === 'party_agg' ? "5,5" : "none")
         .style("cursor", "pointer")
         .on("click", (event, d) => {
+            event.stopPropagation(); // Prevent background click
+
             if (d.group === 'party_agg') {
                 // Expand group
                 expandedGroups.add(d.id);
                 applyFilters();
-            } else if (d.group === 'member') {
-                // Maybe highlight ego network?
+            } else {
+                // Show sidebar
                 selectedNode = d.id;
-                // Optional: trigger ego view
+                showSidebar(d);
+
+                // Highlight selected
+                node.selectAll('circle').attr('stroke', n => {
+                    if (n.id === d.id) return '#000';
+                    if (n.group === 'party_agg') return n.id === 'Democrat' ? '#3b82f6' : '#ef4444';
+                    return '#fff';
+                }).attr('stroke-width', n => n.id === d.id ? 3 : (n.group === 'party_agg' ? 3 : 1.5));
             }
         });
 
@@ -476,8 +604,17 @@ function renderD3(data) {
             .style("top", (event.pageY - 10) + "px");
     })
         .on("mouseout", () => {
-            node.style("opacity", 1);
-            link.style("opacity", d => d.is_aggregated ? 0.6 : 0.4);
+            // Only reset opacity if no node is selected, or reset to selected state
+            if (!selectedNode) {
+                node.style("opacity", 1);
+                link.style("opacity", d => d.is_aggregated ? 0.6 : 0.4);
+            } else {
+                // Keep selected node highlighted logic if we wanted, but for now just reset
+                // to keep it simple, or maybe we want to keep the selected node focus?
+                // Let's just reset for now, sidebar is the persistence.
+                node.style("opacity", 1);
+                link.style("opacity", d => d.is_aggregated ? 0.6 : 0.4);
+            }
             tooltip.style("display", "none");
         });
 
@@ -521,6 +658,7 @@ function drag(simulation) {
 function resetView() {
     selectedNode = null;
     expandedGroups.clear();
+    closeSidebar();
     document.getElementById('party-filter').value = 'all';
     document.getElementById('chamber-filter').value = 'all';
     document.getElementById('transaction-type-filter').value = 'all';

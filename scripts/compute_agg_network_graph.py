@@ -417,19 +417,28 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
     }
 
 def write_to_s3(data: dict, bucket_name: str):
-    """Write network graph JSON to S3 for website."""
+    """Write network graph JSON to S3 for website and locally for testing."""
     s3 = boto3.client('s3')
     key = 'website/data/network_graph.json'
+    json_data = json.dumps(data, indent=2)
     
+    # Write to S3
     logger.info(f"Uploading to s3://{bucket_name}/{key}...")
     s3.put_object(
         Bucket=bucket_name,
         Key=key,
-        Body=json.dumps(data, indent=2),
+        Body=json_data,
         ContentType='application/json',
         CacheControl='max-age=300'
     )
     logger.info("Upload complete")
+    
+    # Also write locally for testing
+    local_path = Path('website/data/network_graph.json')
+    local_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(local_path, 'w') as f:
+        f.write(json_data)
+    logger.info(f"Also written locally to {local_path}")
 
 def main():
     logger.info("=" * 80)

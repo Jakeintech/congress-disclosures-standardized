@@ -72,6 +72,36 @@ else
 fi
 echo ""
 
+# Step 5b: Recompute member trading stats
+echo -e "${YELLOW}Step 5b: Recompute member trading stats${NC}"
+if python3 scripts/compute_agg_member_trading_stats.py; then
+    echo -e "  ${GREEN}✅ agg_member_trading_stats computed${NC}"
+else
+    echo -e "  ${RED}❌ agg_member_trading_stats computation failed${NC}"
+    exit 1
+fi
+echo ""
+
+# Step 5c: Recompute trending stocks
+echo -e "${YELLOW}Step 5c: Recompute trending stocks${NC}"
+if python3 scripts/compute_agg_trending_stocks.py; then
+    echo -e "  ${GREEN}✅ agg_trending_stocks computed${NC}"
+else
+    echo -e "  ${RED}❌ agg_trending_stocks computation failed${NC}"
+    exit 1
+fi
+echo ""
+
+# Step 5d: Recompute network graph
+echo -e "${YELLOW}Step 5d: Recompute network graph${NC}"
+if python3 scripts/compute_agg_network_graph.py; then
+    echo -e "  ${GREEN}✅ agg_network_graph computed${NC}"
+else
+    echo -e "  ${RED}❌ agg_network_graph computation failed${NC}"
+    exit 1
+fi
+echo ""
+
 # Step 6: Regenerate website manifests
 echo -e "${YELLOW}Step 6: Regenerate website manifests${NC}"
 if python3 scripts/generate_document_quality_manifest.py; then
@@ -87,7 +117,10 @@ echo -e "${YELLOW}Step 7: Upload website files to S3${NC}"
 if aws s3 cp website/index.html s3://congress-disclosures-standardized/website/index.html --content-type text/html && \
    aws s3 cp website/app.js s3://congress-disclosures-standardized/website/app.js --content-type application/javascript && \
    aws s3 cp website/document_quality.js s3://congress-disclosures-standardized/website/document_quality.js --content-type application/javascript && \
-   aws s3 cp website/style.css s3://congress-disclosures-standardized/website/style.css --content-type text/css; then
+   aws s3 cp website/style.css s3://congress-disclosures-standardized/website/style.css --content-type text/css && \
+   aws s3 cp website/network.html s3://congress-disclosures-standardized/website/network.html --content-type text/html && \
+   aws s3 cp website/network.js s3://congress-disclosures-standardized/website/network.js --content-type application/javascript && \
+   aws s3 cp website/data/network_graph.json s3://congress-disclosures-standardized/website/data/network_graph.json --content-type application/json; then
     echo -e "  ${GREEN}✅ Website files uploaded${NC}"
 else
     echo -e "  ${RED}❌ Website upload failed${NC}"

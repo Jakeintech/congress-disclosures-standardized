@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Build Gold Layer: Fact Filings (Enhanced)
-Reads Silver layer structured JSONs, extracts metadata and schedule counts, and writes Parquet.
+Build Gold Layer: Fact Gifts & Travel
+Reads Silver layer structured JSONs (Schedule G/H), joins with dimensions, and writes Parquet.
 """
 
 import os
@@ -27,7 +27,8 @@ logger = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
 SILVER_DIR = DATA_DIR / "silver" / "house" / "financial" / "structured_code"
-GOLD_DIR = DATA_DIR / "gold" / "house" / "financial" / "facts" / "fact_filings"
+GOLD_DIR = DATA_DIR / "gold" / "house" / "financial" / "facts" / "fact_gifts_travel"
+DIM_MEMBERS_PATH = DATA_DIR / "gold" / "dimensions" / "dim_members"
 
 def get_date_key(date_str):
     """Convert YYYY-MM-DD to YYYYMMDD integer key."""
@@ -43,6 +44,11 @@ def get_date_key(date_str):
     except ValueError:
         return None
 
+def generate_gift_key(row):
+    """Generate unique key for gift/travel."""
+    raw = f"{row['doc_id']}_{row['source_name']}_{row['description']}_{row['value']}"
+    return hashlib.md5(raw.encode()).hexdigest()
+
 def process_year(year):
     """Process all filings for a specific year."""
     logger.info(f"Processing year {year}...")
@@ -55,7 +61,7 @@ def process_year(year):
     files = list(year_path.glob("**/*.json"))
     logger.info(f"Found {len(files)} files")
     
-    filings = []
+    items = []
     
     for json_file in files:
         try:
@@ -66,38 +72,50 @@ def process_year(year):
             filing_date = data.get('filing_date')
             member_id = data.get('bioguide_id', 'UNKNOWN')
             
-            # Count items in schedules
-            aggs = data.get('aggs', {})
-            
-            record = {
-                'doc_id': doc_id,
-                'year': year,
-                'member_key': member_id,
-                'filing_date_key': get_date_key(filing_date),
-                'filing_type': data.get('filing_type'),
-                'is_extension': data.get('extension_details', {}).get('is_extension_request', False),
-                'schedule_a_count': len(aggs.get('schedule_a', [])),
-                'schedule_b_count': len(aggs.get('schedule_b', [])),
-                'schedule_c_count': len(aggs.get('schedule_c', [])),
-                'schedule_d_count': len(aggs.get('schedule_d', [])),
-                'schedule_e_count': len(aggs.get('schedule_e', [])),
-                'schedule_f_count': len(aggs.get('schedule_f', [])),
-                'schedule_g_count': len(aggs.get('schedule_g', [])),
-                'schedule_h_count': len(aggs.get('schedule_h', [])),
-                'schedule_i_count': len(aggs.get('schedule_i', [])),
-                'confidence_score': data.get('confidence_score', 1.0)
-            }
-            
-            filings.append(record)
+            # Process Schedule G (Gifts)
+            if 'aggs' in data and 'schedule_g' in data['aggs']:
+                for item in data['aggs']['schedule_g']:
+                    record = {
+                        'doc_id': doc_id,
+                        'year': year,
+                        'member_key': member_id,
+                        'filing_date_key': get_date_key(filing_date),
+                        'source_name': item.get('source'),
+                        'description': item.get('description'), # Assuming 'description' field
+                        'value': float(item.get('value', 0) or 0),
+                        'received_date_key': get_date_key(item.get('date')),
+                        'type': 'Gift',
+                        'confidence_score': 1.0
+                    }
+                    record['gift_key'] = generate_gift_key(record)
+                    items.append(record)
+
+            # Process Schedule H (Travel)
+            if 'aggs' in data and 'schedule_h' in data['aggs']:
+                for item in data['aggs']['schedule_h']:
+                    record = {
+                        'doc_id': doc_id,
+                        'year': year,
+                        'member_key': member_id,
+                        'filing_date_key': get_date_key(filing_date),
+                        'source_name': item.get('source'),
+                        'description': item.get('itinerary'), # Assuming 'itinerary' as description
+                        'value': 0.0, # Travel usually doesn't have value in same way? Or maybe it does.
+                        'received_date_key': get_date_key(item.get('departure_date')),
+                        'type': 'Travel',
+                        'confidence_score': 1.0
+                    }
+                    record['gift_key'] = generate_gift_key(record)
+                    items.append(record)
                     
         except Exception as e:
             logger.error(f"Error processing {json_file}: {e}")
             
-    if not filings:
-        logger.warning("No filings found")
+    if not items:
+        logger.warning("No gifts/travel found")
         return
 
-    df = pd.DataFrame(filings)
+    df = pd.DataFrame(items)
     df['year'] = df['year'].astype(int)
     
     output_path = GOLD_DIR / f"year={year}"
@@ -106,7 +124,7 @@ def process_year(year):
     table = pa.Table.from_pandas(df)
     pq.write_table(table, output_path / "part-0000.parquet")
     
-    logger.info(f"Wrote {len(df)} filings to {output_path}")
+    logger.info(f"Wrote {len(df)} items to {output_path}")
 
 def main():
     import argparse

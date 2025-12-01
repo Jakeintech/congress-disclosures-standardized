@@ -36,8 +36,24 @@ async function loadNetworkGraph() {
 }
 
 function setupEventListeners() {
-    // Aggregation mode
-    document.getElementById('aggregation-mode')?.addEventListener('change', applyFilters);
+    // View mode buttons (now handles aggregation)
+    document.querySelectorAll('.view-mode-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Update active state
+            document.querySelectorAll('.view-mode-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            // Apply filters with new mode
+            applyFilters();
+        });
+    });
+
+    // Collapsible advanced settings
+    document.getElementById('advanced-settings-toggle')?.addEventListener('click', function () {
+        const content = document.getElementById('advanced-settings-content');
+        const chevron = this.querySelector('.chevron');
+        content.classList.toggle('collapsed');
+        chevron.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+    });
 
     // Filter controls
     document.getElementById('party-filter')?.addEventListener('change', applyFilters);
@@ -188,7 +204,10 @@ function createStatItem(label, value) {
 function applyFilters() {
     if (!originalData) return;
 
-    const aggregationMode = document.getElementById('aggregation-mode')?.value || 'party';
+    // Get aggregation mode from active view mode button
+    const activeBtn = document.querySelector('.view-mode-btn.active');
+    const aggregationMode = activeBtn?.dataset.mode || 'party';
+
     const partyFilter = document.getElementById('party-filter')?.value || 'all';
     const chamberFilter = document.getElementById('chamber-filter')?.value || 'all';
     const txTypeFilter = document.getElementById('transaction-type-filter')?.value || 'all';
@@ -282,15 +301,75 @@ function applyFilters() {
             }
         });
     } else if (aggregationMode === 'state') {
-        // State aggregation - show all members (simplified for now)
-        const memberNodes = nodes.filter(n => n.group === 'member');
-        visibleNodes.push(...memberNodes);
-        memberNodes.forEach(n => visibleNodeIds.add(n.id));
-    } else if (aggregationMode === 'asset_sector') {
-        // Asset sector aggregation - show all members (simplified for now)
-        const memberNodes = nodes.filter(n => n.group === 'member');
-        visibleNodes.push(...memberNodes);
-        memberNodes.forEach(n => visibleNodeIds.add(n.id));
+        // State aggregation - group members by state
+        const stateMap = {};
+        nodes.filter(n => n.group === 'member').forEach(member => {
+            const state = member.state || 'Unknown';
+            if (!stateMap[state]) {
+                stateMap[state] = [];
+            }
+            stateMap[state].push(member);
+        });
+
+        Object.entries(stateMap).forEach(([state, members]) => {
+            if (expandedGroups.has(state)) {
+                // Show individual members from this state
+                visibleNodes.push(...members);
+                members.forEach(m => visibleNodeIds.add(m.id));
+            } else {
+                // Create aggregated state node
+                const aggNode = {
+                    id: state,
+                    group: 'state_agg',
+                    value: members.reduce((sum, m) => sum + (m.value || 0), 0),
+                    transaction_count: members.reduce((sum, m) => sum + (m.transaction_count || 0), 0),
+                    state: state,
+                    member_count: members.length
+                };
+                visibleNodes.push(aggNode);
+                visibleNodeIds.add(aggNode.id);
+            }
+        });
+    } else if (aggregationMode === 'volume') {
+        // Volume aggregation - group by trading volume tiers
+        const volumeTiers = {
+            'High Volume (>$1M)': [],
+            'Medium Volume ($100K-$1M)': [],
+            'Low Volume (<$100K)': []
+        };
+
+        nodes.filter(n => n.group === 'member').forEach(member => {
+            const vol = member.value || 0;
+            if (vol > 1000000) {
+                volumeTiers['High Volume (>$1M)'].push(member);
+            } else if (vol > 100000) {
+                volumeTiers['Medium Volume ($100K-$1M)'].push(member);
+            } else {
+                volumeTiers['Low Volume (<$100K)'].push(member);
+            }
+        });
+
+        Object.entries(volumeTiers).forEach(([tier, members]) => {
+            if (members.length === 0) return;
+
+            if (expandedGroups.has(tier)) {
+                // Show individual members
+                visibleNodes.push(...members);
+                members.forEach(m => visibleNodeIds.add(m.id));
+            } else {
+                // Create aggregated volume tier node
+                const aggNode = {
+                    id: tier,
+                    group: 'volume_agg',
+                    value: members.reduce((sum, m) => sum + (m.value || 0), 0),
+                    transaction_count: members.reduce((sum, m) => sum + (m.transaction_count || 0), 0),
+                    tier: tier,
+                    member_count: members.length
+                };
+                visibleNodes.push(aggNode);
+                visibleNodeIds.add(aggNode.id);
+            }
+        });
     }
 
     // 3. Determine Visible Links
@@ -315,6 +394,62 @@ function applyFilters() {
                 if (visibleNodeIds.has(l.target)) {
                     visibleLinks.push(l);
                 }
+            });
+        });
+    } else if (aggregationMode === 'state' || aggregationMode === 'volume') {
+        // Generic aggregation for state or volume modes
+        const aggNodeIds = visibleNodes
+            .filter(n => n.group === 'state_agg' || n.group === 'volume_agg')
+            .map(n => n.id);
+
+        aggNodeIds.forEach(aggId => {
+            const aggNode = visibleNodes.find(n => n.id === aggId);
+            if (!aggNode || expandedGroups.has(aggId)) return;
+
+            // Find which members belong to this aggregate
+            let aggMembers = [];
+            if (aggregationMode === 'state') {
+                aggMembers = nodes.filter(n => n.group === 'member' && n.state === aggNode.state);
+            } else if (aggregationMode === 'volume') {
+                const tier = aggNode.tier;
+                aggMembers = nodes.filter(n => {
+                    if (n.group !== 'member') return false;
+                    const vol = n.value || 0;
+                    if (tier.includes('High') && vol > 1000000) return true;
+                    if (tier.includes('Medium') && vol > 100000 && vol <= 1000000) return true;
+                    if (tier.includes('Low') && vol <= 100000) return true;
+                    return false;
+                });
+            }
+
+            const aggMemberIds = new Set(aggMembers.map(m => m.id));
+
+            // Aggregate links from these members
+            const assetConnections = {};
+            links.forEach(l => {
+                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+
+                if (aggMemberIds.has(sourceId) && visibleNodeIds.has(targetId)) {
+                    if (!assetConnections[targetId]) {
+                        assetConnections[targetId] = { value: 0, count: 0, types: new Set() };
+                    }
+                    assetConnections[targetId].value += l.value || 0;
+                    assetConnections[targetId].count += l.count || 1;
+                    assetConnections[targetId].types.add(l.type);
+                }
+            });
+
+            // Add aggregated links
+            Object.entries(assetConnections).forEach(([assetId, data]) => {
+                visibleLinks.push({
+                    source: aggId,
+                    target: assetId,
+                    value: data.value,
+                    count: data.count,
+                    type: data.types.size > 1 ? 'mixed' : Array.from(data.types)[0],
+                    is_aggregated: true
+                });
             });
         });
     } else if (aggregationMode === 'chamber') {
@@ -586,7 +721,15 @@ function renderD3(data) {
                 return d.id === 'Democrat' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)';
             }
             if (d.group === 'chamber_agg') {
-                return d.id === 'House' ? 'rgba(34, 197,94, 0.2)' : 'rgba(168, 85, 247, 0.2)';
+                return d.id === 'House' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(168, 85, 247, 0.2)';
+            }
+            if (d.group === 'state_agg') {
+                return 'rgba(251, 146, 60, 0.2)'; // Orange for states
+            }
+            if (d.group === 'volume_agg') {
+                if (d.id.includes('High')) return 'rgba(220, 38, 38, 0.2)'; // Red for high volume
+                if (d.id.includes('Medium')) return 'rgba(251, 191, 36, 0.2)'; // Amber for medium
+                return 'rgba(34, 197, 94, 0.2)'; // Green for low volume
             }
             if (d.group === 'asset') return '#10b981';
             if (d.party === 'Republican') return '#ef4444';
@@ -600,16 +743,24 @@ function renderD3(data) {
             if (d.group === 'chamber_agg') {
                 return d.id === 'House' ? '#22c55e' : '#a855f7';
             }
+            if (d.group === 'state_agg') {
+                return '#fb923c'; // Orange
+            }
+            if (d.group === 'volume_agg') {
+                if (d.id.includes('High')) return '#dc2626'; // Red
+                if (d.id.includes('Medium')) return '#fbbf24'; // Amber
+                return '#22c55e'; // Green
+            }
             return "#fff";
         })
-        .attr("stroke-width", d => (d.group === 'party_agg' || d.group === 'chamber_agg') ? 3 : 1.5)
-        .attr("stroke-dasharray", d => (d.group === 'party_agg' || d.group === 'chamber_agg') ? "5,5" : "none")
+        .attr("stroke-width", d => (d.group.includes('_agg')) ? 3 : 1.5)
+        .attr("stroke-dasharray", d => (d.group.includes('_agg')) ? "5,5" : "none")
         .style("cursor", "pointer")
         .on("click", (event, d) => {
             event.stopPropagation(); // Prevent background click
 
-            if (d.group === 'party_agg') {
-                // Expand group
+            if (d.group.includes('_agg')) {
+                // Expand any aggregate group
                 expandedGroups.add(d.id);
                 applyFilters();
             } else {
@@ -621,8 +772,15 @@ function renderD3(data) {
                 node.selectAll('circle').attr('stroke', n => {
                     if (n.id === d.id) return '#000';
                     if (n.group === 'party_agg') return n.id === 'Democrat' ? '#3b82f6' : '#ef4444';
+                    if (n.group === 'chamber_agg') return n.id === 'House' ? '#22c55e' : '#a855f7';
+                    if (n.group === 'state_agg') return '#fb923c';
+                    if (n.group === 'volume_agg') {
+                        if (n.id.includes('High')) return '#dc2626';
+                        if (n.id.includes('Medium')) return '#fbbf24';
+                        return '#22c55e';
+                    }
                     return '#fff';
-                }).attr('stroke-width', n => n.id === d.id ? 3 : (n.group === 'party_agg' ? 3 : 1.5));
+                }).attr('stroke-width', n => n.id === d.id ? 3 : (n.group.includes('_agg') ? 3 : 1.5));
             }
         });
 

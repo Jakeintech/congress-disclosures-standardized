@@ -24,47 +24,39 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def load_fact_filing_type_p_transactions(bucket_name: str) -> pd.DataFrame:
-    """Load Filing Type P transactions from gold layer."""
-    s3 = boto3.client('s3')
-    logger.info("Loading Filing Type P transactions...")
-
-    # For now, we'll create sample data since Filing Type P transactions aren't populated yet
-    # In production, this would load from gold/fact_filing_type_p_transactions/
-    logger.warning("Filing Type P transactions not yet populated - generating sample data")
-
-    # Create sample trading data
-    import numpy as np
-    np.random.seed(42)
-
-    # Load members to get realistic member_keys
-    from build_fact_filings import load_dim_members
-    members_df = load_dim_members(bucket_name)
-
-    if members_df.empty:
-        logger.warning("No members found. Returning empty DataFrame.")
-        return pd.DataFrame(columns=['member_key', 'transaction_type', 'amount_low', 'amount_high', 'transaction_date', 'amount_midpoint'])
-
-    # Generate sample transactions for active traders
-    sample_size = 500
-    member_keys = np.random.choice(members_df['member_key'].values, sample_size)
-
-    transactions = []
-    for member_key in member_keys:
-        tx = {
-            'member_key': int(member_key),
-            'transaction_type': np.random.choice(['Purchase', 'Sale'], p=[0.55, 0.45]),
-            'amount_low': np.random.choice([1000, 15000, 50000, 100000, 250000]),
-            'amount_high': np.random.choice([15000, 50000, 100000, 250000, 500000, 1000000]),
-            'transaction_date': pd.Timestamp('2025-01-01') + pd.Timedelta(days=np.random.randint(0, 300))
-        }
-        transactions.append(tx)
-
-    df = pd.DataFrame(transactions)
-    df['amount_midpoint'] = (df['amount_low'] + df['amount_high']) / 2
-    logger.info(f"Generated {len(df)} sample transactions")
-
+def load_transactions(bucket_name: str) -> pd.DataFrame:
+    """Load transactions from gold layer (fact_ptr_transactions)."""
+    logger.info("Loading transactions from gold layer...")
+    
+    # Path to Gold Fact Table
+    fact_path = Path('data/gold/house/financial/facts/fact_ptr_transactions')
+    
+    if not fact_path.exists():
+        logger.warning(f"Fact table not found at {fact_path}")
+        return pd.DataFrame()
+        
+    # Read all parquet files
+    files = list(fact_path.glob("**/*.parquet"))
+    if not files:
+        logger.warning("No transaction files found.")
+        return pd.DataFrame()
+        
+    df = pd.concat([pd.read_parquet(f) for f in files])
+    logger.info(f"Loaded {len(df)} transactions")
     return df
+
+def load_dim_members(bucket_name: str) -> pd.DataFrame:
+    """Load dim_members from gold layer."""
+    dim_path = Path('data/gold/dimensions/dim_members')
+    if not dim_path.exists():
+        logger.warning(f"Dim members not found at {dim_path}")
+        return pd.DataFrame()
+        
+    files = list(dim_path.glob("*.parquet"))
+    if not files:
+        return pd.DataFrame()
+        
+    return pd.concat([pd.read_parquet(f) for f in files])
 
 
 def compute_member_trading_stats(transactions_df: pd.DataFrame, members_df: pd.DataFrame) -> pd.DataFrame:
@@ -82,6 +74,18 @@ def compute_member_trading_stats(transactions_df: pd.DataFrame, members_df: pd.D
             'first_transaction_date', 'last_transaction_date', 'period_start', 'period_end',
             'full_name', 'party', 'state_district'
         ])
+
+    # Ensure amount_midpoint exists
+    if 'amount_midpoint' not in transactions_df.columns:
+        transactions_df['amount_midpoint'] = (
+            transactions_df.get('amount_low', 0) + transactions_df.get('amount_high', 0)
+        ) / 2
+        
+    # Ensure transaction_date exists (convert from key)
+    if 'transaction_date' not in transactions_df.columns and 'transaction_date_key' in transactions_df.columns:
+        transactions_df['transaction_date'] = pd.to_datetime(
+            transactions_df['transaction_date_key'].astype(str), format='%Y%m%d', errors='coerce'
+        )
 
     for member_key, member_txs in transactions_df.groupby('member_key'):
         total_trades = len(member_txs)
@@ -125,12 +129,18 @@ def compute_member_trading_stats(transactions_df: pd.DataFrame, members_df: pd.D
 
     stats_df = pd.DataFrame(stats)
 
-    # Merge with member names
-    stats_df = stats_df.merge(
-        members_df[['member_key', 'full_name', 'party', 'state_district']],
-        on='member_key',
-        how='left'
-    )
+    # Merge with member names (use columns that actually exist)
+    available_cols = ['member_key']
+    for col in ['full_name', 'first_name', 'last_name', 'party', 'state', 'district', 'state_district']:
+        if col in members_df.columns:
+            available_cols.append(col)
+    
+    if len(available_cols) > 1:
+        stats_df = stats_df.merge(
+            members_df[available_cols],
+            on='member_key',
+            how='left'
+        )
 
     # Sort by total volume descending
     stats_df = stats_df.sort_values('total_volume', ascending=False)
@@ -181,9 +191,7 @@ def main():
 
     # Load data
     # Load data
-    transactions_df = load_fact_filing_type_p_transactions(bucket_name)
-
-    from build_fact_filings import load_dim_members
+    transactions_df = load_transactions(bucket_name)
     members_df = load_dim_members(bucket_name)
 
     # Compute statistics

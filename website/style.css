@@ -1449,6 +1449,7 @@ body {
         width: 100%;
     }
 }
+
 /* ========================================
    Network Graph Sidebar Styles
    ======================================== */
@@ -1460,7 +1461,7 @@ body {
     width: 350px;
     height: 100vh;
     background: white;
-    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     transform: translateX(0);
     transition: transform 0.3s ease-in-out;
@@ -1557,9 +1558,54 @@ body {
     color: hsl(var(--muted-foreground));
 }
 
-.list-item-value {
-    font-weight: 500;
+.li.stats-section span {
+    font-weight: 600;
     color: hsl(var(--foreground));
+}
+
+/* View Mode Grid Layout */
+.view-mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.view-mode-grid .view-mode-btn {
+    width: 100%;
+}
+
+/* Collapsible Advanced Settings */
+.collapsible-header {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    transition: color 0.2s;
+}
+
+.collapsible-header:hover {
+    color: hsl(var(--primary));
+}
+
+.collapsible-header .chevron {
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+}
+
+.collapsible-content {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+    opacity: 1;
+    margin-top: 0.5rem;
+}
+
+.collapsible-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
 }
 
 /* Enhanced Graph Container */

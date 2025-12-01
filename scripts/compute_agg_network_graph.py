@@ -89,46 +89,32 @@ def load_dim_members(bucket_name: str) -> pd.DataFrame:
     return result
 
 def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.DataFrame):
-    """Generate network graph nodes and edges from transactions."""
+    """Generate network graph nodes and edges with comprehensive SNA metrics."""
     if transactions_df.empty:
-        return {'nodes': [], 'links': []}
+        return {'nodes': [], 'links': [], 'metadata': {}, 'summary_stats': {}}
 
     logger.info("Generating network graph data...")
 
-    # Create Party Lookup
-    party_map = {}
+    # Create member lookup maps
+    member_data = {}
     if not members_df.empty:
-        # Normalize names for better matching
         members_df['lookup_name'] = members_df['full_name'].str.lower().str.strip()
-        party_map = dict(zip(members_df['lookup_name'], members_df['party']))
-
-    # Hardcoded fallback for prominent members (since API key is missing)
-    fallback_parties = {
-        'nancy pelosi': 'Democrat',
-        'marjorie taylor greene': 'Republican',
-        'ro khanna': 'Democrat',
-        'michael mccaul': 'Republican',
-        'dan crenshaw': 'Republican',
-        'josh gottheimer': 'Democrat',
-        'virginia foxx': 'Republican',
-        'kevin hern': 'Republican',
-        'tommy tuberville': 'Republican',
-        'mark green': 'Republican',
-        'pete sessions': 'Republican',
-        'susie lee': 'Democrat',
-        'katherine clark': 'Democrat'
-    }
-    
-    # Merge fallback into party_map if value is None/Unknown
-    for name, party in fallback_parties.items():
-        if name not in party_map or not party_map[name]:
-            party_map[name] = party
+        for _, row in members_df.iterrows():
+            member_data[row['lookup_name']] = {
+                'party': row.get('party'),
+                'state': row.get('state'),
+                'chamber': row.get('chamber'),
+                'bioguide_id': row.get('bioguide_id'),
+                'district': row.get('district')
+            }
 
     # Filter out invalid rows (must have ticker OR asset_name)
     df = transactions_df.copy()
     
     # Create a target column: use ticker if available, else try to extract from asset_name
     import re
+    import math
+    from datetime import datetime
     
     def get_target(row):
         # 1. Try explicit ticker
@@ -141,7 +127,6 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
             return None
             
         # 2. Try to extract ticker from parenthesis e.g. "Apple Inc (AAPL)"
-        # Look for 1-5 uppercase letters in parens
         match = re.search(r'\(([A-Z]{1,5})\)', asset)
         if match:
             return match.group(1)
@@ -150,8 +135,6 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
         return asset[:20] + '...' if len(asset) > 20 else asset
 
     df['target_node'] = df.apply(get_target, axis=1)
-    
-    # Filter where we have a target
     df = df[df['target_node'].notna()]
     
     # Calculate estimated amount
@@ -161,26 +144,32 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
             high = float(row.get('amount_high', 0) or 0)
             if high > 0:
                 return (low + high) / 2
-            return low or 1000 # Default fallback
+            return low or 1000
         except:
             return 1000
 
     df['estimated_amount'] = df.apply(estimate_amount, axis=1)
-    
-    # Create Full Name
     df['member_name'] = df['first_name'] + ' ' + df['last_name']
 
-    # Aggregate Edges: Member -> Target Node
-    # We sum the volume (estimated amount) and count transactions
+    # Get date range
+    dates = pd.to_datetime(df['transaction_date'], errors='coerce')
+    date_range = {
+        'start': str(dates.min()) if not dates.isna().all() else None,
+        'end': str(dates.max()) if not dates.isna().all() else None
+    }
+
+    # Aggregate edges
     edges_df = df.groupby(['member_name', 'target_node', 'transaction_type']).agg({
         'estimated_amount': 'sum',
-        'transaction_date': 'count' # Use date to count rows
+        'transaction_date': 'count'
     }).rename(columns={'transaction_date': 'count'}).reset_index()
 
     nodes = {}
     links = []
+    member_transaction_counts = {}
+    member_assets = {}  # Track which assets each member trades
 
-    # Process Edges
+    # Process edges and build nodes
     for _, row in edges_df.iterrows():
         source = row['member_name']
         target = row['target_node']
@@ -188,20 +177,47 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
         count = row['count']
         tx_type = row['transaction_type']
 
-        # Add Nodes
-        if source not in nodes:
-            # Lookup Party
-            party = party_map.get(source.lower().strip(), 'Unknown')
-            nodes[source] = {'id': source, 'group': 'member', 'value': 0, 'party': party}
+        # Track transaction counts per member
+        member_transaction_counts[source] = member_transaction_counts.get(source, 0) + count
         
-        if target not in nodes:
-            nodes[target] = {'id': target, 'group': 'asset', 'value': 0}
+        # Track member-asset relationships for community detection
+        if source not in member_assets:
+            member_assets[source] = {}
+        member_assets[source][target] = member_assets[source].get(target, 0) + value
 
-        # Update Node Weights
+        # Add/update member node
+        if source not in nodes:
+            lookup_key = source.lower().strip()
+            member_info = member_data.get(lookup_key, {})
+            
+            nodes[source] = {
+                'id': source,
+                'group': 'member',
+                'value': 0,
+                'transaction_count': 0,
+                'party': member_info.get('party', 'Unknown'),
+                'state': member_info.get('state'),
+                'chamber': member_info.get('chamber', 'House'),
+                'bioguide_id': member_info.get('bioguide_id'),
+                'district': member_info.get('district')
+            }
+        
+        # Add/update asset node
+        if target not in nodes:
+            nodes[target] = {
+                'id': target,
+                'group': 'asset',
+                'value': 0,
+                'transaction_count': 0
+            }
+
+        # Update node weights and transaction counts
         nodes[source]['value'] += value
         nodes[target]['value'] += value
+        nodes[source]['transaction_count'] += count
+        nodes[target]['transaction_count'] += count
 
-        # Add Link
+        # Add link
         links.append({
             'source': source,
             'target': target,
@@ -209,18 +225,134 @@ def generate_network_graph_data(transactions_df: pd.DataFrame, members_df: pd.Da
             'count': int(count),
             'type': tx_type
         })
+    
+    # Assign community IDs to members based on their primary asset focus
+    # This enables visual clustering of members who trade similar assets
+    for member_name, assets in member_assets.items():
+        if member_name in nodes:
+            # Find the asset they trade most (by volume)
+            primary_asset = max(assets.items(), key=lambda x: x[1])[0] if assets else None
+            nodes[member_name]['primary_asset'] = primary_asset
+            
+            # Create clusters based on party + chamber for simpler community structure
+            party = nodes[member_name].get('party', 'Unknown')
+            chamber = nodes[member_name].get('chamber', 'House')
+            community_id = f"{party}_{chamber}"
+            nodes[member_name]['community_id'] = community_id
 
-    # Convert nodes dict to list
+    # Calculate degree centrality (number of unique connections)
+    degree = {}
+    for link in links:
+        degree[link['source']] = degree.get(link['source'], 0) + 1
+        degree[link['target']] = degree.get(link['target'], 0) + 1
+
+    # Calculate total network metrics for normalization
+    total_volume = sum(n['value'] for n in nodes.values())
+    total_transactions = sum(n['transaction_count'] for n in nodes.values())
+    max_degree = max(degree.values()) if degree else 1
+
+    # Convert nodes dict to list and calculate sophisticated importance scores
     node_list = []
-    for n in nodes.values():
-        # Scale radius based on log of value
-        import math
-        radius = math.log(n['value'] + 1000) / 2
-        n['radius'] = max(3, min(20, radius)) # Clamp radius
+    for node_id, n in nodes.items():
+        # Add degree centrality
+        n['degree'] = degree.get(node_id, 0)
+        
+        # Calculate normalized metrics (0-1 scale)
+        degree_norm = n['degree'] / max_degree if max_degree > 0 else 0
+        volume_norm = n['value'] / total_volume if total_volume > 0 else 0
+        tx_count_norm = n['transaction_count'] / total_transactions if total_transactions > 0 else 0
+        
+        # Calculate composite importance score with weighted factors
+        if n['group'] == 'asset':
+            # For assets, emphasize:
+            # - How many unique members trade it (degree centrality) - 35%
+            # - Total volume traded (node strength) - 35%
+            # - Transaction frequency - 20%
+            # - Network concentration (share of total activity) - 10%
+            importance_score = (
+                (degree_norm * 0.35) +           # Popularity (unique traders)
+                (volume_norm * 0.35) +           # Financial significance (total volume)
+                (tx_count_norm * 0.20) +         # Activity level (frequency)
+                (volume_norm * 0.10)             # Concentration (duplicate for emphasis)
+            )
+        else:  # member node
+            # For members, emphasize:
+            # - Transaction volume - 40%
+            # - Number of unique assets - 30%
+            # - Transaction frequency - 30%
+            importance_score = (
+                (volume_norm * 0.40) +           # Portfolio value
+                (degree_norm * 0.30) +           # Portfolio diversity
+                (tx_count_norm * 0.30)           # Trading activity
+            )
+        
+        n['importance_score'] = importance_score
+        
+        # Calculate radius using importance score with log scaling for readability
+        # Base radius of 5, scaled by log of importance with multiplier
+        if importance_score > 0:
+            # Use log scale to prevent extreme size differences
+            radius = 5 + (math.log(importance_score * 1000 + 1) * 2.5)
+        else:
+            radius = 3
+        
+        n['radius'] = max(3, min(25, radius))  # Clamp between 3-25
+        
         node_list.append(n)
 
+    # Calculate summary stats
+    member_nodes = [n for n in node_list if n['group'] == 'member']
+    asset_nodes = [n for n in node_list if n['group'] == 'asset']
+    
+    # Find top assets by importance
+    top_assets = sorted(asset_nodes, key=lambda x: x['importance_score'], reverse=True)[:10]
+    
+    party_counts = {}
+    for n in member_nodes:
+        party = n.get('party', 'Unknown')
+        party_counts[party] = party_counts.get(party, 0) + 1
+    
+    summary_stats = {
+        'total_nodes': len(node_list),
+        'total_member_nodes': len(member_nodes),
+        'total_asset_nodes': len(asset_nodes),
+        'total_links': len(links),
+        'total_transactions': int(df.shape[0]),
+        'total_volume': float(df['estimated_amount'].sum()),
+        'party_distribution': party_counts,
+        'date_range': date_range,
+        'top_assets': [
+            {
+                'name': a['id'],
+                'importance': round(a['importance_score'], 4),
+                'unique_traders': a['degree'],
+                'volume': a['value'],
+                'transactions': a['transaction_count']
+            }
+            for a in top_assets
+        ]
+    }
+    
+    metadata = {
+        'generated_at': datetime.utcnow().isoformat(),
+        'total_nodes': len(node_list),
+        'total_links': len(links),
+        'total_transactions': int(df.shape[0]),
+        'date_range': date_range,
+        'data_quality': {
+            'party_coverage': sum(1 for n in member_nodes if n.get('party') not in [None, 'Unknown', '']) / max(1, len(member_nodes))
+        }
+    }
+
     logger.info(f"Generated {len(node_list)} nodes and {len(links)} links")
-    return {'nodes': node_list, 'links': links}
+    logger.info(f"Party coverage: {metadata['data_quality']['party_coverage']*100:.1f}%")
+    
+    return {
+        'metadata': metadata,
+        'nodes': node_list,
+        'links': links,
+        'summary_stats': summary_stats
+    }
 
 def write_to_s3(data: dict, bucket_name: str):
     """Write network graph JSON to S3 for website."""

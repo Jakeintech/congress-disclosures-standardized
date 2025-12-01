@@ -787,7 +787,7 @@ body {
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .chart-column {
         min-height: 300px;
     }
@@ -1005,13 +1005,15 @@ body {
         flex-shrink: 0;
     }
 }
+
 /* ========================================
    Split View Layout (Silver Layer Redesign)
    ======================================== */
 
 .split-view-container {
     display: flex;
-    height: calc(100vh - 200px); /* Adjust based on header/tabs */
+    height: calc(100vh - 200px);
+    /* Adjust based on header/tabs */
     min-height: 600px;
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
@@ -1072,7 +1074,7 @@ body {
 .doc-item:hover {
     border-color: hsl(var(--primary));
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .doc-item.active {
@@ -1147,7 +1149,8 @@ body {
     z-index: 10;
 }
 
-.resizer:hover, .resizer.active {
+.resizer:hover,
+.resizer.active {
     background: hsl(var(--primary) / 0.5);
 }
 
@@ -1228,9 +1231,17 @@ body {
     background: hsl(var(--muted) / 0.3);
 }
 
-.trans-type-purchase { color: hsl(142, 76%, 36%); }
-.trans-type-sale { color: hsl(0, 84%, 60%); }
-.trans-type-exchange { color: hsl(217, 91%, 60%); }
+.trans-type-purchase {
+    color: hsl(142, 76%, 36%);
+}
+
+.trans-type-sale {
+    color: hsl(0, 84%, 60%);
+}
+
+.trans-type-exchange {
+    color: hsl(217, 91%, 60%);
+}
 
 /* Empty State */
 .empty-state {
@@ -1248,4 +1259,193 @@ body {
     font-size: 3rem;
     margin-bottom: 1rem;
     opacity: 0.5;
+}
+
+/* ========================================
+   Network Graph Controls Panel
+   ======================================== */
+
+.controls-panel {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.control-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.control-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.control-section h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 0.75rem;
+}
+
+/* View Mode Buttons */
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.view-mode-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.view-mode-btn:hover {
+    background: hsl(var(--muted));
+}
+
+.view-mode-btn.active {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+}
+
+/* Filter Rows */
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.filter-row label {
+    min-width: 140px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+}
+
+.filter-row select,
+.filter-row input[type="search"] {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background: hsl(var(--background));
+}
+
+.filter-row select:focus,
+.filter-row input[type="search"]:focus {
+    outline: none;
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 2px hsla(var(--ring), 0.2);
+}
+
+.filter-row input[type="range"] {
+    flex: 1;
+}
+
+.filter-row #volume-display {
+    min-width: 80px;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+}
+
+.search-row {
+    margin-bottom: 0;
+}
+
+/* Graph Controls */
+.graph-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.graph-controls button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.graph-controls button:hover {
+    background: hsl(var(--muted));
+}
+
+.graph-controls button:active {
+    transform: translateY(1px);
+}
+
+/* Stats Display */
+.stats-section #graph-stats p {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.stats-section #graph-stats strong {
+    color: hsl(var(--muted-foreground));
+    font-weight: 600;
+}
+
+.stats-section #graph-stats span {
+    color: hsl(var(--foreground));
+    font-weight: 700;
+}
+
+/* Network Graph Container */
+#network-graph-container {
+    min-height: 700px;
+}
+
+/* Responsive Controls Panel */
+@media (max-width: 768px) {
+    .controls-panel {
+        padding: 1rem;
+    }
+
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-row label {
+        min-width: auto;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .view-mode-btn {
+        width: 100%;
+    }
+
+    .graph-controls {
+        flex-direction: column;
+    }
+
+    .graph-controls button {
+        width: 100%;
+    }
 }

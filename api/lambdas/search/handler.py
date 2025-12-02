@@ -27,7 +27,7 @@ def handler(event, context):
         if not search_query or len(search_query) < 2:
             return error_response("Search query must be at least 2 characters", 400)
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Search members (by name)
         search_pattern = f"%{search_query}%"

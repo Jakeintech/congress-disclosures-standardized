@@ -53,7 +53,7 @@ def handler(event, context):
         if 'transaction_type' in query_params:
             filters['transaction_type'] = query_params['transaction_type']
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Count total
         total_count = qb.count_records(

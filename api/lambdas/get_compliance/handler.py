@@ -1,3 +1,5 @@
+S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
+
 """Lambda handler: GET /v1/analytics/compliance - Compliance metrics."""
 import os
 import logging
@@ -9,7 +11,7 @@ logger.setLevel(logging.INFO)
 def handler(event, context):
     """GET /v1/analytics/compliance - Filing compliance statistics."""
     try:
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Try to load compliance metrics if available
         try:

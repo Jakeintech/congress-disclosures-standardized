@@ -41,7 +41,7 @@ def handler(event, context):
             return success_response(cached)
         
         # Initialize query builder
-        qb = ParquetQueryBuilder(s3_bucket=None)  # Use local filesystem 
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)  # Use local filesystem 
         
         # Get member count
         try:

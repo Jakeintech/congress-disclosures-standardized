@@ -1,3 +1,5 @@
+S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
+
 """Lambda handler: GET /v1/stocks/{ticker}/activity - Stock trading activity timeline."""
 import os
 import logging
@@ -22,7 +24,7 @@ def handler(event, context):
         if 'end_date' in query_params:
             filters.setdefault('transaction_date', {})['lte'] = query_params['end_date']
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         total = qb.count_records('gold/house/financial/facts/fact_ptr_transactions', filters)
         trades_df = qb.query_parquet('gold/house/financial/facts/fact_ptr_transactions', filters=filters, order_by='transaction_date DESC', limit=limit, offset=offset)
         

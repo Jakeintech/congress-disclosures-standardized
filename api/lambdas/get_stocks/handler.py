@@ -26,7 +26,7 @@ def handler(event, context):
         query_params = event.get('queryStringParameters') or {}
         limit, offset = parse_pagination_params(query_params)
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Aggregate stocks from transactions
         stocks_df = qb.aggregate_parquet(

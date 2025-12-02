@@ -7,25 +7,19 @@
 # - pandas, numpy, pyarrow, duckdb, and other data processing libraries
 # See: https://aws-sdk-pandas.readthedocs.io/en/stable/layers.html
 
-# resource "aws_lambda_layer_version" "api_shared_libs" {
-#   layer_name          = "${local.name_prefix}-api-shared-libs"
-#   description         = "Shared libraries for Congressional Trading API (DuckDB, pandas, PyArrow, api.lib)"
-#   s3_bucket           = aws_s3_bucket.data_lake.id
-#   s3_key              = "lambda-deployments/layers/api_shared_layer.zip"
-#   compatible_runtimes = ["python3.11"]
-#
-#   lifecycle {
-#     ignore_changes = [source_code_hash]
-#   }
-#
-#   tags = merge(
-#     local.standard_tags,
-#     {
-#       Name      = "${local.name_prefix}-api-shared-libs"
-#       Component = "lambda-layer"
-#     }
-#   )
-# }
+# Custom DuckDB Lambda Layer
+# AWS SDK Pandas layer does NOT include duckdb, so we need a custom layer
+resource "aws_lambda_layer_version" "api_duckdb_layer" {
+  layer_name          = "${local.name_prefix}-api-duckdb"
+  description         = "DuckDB for API Lambdas"
+  s3_bucket           = aws_s3_bucket.data_lake.id
+  s3_key              = "lambda-deployments/layers/api_duckdb_layer.zip"
+  compatible_runtimes = ["python3.11"]
+
+  lifecycle {
+    ignore_changes = [source_code_hash]
+  }
+}
 
 # ============================================================================
 # API Lambda Functions
@@ -38,7 +32,8 @@ locals {
     timeout     = 29 # API Gateway max for synchronous invocation
     memory_size = 512
     layers = [
-      "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24" # AWS Data Wrangler (includes pandas, numpy, pyarrow, duckdb)
+      "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24", # AWS Data Wrangler (pandas, numpy, pyarrow)
+      aws_lambda_layer_version.api_duckdb_layer.arn # Custom DuckDB layer
     ]
     environment_variables = {
       S3_BUCKET_NAME = aws_s3_bucket.data_lake.id

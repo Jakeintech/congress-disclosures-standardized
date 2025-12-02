@@ -1,3 +1,5 @@
+S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
+
 """Lambda handler: GET /v1/analytics/sector-activity - Sector trading breakdown."""
 import os
 import logging
@@ -11,7 +13,7 @@ def handler(event, context):
     try:
         # Note: This requires sector data in transactions or assets table
         # For now, return placeholder or aggregate available data
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Try to query from agg_sector_activity if it exists
         try:

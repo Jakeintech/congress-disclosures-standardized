@@ -7,6 +7,7 @@ Uses S3 metadata tagging to avoid reprocessing.
 import boto3
 import json
 import os
+import xml.etree.ElementTree as ET
 from datetime import datetime
 
 S3_BUCKET = 'congress-disclosures-standardized'
@@ -16,6 +17,28 @@ SQS_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/464813693153/congress-discl
 
 s3 = boto3.client('s3', region_name='us-east-1')
 sqs = boto3.client('sqs', region_name='us-east-1')
+
+def get_filing_type_map(year):
+    """Download and parse XML index to build doc_id -> filing_type map."""
+    print(f"Downloading XML index for {year}...")
+    try:
+        xml_key = f"bronze/house/financial/year={year}/index/{year}FD.xml"
+        response = s3.get_object(Bucket=S3_BUCKET, Key=xml_key)
+        xml_content = response['Body'].read()
+        
+        root = ET.fromstring(xml_content)
+        mapping = {}
+        for member in root.findall('Member'):
+            doc_id = member.find('DocID').text
+            filing_type = member.find('FilingType').text
+            if doc_id and filing_type:
+                mapping[doc_id] = filing_type
+        
+        print(f"Loaded {len(mapping)} filing types from index")
+        return mapping
+    except Exception as e:
+        print(f"Warning: Could not load XML index: {e}")
+        return {}
 
 def has_been_processed(pdf_key):
     """Check if PDF has already been processed via S3 metadata."""
@@ -65,13 +88,14 @@ def create_silver_metadata(doc_id, year, pdf_key, pdf_size):
     )
     return metadata
 
-def queue_for_extraction(doc_id, year):
+def queue_for_extraction(doc_id, year, filing_type):
     """Queue document for text extraction."""
     message = {
         'doc_id': doc_id,
         'year': year,
         's3_bucket': S3_BUCKET,
-        's3_pdf_key': f'bronze/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf'
+        's3_pdf_key': f'bronze/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf',
+        'filing_type': filing_type
     }
     
     sqs.send_message(
@@ -81,6 +105,9 @@ def queue_for_extraction(doc_id, year):
 
 def process_bronze_pdfs():
     """Process all Bronze PDFs that haven't been processed yet."""
+    # Load filing types first
+    filing_type_map = get_filing_type_map(2025)
+    
     print(f"Scanning Bronze layer: {BRONZE_PREFIX}")
     
     paginator = s3.get_paginator('list_objects_v2')
@@ -108,6 +135,9 @@ def process_bronze_pdfs():
                 continue
             
             try:
+                # Get filing type
+                filing_type = filing_type_map.get(doc_id, 'Unknown')
+                
                 # Create Silver metadata
                 metadata = create_silver_metadata(
                     doc_id=doc_id,
@@ -117,7 +147,7 @@ def process_bronze_pdfs():
                 )
                 
                 # Queue for extraction
-                queue_for_extraction(doc_id, 2025)
+                queue_for_extraction(doc_id, 2025, filing_type)
                 
                 # Mark as processed
                 mark_as_processed(pdf_key)

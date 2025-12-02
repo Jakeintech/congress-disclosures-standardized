@@ -27,7 +27,7 @@ def handler(event, context):
         if not ticker:
             return error_response("ticker is required", 400)
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Get recent trades for this stock
         trades_df = qb.query_parquet(

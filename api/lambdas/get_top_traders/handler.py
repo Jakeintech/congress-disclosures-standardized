@@ -30,7 +30,7 @@ def handler(event, context):
         except ValueError:
             limit = 20
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Aggregate by member
         filters = {}

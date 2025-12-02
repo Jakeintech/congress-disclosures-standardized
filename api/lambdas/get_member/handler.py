@@ -46,7 +46,7 @@ def handler(event, context):
         logger.info(f"Fetching member profile: {bioguide_id}")
         
         # Initialize query builder
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Get member basic info
         try:

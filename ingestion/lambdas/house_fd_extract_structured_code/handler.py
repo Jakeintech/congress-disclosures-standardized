@@ -68,6 +68,13 @@ def lambda_handler(event, context):
             # Get authoritative filing type from message
             filing_type = body.get('filing_type')
             
+            # Get other bronze metadata if available
+            bronze_metadata = {
+                'filer_name': body.get('filer_name'),
+                'filing_date': body.get('filing_date'),
+                'state_district': body.get('state_district')
+            }
+            
             if not filing_type:
                 logger.warning(f"Missing filing_type for doc_id={doc_id}, defaulting to 'Unknown'")
                 filing_type = "Unknown"
@@ -109,8 +116,17 @@ def lambda_handler(event, context):
                 'confidence_score': result.get('confidence_score', 0.0)
             }
             
+            # Add bronze metadata
+            result['bronze_metadata'] = bronze_metadata
+            
             # Include extracted text content for UI inspection
             result['extracted_text_content'] = text
+
+            # Add link to bronze PDF
+            # Construct standard bronze path: bronze/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf
+            # This ensures we have a direct link even if not passed explicitly
+            bronze_key = f"bronze/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
+            result['bronze_pdf_s3_key'] = bronze_key
 
             # Upload structured JSON
             json_s3_key = upload_structured_json(doc_id, year, result)
@@ -272,13 +288,13 @@ def extract_simple_notice(doc_id: str, year: int, text: str, filing_type: str) -
 def upload_structured_json(doc_id: str, year: int, data: Dict[str, Any]) -> str:
     """Upload structured JSON to S3."""
 
-    # Path: silver/objects/{filing_type}/{year}/{doc_id}/extraction.json
+    # Path: silver/objects/filing_type={type}/year={year}/doc_id={doc_id}/extraction.json
     filing_type = data.get('filing_type', 'Unknown').replace('/', '_').replace(' ', '_').lower()
     # Ensure filing_type starts with 'type_' if it's a single letter code
     if len(filing_type) == 1:
         filing_type = f"type_{filing_type}"
 
-    s3_key = f"{S3_SILVER_PREFIX}/objects/{filing_type}/{year}/{doc_id}/extraction.json"
+    s3_key = f"{S3_SILVER_PREFIX}/objects/filing_type={filing_type}/year={year}/doc_id={doc_id}/extraction.json"
 
     json_str = json.dumps(data, indent=2)
 

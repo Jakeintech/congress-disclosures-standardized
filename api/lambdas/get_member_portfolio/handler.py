@@ -1,3 +1,5 @@
+S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
+
 """Lambda handler: GET /v1/members/{bioguide_id}/portfolio - Member portfolio."""
 import os
 import logging
@@ -13,7 +15,7 @@ def handler(event, context):
         if not bioguide_id:
             return error_response("bioguide_id is required", 400)
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Get asset holdings (if available)
         try:

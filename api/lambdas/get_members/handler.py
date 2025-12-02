@@ -53,7 +53,7 @@ def handler(event, context):
         logger.info(f"Fetching members: limit={limit}, offset={offset}, filters={filters}")
         
         # Initialize query builder
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Count total matching records
         total_count = qb.count_records(

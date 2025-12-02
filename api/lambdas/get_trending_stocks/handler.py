@@ -1,3 +1,5 @@
+S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
+
 """Lambda handler: GET /v1/analytics/trending-stocks - Recently active stocks."""
 import os
 import logging
@@ -16,7 +18,7 @@ def handler(event, context):
         
         cutoff_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         trending = qb.aggregate_parquet(
             'gold/house/financial/facts/fact_ptr_transactions',
             group_by=['ticker'],

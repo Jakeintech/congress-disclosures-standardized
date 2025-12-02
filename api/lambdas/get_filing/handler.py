@@ -17,7 +17,7 @@ def handler(event, context):
         if not doc_id:
             return error_response("doc_id is required", 400)
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Get filing metadata
         filing_df = qb.query_parquet(
@@ -38,7 +38,12 @@ def handler(event, context):
             filing_type = filing_info.get('filing_type', 'P')
             year = filing_info.get('filing_year', 2025)
             
-            key = f"silver/objects/type_{filing_type.lower()}/{year}/{doc_id}/extraction.json"
+            # Normalize filing type for path
+            filing_type_path = filing_type.replace('/', '_').replace(' ', '_').lower()
+            if len(filing_type_path) == 1:
+                filing_type_path = f"type_{filing_type_path}"
+            
+            key = f"silver/objects/filing_type={filing_type_path}/year={year}/doc_id={doc_id}/extraction.json"
             
             response = s3.get_object(Bucket=S3_BUCKET, Key=key)
             structured_data = json.loads(response['Body'].read())

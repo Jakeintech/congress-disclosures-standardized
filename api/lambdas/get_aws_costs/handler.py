@@ -9,6 +9,28 @@ logger.setLevel(logging.INFO)
 
 ce_client = boto3.client('ce')
 
+def check_dependencies():
+    results = {}
+    try:
+        import pandas as pd
+        results['pandas'] = pd.__version__
+    except ImportError as e:
+        results['pandas'] = str(e)
+        
+    try:
+        import duckdb
+        results['duckdb'] = duckdb.__version__
+    except ImportError as e:
+        results['duckdb'] = str(e)
+        
+    try:
+        import pyarrow
+        results['pyarrow'] = pyarrow.__version__
+    except ImportError as e:
+        results['pyarrow'] = str(e)
+        
+    return results
+
 def handler(event, context):
     """
     Fetch AWS costs for the last 30 days.
@@ -21,6 +43,9 @@ def handler(event, context):
         # Convert to string format YYYY-MM-DD
         start_str = start_date.strftime('%Y-%m-%d')
         end_str = end_date.strftime('%Y-%m-%d')
+        
+        deps = check_dependencies()
+        logger.info(f"Dependency Check: {json.dumps(deps)}")
         
         logger.info(f"Fetching costs from {start_str} to {end_str}")
         

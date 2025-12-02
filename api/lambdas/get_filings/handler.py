@@ -47,7 +47,7 @@ def handler(event, context):
                 filters[date_field] = filters.get(date_field, {})
                 filters[date_field]['lte'] = query_params['end_date']
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         total_count = qb.count_records(
             'gold/house/financial/facts/fact_filings',

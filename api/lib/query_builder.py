@@ -25,13 +25,41 @@ class ParquetQueryBuilder:
             s3_bucket: Optional S3 bucket name. If provided, will query S3 directly.
                       If None, assumes local filesystem access.
         """
+        import os
+        import boto3
         self.s3_bucket = s3_bucket
         self.conn = duckdb.connect(database=':memory:')
+        
+        # Set home directory to /tmp for Lambda (only writable directory)
+        home_dir = os.environ.get('DUCKDB_HOME', '/tmp')
+        self.conn.execute(f"SET home_directory='{home_dir}';")
         
         # Install and load httpfs extension for S3 access if needed
         if s3_bucket:
             self.conn.execute("INSTALL httpfs;")
             self.conn.execute("LOAD httpfs;")
+            
+            # Configure S3 access for Lambda (uses IAM role credentials)
+            # Get credentials from boto3 session
+            session = boto3.Session()
+            credentials = session.get_credentials()
+            
+            if credentials:
+                # Get frozen credentials (current values)
+                frozen_creds = credentials.get_frozen_credentials()
+                
+                # Set AWS credentials in DuckDB
+                self.conn.execute(f"SET s3_access_key_id='{frozen_creds.access_key}';")
+                self.conn.execute(f"SET s3_secret_access_key='{frozen_creds.secret_key}';")
+                if frozen_creds.token:
+                    self.conn.execute(f"SET s3_session_token='{frozen_creds.token}';")
+            
+            # Set S3 region
+            region = os.environ.get('AWS_REGION', 'us-east-1')
+            self.conn.execute(f"SET s3_region='{region}';")
+            
+            # Use SSL
+            self.conn.execute("SET s3_use_ssl=true;")
     
     def query_parquet(
         self,
@@ -94,7 +122,7 @@ class ParquetQueryBuilder:
         if offset:
             query += f" OFFSET {offset}"
         
-        logger.info(f "Executing query: {query}")
+        logger.info(f"Executing query: {query}")
         
         try:
             result = self.conn.execute(query).df()

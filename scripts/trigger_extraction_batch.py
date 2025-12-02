@@ -53,7 +53,8 @@ def trigger_extraction():
             "doc_id": doc_id,
             "year": year,
             "extraction_method": "direct_text",
-            "has_embedded_text": False
+            "has_embedded_text": False,
+            "filing_type": doc.get("filing_type", "Unknown")
         }
         
         # Add to batch

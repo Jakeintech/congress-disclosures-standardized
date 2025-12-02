@@ -1,3 +1,5 @@
+S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
+
 """Lambda handler: GET /v1/analytics/trading-timeline - Daily trading volume over time."""
 import os
 import logging
@@ -16,7 +18,7 @@ def handler(event, context):
         end_date = query_params.get('end_date', datetime.now().strftime('%Y-%m-%d'))
         start_date = query_params.get('start_date', (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d'))
         
-        qb = ParquetQueryBuilder(s3_bucket=None)
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Try gold aggregate first
         try:

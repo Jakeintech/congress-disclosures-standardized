@@ -59,8 +59,7 @@ def process_year(year):
     logger.info(f"Processing year {year}...")
     
     # Scan silver/objects/ for all filing types for this year
-    # Prefix: silver/objects/
-    # Structure: silver/objects/{filing_type}/{year}/{doc_id}/extraction.json
+    # New Hive-style structure: silver/objects/filing_type={type}/year={year}/doc_id={doc_id}/extraction.json
     
     prefix = "silver/objects/"
     paginator = s3.get_paginator('list_objects_v2')
@@ -75,33 +74,39 @@ def process_year(year):
         for obj in page['Contents']:
             key = obj['Key']
             # Check if it matches the year and is an extraction.json
-            if f"/{year}/" in key and key.endswith("extraction.json"):
+            # New format: silver/objects/filing_type=type_p/year=2025/doc_id=12345/extraction.json
+            if f"/year={year}/" in key and key.endswith("extraction.json"):
                 try:
                     response = s3.get_object(Bucket=S3_BUCKET, Key=key)
                     data = json.loads(response['Body'].read())
                     
                     doc_id = data.get('doc_id')
                     filing_date = data.get('filing_date')
-                    # member_id = data.get('bioguide_id', 'UNKNOWN') # Not usually in extraction.json yet
+                    
+                    # Get bronze metadata if available
+                    bronze_meta = data.get('bronze_metadata', {})
+                    filer_name = bronze_meta.get('filer_name') or data.get('document_header', {}).get('filer_name')
+                    state_district = bronze_meta.get('state_district')
                     
                     # Count items in schedules
-                    # aggs = data.get('aggs', {}) # Old format?
                     # New format has 'transactions', 'assets_and_income', etc.
-                    
                     schedule_a_count = len(data.get('assets_and_income', []))
                     schedule_b_count = len(data.get('transactions', []))
-                    # Other schedules might be in 'schedules' dict or top level depending on extractor
                     
                     record = {
                         'doc_id': doc_id,
                         'year': year,
-                        # 'member_key': member_id,
+                        'filing_year': year,  # Add explicit filing_year column
                         'filing_date_key': get_date_key(filing_date),
+                        'filing_date': filing_date,  # Keep original date too
                         'filing_type': data.get('filing_type'),
+                        'filer_name': filer_name,
+                        'state_district': state_district,
                         'is_extension': data.get('extension_details', {}).get('is_extension_request', False),
                         'schedule_a_count': schedule_a_count,
                         'schedule_b_count': schedule_b_count,
-                        'confidence_score': data.get('extraction_metadata', {}).get('confidence_score', 1.0)
+                        'confidence_score': data.get('extraction_metadata', {}).get('confidence_score', 1.0),
+                        'bronze_pdf_s3_key': data.get('bronze_pdf_s3_key')
                     }
                     
                     filings.append(record)

@@ -12,6 +12,7 @@ resource "aws_s3_bucket_policy" "public_read_access" {
         Resource  = [
           "${aws_s3_bucket.data_lake.arn}/website/*",
           "${aws_s3_bucket.data_lake.arn}/website/api/*",
+          "${aws_s3_bucket.data_lake.arn}/docs/*",
           "${aws_s3_bucket.data_lake.arn}/favicon.ico",
           "${aws_s3_bucket.data_lake.arn}/robots.txt",
           "${aws_s3_bucket.data_lake.arn}/manifest.json",
@@ -32,6 +33,7 @@ resource "aws_s3_bucket_policy" "public_read_access" {
             "s3:prefix" = [
               "website/*",
               "website/api/*",
+              "docs/*",
               "favicon.ico",
               "robots.txt",
               "manifest.json",

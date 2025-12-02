@@ -201,7 +201,19 @@ def main():
     if not stats_df.empty:
         logger.info(f"  Total members with trades: {len(stats_df)}")
         logger.info(f"  Total volume: ${stats_df['total_volume'].sum():,.0f}")
-        logger.info(f"  Most active trader: {stats_df.iloc[0]['full_name']} (${stats_df.iloc[0]['total_volume']:,.0f})")
+        
+        # Safely access member name (use available columns)
+        top_trader = stats_df.iloc[0]
+        if 'full_name' in stats_df.columns:
+            trader_name = top_trader['full_name']
+        elif 'last_name' in stats_df.columns and 'first_name' in stats_df.columns:
+            trader_name = f"{top_trader['first_name']} {top_trader['last_name']}"
+        elif 'last_name' in stats_df.columns:
+            trader_name = top_trader['last_name']
+        else:
+            trader_name = top_trader['member_key']
+        
+        logger.info(f"  Most active trader: {trader_name} (${top_trader['total_volume']:,.0f})")
     else:
         logger.info("  No trading data to summarize.")
 

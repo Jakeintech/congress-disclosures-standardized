@@ -1,0 +1,836 @@
+openapi: 3.0.3
+info:
+  title: Congressional Trading Data API
+  version: 1.0.0
+  description: |
+    Public REST API for querying U.S. House of Representatives financial disclosure data.
+    
+    This API provides access to congressional trading data, member portfolios, and filing information
+    from the standardized Gold Layer. All data is sourced from official House disclosures.
+    
+    **Features:**
+    - No authentication required (public access)
+    - Rate limited to 1000 requests/hour per IP
+    - Fast DuckDB-powered Parquet queries
+    - Comprehensive filtering and pagination
+    
+    **Data Sources:**
+    - Official House Financial Disclosures
+    - Updated daily from https://disclosures-clerk.house.gov/
+  contact:
+    name: Congress Disclosures Standardized
+    url: https://github.com/Jakeintech/congress-disclosures-standardized
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://{api-id}.execute-api.us-east-1.amazonaws.com
+    description: Production API Gateway
+    variables:
+      api-id:
+        default: your-api-id
+        description: API Gateway ID from Terraform deployment
+
+tags:
+  - name: Members
+    description: Member profiles and information
+  - name: Trading
+    description: Stock trading transactions
+  - name: Analytics
+    description: Aggregated statistics and insights
+  - name: Search
+    description: Search and discovery
+  - name: Filings
+    description: Financial disclosure filings
+
+paths:
+  # ============================================================================
+  # Member Endpoints
+  # ============================================================================
+  
+  /v1/members:
+    get:
+      tags: [Members]
+      summary: List all members
+      description: Get paginated list of House members with optional filtering
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: state
+          in: query
+          description: Filter by state (e.g., CA, NY)
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}$'
+        - name: district
+          in: query
+          description: Filter by district number
+          schema:
+            type: string
+        - name: party
+          in: query
+          description: Filter by political party
+          schema:
+            type: string
+            enum: [D, R, I]
+      responses:
+        '200':
+          description: Successful response with paginated members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberListResponse'
+              example:
+                success: true
+                data:
+                  - bioguide_id: P000197
+                    first_name: Nancy
+                    last_name: Pelosi
+                    party: D
+                    state: CA
+                    district: "11"
+                pagination:
+                  total: 435
+                  count: 50
+                  limit: 50
+                  offset: 0
+                  has_next: true
+                  next: /v1/members?limit=50&offset=50
+
+  /v1/members/{bioguide_id}:
+    get:
+      tags: [Members]
+      summary: Get member profile
+      description: Get detailed profile for a specific member including trading stats
+      parameters:
+        - name: bioguide_id
+          in: path
+          required: true
+          description: Member's bioguide ID
+          schema:
+            type: string
+          example: P000197
+      responses:
+        '200':
+          description: Member profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberProfile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/members/{bioguide_id}/trades:
+    get:
+      tags: [Members]
+      summary: Get member's trades
+      description: Get all trading transactions for a specific member
+      parameters:
+        - name: bioguide_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - name: ticker
+          in: query
+          schema:
+            type: string
+        - name: transaction_type
+          in: query
+          schema:
+            type: string
+            enum: [Purchase, Sale, Exchange]
+      responses:
+        '200':
+          description: Paginated list of trades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeListResponse'
+
+  /v1/members/{bioguide_id}/portfolio:
+    get:
+      tags: [Members]
+      summary: Get member's portfolio
+      description: Get current asset holdings for a member
+      parameters:
+        - name: bioguide_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Portfolio holdings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioResponse'
+
+  # ============================================================================
+  # Trading Endpoints
+  # ============================================================================
+
+  /v1/trades:
+    get:
+      tags: [Trading]
+      summary: List all trades
+      description: Get all trading transactions with comprehensive filtering
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: ticker
+          in: query
+          description: Filter by stock ticker
+          schema:
+            type: string
+        - name: bioguide_id
+          in: query
+          description: Filter by member
+          schema:
+            type: string
+        - name: transaction_type
+          in: query
+          schema:
+            type: string
+            enum: [Purchase, Sale, Exchange]
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - name: min_amount
+          in: query
+          description: Minimum transaction amount
+          schema:
+            type: number
+        - name: max_amount
+          in: query
+          description: Maximum transaction amount
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Paginated trades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeListResponse'
+              example:
+                success: true
+                data:
+                  - transaction_id: "12345"
+                    bioguide_id: P000197
+                    ticker: AAPL
+                    transaction_type: Purchase
+                    transaction_date: "2025-01-15"
+                    amount: 50000
+                pagination:
+                  total: 1500
+                  count: 50
+                  limit: 50
+                  offset: 0
+
+  /v1/stocks/{ticker}:
+    get:
+      tags: [Trading]
+      summary: Get stock summary
+      description: Get trading statistics and recent activity for a specific stock
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Stock ticker symbol
+          schema:
+            type: string
+          example: AAPL
+      responses:
+        '200':
+          description: Stock summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockSummary'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/stocks/{ticker}/activity:
+    get:
+      tags: [Trading]
+      summary: Get stock trading activity
+      description: Get all congressional trades for a specific stock
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Stock trading activity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeListResponse'
+
+  /v1/stocks:
+    get:
+      tags: [Trading]
+      summary: List all stocks
+      description: Get list of all stocks with congressional trading activity
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: min_trades
+          in: query
+          description: Minimum number of trades
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of stocks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockListResponse'
+
+  # ============================================================================
+  # Analytics Endpoints
+  # ============================================================================
+
+  /v1/analytics/summary:
+    get:
+      tags: [Analytics]
+      summary: Get platform summary
+      description: Get high-level statistics for the entire platform
+      responses:
+        '200':
+          description: Platform summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryResponse'
+              example:
+                success: true
+                data:
+                  members:
+                    total: 435
+                  trades:
+                    total: 15000
+                    unique_stocks: 2500
+                    latest_transaction: "2025-12-01"
+                  filings:
+                    total: 5000
+                    latest_filing: "2025-12-01"
+                    coverage_years: [2020, 2021, 2022, 2023, 2024, 2025]
+
+  /v1/analytics/top-traders:
+    get:
+      tags: [Analytics]
+      summary: Get top traders
+      description: Get members with highest trading volume
+      parameters:
+        - name: limit
+          in: query
+          description: Number of results (max 100)
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: year
+          in: query
+          description: Filter by year
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Top traders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopTradersResponse'
+
+  /v1/analytics/trending-stocks:
+    get:
+      tags: [Analytics]
+      summary: Get trending stocks
+      description: Get stocks with most recent congressional trading activity
+      parameters:
+        - name: days
+          in: query
+          description: Time window in days
+          schema:
+            type: integer
+            default: 30
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Trending stocks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendingStocksResponse'
+
+  /v1/analytics/sector-activity:
+    get:
+      tags: [Analytics]
+      summary: Get sector activity
+      description: Get trading activity breakdown by market sector
+      responses:
+        '200':
+          description: Sector statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SectorActivityResponse'
+
+  /v1/analytics/compliance:
+    get:
+      tags: [Analytics]
+      summary: Get compliance metrics
+      description: Get filing compliance statistics for members
+      responses:
+        '200':
+          description: Compliance metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceResponse'
+
+  /v1/analytics/trading-timeline:
+    get:
+      tags: [Analytics]
+      summary: Get trading timeline
+      description: Get daily trading volume over time
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Trading timeline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineResponse'
+
+  # ============================================================================
+  # Search & Filing Endpoints
+  # ============================================================================
+
+  /v1/search:
+    get:
+      tags: [Search]
+      summary: Search across all data
+      description: Unified search across members, stocks, and trades
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query (minimum 2 characters)
+          schema:
+            type: string
+            minLength: 2
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /v1/filings:
+    get:
+      tags: [Filings]
+      summary: List filings
+      description: Get list of financial disclosure filings
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: bioguide_id
+          in: query
+          schema:
+            type: string
+        - name: filing_type
+          in: query
+          schema:
+            type: string
+            enum: [A, N, T, P]
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Paginated filings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilingListResponse'
+
+  /v1/filings/{doc_id}:
+    get:
+      tags: [Filings]
+      summary: Get filing details
+      description: Get complete filing information including extracted data
+      parameters:
+        - name: doc_id
+          in: path
+          required: true
+          description: Document ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Filing details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilingDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+# ============================================================================
+# Components
+# ============================================================================
+
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Number of results per page (max 500)
+      schema:
+        type: integer
+        default: 50
+        minimum: 1
+        maximum: 500
+
+    Offset:
+      name: offset
+      in: query
+      description: Number of results to skip
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+
+    StartDate:
+      name: start_date
+      in: query
+      description: Start date (YYYY-MM-DD)
+      schema:
+        type: string
+        format: date
+
+    EndDate:
+      name: end_date
+      in: query
+      description: End date (YYYY-MM-DD)
+      schema:
+        type: string
+        format: date
+
+  schemas:
+    Member:
+      type: object
+      properties:
+        bioguide_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        party:
+          type: string
+          enum: [D, R, I]
+        state:
+          type: string
+        district:
+          type: string
+
+    Trade:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+        bioguide_id:
+          type: string
+        ticker:
+          type: string
+        transaction_type:
+          type: string
+          enum: [Purchase, Sale, Exchange]
+        transaction_date:
+          type: string
+          format: date
+        amount:
+          type: number
+        filing_date:
+          type: string
+          format: date
+
+    MemberProfile:
+      allOf:
+        - $ref: '#/components/schemas/Member'
+        - type: object
+          properties:
+            trading_stats:
+              type: object
+              properties:
+                total_trades:
+                  type: integer
+                unique_stocks:
+                  type: integer
+                latest_trade_date:
+                  type: string
+                  format: date
+            recent_filings:
+              type: array
+              items:
+                type: object
+
+    StockSummary:
+      type: object
+      properties:
+        ticker:
+          type: string
+        statistics:
+          type: object
+          properties:
+            total_trades:
+              type: integer
+            unique_members:
+              type: integer
+            purchase_count:
+              type: integer
+            sale_count:
+              type: integer
+            latest_trade_date:
+              type: string
+              format: date
+        recent_trades:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        count:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        has_next:
+          type: boolean
+        has_prev:
+          type: boolean
+        next:
+          type: string
+          nullable: true
+        prev:
+          type: string
+          nullable: true
+
+    MemberListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    TradeListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    StockListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    PortfolioResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            bioguide_id:
+              type: string
+            holdings:
+              type: array
+              items:
+                type: object
+
+    SummaryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+
+    TopTradersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            top_traders:
+              type: array
+              items:
+                type: object
+            count:
+              type: integer
+
+    TrendingStocksResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+
+    SectorActivityResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+
+    ComplianceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+
+    TimelineResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+
+    SearchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            query:
+              type: string
+            results:
+              type: object
+              properties:
+                members:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Member'
+                stocks:
+                  type: array
+                  items:
+                    type: object
+
+    FilingListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    FilingDetail:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: integer
+            details:
+              type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error:
+              message: Invalid request parameters
+              code: 400
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error:
+              message: Resource not found
+              code: 404

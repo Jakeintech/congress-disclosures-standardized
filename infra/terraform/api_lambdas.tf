@@ -1,0 +1,141 @@
+# ============================================================================
+# API Lambda Layer (Shared Libraries)
+# ============================================================================
+
+resource "aws_lambda_layer_version" "api_shared_libs" {
+  layer_name          = "${local.name_prefix}-api-shared-libs"
+  description         = "Shared libraries for Congressional Trading API (DuckDB, pandas, PyArrow, api.lib)"
+  s3_bucket           = aws_s3_bucket.data_lake.id
+  s3_key              = "lambda-deployments/layers/api_shared_layer.zip"
+  compatible_runtimes = ["python3.11"]
+
+  lifecycle {
+    ignore_changes = [source_code_hash]
+  }
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${local.name_prefix}-api-shared-libs"
+      Component = "lambda-layer"
+    }
+  )
+}
+
+# ============================================================================
+# API Lambda Functions
+# ============================================================================
+
+# Common Lambda configuration for API handlers
+locals {
+  api_lambda_config = {
+    runtime     = "python3.11"
+    timeout     = 29 # API Gateway max for synchronous invocation
+    memory_size = 512
+    layers = [
+      aws_lambda_layer_version.api_shared_libs.arn,
+      "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24" # AWS Data Wrangler
+    ]
+    environment_variables = {
+      S3_BUCKET_NAME = aws_s3_bucket.data_lake.id
+      LOG_LEVEL      = "INFO"
+    }
+  }
+
+  # List of API Lambda functions to create
+  api_lambdas = {
+    # Member endpoints
+    "get_members"          = { route = "GET /v1/members" }
+    "get_member"           = { route = "GET /v1/members/{bioguide_id}" }
+    "get_member_trades"    = { route = "GET /v1/members/{bioguide_id}/trades" }
+    "get_member_portfolio" = { route = "GET /v1/members/{bioguide_id}/portfolio" }
+
+    # Trading & Stock endpoints
+    "get_trades"         = { route = "GET /v1/trades" }
+    "get_stock"          = { route = "GET /v1/stocks/{ticker}" }
+    "get_stock_activity" = { route = "GET /v1/stocks/{ticker}/activity" }
+    "get_stocks"         = { route = "GET /v1/stocks" }
+
+    # Analytics endpoints
+    "get_top_traders"       = { route = "GET /v1/analytics/top-traders" }
+    "get_trending_stocks"   = { route = "GET /v1/analytics/trending-stocks" }
+    "get_sector_activity"   = { route = "GET /v1/analytics/sector-activity" }
+    "get_compliance"        = { route = "GET /v1/analytics/compliance" }
+    "get_trading_timeline"  = { route = "GET /v1/analytics/trading-timeline" }
+    "get_summary"           = { route = "GET /v1/analytics/summary" }
+
+    # Search & Filing endpoints
+    "search"      = { route = "GET /v1/search" }
+    "get_filings" = { route = "GET /v1/filings" }
+    "get_filing"  = { route = "GET /v1/filings/{doc_id}" }
+  }
+}
+
+# Create all API Lambda functions
+resource "aws_lambda_function" "api" {
+  for_each = local.api_lambdas
+
+  function_name = "${local.name_prefix}-api-${each.key}"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.handler"
+  runtime       = local.api_lambda_config.runtime
+
+  s3_bucket = aws_s3_bucket.data_lake.id
+  s3_key    = "lambda-deployments/api/${each.key}.zip"
+
+  timeout     = local.api_lambda_config.timeout
+  memory_size = local.api_lambda_config.memory_size
+
+  environment {
+    variables = local.api_lambda_config.environment_variables
+  }
+
+  layers = local.api_lambda_config.layers
+
+  tracing_config {
+    mode = var.enable_xray_tracing ? "Active" : "PassThrough"
+  }
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${local.name_prefix}-api-${each.key}"
+      Component = "lambda"
+      Purpose   = "api"
+      Route     = each.value.route
+    }
+  )
+
+  lifecycle {
+    ignore_changes = [source_code_hash]
+  }
+
+  depends_on = [
+    aws_lambda_layer_version.api_shared_libs,
+    aws_iam_role_policy.lambda_logging
+  ]
+}
+
+# Lambda permissions for API Gateway to invoke API functions
+resource "aws_lambda_permission" "api_gateway" {
+  for_each = local.api_lambdas
+
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.api[each.key].function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.congress_api.execution_arn}/*/*"
+}
+
+# Outputs
+output "api_lambda_functions" {
+  description = "Map of API Lambda function names"
+  value = {
+    for k, v in aws_lambda_function.api : k => v.function_name
+  }
+}
+
+output "api_lambda_layer_arn" {
+  description = "ARN of API shared libraries layer"
+  value       = aws_lambda_layer_version.api_shared_libs.arn
+}

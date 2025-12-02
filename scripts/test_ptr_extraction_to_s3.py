@@ -76,7 +76,7 @@ def main():
             Key=s3_key,
             Body=json.dumps(result, indent=2),
             ContentType="application/json",
-            ACL="public-read"  # Make publicly accessible for website
+            # Rely on bucket policy for public access (ACLs disabled)
         )
 
         print()

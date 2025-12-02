@@ -5,45 +5,52 @@ const S3_BUCKET = "congress-disclosures-standardized";
 const S3_REGION = "us-east-1";
 const API_BASE = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com`;
 
-// Authorized IP addresses (injected at build time from ADMIN_ALLOWED_IPS env var)
-// This will be replaced by the build script with actual IPs
-const AUTHORIZED_IPS = [
-    '2601:282:185:1b70:e5e4:96d3:35bd:1ba5',
-    '73.169.103.113'
-];
+// Access control
+// For now, disable IP allowlist so the page is publicly viewable
+const ALLOW_ALL = true;
+// Authorized IP addresses (kept for future use if ALLOW_ALL is set to false)
+const AUTHORIZED_IPS = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAccess();
 });
 
-// Check IP access
+// Check IP access (bypassed when ALLOW_ALL = true)
 async function checkAccess() {
+    if (ALLOW_ALL) {
+        const accessEl = document.getElementById('access-check');
+        const adminEl = document.getElementById('admin-container');
+        if (accessEl) accessEl.style.display = 'none';
+        if (adminEl) adminEl.style.display = 'flex';
+        initializeAdmin();
+        return;
+    }
+
     try {
-        // Get user's IP
         const response = await fetch('https://api.ipify.org?format=json');
         const data = await response.json();
         const userIP = data.ip;
-        
-        document.getElementById('user-ip').textContent = userIP;
-        
-        // Check if IP is authorized
+        const accessEl = document.getElementById('access-check');
+        const adminEl = document.getElementById('admin-container');
+        const ipEl = document.getElementById('user-ip');
+        if (ipEl) ipEl.textContent = userIP;
+
         const isAuthorized = AUTHORIZED_IPS.includes(userIP);
-        
         if (isAuthorized) {
-            document.getElementById('access-check').style.display = 'none';
-            document.getElementById('admin-container').style.display = 'flex';
+            if (accessEl) accessEl.style.display = 'none';
+            if (adminEl) adminEl.style.display = 'flex';
             initializeAdmin();
         } else {
-            document.getElementById('access-check').style.display = 'flex';
-            document.getElementById('admin-container').style.display = 'none';
+            if (accessEl) accessEl.style.display = 'flex';
+            if (adminEl) adminEl.style.display = 'none';
         }
     } catch (error) {
         console.error('Error checking IP:', error);
-        // For development, allow access if IP check fails
-        // In production, you'd want to deny access
-        document.getElementById('access-check').style.display = 'none';
-        document.getElementById('admin-container').style.display = 'flex';
+        const accessEl = document.getElementById('access-check');
+        const adminEl = document.getElementById('admin-container');
+        if (accessEl) accessEl.style.display = 'none';
+        if (adminEl) adminEl.style.display = 'flex';
         initializeAdmin();
     }
 }

@@ -107,3 +107,8 @@ output "data_access_commands" {
     list_gold   = "aws s3 ls s3://${aws_s3_bucket.data_lake.id}/gold/ --recursive --human-readable"
   }
 }
+
+output "s3_website_endpoint" {
+  description = "S3 static website hosting endpoint (HTTP only)"
+  value       = aws_s3_bucket_website_configuration.data_lake.website_endpoint
+}

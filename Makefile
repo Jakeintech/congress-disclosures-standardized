@@ -224,8 +224,11 @@ deploy-website: ## Deploy website to S3 (regenerates all analytics data first)
 	@echo ""
 	@echo "🚀 Deploying website to S3..."
 	@aws s3 sync website/ s3://congress-disclosures-standardized/website/ --exclude "*.DS_Store" --exclude "*.bak"
+	@aws s3 cp docs/openapi.yaml s3://congress-disclosures-standardized/docs/openapi.yaml --content-type "application/x-yaml"
 	@echo "✓ Website deployed to s3://congress-disclosures-standardized/website/"
 	@echo "  URL: https://congress-disclosures-standardized.s3.amazonaws.com/website/index.html"
+	@echo "✓ API Docs deployed to s3://congress-disclosures-standardized/website/api-docs/"
+	@echo "  URL: https://congress-disclosures-standardized.s3.amazonaws.com/website/api-docs/index.html"
 
 deploy-all-lambdas: package-all ## Package and deploy all Lambdas
 	@echo "Deploying all Lambda functions..."

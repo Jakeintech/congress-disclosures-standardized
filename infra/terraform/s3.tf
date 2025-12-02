@@ -43,6 +43,19 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "data_lake" {
   }
 }
 
+# Static website hosting configuration (for index document resolution)
+resource "aws_s3_bucket_website_configuration" "data_lake" {
+  bucket = aws_s3_bucket.data_lake.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "index.html"
+  }
+}
+
 # Lifecycle policy for cost optimization
 resource "aws_s3_bucket_lifecycle_configuration" "data_lake" {
   bucket = aws_s3_bucket.data_lake.id

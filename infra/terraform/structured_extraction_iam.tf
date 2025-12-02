@@ -27,11 +27,6 @@ resource "aws_iam_role_policy_attachment" "sqs_access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
 
-resource "aws_iam_role_policy_attachment" "textract_access" {
-  role       = aws_iam_role.structured_extraction_lambda_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonTextractFullAccess"
-}
-
 resource "aws_iam_role_policy_attachment" "dynamodb_access" {
   role       = aws_iam_role.structured_extraction_lambda_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"

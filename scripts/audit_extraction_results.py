@@ -24,7 +24,7 @@ for page in paginator.paginate(Bucket=BUCKET, Prefix=prefix):
                 stats = {
                     'doc_id': data.get('doc_id'),
                     'confidence': data.get('confidence_score', 0),
-                    'textract_rec': data.get('textract_recommended', False),
+                    'ocr_followup': data.get('requires_additional_ocr', False),
                     'missing': len(data.get('missing_fields', [])),
                     'has_name': bool(data.get('document_header', {}).get('filer_name')),
                     'has_date': bool(data.get('document_header', {}).get('filing_date')),
@@ -45,7 +45,7 @@ for ft, records in results.items():
     df = pd.DataFrame(records)
     print(f"\n{'─' * 80}\nFiling Type: {ft} ({len(records)} docs)\n{'─' * 80}")
     print(f"Confidence: avg={df['confidence'].mean():.1%} med={df['confidence'].median():.1%}")
-    print(f"Textract Recommended: {df['textract_rec'].sum()} ({df['textract_rec'].mean():.1%})")
+    print(f"OCR Follow-up Recommended: {df['ocr_followup'].sum()} ({df['ocr_followup'].mean():.1%})")
     print(f"Has Name: {df['has_name'].sum()} ({df['has_name'].mean():.1%})")
     print(f"Has Date: {df['has_date'].sum()} ({df['has_date'].mean():.1%})")
     if df['transactions'].notna().any():

@@ -13,7 +13,7 @@
   },
   "checkboxes": {},
   "extraction_timestamp": "2025-11-26T17:28:34.538393",
-  "extraction_method": "textract_async_enhanced",
+  "extraction_method": "ocr_text",
   "total_pages": 1,
   "schedules": {
     "A": {

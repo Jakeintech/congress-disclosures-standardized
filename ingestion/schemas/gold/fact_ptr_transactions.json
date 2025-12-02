@@ -149,7 +149,7 @@
     "extraction_method": {
       "type": "string",
       "description": "Method used to extract data",
-      "enum": ["pypdf", "textract_ocr", "manual"]
+      "enum": ["pypdf", "manual"]
     },
     "pdf_type": {
       "type": "string",

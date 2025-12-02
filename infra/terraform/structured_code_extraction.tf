@@ -84,7 +84,6 @@ resource "aws_lambda_function" "extract_structured_code" {
     variables = {
       S3_BUCKET_NAME              = aws_s3_bucket.data_lake.id
       S3_SILVER_PREFIX            = "silver"
-      TEXTRACT_APPROVAL_QUEUE_URL = aws_sqs_queue.textract_approval_queue.url
       LOG_LEVEL                   = "INFO"
       PYTHONUNBUFFERED            = "1"
       TZ                          = "UTC"
@@ -147,23 +146,6 @@ resource "aws_lambda_permission" "allow_sqs_invoke_code_extraction" {
   source_arn    = aws_sqs_queue.code_extraction_queue.arn
 }
 
-# SQS Queue for Textract approval (human-in-loop)
-resource "aws_sqs_queue" "textract_approval_queue" {
-  name                       = "${local.name_prefix}-textract-approval-queue"
-  visibility_timeout_seconds = 300
-  message_retention_seconds  = 1209600 # 14 days
-  receive_wait_time_seconds  = 20
-
-  tags = merge(
-    local.standard_tags,
-    {
-      Name      = "${local.name_prefix}-textract-approval-queue"
-      Component = "sqs"
-      Purpose   = "textract-approval"
-    }
-  )
-}
-
 # Outputs
 output "code_extraction_queue_url" {
   description = "URL of code extraction queue"
@@ -173,11 +155,6 @@ output "code_extraction_queue_url" {
 output "code_extraction_queue_arn" {
   description = "ARN of code extraction queue"
   value       = aws_sqs_queue.code_extraction_queue.arn
-}
-
-output "textract_approval_queue_url" {
-  description = "URL of Textract approval queue"
-  value       = aws_sqs_queue.textract_approval_queue.url
 }
 
 output "lambda_extract_structured_code_name" {

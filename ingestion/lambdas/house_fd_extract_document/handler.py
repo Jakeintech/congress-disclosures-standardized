@@ -2,7 +2,7 @@
 
 This Lambda (triggered by SQS):
 1. Downloads PDF from bronze layer
-2. Extracts text using pypdf or AWS Textract
+2. Extracts text using local strategies (pypdf + OCR pipeline)
 3. Uploads extracted text to silver layer (gzipped)
 4. Updates house_fd_documents record with extraction results
 """
@@ -34,9 +34,6 @@ S3_BUCKET = os.environ.get("S3_BUCKET_NAME")
 S3_BRONZE_PREFIX = os.environ.get("S3_BRONZE_PREFIX", "bronze")
 S3_SILVER_PREFIX = os.environ.get("S3_SILVER_PREFIX", "silver")
 EXTRACTION_VERSION = os.environ.get("EXTRACTION_VERSION", "1.0.0")
-TEXTRACT_MAX_PAGES_SYNC = int(os.environ.get("TEXTRACT_MAX_PAGES_SYNC", "10"))
-TEXTRACT_MONTHLY_PAGE_LIMIT = int(os.environ.get("TEXTRACT_MONTHLY_PAGE_LIMIT", "1000"))
-STRUCTURED_EXTRACTION_QUEUE_URL = os.environ.get("STRUCTURED_EXTRACTION_QUEUE_URL")  # OLD: Textract-based (disabled)
 CODE_EXTRACTION_QUEUE_URL = os.environ.get("CODE_EXTRACTION_QUEUE_URL")  # NEW: Code-based extraction (FREE)
 
 # Initialize SQS client for queuing structured extraction
@@ -57,10 +54,9 @@ def update_bronze_pdf_metadata(
     filing_date: str = None,
     state_district: str = None
 ):
-    """Update Bronze PDF S3 metadata to track Textract processing.
-    
-    This prevents duplicate expensive Textract API calls by tagging the source PDF
-    with extraction metadata.
+    """Update Bronze PDF S3 metadata to track extraction processing.
+
+    Tagging prevents duplicate work and simplifies auditing across pipelines.
     
     Args:
         s3_pdf_key: S3 key of the Bronze PDF
@@ -79,11 +75,11 @@ def update_bronze_pdf_metadata(
         copy_source = {"Bucket": S3_BUCKET, "Key": s3_pdf_key}
         
         metadata = {
-            "textract-processed": "true",
-            "textract-version": EXTRACTION_VERSION,
-            "textract-timestamp": datetime.now(timezone.utc).isoformat(),
-            "textract-method": extraction_result["extraction_method"],
-            "textract-pages": str(extraction_result["pages"]),
+            "extraction-processed": "true",
+            "extraction-version": EXTRACTION_VERSION,
+            "extraction-timestamp": datetime.now(timezone.utc).isoformat(),
+            "extraction-method": extraction_result["extraction_method"],
+            "extraction-pages": str(extraction_result["pages"]),
             "text-location": text_s3_key,
         }
         
@@ -111,77 +107,6 @@ def update_bronze_pdf_metadata(
     except Exception as e:
         # Log but don't fail - metadata update is best-effort
         logger.warning(f"Failed to update Bronze PDF metadata: {e}")
-
-def get_textract_pages_used_this_month() -> int:
-    """Query documents table to count Textract pages used this month.
-
-    Returns:
-        int: Total pages processed with Textract this month
-
-    Raises:
-        Exception: If query fails
-    """
-    try:
-        from datetime import date
-
-        # Get current month in YYYY-MM format
-        current_month = date.today().strftime("%Y-%m")
-
-        logger.info(f"Counting Textract pages used in {current_month}")
-
-        # Query all years (we need to check all documents in current month)
-        s3_client = boto3.client("s3")
-        total_pages = 0
-
-        # List all year partitions
-        paginator = s3_client.get_paginator("list_objects_v2")
-        prefix = f"{S3_SILVER_PREFIX}/house/financial/documents/"
-
-        for page in paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix, Delimiter="/"):
-            # Get year directories
-            for prefix_obj in page.get("CommonPrefixes", []):
-                year_prefix = prefix_obj["Prefix"]
-
-                # Check if parquet file exists for this year
-                parquet_key = f"{year_prefix}part-0000.parquet"
-
-                try:
-                    # Download and read parquet file
-                    import pyarrow.parquet as pq
-                    import io
-
-                    obj = s3_client.get_object(Bucket=S3_BUCKET, Key=parquet_key)
-                    parquet_bytes = obj["Body"].read()
-
-                    # Read parquet file
-                    table = pq.read_table(io.BytesIO(parquet_bytes))
-                    df = table.to_pandas()
-
-                    # Filter by current month and sum textract_pages_used
-                    if "extraction_month" in df.columns and "textract_pages_used" in df.columns:
-                        month_df = df[df["extraction_month"] == current_month]
-                        month_pages = month_df["textract_pages_used"].sum()
-                        total_pages += int(month_pages)
-                        logger.debug(
-                            f"Year {year_prefix}: {len(month_df)} docs, "
-                            f"{month_pages} Textract pages in {current_month}"
-                        )
-
-                except s3_client.exceptions.NoSuchKey:
-                    # File doesn't exist yet, skip
-                    continue
-                except Exception as e:
-                    logger.warning(f"Failed to read {parquet_key}: {e}")
-                    continue
-
-        logger.info(f"Total Textract pages used in {current_month}: {total_pages}")
-        return total_pages
-
-    except Exception as e:
-        logger.error(f"Failed to count Textract pages: {e}")
-        # Return 0 to be safe (won't block processing)
-        return 0
-
 
 def download_pdf_from_house_website(doc_id: str, year: int, s3_pdf_key: str, pdf_path: Path, filing_type: str = None):
     """Download PDF from House website and upload to bronze layer.
@@ -341,15 +266,6 @@ def process_document(
             f"PDF downloaded: {pdf_file_size} bytes, SHA256={pdf_sha256[:16]}..."
         )
 
-        # Step 1.5: Check Textract budget
-        textract_pages_used = get_textract_pages_used_this_month()
-        textract_budget_remaining = TEXTRACT_MONTHLY_PAGE_LIMIT - textract_pages_used
-
-        logger.info(
-            f"Textract budget: {textract_pages_used}/{TEXTRACT_MONTHLY_PAGE_LIMIT} pages used, "
-            f"{textract_budget_remaining} remaining"
-        )
-
         # Step 2: Extract text using new ExtractionPipeline
         logger.info("Extracting text from PDF using ExtractionPipeline")
 
@@ -361,11 +277,7 @@ def process_document(
         )
 
         # Extract text with automatic strategy selection
-        extraction_pipeline_result = pipeline.extract(
-            str(pdf_path),
-            s3_bucket=S3_BUCKET,
-            s3_key=s3_pdf_key
-        )
+        extraction_pipeline_result = pipeline.extract(str(pdf_path))
 
         # Convert ExtractionResult to legacy format for compatibility
         extraction_result = {
@@ -377,7 +289,7 @@ def process_document(
             "processing_time": extraction_pipeline_result.processing_time_seconds,
             "quality_metrics": extraction_pipeline_result.quality_metrics,
             "warnings": extraction_pipeline_result.warnings,
-            "requires_textract_reprocessing": extraction_pipeline_result.confidence_score < 0.3,
+            "requires_additional_ocr": extraction_pipeline_result.confidence_score < 0.3,
         }
 
         logger.info(
@@ -393,8 +305,6 @@ def process_document(
         # Normalize extraction method for partitioning (remove suffixes like -budget-limit)
         extraction_method = extraction_result["extraction_method"]
         method_for_path = extraction_method.replace("-budget-limit", "")
-        if method_for_path.startswith("textract-"):
-            method_for_path = "textract"
 
         text_s3_key = (
             f"{S3_SILVER_PREFIX}/house/financial/text/"
@@ -415,35 +325,6 @@ def process_document(
                 "char_count": str(len(extraction_result["text"])),
             },
         )
-
-        # Step 3b: If Textract was used, save raw JSON response for comparison
-        if "textract_raw_response" in extraction_result:
-            logger.info("Saving raw Textract JSON for comparison")
-            textract_json_key = (
-                f"{S3_SILVER_PREFIX}/house/financial/text/"
-                f"extraction_method=textract/year={year}/"
-                f"doc_id={doc_id}/textract_response.json.gz"
-            )
-
-            import gzip
-            textract_json_bytes = json.dumps(extraction_result["textract_raw_response"]).encode('utf-8')
-            textract_json_gzipped = gzip.compress(textract_json_bytes)
-
-            s3_client = boto3.client("s3")
-            s3_client.put_object(
-                Bucket=S3_BUCKET,
-                Key=textract_json_key,
-                Body=textract_json_gzipped,
-                ContentType="application/json",
-                ContentEncoding="gzip",
-                Metadata={
-                    "doc_id": doc_id,
-                    "year": str(year),
-                    "extraction_method": extraction_result["extraction_method"],
-                    "extraction_version": EXTRACTION_VERSION,
-                }
-            )
-            logger.info(f"Saved raw Textract JSON: s3://{S3_BUCKET}/{textract_json_key}")
 
         # Step 4: Update house_fd_documents record
         logger.info("Updating house_fd_documents record")
@@ -536,15 +417,6 @@ def update_document_record(
     # Calculate extraction month (YYYY-MM format)
     extraction_month = date.today().strftime("%Y-%m")
 
-    # Calculate textract_pages_used (pages if Textract was used, 0 otherwise)
-    extraction_method = extraction_result["extraction_method"]
-    textract_pages_used = 0
-    if extraction_method in ["textract-detect-sync", "textract-detect-async", "textract-analyze"]:
-        textract_pages_used = extraction_result["pages"]
-
-    # Get requires_textract_reprocessing flag
-    requires_textract_reprocessing = extraction_result.get("requires_textract_reprocessing", False)
-
     # Build updated record
     updated_record = {
         "doc_id": doc_id,
@@ -554,7 +426,7 @@ def update_document_record(
         "pdf_file_size_bytes": pdf_file_size,
         "pages": extraction_result["pages"],
         "has_embedded_text": extraction_result.get("has_embedded_text", False),
-        "extraction_method": extraction_method,
+        "extraction_method": extraction_result["extraction_method"],
         "extraction_status": "success",
         "extraction_version": EXTRACTION_VERSION,
         "extraction_timestamp": datetime.now(timezone.utc).isoformat(),
@@ -562,11 +434,9 @@ def update_document_record(
         "extraction_duration_seconds": duration,
         "text_s3_key": text_s3_key,
         "json_s3_key": None,  # For future structured extraction
-        "textract_job_id": extraction_result.get("textract_job_id"),
         "char_count": len(extraction_result["text"]),
         "extraction_month": extraction_month,
-        "textract_pages_used": textract_pages_used,
-        "requires_textract_reprocessing": requires_textract_reprocessing,
+        "requires_additional_ocr": extraction_result.get("requires_additional_ocr", False),
         "filing_date": None,  # TODO: Get from filings table if needed
         "processing_priority": None,  # TODO: Calculate from filing date if needed
     }
@@ -621,11 +491,9 @@ def handle_extraction_error(doc_id: str, year: int, error: Exception):
             "extraction_duration_seconds": None,
             "text_s3_key": None,
             "json_s3_key": None,
-            "textract_job_id": None,
             "char_count": None,
             "extraction_month": extraction_month,
-            "textract_pages_used": 0,
-            "requires_textract_reprocessing": False,
+            "requires_additional_ocr": False,
             "filing_date": None,
             "processing_priority": None,
         }

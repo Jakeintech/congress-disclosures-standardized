@@ -155,8 +155,6 @@ resource "aws_lambda_function" "extract_document" {
       S3_BRONZE_PREFIX                = "bronze"
       S3_SILVER_PREFIX                = "silver"
       EXTRACTION_VERSION              = var.extraction_version
-      TEXTRACT_MAX_PAGES_SYNC         = var.textract_max_pages_sync
-      TEXTRACT_MONTHLY_PAGE_LIMIT     = var.textract_monthly_page_limit
       STRUCTURED_EXTRACTION_QUEUE_URL = aws_sqs_queue.structured_extraction_queue.id
       CODE_EXTRACTION_QUEUE_URL       = aws_sqs_queue.code_extraction_queue.id
       LOG_LEVEL                       = "INFO"

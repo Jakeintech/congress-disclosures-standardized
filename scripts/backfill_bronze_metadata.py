@@ -62,11 +62,11 @@ def update_bronze_metadata(doc_id, year, extraction_info):
         
         # Prepare metadata (all values must be strings, handle None)
         metadata = {
-            "textract-processed": "true",
-            "textract-version": EXTRACTION_VERSION,
-            "textract-timestamp": str(extraction_info.get('extraction_timestamp') or datetime.utcnow().isoformat()),
-            "textract-method": str(extraction_info.get('extraction_method') or 'unknown'),
-            "textract-pages": str(extraction_info.get('pages') or '0'),
+            "extraction-processed": "true",
+            "extraction-version": EXTRACTION_VERSION,
+            "extraction-timestamp": str(extraction_info.get('extraction_timestamp') or datetime.utcnow().isoformat()),
+            "extraction-method": str(extraction_info.get('extraction_method') or 'unknown'),
+            "extraction-pages": str(extraction_info.get('pages') or '0'),
             "text-location": str(extraction_info.get('text_s3_key') or ''),
         }
         

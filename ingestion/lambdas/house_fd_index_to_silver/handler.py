@@ -329,7 +329,6 @@ def initialize_document_records(
             "extraction_duration_seconds": None,
             "text_s3_key": None,
             "json_s3_key": None,
-            "textract_job_id": None,
             "char_count": None,
         }
 

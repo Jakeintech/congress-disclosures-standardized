@@ -354,7 +354,6 @@
         const method = meta ? meta.method : 'unknown';
         const confidence = meta ? meta.confidence_score : 0;
         const textLength = meta ? meta.text_length : 0;
-        const textractRec = meta ? meta.textract_recommended : false;
         const timestamp = meta ? meta.extraction_timestamp : 'N/A';
 
         // Build Mermaid diagram
@@ -377,9 +376,9 @@
     style Struct fill:#8b5cf6,stroke:#7c3aed,color:#fff
     style Done fill:#22c55e,stroke:#16a34a,color:#fff
             `;
-        } else if (method === 'ocr' || method === 'textract') {
+        } else if (method === 'ocr') {
             mermaidCode += `
-    Method -->|Image-based PDF| OCR[OCR/Textract]
+    Method -->|Image-based PDF| OCR[OCR]
     OCR -->|Scanned Text| Parse[Parse with RegEx]
     Parse -->|Extract Fields| Struct[Structured Data]
     Struct --> Conf{Confidence Check}
@@ -437,15 +436,6 @@ ${mermaidCode}
                         <div style="font-size: 0.9rem; font-weight: 600;">${timestamp ? new Date(timestamp).toLocaleString() : 'N/A'}</div>
                     </div>
                 </div>
-
-                ${textractRec ? `
-                <div class="alert alert-warning">
-                    <div class="alert-title">⚠️ Textract Recommended</div>
-                    <div class="alert-description">
-                        This PDF appears to be image-based. OCR/Textract extraction may be needed for better results.
-                    </div>
-                </div>
-                ` : ''}
 
                 <details style="margin-top: 1rem;">
                     <summary style="cursor: pointer; color: hsl(var(--primary)); font-size: 0.9rem; font-weight: 600;">🔍 Troubleshooting Guide</summary>

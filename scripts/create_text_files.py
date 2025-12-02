@@ -36,7 +36,7 @@ def get_documents_from_dynamodb():
 def find_text_file(doc_id, year):
     """Find the compressed text file for a document."""
     # Try different extraction methods
-    extraction_methods = ["pypdf", "textract"]
+    extraction_methods = ["direct_text", "ocr_text", "pypdf"]
     
     for method in extraction_methods:
         text_key = (

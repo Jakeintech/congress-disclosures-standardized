@@ -46,11 +46,10 @@ output "monthly_cost_estimate" {
   value = {
     s3_storage_20gb = "$0.46"
     lambda_compute  = "$0.08 - $2.00 (depends on invocations)"
-    textract        = "$0.00 - $15.00 (depends on image PDFs, 1000 pages free)"
     sqs             = "$0.00 (within free tier)"
     cloudwatch_logs = "$0.50"
-    total_estimate  = "$1.04 - $17.96 per month"
-    note            = "First month may be fully covered by AWS free tier. Textract is main variable cost."
+    total_estimate  = "$0.96 - $2.96 per month"
+    note            = "Textract dependency removed; costs are storage + Lambda only."
   }
 }
 

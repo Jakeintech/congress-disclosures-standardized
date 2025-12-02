@@ -54,13 +54,6 @@ class TypeABAnnualExtractor(BaseExtractor):
         
         overall_confidence = sum(field_confidence.values()) / len(field_confidence) if field_confidence else 0.5
         
-        # Recommend Textract if confidence is low or critical data is missing
-        textract_recommended = (
-            overall_confidence < 0.70 or
-            completeness_metrics["overall_completeness"] < 0.60 or
-            len(completeness_metrics["missing_critical_fields"]) > 0
-        )
-
         result = {
             "filer_info": filer_info,
             "report_type": {
@@ -87,7 +80,6 @@ class TypeABAnnualExtractor(BaseExtractor):
             "data_quality": {
                 "completeness_metrics": completeness_metrics,
                 "confidence_score": overall_confidence,
-                "textract_recommended": textract_recommended,
                 "extraction_issues": completeness_metrics["missing_critical_fields"]
             },
             "extraction_metadata": self.create_extraction_metadata(
@@ -97,8 +89,7 @@ class TypeABAnnualExtractor(BaseExtractor):
             )
         }
         
-        # Add textract recommendation to metadata
-        result["extraction_metadata"]["textract_recommended"] = textract_recommended
+        # Track missing fields for downstream review
         result["extraction_metadata"]["missing_fields"] = completeness_metrics["missing_critical_fields"]
 
         return result

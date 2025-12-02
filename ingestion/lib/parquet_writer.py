@@ -27,7 +27,7 @@ def clean_nan_values(record: Dict[str, Any]) -> Dict[str, Any]:
 
     # Fields that should be None instead of empty string
     nullable_string_fields = {
-        'pdf_sha256', 'text_s3_key', 'json_s3_key', 'textract_job_id',
+        'pdf_sha256', 'text_s3_key', 'json_s3_key',
         'extraction_error', 'filing_date', 'last_name', 'first_name'
     }
 
@@ -254,10 +254,8 @@ def upsert_parquet_records(
 
         # Fill NaN values for required fields with schema defaults
         # This handles old records that don't have new required fields
-        if "textract_pages_used" in merged_df.columns:
-            merged_df["textract_pages_used"] = merged_df["textract_pages_used"].fillna(0).astype(int)
-        if "requires_textract_reprocessing" in merged_df.columns:
-            merged_df["requires_textract_reprocessing"] = merged_df["requires_textract_reprocessing"].fillna(False)
+        if "requires_additional_ocr" in merged_df.columns:
+            merged_df["requires_additional_ocr"] = merged_df["requires_additional_ocr"].fillna(False)
         if "extraction_month" in merged_df.columns:
             # For old records without extraction_month, use current month (project just started)
             from datetime import date

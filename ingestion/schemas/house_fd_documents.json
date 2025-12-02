@@ -16,8 +16,7 @@
     "extraction_version",
     "extraction_timestamp",
     "extraction_month",
-    "textract_pages_used",
-    "requires_textract_reprocessing"
+    "requires_additional_ocr"
   ],
   "properties": {
     "doc_id": {
@@ -68,11 +67,6 @@
         "pending",
         "pypdf",
         "pypdf-budget-limit",
-        "textract",
-        "textract-detect-sync",
-        "textract-detect-async",
-        "textract-analyze",
-        "tesseract",
         "direct_text",
         "ocr_text",
         "failed"
@@ -132,14 +126,6 @@
       "description": "S3 key to structured JSON (if using AI extraction)",
       "maxLength": 500
     },
-    "textract_job_id": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "description": "AWS Textract job ID (for async jobs)",
-      "maxLength": 500
-    },
     "char_count": {
       "type": [
         "integer",
@@ -150,17 +136,12 @@
     },
     "extraction_month": {
       "type": "string",
-      "description": "Month when extraction was performed (YYYY-MM format) for Textract budget tracking",
+      "description": "Month when extraction was performed (YYYY-MM format)",
       "pattern": "^[0-9]{4}-[0-9]{2}$"
     },
-    "textract_pages_used": {
-      "type": "integer",
-      "description": "Number of pages processed with Textract (0 if pypdf used). Used for monthly budget tracking.",
-      "minimum": 0
-    },
-    "requires_textract_reprocessing": {
+    "requires_additional_ocr": {
       "type": "boolean",
-      "description": "True if document is image-based but was processed with pypdf due to budget limits. Needs Textract reprocessing in future."
+      "description": "True if extraction produced low confidence text and should be queued for OCR reprocessing."
     },
     "filing_date": {
       "type": [

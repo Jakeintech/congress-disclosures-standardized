@@ -180,7 +180,7 @@ class OCRTextExtractor(TextExtractionStrategy):
 
             if confidence < 0.6:
                 result.add_warning("Low OCR confidence")
-                result.add_recommendation("Consider using premium OCR (AWS Textract)")
+                result.add_recommendation("Consider using premium OCR service")
 
             logger.info(f"OCR extraction complete: {len(full_text)} chars, "
                        f"confidence={confidence:.2f}, time={processing_time:.1f}s")

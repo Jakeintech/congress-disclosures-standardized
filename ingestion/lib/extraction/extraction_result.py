@@ -18,7 +18,7 @@ class ExtractionResult:
     confidence_score: float  # 0.0 to 1.0
 
     # Extraction method metadata
-    extraction_method: str  # "direct_text", "ocr", "hybrid", "textract"
+    extraction_method: str  # "direct_text", "ocr", "hybrid"
     strategy_name: str  # Name of the strategy used
 
     # Document properties

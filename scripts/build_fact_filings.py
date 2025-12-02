@@ -140,7 +140,7 @@ def build_fact_filings(filings_df: pd.DataFrame, documents_df: pd.DataFrame, mem
             'agreement_count', 'expected_deadline_date', 'days_late', 'is_timely_filed',
             'is_amendment', 'original_filing_doc_id', 'extraction_method',
             'extraction_status', 'pdf_type', 'overall_confidence', 'has_extracted_data',
-            'has_structured_data', 'requires_manual_review', 'textract_pages_used',
+            'has_structured_data', 'requires_manual_review',
             'created_at', 'updated_at'
         ])
 
@@ -235,7 +235,6 @@ def build_fact_filings(filings_df: pd.DataFrame, documents_df: pd.DataFrame, mem
             'has_extracted_data': extraction_status == 'success',
             'has_structured_data': False,  # Would need to check structured.json exists
             'requires_manual_review': (pdf_type == 'image' or (extraction_status == 'success' and char_count < 100)),
-            'textract_pages_used': row.get('textract_pages_used', 0) if pd.notna(row.get('textract_pages_used')) else 0,
             'created_at': datetime.utcnow().isoformat(),
             'updated_at': datetime.utcnow().isoformat()
         }

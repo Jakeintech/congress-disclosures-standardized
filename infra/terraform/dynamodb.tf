@@ -20,3 +20,13 @@ resource "aws_dynamodb_table" "house_fd_documents" {
     Project     = "congress-disclosures"
   }
 }
+
+output "dynamodb_table_name" {
+  description = "Name of the DynamoDB table"
+  value       = aws_dynamodb_table.house_fd_documents.name
+}
+
+output "dynamodb_table_arn" {
+  description = "ARN of the DynamoDB table"
+  value       = aws_dynamodb_table.house_fd_documents.arn
+}

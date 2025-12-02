@@ -141,6 +141,13 @@ output "api_lambda_functions" {
   }
 }
 
+output "api_lambda_arns" {
+  description = "Map of API Lambda function ARNs"
+  value = {
+    for k, v in aws_lambda_function.api : k => v.arn
+  }
+}
+
 # output "api_lambda_layer_arn" {
 #   description = "ARN of API shared libraries layer"
 #   value       = aws_lambda_layer_version.api_shared_libs.arn

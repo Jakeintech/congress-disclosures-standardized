@@ -58,7 +58,7 @@ def main():
             print(f"  ✗ Exception: {e}")
     
     print(f"\n✅ Test extraction complete!")
-    print("Check Silver layer: data/silver/house/financial/structured_code/year=2025/filing_type=A/")
+    print("Check Silver layer: silver/objects/type_a/2025/")
 
 if __name__ == '__main__':
     main()

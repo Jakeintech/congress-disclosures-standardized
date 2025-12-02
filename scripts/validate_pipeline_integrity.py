@@ -120,7 +120,7 @@ def analyze_extraction_quality(year, sample_size=20):
     """
     print(f"📊 Analyzing Extraction Quality (Sampling {sample_size} docs/type)...")
     
-    prefix = f"silver/house/financial/structured_code/year={year}/"
+    prefix = f"silver/objects/type_p/{year}/"
     paginator = s3.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=prefix)
     

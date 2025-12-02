@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
 """
 Build Gold Layer: Fact Filings (Enhanced)
-Reads Silver layer structured JSONs, extracts metadata and schedule counts, and writes Parquet.
+Reads Silver layer structured JSONs from S3, extracts metadata and schedule counts, and writes Parquet to S3.
 """
 
 import os
 import sys
 import json
-import glob
 import logging
-import hashlib
+import io
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+import boto3
+
+# Add lib paths
+sys.path.insert(0, str(Path(__file__).parent.parent / "ingestion"))
+sys.path.insert(0, str(Path(__file__).parent))
+
+from lib.terraform_config import get_aws_config
 
 # Setup logging
 logging.basicConfig(
@@ -23,11 +29,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Paths
-BASE_DIR = Path(__file__).parent.parent
-DATA_DIR = BASE_DIR / "data"
-SILVER_DIR = DATA_DIR / "silver" / "house" / "financial" / "structured_code"
-GOLD_DIR = DATA_DIR / "gold" / "house" / "financial" / "facts" / "fact_filings"
+# Config
+config = get_aws_config()
+S3_BUCKET = config.get("s3_bucket_id")
+S3_REGION = config.get("s3_region", "us-east-1")
+
+if not S3_BUCKET:
+    logger.error("Missing required configuration.")
+    sys.exit(1)
+
+s3 = boto3.client('s3', region_name=S3_REGION)
 
 def get_date_key(date_str):
     """Convert YYYY-MM-DD to YYYYMMDD integer key."""
@@ -47,66 +58,79 @@ def process_year(year):
     """Process all filings for a specific year."""
     logger.info(f"Processing year {year}...")
     
-    year_path = SILVER_DIR / f"year={year}"
-    if not year_path.exists():
-        logger.warning(f"No silver data found for year {year} at {year_path}")
-        return
-        
-    files = list(year_path.glob("**/*.json"))
-    logger.info(f"Found {len(files)} files")
+    # Scan silver/objects/ for all filing types for this year
+    # Prefix: silver/objects/
+    # Structure: silver/objects/{filing_type}/{year}/{doc_id}/extraction.json
+    
+    prefix = "silver/objects/"
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
     
     filings = []
     
-    for json_file in files:
-        try:
-            with open(json_file, 'r') as f:
-                data = json.load(f)
-                
-            doc_id = data.get('doc_id')
-            filing_date = data.get('filing_date')
-            member_id = data.get('bioguide_id', 'UNKNOWN')
+    for page in pages:
+        if 'Contents' not in page:
+            continue
             
-            # Count items in schedules
-            aggs = data.get('aggs', {})
-            
-            record = {
-                'doc_id': doc_id,
-                'year': year,
-                'member_key': member_id,
-                'filing_date_key': get_date_key(filing_date),
-                'filing_type': data.get('filing_type'),
-                'is_extension': data.get('extension_details', {}).get('is_extension_request', False),
-                'schedule_a_count': len(aggs.get('schedule_a', [])),
-                'schedule_b_count': len(aggs.get('schedule_b', [])),
-                'schedule_c_count': len(aggs.get('schedule_c', [])),
-                'schedule_d_count': len(aggs.get('schedule_d', [])),
-                'schedule_e_count': len(aggs.get('schedule_e', [])),
-                'schedule_f_count': len(aggs.get('schedule_f', [])),
-                'schedule_g_count': len(aggs.get('schedule_g', [])),
-                'schedule_h_count': len(aggs.get('schedule_h', [])),
-                'schedule_i_count': len(aggs.get('schedule_i', [])),
-                'confidence_score': data.get('confidence_score', 1.0)
-            }
-            
-            filings.append(record)
+        for obj in page['Contents']:
+            key = obj['Key']
+            # Check if it matches the year and is an extraction.json
+            if f"/{year}/" in key and key.endswith("extraction.json"):
+                try:
+                    response = s3.get_object(Bucket=S3_BUCKET, Key=key)
+                    data = json.loads(response['Body'].read())
                     
-        except Exception as e:
-            logger.error(f"Error processing {json_file}: {e}")
-            
+                    doc_id = data.get('doc_id')
+                    filing_date = data.get('filing_date')
+                    # member_id = data.get('bioguide_id', 'UNKNOWN') # Not usually in extraction.json yet
+                    
+                    # Count items in schedules
+                    # aggs = data.get('aggs', {}) # Old format?
+                    # New format has 'transactions', 'assets_and_income', etc.
+                    
+                    schedule_a_count = len(data.get('assets_and_income', []))
+                    schedule_b_count = len(data.get('transactions', []))
+                    # Other schedules might be in 'schedules' dict or top level depending on extractor
+                    
+                    record = {
+                        'doc_id': doc_id,
+                        'year': year,
+                        # 'member_key': member_id,
+                        'filing_date_key': get_date_key(filing_date),
+                        'filing_type': data.get('filing_type'),
+                        'is_extension': data.get('extension_details', {}).get('is_extension_request', False),
+                        'schedule_a_count': schedule_a_count,
+                        'schedule_b_count': schedule_b_count,
+                        'confidence_score': data.get('extraction_metadata', {}).get('confidence_score', 1.0)
+                    }
+                    
+                    filings.append(record)
+                    
+                except Exception as e:
+                    logger.error(f"Error processing {key}: {e}")
+
     if not filings:
-        logger.warning("No filings found")
+        logger.warning(f"No filings found for year {year}")
         return
 
     df = pd.DataFrame(filings)
     df['year'] = df['year'].astype(int)
     
-    output_path = GOLD_DIR / f"year={year}"
-    output_path.mkdir(parents=True, exist_ok=True)
+    # Write to S3
+    output_key = f"gold/house/financial/facts/fact_filings/year={year}/part-0000.parquet"
     
-    table = pa.Table.from_pandas(df)
-    pq.write_table(table, output_path / "part-0000.parquet")
+    buffer = io.BytesIO()
+    df.to_parquet(buffer, index=False, engine="pyarrow")
+    buffer.seek(0)
     
-    logger.info(f"Wrote {len(df)} filings to {output_path}")
+    s3.put_object(
+        Bucket=S3_BUCKET,
+        Key=output_key,
+        Body=buffer.getvalue(),
+        ContentType="application/x-parquet"
+    )
+    
+    logger.info(f"Wrote {len(df)} filings to s3://{S3_BUCKET}/{output_key}")
 
 def main():
     import argparse
@@ -117,10 +141,10 @@ def main():
     if args.year:
         process_year(args.year)
     else:
-        if SILVER_DIR.exists():
-            years = [int(p.name.split('=')[1]) for p in SILVER_DIR.glob("year=*")]
-            for year in sorted(years):
-                process_year(year)
+        # Default to current year + next year (for testing)
+        current_year = datetime.now().year
+        process_year(current_year)
+        process_year(current_year + 1)
 
 if __name__ == "__main__":
     main()

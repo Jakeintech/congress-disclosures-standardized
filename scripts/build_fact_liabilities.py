@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 # Paths
 BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
-SILVER_DIR = DATA_DIR / "silver" / "house" / "financial" / "structured_code"
+SILVER_DIR = DATA_DIR / "silver" / "objects"
 GOLD_DIR = DATA_DIR / "gold" / "house" / "financial" / "facts" / "fact_liabilities"
 DIM_MEMBERS_PATH = DATA_DIR / "gold" / "dimensions" / "dim_members"
 

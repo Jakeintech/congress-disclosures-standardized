@@ -92,7 +92,7 @@ def load_structured_json(s3_client, doc_id: str, year: int) -> Dict[str, Any]:
         Structured data dict or None if not found
     """
     # Updated path structure to match new extractor output
-    s3_key = f"silver/house/financial/structured_code/year={year}/filing_type=P/doc_id={doc_id}.json"
+    s3_key = f"silver/objects/type_p/{year}/{doc_id}/extraction.json"
 
     try:
         response = s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
@@ -260,7 +260,7 @@ def main():
         print()
 
         # Save to parquet
-        parquet_key = "silver/house/financial/ptr_transactions/year=2025/part-0000.parquet"
+        parquet_key = f"silver/tables/transactions/year={year}/part-0000.parquet"
         print(f"Saving to s3://{S3_BUCKET}/{parquet_key}...")
 
         parquet_buffer = io.BytesIO()

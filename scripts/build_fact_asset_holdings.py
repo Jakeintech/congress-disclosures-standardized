@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 # Paths
 BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
-# Assuming structured JSONs for Schedule A are in 'structured_code'
-SILVER_DIR = DATA_DIR / "silver" / "house" / "financial" / "structured_code" 
+# Assuming structured JSONs for Schedule A are in 'objects'
+SILVER_DIR = DATA_DIR / "silver" / "objects" 
 GOLD_DIR = DATA_DIR / "gold" / "house" / "financial" / "facts" / "fact_asset_holdings"
 DIM_MEMBERS_PATH = DATA_DIR / "gold" / "dimensions" / "dim_members"
 

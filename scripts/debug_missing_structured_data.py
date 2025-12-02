@@ -49,8 +49,8 @@ def get_silver_ptrs(year: int) -> Set[str]:
     s3 = boto3.client("s3")
     silver_ids = set()
     
-    # Correct path: silver/house/financial/structured_code/year={year}/filing_type=P/
-    prefix = f"silver/house/financial/structured_code/year={year}/filing_type=P/"
+    # Correct path: silver/objects/type_p/{year}/
+    prefix = f"silver/objects/type_p/{year}/"
     paginator = s3.get_paginator("list_objects_v2")
     
     for page in paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix):

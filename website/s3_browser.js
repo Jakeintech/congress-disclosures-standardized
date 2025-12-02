@@ -20,6 +20,12 @@ class S3Browser {
         this.showLoading();
 
         try {
+            let apiLayer = this.layer;
+            // If browsing silver, default to 'silver/objects' if no prefix is set, 
+            // but the API expects just 'silver' and handles the rest via prefix.
+            // Actually, for better UX, let's just pass the layer as is.
+            // The API lists everything under the bucket/layer prefix.
+            // So for silver, it will show 'objects' and 'tables' folders.
             const url = `${this.apiBaseUrl}/v1/storage/${this.layer}${prefix ? `?prefix=${encodeURIComponent(prefix)}` : ''}`;
             const response = await fetch(url);
 

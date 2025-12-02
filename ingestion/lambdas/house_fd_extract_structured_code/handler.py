@@ -272,10 +272,13 @@ def extract_simple_notice(doc_id: str, year: int, text: str, filing_type: str) -
 def upload_structured_json(doc_id: str, year: int, data: Dict[str, Any]) -> str:
     """Upload structured JSON to S3."""
 
-    # Path: silver/house/financial/structured_code/year=YYYY/filing_type=X/doc_id=XXXXX.json
-    filing_type = data.get('filing_type', 'Unknown').replace('/', '_').replace(' ', '_')
+    # Path: silver/objects/{filing_type}/{year}/{doc_id}/extraction.json
+    filing_type = data.get('filing_type', 'Unknown').replace('/', '_').replace(' ', '_').lower()
+    # Ensure filing_type starts with 'type_' if it's a single letter code
+    if len(filing_type) == 1:
+        filing_type = f"type_{filing_type}"
 
-    s3_key = f"{S3_SILVER_PREFIX}/house/financial/structured_code/year={year}/filing_type={filing_type}/doc_id={doc_id}.json"
+    s3_key = f"{S3_SILVER_PREFIX}/objects/{filing_type}/{year}/{doc_id}/extraction.json"
 
     json_str = json.dumps(data, indent=2)
 

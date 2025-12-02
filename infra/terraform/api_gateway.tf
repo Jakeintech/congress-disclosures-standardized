@@ -351,3 +351,8 @@ output "api_gateway_id" {
   description = "API Gateway ID"
   value       = aws_apigatewayv2_api.congress_api.id
 }
+
+output "api_gateway_execution_arn" {
+  description = "Execution ARN of the API Gateway"
+  value       = aws_apigatewayv2_api.congress_api.execution_arn
+}

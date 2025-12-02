@@ -68,7 +68,7 @@ variable "lambda_ingest_memory_mb" {
 variable "lambda_extract_memory_mb" {
   description = "Memory allocation for extract Lambda in MB"
   type        = number
-  default     = 2048 # Needs more memory for PDF/Textract processing
+  default     = 2048 # Memory for PDF processing
 
   validation {
     condition     = var.lambda_extract_memory_mb >= 128 && var.lambda_extract_memory_mb <= 10240

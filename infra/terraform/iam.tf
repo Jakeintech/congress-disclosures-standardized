@@ -59,6 +59,7 @@ resource "aws_iam_role_policy" "lambda_s3_access" {
           "s3:GetObject",
           "s3:PutObject",
           "s3:PutObjectAcl",
+          "s3:PutObjectTagging",
           "s3:DeleteObject" # Needed for cleanup/re-processing
         ]
         Resource = "${aws_s3_bucket.data_lake.arn}/*"

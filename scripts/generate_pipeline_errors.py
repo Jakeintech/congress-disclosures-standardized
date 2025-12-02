@@ -57,7 +57,7 @@ def get_s3_pdfs(year):
 
 def get_silver_docs(year):
     """Lists all DocIDs present in the Silver layer (structured code)."""
-    prefix = f"silver/house/financial/structured_code/year={year}/"
+    prefix = f"silver/objects/type_p/{year}/"
     docs = set()
     paginator = s3.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=prefix)

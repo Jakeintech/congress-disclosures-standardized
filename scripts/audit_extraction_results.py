@@ -10,7 +10,7 @@ BUCKET = 'congress-disclosures-standardized'
 results = {'P': [], 'C': [], 'A': [], 'X': [], 'T': [], 'Unknown': []}
 
 # List all structured JSON files
-prefix = 'silver/house/financial/structured_code/year=2025/'
+prefix = 'silver/objects/type_p/2025/'
 paginator = s3.get_paginator('list_objects_v2')
 
 for page in paginator.paginate(Bucket=BUCKET, Prefix=prefix):

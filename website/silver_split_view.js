@@ -278,8 +278,9 @@
 
         try {
             // Construct path for structured data
-            // silver/house/financial/structured_code/year=YYYY/filing_type=X/doc_id=ID.json
-            const path = `silver/house/financial/structured_code/year=${doc.year}/filing_type=${doc.filing_type}/doc_id=${doc.doc_id}.json`;
+            // silver/objects/type_X/year/doc_id/extraction.json
+            const filingTypeFolder = doc.filing_type.length === 1 ? `type_${doc.filing_type.toLowerCase()}` : doc.filing_type.toLowerCase().replace(/ /g, '_');
+            const path = `silver/objects/${filingTypeFolder}/${doc.year}/${doc.doc_id}/extraction.json`;
             const url = `${API_BASE}/${path}`;
 
             const response = await fetch(url);

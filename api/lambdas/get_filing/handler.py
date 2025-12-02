@@ -38,7 +38,7 @@ def handler(event, context):
             filing_type = filing_info.get('filing_type', 'P')
             year = filing_info.get('filing_year', 2025)
             
-            key = f"silver/house/financial/structured_code/year={year}/filing_type={filing_type}/doc_id={doc_id}.json"
+            key = f"silver/objects/type_{filing_type.lower()}/{year}/{doc_id}/extraction.json"
             
             response = s3.get_object(Bucket=S3_BUCKET, Key=key)
             structured_data = json.loads(response['Body'].read())

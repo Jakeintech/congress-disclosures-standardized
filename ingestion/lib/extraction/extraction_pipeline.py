@@ -1,7 +1,7 @@
 """
 Extraction Pipeline Orchestrator
 
-Manages the complete text extraction workflow with intelligent fallback.
+Manages the complete text extraction workflow.
 """
 
 import logging
@@ -11,8 +11,6 @@ from enum import Enum
 from .text_extraction_strategy import TextExtractionStrategy
 from .extraction_result import ExtractionResult
 from .direct_text_extractor import DirectTextExtractor
-from .ocr_text_extractor import OCRTextExtractor
-from .image_preprocessor import ImagePreprocessor
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +24,7 @@ class PDFType(Enum):
 
 
 class ExtractionPipeline:
-    """Orchestrates the complete extraction workflow with intelligent fallback."""
+    """Orchestrates the complete extraction workflow."""
 
     def __init__(
         self,
@@ -60,7 +58,6 @@ class ExtractionPipeline:
         """Create default extraction strategies."""
         return [
             DirectTextExtractor(),  # Priority 0 - try first
-            OCRTextExtractor(ImagePreprocessor()),  # Priority 50 - fallback
         ]
 
     def extract(
@@ -69,15 +66,7 @@ class ExtractionPipeline:
         preferred_strategy: Optional[str] = None
     ) -> ExtractionResult:
         """
-        Execute extraction pipeline with intelligent fallback.
-
-        Flow:
-        1. Classify PDF type (text vs image)
-        2. Select optimal strategy
-        3. Execute extraction
-        4. Validate quality
-        5. Fallback if needed
-        6. Return best result
+        Execute extraction pipeline.
 
         Args:
             pdf_source: Either file path (str) or PDF bytes (bytes)
@@ -134,7 +123,6 @@ class ExtractionPipeline:
                 f"(confidence={best_result.confidence_score:.2f})"
             )
             best_result.add_warning("All extraction strategies completed but quality below threshold")
-            best_result.add_recommendation("Consider manual review or premium OCR service")
             return best_result
 
         # No strategies could handle PDF
@@ -190,11 +178,6 @@ class ExtractionPipeline:
         """
         Validate extraction quality.
 
-        Checks:
-        - Minimum character count
-        - Minimum confidence score
-        - No critical errors
-
         Args:
             result: Extraction result to validate
 
@@ -231,9 +214,7 @@ class ExtractionPipeline:
     def classify_pdf_type(self, pdf_source: Union[str, bytes]) -> PDFType:
         """
         Classify PDF type (text-based vs image-based).
-
-        This is a quick classification to help select the optimal strategy.
-
+        
         Args:
             pdf_source: PDF source
 
@@ -275,17 +256,5 @@ class ExtractionPipeline:
         Returns:
             Recommended strategy or None
         """
-        pdf_type = self.classify_pdf_type(pdf_source)
-
-        if pdf_type == PDFType.TEXT_BASED:
-            # Use direct text extraction
-            return self._get_strategy_by_name("direct_text")
-        elif pdf_type == PDFType.IMAGE_BASED:
-            # Use OCR
-            return self._get_strategy_by_name("ocr_tesseract")
-        elif pdf_type == PDFType.HYBRID:
-            # Try direct first, fallback to OCR
-            return self._get_strategy_by_name("direct_text")
-        else:
-            # Unknown - try direct first
-            return self._get_strategy_by_name("direct_text")
+        # Always return direct text since OCR is removed
+        return self._get_strategy_by_name("direct_text")

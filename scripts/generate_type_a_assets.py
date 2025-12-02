@@ -78,7 +78,13 @@ def load_manifest_metadata(s3_client) -> pd.DataFrame:
 
 def load_structured_json(s3_client, doc_id: str, year: int, filing_type: str) -> Dict[str, Any]:
     """Load structured.json for a document from S3."""
-    s3_key = f"silver/house/financial/structured_code/year={year}/filing_type={filing_type}/doc_id={doc_id}.json"
+    # Ensure filing_type starts with 'type_' if it's a single letter code
+    if len(filing_type) == 1:
+        filing_type_folder = f"type_{filing_type.lower()}"
+    else:
+        filing_type_folder = filing_type.lower()
+        
+    s3_key = f"silver/objects/{filing_type_folder}/{year}/{doc_id}/extraction.json"
 
     try:
         response = s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
@@ -215,7 +221,7 @@ def main():
     print()
 
     # Save to parquet
-    parquet_key = "silver/house/financial/type_a_assets/year=2025/part-0000.parquet"
+    parquet_key = f"silver/tables/assets/year={year}/part-0000.parquet"
     print(f"Saving to s3://{S3_BUCKET}/{parquet_key}...")
 
     parquet_buffer = io.BytesIO()

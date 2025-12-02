@@ -273,8 +273,7 @@ function exportQualityCSV() {
         'Quality Score',
         'Quality Category',
         'Flagged',
-        'Days Since Last Filing',
-        'Textract Pages Used'
+        'Days Since Last Filing'
     ];
 
     const rows = filteredQualityData.map(m => [
@@ -289,8 +288,7 @@ function exportQualityCSV() {
         m.quality_score,
         m.quality_category,
         m.is_hard_to_process ? 'Yes' : 'No',
-        m.days_since_last_filing,
-        m.textract_pages_used
+        m.days_since_last_filing
     ]);
 
     const csv = [

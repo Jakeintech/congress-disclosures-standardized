@@ -136,9 +136,9 @@
       "description": "Days since most recent filing",
       "minimum": 0
     },
-    "textract_pages_used": {
+    "requires_additional_ocr": {
       "type": "integer",
-      "description": "Total Textract pages used for this member (budget tracking)",
+      "description": "Count of filings flagged for OCR follow-up",
       "minimum": 0
     }
   },
@@ -164,6 +164,6 @@
     "is_hard_to_process",
     "quality_trend",
     "days_since_last_filing",
-    "textract_pages_used"
+    "requires_additional_ocr"
   ]
 }

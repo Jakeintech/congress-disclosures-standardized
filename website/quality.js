@@ -188,9 +188,9 @@ function getPartyBadgeClass(party) {
 }
 
 function exportQualityCSV() {
-    const headers = ['Member', 'Party', 'State/District', 'Total Filings', 'Text PDF Count', 'Image PDF Count', 'Image PDF %', 'Avg Confidence', 'Quality Score', 'Quality Category', 'Flagged', 'Days Since Last Filing', 'Textract Pages Used'];
+    const headers = ['Member', 'Party', 'State/District', 'Total Filings', 'Text PDF Count', 'Image PDF Count', 'Image PDF %', 'Avg Confidence', 'Quality Score', 'Quality Category', 'Flagged', 'Days Since Last Filing'];
     const rows = filteredQualityData.map(m => [
-        m.full_name, m.party, m.state_district, m.total_filings, m.text_pdf_count, m.image_pdf_count, m.image_pdf_pct, m.avg_confidence_score, m.quality_score, m.quality_category, m.is_hard_to_process ? 'Yes' : 'No', m.days_since_last_filing, m.textract_pages_used
+        m.full_name, m.party, m.state_district, m.total_filings, m.text_pdf_count, m.image_pdf_count, m.image_pdf_pct, m.avg_confidence_score, m.quality_score, m.quality_category, m.is_hard_to_process ? 'Yes' : 'No', m.days_since_last_filing
     ]);
 
     const csv = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');

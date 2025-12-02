@@ -176,28 +176,6 @@ variable "enable_xray_tracing" {
   default     = false # Disabled by default to save costs
 }
 
-variable "textract_max_pages_sync" {
-  description = "Max pages to process synchronously with Textract"
-  type        = number
-  default     = 10
-
-  validation {
-    condition     = var.textract_max_pages_sync >= 1 && var.textract_max_pages_sync <= 100
-    error_message = "Textract sync max pages must be between 1 and 100."
-  }
-}
-
-variable "textract_monthly_page_limit" {
-  description = "Monthly page limit for Textract processing (AWS free tier: 1000 pages/month for 3 months)"
-  type        = number
-  default     = 1000
-
-  validation {
-    condition     = var.textract_monthly_page_limit >= 0 && var.textract_monthly_page_limit <= 100000
-    error_message = "Textract monthly page limit must be between 0 and 100000."
-  }
-}
-
 variable "extraction_version" {
   description = "Version string for extraction pipeline (for auditability)"
   type        = string

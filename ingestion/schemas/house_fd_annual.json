@@ -473,10 +473,6 @@
                     "maximum": 1,
                     "description": "Overall extraction confidence (0-1)"
                 },
-                "textract_recommended": {
-                    "type": "boolean",
-                    "description": "Whether Textract-based extraction is recommended for better quality"
-                },
                 "extraction_issues": {
                     "type": "array",
                     "items": {
@@ -503,7 +499,6 @@
                     "type": "string",
                     "enum": [
                         "regex",
-                        "textract",
                         "hybrid"
                     ],
                     "description": "Extraction method used"
@@ -525,10 +520,6 @@
                         "minimum": 0,
                         "maximum": 1
                     }
-                },
-                "textract_recommended": {
-                    "type": "boolean",
-                    "description": "Whether Textract extraction is recommended"
                 },
                 "missing_fields": {
                     "type": "array",

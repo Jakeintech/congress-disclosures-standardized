@@ -96,31 +96,8 @@ resource "aws_iam_role_policy" "lambda_sqs_access" {
           aws_sqs_queue.extraction_dlq.arn,
           aws_sqs_queue.structured_extraction_queue.arn, # For extract Lambda to queue structured extraction
           aws_sqs_queue.code_extraction_queue.arn,       # For code-based extraction
-          aws_sqs_queue.code_extraction_dlq.arn,         # Code extraction DLQ
-          aws_sqs_queue.textract_approval_queue.arn      # For human-approved Textract
+          aws_sqs_queue.code_extraction_dlq.arn          # Code extraction DLQ
         ]
-      }
-    ]
-  })
-}
-
-# AWS Textract policy (for PDF extraction)
-resource "aws_iam_role_policy" "lambda_textract_access" {
-  name = "${local.name_prefix}-lambda-textract"
-  role = aws_iam_role.lambda_execution.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "textract:DetectDocumentText",
-          "textract:AnalyzeDocument",
-          "textract:GetDocumentAnalysis",
-          "textract:GetDocumentTextDetection"
-        ]
-        Resource = "*"
       }
     ]
   })

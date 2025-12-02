@@ -69,12 +69,15 @@ def load_fact_filings(bucket_name: str) -> pd.DataFrame:
             'agreement_count', 'expected_deadline_date', 'days_late', 'is_timely_filed',
             'is_amendment', 'original_filing_doc_id', 'extraction_method',
             'extraction_status', 'pdf_type', 'overall_confidence', 'has_extracted_data',
-            'has_structured_data', 'requires_manual_review', 'textract_pages_used',
+            'has_structured_data', 'requires_manual_review', 'requires_additional_ocr',
             'created_at', 'updated_at', 'filing_date'
         ])
 
     all_filings = pd.concat(dfs, ignore_index=True)
     logger.info(f"Loaded {len(all_filings):,} filings")
+
+    if 'requires_additional_ocr' not in all_filings.columns:
+        all_filings['requires_additional_ocr'] = 0
 
     return all_filings
 
@@ -188,8 +191,8 @@ def compute_document_quality_by_member(
         last_filing_date = member_filings['filing_date'].max()
         days_since_last_filing = (datetime.now() - last_filing_date).days
 
-        # Textract usage
-        textract_pages_used = member_filings['textract_pages_used'].sum()
+        # OCR follow-ups
+        requires_additional_ocr = member_filings['requires_additional_ocr'].sum()
 
         # Build record
         record = {
@@ -215,7 +218,7 @@ def compute_document_quality_by_member(
             'is_hard_to_process': is_hard_to_process,
             'quality_trend': quality_trend,
             'days_since_last_filing': days_since_last_filing,
-            'textract_pages_used': int(textract_pages_used)
+            'requires_additional_ocr': int(requires_additional_ocr)
         }
 
         quality_metrics.append(record)
@@ -229,7 +232,7 @@ def compute_document_quality_by_member(
             'extraction_failure_count', 'avg_data_completeness_pct',
             'zero_transaction_filing_count', 'quality_score', 'quality_category',
             'is_hard_to_process', 'quality_trend', 'days_since_last_filing',
-            'textract_pages_used'
+            'requires_additional_ocr'
         ])
 
     return pd.DataFrame(quality_metrics)

@@ -55,8 +55,7 @@ def load_agg_document_quality(bucket_name: str) -> pd.DataFrame:
             'min_confidence_score', 'low_confidence_count', 'manual_review_count',
             'extraction_failure_count', 'avg_data_completeness_pct',
             'zero_transaction_filing_count', 'quality_score', 'quality_category',
-            'is_hard_to_process', 'quality_trend', 'days_since_last_filing',
-            'textract_pages_used'
+            'is_hard_to_process', 'quality_trend', 'days_since_last_filing'
         ])
 
     return pd.concat(dfs, ignore_index=True)
@@ -148,8 +147,7 @@ def generate_manifest(quality_df: pd.DataFrame, members_df: pd.DataFrame) -> dic
             'quality_score': round(float(row['quality_score']), 1),
             'quality_category': row['quality_category'],
             'is_hard_to_process': bool(row['is_hard_to_process']),
-            'days_since_last_filing': int(row['days_since_last_filing']),
-            'textract_pages_used': int(row['textract_pages_used'])
+            'days_since_last_filing': int(row['days_since_last_filing'])
         }
 
         manifest['members'].append(member_record)

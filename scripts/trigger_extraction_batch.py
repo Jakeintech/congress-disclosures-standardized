@@ -52,7 +52,7 @@ def trigger_extraction():
         message_body = {
             "doc_id": doc_id,
             "year": year,
-            "extraction_method": "textract",  # Force Textract for structured data
+            "extraction_method": "direct_text",
             "has_embedded_text": False
         }
         

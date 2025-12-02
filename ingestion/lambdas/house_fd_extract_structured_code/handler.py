@@ -22,12 +22,10 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 # AWS clients
 s3 = boto3.client('s3')
-sqs = boto3.client('sqs')
 
 # Environment variables
 S3_BUCKET = os.environ['S3_BUCKET_NAME']
 S3_SILVER_PREFIX = os.environ.get('S3_SILVER_PREFIX', 'silver')
-TEXTRACT_APPROVAL_QUEUE_URL = os.environ.get('TEXTRACT_APPROVAL_QUEUE_URL')  # For low-confidence docs
 
 # Import extractors
 from lib.extractors.type_p_ptr.extractor import PTRExtractor
@@ -108,8 +106,7 @@ def lambda_handler(event, context):
                 'extraction_timestamp': datetime.now(timezone.utc).isoformat(),
                 'processed_at': datetime.now(timezone.utc).isoformat(),
                 'text_length': len(text),
-                'confidence_score': result.get('confidence_score', 0.0),
-                'textract_recommended': result.get('textract_recommended', False)
+                'confidence_score': result.get('confidence_score', 0.0)
             }
             
             # Include extracted text content for UI inspection
@@ -118,10 +115,6 @@ def lambda_handler(event, context):
             # Upload structured JSON
             json_s3_key = upload_structured_json(doc_id, year, result)
             logger.info(f"Uploaded structured JSON: {json_s3_key}")
-
-            # If confidence is low, queue for Textract approval
-            if result.get('textract_recommended') and TEXTRACT_APPROVAL_QUEUE_URL:
-                queue_for_textract_approval(doc_id, year, result['confidence_score'], result.get('missing_fields', []))
 
             logger.info(f"Successfully processed doc_id={doc_id} (confidence: {result.get('confidence_score', 0):.1%})")
 
@@ -271,8 +264,6 @@ def extract_simple_notice(doc_id: str, year: int, text: str, filing_type: str) -
     found_fields = total_fields - len(extracted['missing_fields'])
     extracted['confidence_score'] = found_fields / total_fields
 
-    # These are usually simple 1-2 page forms, so don't recommend Textract
-    extracted['textract_recommended'] = False
     extracted['manual_review_required'] = extracted['confidence_score'] < 0.5
 
     return extracted
@@ -297,28 +288,3 @@ def upload_structured_json(doc_id: str, year: int, data: Dict[str, Any]) -> str:
 
     logger.info(f"Uploaded structured JSON to s3://{S3_BUCKET}/{s3_key}")
     return s3_key
-
-
-def queue_for_textract_approval(doc_id: str, year: int, confidence: float, missing_fields: List[str]):
-    """Queue document for human Textract approval review."""
-
-    if not TEXTRACT_APPROVAL_QUEUE_URL:
-        logger.warning("TEXTRACT_APPROVAL_QUEUE_URL not set, skipping approval queue")
-        return
-
-    message = {
-        "doc_id": doc_id,
-        "year": year,
-        "confidence_score": confidence,
-        "missing_fields": missing_fields,
-        "reason": f"Low confidence ({confidence:.1%}) - human review recommended"
-    }
-
-    try:
-        sqs.send_message(
-            QueueUrl=TEXTRACT_APPROVAL_QUEUE_URL,
-            MessageBody=json.dumps(message)
-        )
-        logger.info(f"Queued doc_id={doc_id} for Textract approval (confidence: {confidence:.1%})")
-    except Exception as e:
-        logger.error(f"Failed to queue for Textract approval: {e}")

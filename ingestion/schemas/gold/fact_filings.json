@@ -117,7 +117,7 @@
     "extraction_method": {
       "type": "string",
       "description": "Primary extraction method used",
-      "enum": ["pypdf", "textract", "manual", "not_extracted"]
+      "enum": ["pypdf", "manual", "not_extracted"]
     },
     "extraction_status": {
       "type": "string",
@@ -146,11 +146,6 @@
     "requires_manual_review": {
       "type": "boolean",
       "description": "True if flagged for manual review"
-    },
-    "textract_pages_used": {
-      "type": "integer",
-      "description": "Number of pages processed with Textract (for budget tracking)",
-      "minimum": 0
     },
     "created_at": {
       "type": "string",
@@ -187,7 +182,6 @@
     "has_extracted_data",
     "has_structured_data",
     "requires_manual_review",
-    "textract_pages_used",
     "created_at",
     "updated_at"
   ]

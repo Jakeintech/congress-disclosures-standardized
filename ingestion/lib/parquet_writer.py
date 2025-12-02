@@ -252,6 +252,17 @@ def upsert_parquet_records(
         else:
             merged_df = new_df
 
+        # Drop columns not in schema (handles legacy Textract fields)
+        if schema:
+            allowed_cols = set(schema.get("properties", {}).keys())
+            # Ensure key columns are kept (though they should be in schema)
+            allowed_cols.update(key_columns)
+            
+            cols_to_drop = [c for c in merged_df.columns if c not in allowed_cols]
+            if cols_to_drop:
+                logger.info(f"Dropping legacy/unknown columns not in schema: {cols_to_drop}")
+                merged_df = merged_df.drop(columns=cols_to_drop)
+
         # Fill NaN values for required fields with schema defaults
         # This handles old records that don't have new required fields
         if "requires_additional_ocr" in merged_df.columns:

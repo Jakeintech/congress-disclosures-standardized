@@ -101,7 +101,7 @@ resource "aws_apigatewayv2_route" "get_members" {
 resource "aws_apigatewayv2_integration" "get_members" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_members.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_members"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -115,7 +115,7 @@ resource "aws_apigatewayv2_route" "get_member" {
 resource "aws_apigatewayv2_integration" "get_member" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_member.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_member"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -129,7 +129,7 @@ resource "aws_apigatewayv2_route" "get_member_trades" {
 resource "aws_apigatewayv2_integration" "get_member_trades" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_member_trades.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_member_trades"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -143,7 +143,7 @@ resource "aws_apigatewayv2_route" "get_member_portfolio" {
 resource "aws_apigatewayv2_integration" "get_member_portfolio" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_member_portfolio.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_member_portfolio"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -160,7 +160,7 @@ resource "aws_apigatewayv2_route" "get_trades" {
 resource "aws_apigatewayv2_integration" "get_trades" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_trades.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_trades"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -174,7 +174,7 @@ resource "aws_apigatewayv2_route" "get_stock" {
 resource "aws_apigatewayv2_integration" "get_stock" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_stock.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_stock"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -188,7 +188,7 @@ resource "aws_apigatewayv2_route" "get_stock_activity" {
 resource "aws_apigatewayv2_integration" "get_stock_activity" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_stock_activity.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_stock_activity"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -202,7 +202,7 @@ resource "aws_apigatewayv2_route" "get_stocks" {
 resource "aws_apigatewayv2_integration" "get_stocks" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_stocks.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_stocks"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -219,7 +219,7 @@ resource "aws_apigatewayv2_route" "get_top_traders" {
 resource "aws_apigatewayv2_integration" "get_top_traders" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_top_traders.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_top_traders"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -233,7 +233,7 @@ resource "aws_apigatewayv2_route" "get_trending_stocks" {
 resource "aws_apigatewayv2_integration" "get_trending_stocks" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_trending_stocks.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_trending_stocks"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -247,7 +247,7 @@ resource "aws_apigatewayv2_route" "get_sector_activity" {
 resource "aws_apigatewayv2_integration" "get_sector_activity" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_sector_activity.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_sector_activity"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -261,7 +261,7 @@ resource "aws_apigatewayv2_route" "get_compliance" {
 resource "aws_apigatewayv2_integration" "get_compliance" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_compliance.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_compliance"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -275,7 +275,7 @@ resource "aws_apigatewayv2_route" "get_trading_timeline" {
 resource "aws_apigatewayv2_integration" "get_trading_timeline" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_trading_timeline.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_trading_timeline"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -289,7 +289,7 @@ resource "aws_apigatewayv2_route" "get_summary" {
 resource "aws_apigatewayv2_integration" "get_summary" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_summary.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_summary"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -306,7 +306,7 @@ resource "aws_apigatewayv2_route" "search" {
 resource "aws_apigatewayv2_integration" "search" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_search.invoke_arn
+  integration_uri  = aws_lambda_function.api["search"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -320,7 +320,7 @@ resource "aws_apigatewayv2_route" "get_filings" {
 resource "aws_apigatewayv2_integration" "get_filings" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_filings.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_filings"].invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -334,7 +334,7 @@ resource "aws_apigatewayv2_route" "get_filing" {
 resource "aws_apigatewayv2_integration" "get_filing" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.api_get_filing.invoke_arn
+  integration_uri  = aws_lambda_function.api["get_filing"].invoke_arn
   payload_format_version = "2.0"
 }
 

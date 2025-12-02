@@ -67,6 +67,27 @@ function injectNavigation() {
                         </svg>
                         Quality
                     </a>
+                    <a href="${base}costs.html" class="nav-link ${isActive(currentPage, 'costs.html')}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                        Costs
+                    </a>
+                    
+                    <div class="dropdown">
+                        <button class="dropbtn ${isActive(currentPage, ['browse-bronze.html', 'browse-silver.html', 'browse-gold.html'])}">
+                            Browse Data
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-content">
+                            <a href="${base}browse-bronze.html" class="nav-link ${isActive(currentPage, 'browse-bronze.html')}">Bronze (Raw)</a>
+                            <a href="${base}browse-silver.html" class="nav-link ${isActive(currentPage, 'browse-silver.html')}">Silver (Extracted)</a>
+                            <a href="${base}browse-gold.html" class="nav-link ${isActive(currentPage, 'browse-gold.html')}">Gold (Analytics)</a>
+                        </div>
+                    </div>
                     <a href="${base}downloads.html" class="nav-link ${isActive(currentPage, 'downloads.html')}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>

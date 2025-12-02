@@ -2,25 +2,30 @@
 # API Lambda Layer (Shared Libraries)
 # ============================================================================
 
-resource "aws_lambda_layer_version" "api_shared_libs" {
-  layer_name          = "${local.name_prefix}-api-shared-libs"
-  description         = "Shared libraries for Congressional Trading API (DuckDB, pandas, PyArrow, api.lib)"
-  s3_bucket           = aws_s3_bucket.data_lake.id
-  s3_key              = "lambda-deployments/layers/api_shared_layer.zip"
-  compatible_runtimes = ["python3.11"]
+# NOTE: Using AWS-provided AWSSDKPandas layer instead of custom layer
+# to avoid 250MB unzipped size limit. The AWS layer includes:
+# - pandas, numpy, pyarrow, duckdb, and other data processing libraries
+# See: https://aws-sdk-pandas.readthedocs.io/en/stable/layers.html
 
-  lifecycle {
-    ignore_changes = [source_code_hash]
-  }
-
-  tags = merge(
-    local.standard_tags,
-    {
-      Name      = "${local.name_prefix}-api-shared-libs"
-      Component = "lambda-layer"
-    }
-  )
-}
+# resource "aws_lambda_layer_version" "api_shared_libs" {
+#   layer_name          = "${local.name_prefix}-api-shared-libs"
+#   description         = "Shared libraries for Congressional Trading API (DuckDB, pandas, PyArrow, api.lib)"
+#   s3_bucket           = aws_s3_bucket.data_lake.id
+#   s3_key              = "lambda-deployments/layers/api_shared_layer.zip"
+#   compatible_runtimes = ["python3.11"]
+#
+#   lifecycle {
+#     ignore_changes = [source_code_hash]
+#   }
+#
+#   tags = merge(
+#     local.standard_tags,
+#     {
+#       Name      = "${local.name_prefix}-api-shared-libs"
+#       Component = "lambda-layer"
+#     }
+#   )
+# }
 
 # ============================================================================
 # API Lambda Functions
@@ -33,8 +38,7 @@ locals {
     timeout     = 29 # API Gateway max for synchronous invocation
     memory_size = 512
     layers = [
-      aws_lambda_layer_version.api_shared_libs.arn,
-      "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24" # AWS Data Wrangler
+      "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24" # AWS Data Wrangler (includes pandas, numpy, pyarrow, duckdb)
     ]
     environment_variables = {
       S3_BUCKET_NAME = aws_s3_bucket.data_lake.id
@@ -68,6 +72,10 @@ locals {
     "search"      = { route = "GET /v1/search" }
     "get_filings" = { route = "GET /v1/filings" }
     "get_filing"  = { route = "GET /v1/filings/{doc_id}" }
+
+    # System endpoints
+    "get_aws_costs"    = { route = "GET /v1/costs" }
+    "list_s3_objects"  = { route = "GET /v1/storage/{layer}" }
   }
 }
 
@@ -102,7 +110,6 @@ resource "aws_lambda_function" "api" {
       Name      = "${local.name_prefix}-api-${each.key}"
       Component = "lambda"
       Purpose   = "api"
-      Route     = each.value.route
     }
   )
 
@@ -111,7 +118,6 @@ resource "aws_lambda_function" "api" {
   }
 
   depends_on = [
-    aws_lambda_layer_version.api_shared_libs,
     aws_iam_role_policy.lambda_logging
   ]
 }
@@ -135,7 +141,7 @@ output "api_lambda_functions" {
   }
 }
 
-output "api_lambda_layer_arn" {
-  description = "ARN of API shared libraries layer"
-  value       = aws_lambda_layer_version.api_shared_libs.arn
-}
+# output "api_lambda_layer_arn" {
+#   description = "ARN of API shared libraries layer"
+#   value       = aws_lambda_layer_version.api_shared_libs.arn
+# }

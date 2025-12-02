@@ -59,11 +59,22 @@ LAMBDA_FUNCTIONS=(
     "get_members"
     "get_member"
     "get_member_trades"
+    "get_member_portfolio"
     "get_trades"
     "get_stock"
+    "get_stock_activity"
     "get_stocks"
+    "get_top_traders"
+    "get_trending_stocks"
+    "get_sector_activity"
+    "get_compliance"
+    "get_trading_timeline"
     "get_summary"
     "search"
+    "get_filings"
+    "get_filing"
+    "get_aws_costs"
+    "list_s3_objects"
 )
 
 for FUNC in "${LAMBDA_FUNCTIONS[@]}"; do

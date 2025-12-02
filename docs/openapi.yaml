@@ -43,8 +43,27 @@ tags:
     description: Search and discovery
   - name: Filings
     description: Financial disclosure filings
+  - name: System
+    description: System status and metrics
 
 paths:
+  # ============================================================================
+  # System Endpoints
+  # ============================================================================
+
+  /v1/costs:
+    get:
+      tags: [System]
+      summary: Get AWS costs
+      description: Get daily and total AWS costs for the last 30 days
+      responses:
+        '200':
+          description: Cost data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostResponse'
+
   # ============================================================================
   # Member Endpoints
   # ============================================================================
@@ -779,12 +798,136 @@ components:
       properties:
         success:
           type: boolean
+        filings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Filing'
+
+    S3Object:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [file, folder]
+        key:
+          type: string
+        size:
+          type: integer
+        lastModified:
+          type: string
+          format: date-time
+        url:
+          type: string
+
+    S3ObjectList:
+      type: object
+      properties:
+        layer:
+          type: string
+        prefix:
+          type: string
+        bucket:
+          type: string
+        folders:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3Object'
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3Object'
+        truncated:
+          type: boolean
+        keyCount:
+          type: integer
+        nextContinuationToken:
+          type: string
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+
+paths:
+  /v1/storage/{layer}:
+    get:
+      tags:
+        - System
+      summary: List S3 objects in a storage layer
+      parameters:
+        - in: path
+          name: layer
+          schema:
+            type: string
+            enum: [bronze, silver, gold]
+          required: true
+          description: Storage layer to list
+        - in: query
+          name: prefix
+          schema:
+            type: string
+          description: Folder prefix to list
+        - in: query
+          name: maxKeys
+          schema:
+            type: integer
+            default: 1000
+          description: Maximum number of keys to return
+        - in: query
+          name: continuationToken
+          schema:
+            type: string
+          description: Pagination token
+      responses:
+        '200':
+          description: List of objects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/S3ObjectList'
         data:
           type: array
           items:
             type: object
         pagination:
           $ref: '#/components/schemas/Pagination'
+
+    CostResponse:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        last_updated:
+          type: string
+          format: date-time
+        total_period_cost:
+          type: number
+        daily_costs:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              total_cost:
+                type: number
+              services:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    service:
+                      type: string
+                    cost:
+                      type: number
 
     FilingDetail:
       type: object

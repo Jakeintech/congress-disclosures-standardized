@@ -76,6 +76,8 @@ deploy-static: build-admin
 	aws s3 cp website/index.html s3://congress-disclosures-standardized/website/index.html --cache-control "no-cache"
 	aws s3 cp website/app.js s3://congress-disclosures-standardized/website/app.js --cache-control "no-cache"
 	aws s3 cp website/style.css s3://congress-disclosures-standardized/website/style.css --cache-control "max-age=3600"
+	aws s3 cp website/costs.html s3://congress-disclosures-standardized/website/costs.html --cache-control "no-cache"
+	aws s3 cp website/cost_visualizer.js s3://congress-disclosures-standardized/website/cost_visualizer.js --cache-control "no-cache"
 	@if [ -f website/admin.html ]; then \
 		aws s3 cp website/admin.html s3://congress-disclosures-standardized/website/admin.html --cache-control "no-cache"; \
 	fi

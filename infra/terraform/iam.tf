@@ -144,6 +144,52 @@ resource "aws_iam_role_policy" "lambda_xray_access" {
   })
 }
 
+# Cost Explorer access for cost visualization
+resource "aws_iam_role_policy" "lambda_ce_access" {
+  name = "${local.name_prefix}-lambda-ce"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ce:GetCostAndUsage"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "lambda_s3_list" {
+  name = "${local.name_prefix}-lambda-s3-list"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket"
+        ]
+        Resource = aws_s3_bucket.data_lake.arn
+        Condition = {
+          StringLike = {
+            "s3:prefix" = [
+              "bronze/*",
+              "silver/*",
+              "gold/*"
+            ]
+          }
+        }
+      }
+    ]
+  })
+}
+
 # VPC access policy (if Lambdas need VPC access in the future)
 # Commented out by default as VPC access increases costs and cold start times
 # resource "aws_iam_role_policy_attachment" "lambda_vpc_execution" {

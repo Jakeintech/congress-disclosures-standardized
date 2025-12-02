@@ -65,10 +65,13 @@ plan: validate ## Show Terraform plan
 
 deploy: ## Deploy infrastructure with Terraform
 	cd $(TERRAFORM_DIR) && terraform apply
-	@echo "✓ Infrastructure deployed"
+	@bash scripts/sync_terraform_outputs.sh
+	@echo "✓ Infrastructure deployed and .env synced"
 
 deploy-auto: ## Deploy infrastructure without confirmation (use in CI)
 	cd $(TERRAFORM_DIR) && terraform apply -auto-approve
+	@bash scripts/sync_terraform_outputs.sh
+	@echo "✓ Infrastructure deployed and .env synced"
 
 destroy: ## Destroy infrastructure (WARNING: irreversible)
 	@echo "WARNING: This will destroy all infrastructure including S3 data!"
@@ -378,6 +381,13 @@ check-dlq: ## Check dead letter queue status
 		--attribute-names ApproximateNumberOfMessages \
 		--query 'Attributes.ApproximateNumberOfMessages' --output text | \
 		xargs -I {} echo "Messages in DLQ: {}"
+
+# API Lambdas
+API_LAMBDAS = get_members get_member get_member_trades get_member_portfolio \
+              get_trades get_stock get_stock_activity get_stocks \
+              get_top_traders get_trending_stocks get_sector_activity \
+              get_compliance get_trading_timeline get_summary \
+              search get_filings get_filing get_aws_costs
 
 test-extractions: ## Test and validate extraction results by filing type
 	@echo "Testing extraction results..."

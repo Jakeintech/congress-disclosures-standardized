@@ -35,7 +35,7 @@ def handler(event, context):
         
         # Filing type filter
         if 'filing_type' in query_params:
-            filters['filing_type'] = query_params['filing_type'].upper()
+            filters['filing_type'] = query_params['filing_type'].lower()
         
         # Date range
         if 'start_date' in query_params or 'end_date' in query_params:

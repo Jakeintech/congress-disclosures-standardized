@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
 """
 Build Gold Layer: Fact PTR Transactions
-Reads Silver layer structured JSONs (Schedule B), joins with dimensions, and writes Parquet.
+Reads Silver layer structured JSONs (Type P), extracts transactions, and writes Parquet.
 """
 
 import os
 import sys
 import json
-import glob
 import logging
 import hashlib
+import io
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+import boto3
+
+# Add lib paths
+sys.path.insert(0, str(Path(__file__).parent.parent / "ingestion"))
+sys.path.insert(0, str(Path(__file__).parent))
+
+from lib.terraform_config import get_aws_config
 
 # Setup logging
 logging.basicConfig(
@@ -23,22 +30,24 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Paths
-BASE_DIR = Path(__file__).parent.parent
-DATA_DIR = BASE_DIR / "data"
-SILVER_DIR = DATA_DIR / "silver" / "house" / "financial" / "ptr_transactions"
-GOLD_DIR = DATA_DIR / "gold" / "house" / "financial" / "facts" / "fact_ptr_transactions"
-DIM_MEMBERS_PATH = DATA_DIR / "gold" / "dimensions" / "dim_members" # It's a directory of parquet files
+# Config
+config = get_aws_config()
+S3_BUCKET = config.get("s3_bucket_id")
+S3_REGION = config.get("s3_region", "us-east-1")
+
+if not S3_BUCKET:
+    logger.error("Missing required configuration.")
+    sys.exit(1)
+
+s3 = boto3.client('s3', region_name=S3_REGION)
 
 def get_date_key(date_str):
     """Convert YYYY-MM-DD to YYYYMMDD integer key."""
     if not date_str or date_str == 'None':
         return None
     try:
-        # Handle timestamp or date string
         if isinstance(date_str, (int, float)):
              return None
-        # If it's already YYYY-MM-DD
         if len(str(date_str)) >= 10:
             dt = datetime.strptime(str(date_str)[:10], "%Y-%m-%d")
             return int(dt.strftime("%Y%m%d"))
@@ -46,138 +55,108 @@ def get_date_key(date_str):
     except ValueError:
         return None
 
-def parse_amount_range(range_str):
-    """Parse amount range string into low/high values."""
-    if not range_str:
-        return 0.0, 0.0
-    
-    # Clean string
-    clean = str(range_str).replace('$', '').replace(',', '').strip()
-    
-    if ' - ' in clean:
-        parts = clean.split(' - ')
-        try:
-            low = float(parts[0])
-            high = float(parts[1])
-            return low, high
-        except:
-            pass
-            
-    # Handle "Over X" cases
-    if 'Over' in clean:
-        try:
-            val = float(clean.replace('Over', '').strip())
-            return val, val * 2 # Estimate high as 2x low for open ranges
-        except:
-            pass
-            
-    return 0.0, 0.0
-
 def generate_transaction_key(row):
     """Generate unique key for transaction."""
-    raw = f"{row['doc_id']}_{row['transaction_date']}_{row['ticker']}_{row['amount_range']}_{row['transaction_type']}"
+    raw = f"{row['doc_id']}_{row['transaction_date']}_{row['ticker']}_{row['amount']}_{row['transaction_type']}_{row['asset_description']}"
     return hashlib.md5(raw.encode()).hexdigest()
 
-def load_dimensions():
-    """Load reference dimensions."""
-    members = {}
-    if DIM_MEMBERS_PATH.exists():
-        # Read all parquet files in directory
-        files = list(DIM_MEMBERS_PATH.glob("*.parquet"))
-        if files:
-            df = pd.concat([pd.read_parquet(f) for f in files])
-            # Create lookup: bioguide_id -> key (or just verify existence)
-            # For now just returning the dataframe or set of IDs
-            return set(df['bioguide_id'].unique()) if 'bioguide_id' in df.columns else set()
-    return set()
-
 def process_year(year):
-    """Process all filings for a specific year."""
+    """Process all Type P filings for a specific year."""
     logger.info(f"Processing year {year}...")
     
-    # Silver structure: silver/house/financial/ptr_transactions/year=YYYY/part-*.parquet
-    year_path = SILVER_DIR / f"year={year}"
-    if not year_path.exists():
-        logger.warning(f"No silver data found for year {year} at {year_path}")
-        return
-        
-    files = list(year_path.glob("*.parquet"))
-    logger.info(f"Found {len(files)} files")
+    # Scan silver/objects/filing_type=type_p/year={year}/
+    prefix = f"silver/objects/filing_type=type_p/year={year}/"
     
-    if not files:
-        return
-
-    # Read Silver Parquet
-    df_silver = pd.concat([pd.read_parquet(f) for f in files])
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
     
-    if df_silver.empty:
-        logger.warning("Silver data is empty")
-        return
-
     transactions = []
+    filing_count = 0
     
-    for _, row in df_silver.iterrows():
-        try:
-            # Silver columns: doc_id, date, ticker, asset_name, amount_low, amount_high, type, owner, bioguide_id, etc.
-            # We need to map these to our Gold schema
+    for page in pages:
+        if 'Contents' not in page:
+            continue
             
-            doc_id = row.get('doc_id')
-            member_id = row.get('bioguide_id', 'UNKNOWN')
-            
-            # Parse amounts if they are strings, but Silver parquet likely has them as floats/ints or structured
-            # Assuming Silver is already somewhat clean
-            
-            record = {
-                'doc_id': doc_id,
-                'year': year,
-                'member_key': member_id,
-                'asset_key': row.get('ticker', 'UNKNOWN'),
-                'transaction_date_key': get_date_key(str(row.get('transaction_date'))),
-                'notification_date_key': get_date_key(str(row.get('notification_date'))),
-                'filing_date_key': get_date_key(str(row.get('filing_date'))),
-                'transaction_type': row.get('transaction_type'),
-                'owner_code': row.get('owner'),
-                'amount_range': row.get('amount_range'), # Assuming this exists or we reconstruct
-                'amount_low': row.get('amount_low'),
-                'amount_high': row.get('amount_high'),
-                'amount_column': 'amount', 
-                'ticker': row.get('ticker'),
-                'asset_description': row.get('asset_name'),
-                'confidence_score': 1.0 
-            }
-            
-            # Generate key
-            record['transaction_key'] = generate_transaction_key({
-                'doc_id': doc_id,
-                'transaction_date': str(row.get('transaction_date')),
-                'ticker': row.get('ticker'),
-                'amount_range': str(record['amount_low']), # Use low amount for uniqueness if range missing
-                'transaction_type': row.get('transaction_type')
-            })
-            
-            transactions.append(record)
-            
-        except Exception as e:
-            logger.error(f"Error processing row: {e}")
-            
+        for obj in page['Contents']:
+            key = obj['Key']
+            if key.endswith("extraction.json"):
+                try:
+                    response = s3.get_object(Bucket=S3_BUCKET, Key=key)
+                    data = json.loads(response['Body'].read())
+                    
+                    doc_id = data.get('doc_id')
+                    filing_date = data.get('filing_date')
+                    
+                    # Get bronze metadata
+                    bronze_meta = data.get('bronze_metadata', {})
+                    filer_name = bronze_meta.get('filer_name') or data.get('document_header', {}).get('filer_name')
+                    state_district = bronze_meta.get('state_district')
+                    
+                    # Get transactions list
+                    # The extraction Lambda puts them in 'transactions' list for Type P
+                    doc_transactions = data.get('transactions', [])
+                    
+                    if not doc_transactions:
+                        continue
+                        
+                    filing_count += 1
+                    
+                    for tx in doc_transactions:
+                        # Extract fields with defaults
+                        tx_date = tx.get('transaction_date')
+                        
+                        record = {
+                            'doc_id': doc_id,
+                            'filing_year': year,
+                            'filing_date': filing_date,
+                            'filing_date_key': get_date_key(filing_date),
+                            'filer_name': filer_name,
+                            'state_district': state_district,
+                            
+                            'transaction_date': tx_date,
+                            'transaction_date_key': get_date_key(tx_date),
+                            'owner': tx.get('owner'),
+                            'ticker': tx.get('ticker'),
+                            'asset_description': tx.get('asset_name') or tx.get('asset_description'),
+                            'asset_type': tx.get('asset_type'),
+                            'transaction_type': tx.get('transaction_type'),
+                            'amount': tx.get('amount'), # Usually a range string like "$1,001 - $15,000"
+                            'comment': tx.get('comment'),
+                            'cap_gains_over_200': tx.get('cap_gains_over_200', False)
+                        }
+                        
+                        # Generate unique key
+                        record['transaction_key'] = generate_transaction_key(record)
+                        
+                        transactions.append(record)
+                        
+                except Exception as e:
+                    logger.error(f"Error processing {key}: {e}")
+
     if not transactions:
-        logger.warning("No transactions processed")
+        logger.warning(f"No transactions found for year {year}")
         return
 
-    # Create DataFrame
-    df_gold = pd.DataFrame(transactions)
+    df = pd.DataFrame(transactions)
     
     # Ensure types
-    df_gold['year'] = df_gold['year'].astype(int)
+    df['filing_year'] = df['filing_year'].astype(int)
     
-    # Write to Parquet partitioned by year
-    output_path = GOLD_DIR / f"year={year}"
-    output_path.mkdir(parents=True, exist_ok=True)
+    # Write to S3
+    output_key = f"gold/house/financial/facts/fact_ptr_transactions/year={year}/part-0000.parquet"
     
-    table = pa.Table.from_pandas(df_gold)
-    pq.write_table(table, output_path / "part-0000.parquet")
+    buffer = io.BytesIO()
+    df.to_parquet(buffer, index=False, engine="pyarrow")
+    buffer.seek(0)
     
-    logger.info(f"Wrote {len(df_gold)} transactions to {output_path}")
+    s3.put_object(
+        Bucket=S3_BUCKET,
+        Key=output_key,
+        Body=buffer.getvalue(),
+        ContentType="application/x-parquet"
+    )
+    
+    logger.info(f"Processed {filing_count} filings, wrote {len(df)} transactions to s3://{S3_BUCKET}/{output_key}")
 
 def main():
     import argparse
@@ -188,10 +167,11 @@ def main():
     if args.year:
         process_year(args.year)
     else:
-        # Process all years found in Silver
-        years = [int(p.name.split('=')[1]) for p in SILVER_DIR.glob("year=*")]
-        for year in sorted(years):
-            process_year(year)
+        # Default to current year + next year
+        current_year = datetime.now().year
+        process_year(current_year)
+        process_year(current_year + 1)
 
 if __name__ == "__main__":
     main()
+

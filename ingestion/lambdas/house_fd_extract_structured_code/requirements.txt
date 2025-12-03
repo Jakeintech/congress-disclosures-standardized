@@ -2,7 +2,7 @@
 # This Lambda uses CODE ONLY (regex, patterns) - NO Textract
 
 # AWS SDK (included in Lambda runtime, but listed for clarity)
-boto3>=1.26.0
+# boto3>=1.26.0
 
 # JSON schema validation
 jsonschema>=4.17.0
@@ -14,9 +14,9 @@ python-dateutil>=2.8.0
 pypdf>=4.0.0
 
 # OCR dependencies (requires system binaries in Docker)
-pytesseract>=0.3.10
-pdf2image>=1.16.3
-opencv-python-headless>=4.8.0
-numpy>=1.24.0
-Pillow>=10.0.0
+# pytesseract>=0.3.10
+# pdf2image>=1.16.3
+# opencv-python-headless>=4.8.0
+# numpy>=1.24.0
+# Pillow>=10.0.0
 

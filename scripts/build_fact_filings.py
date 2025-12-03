@@ -66,6 +66,7 @@ def process_year(year):
     pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
     
     filings = []
+    filing_type_counts = {}
     
     for page in pages:
         if 'Contents' not in page:
@@ -79,6 +80,19 @@ def process_year(year):
                 try:
                     response = s3.get_object(Bucket=S3_BUCKET, Key=key)
                     data = json.loads(response['Body'].read())
+                    
+                    # Extract filing_type from S3 key path (Hive partition)
+                    # Key format: silver/objects/filing_type=type_p/year=2025/doc_id=12345/extraction.json
+                    filing_type = None
+                    if '/filing_type=' in key:
+                        filing_type_part = key.split('/filing_type=')[1].split('/')[0]
+                        filing_type = filing_type_part  # Keep as-is (e.g., "type_p")
+                    
+                    if not filing_type:
+                        filing_type = data.get('filing_type', 'Unknown')
+                    
+                    # Track counts
+                    filing_type_counts[filing_type] = filing_type_counts.get(filing_type, 0) + 1
                     
                     doc_id = data.get('doc_id')
                     filing_date = data.get('filing_date')
@@ -99,7 +113,7 @@ def process_year(year):
                         'filing_year': year,  # Add explicit filing_year column
                         'filing_date_key': get_date_key(filing_date),
                         'filing_date': filing_date,  # Keep original date too
-                        'filing_type': data.get('filing_type'),
+                        'filing_type': filing_type,
                         'filer_name': filer_name,
                         'state_district': state_district,
                         'is_extension': data.get('extension_details', {}).get('is_extension_request', False),
@@ -114,12 +128,18 @@ def process_year(year):
                 except Exception as e:
                     logger.error(f"Error processing {key}: {e}")
 
+    logger.info(f"Filing type counts: {filing_type_counts}")
+
     if not filings:
         logger.warning(f"No filings found for year {year}")
         return
 
     df = pd.DataFrame(filings)
-    df['year'] = df['year'].astype(int)
+    # df['year'] = df['year'].astype(int) # Year is in partition, don't include in file
+    
+    # Drop year column as it's the partition key
+    if 'year' in df.columns:
+        df = df.drop(columns=['year'])
     
     # Write to S3
     output_key = f"gold/house/financial/facts/fact_filings/year={year}/part-0000.parquet"

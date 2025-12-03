@@ -519,6 +519,41 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /v1/filings/{doc_id}/transactions:
+    get:
+      tags: [Filings]
+      summary: Get filing transactions
+      description: Get all transactions listed in a specific filing (Type P)
+      parameters:
+        - name: doc_id
+          in: path
+          required: true
+          description: Document ID
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: ticker
+          in: query
+          schema:
+            type: string
+        - name: asset_type
+          in: query
+          schema:
+            type: string
+        - name: transaction_type
+          in: query
+          schema:
+            type: string
+            enum: [Purchase, Sale, Exchange]
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilingTransactionListResponse'
+
 # ============================================================================
 # Components
 # ============================================================================
@@ -798,6 +833,42 @@ components:
       properties:
         success:
           type: boolean
+        data:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    FilingTransactionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              doc_id:
+                type: string
+              transaction_date:
+                type: string
+                format: date
+              ticker:
+                type: string
+              asset_description:
+                type: string
+              asset_type:
+                type: string
+              transaction_type:
+                type: string
+              amount:
+                type: string
+              cap_gains_over_200:
+                type: boolean
+        pagination:
+          $ref: '#/components/schemas/Pagination'
         filings:
           type: array
           items:

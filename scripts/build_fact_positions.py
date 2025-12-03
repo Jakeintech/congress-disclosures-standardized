@@ -1,124 +1,140 @@
-#!/usr/bin/env python3
 """
-Build Gold Layer: Fact Positions
-Reads Silver layer structured JSONs (Schedule E), joins with dimensions, and writes Parquet.
+Build Gold Layer: Fact Positions (Schedule E)
+
+This script reads Silver layer data (Type A/B/C filings) and creates the
+fact_positions table in the Gold layer.
+
+Schema:
+- doc_id: string
+- filing_year: int
+- filer_name: string
+- state_district: string
+- position_title: string
+- position_key: string (unique hash)
 """
 
 import os
-import sys
 import json
-import glob
 import logging
+import argparse
 import hashlib
-from datetime import datetime
-from pathlib import Path
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
+import boto3
+import io
 
-# Setup logging
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Paths
-BASE_DIR = Path(__file__).parent.parent
-DATA_DIR = BASE_DIR / "data"
-SILVER_DIR = DATA_DIR / "silver" / "objects"
-GOLD_DIR = DATA_DIR / "gold" / "house" / "financial" / "facts" / "fact_positions"
-DIM_MEMBERS_PATH = DATA_DIR / "gold" / "dimensions" / "dim_members"
+S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
-def get_date_key(date_str):
-    """Convert YYYY-MM-DD to YYYYMMDD integer key."""
-    if not date_str or date_str == 'None':
-        return None
-    try:
-        if isinstance(date_str, (int, float)):
-             return None
-        if len(str(date_str)) >= 10:
-            dt = datetime.strptime(str(date_str)[:10], "%Y-%m-%d")
-            return int(dt.strftime("%Y%m%d"))
-        return None
-    except ValueError:
-        return None
+def get_s3_client():
+    return boto3.client('s3')
 
-def generate_position_key(row):
-    """Generate unique key for position."""
-    raw = f"{row['doc_id']}_{row['organization']}_{row['position_title']}"
-    return hashlib.md5(raw.encode()).hexdigest()
+def generate_position_key(doc_id, position_title, index):
+    """Generate a unique key for each position."""
+    raw = f"{doc_id}|{position_title}|{index}"
+    return hashlib.md5(raw.encode('utf-8')).hexdigest()
 
 def process_year(year):
-    """Process all filings for a specific year."""
-    logger.info(f"Processing year {year}...")
+    """Process all Type A/B/C filings for a given year."""
+    s3 = get_s3_client()
     
-    year_path = SILVER_DIR / f"year={year}"
-    if not year_path.exists():
-        logger.warning(f"No silver data found for year {year} at {year_path}")
-        return
+    filing_types = ['type_a', 'type_b', 'type_c']
+    
+    positions_list = []
+    processed_count = 0
+    
+    for ftype in filing_types:
+        prefix = f"silver/objects/filing_type={ftype}/year={year}/"
+        logger.info(f"Scanning {prefix}...")
         
-    files = list(year_path.glob("**/*.json"))
-    logger.info(f"Found {len(files)} files")
-    
-    positions = []
-    
-    for json_file in files:
-        try:
-            with open(json_file, 'r') as f:
-                data = json.load(f)
+        paginator = s3.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
+        
+        for page in pages:
+            if 'Contents' not in page:
+                continue
                 
-            doc_id = data.get('doc_id')
-            filing_date = data.get('filing_date')
-            member_id = data.get('bioguide_id', 'UNKNOWN')
-            
-            # Process Schedule E (Positions)
-            if 'aggs' in data and 'schedule_e' in data['aggs']:
-                for item in data['aggs']['schedule_e']:
-                    record = {
-                        'doc_id': doc_id,
-                        'year': year,
-                        'member_key': member_id,
-                        'filing_date_key': get_date_key(filing_date),
-                        'organization': item.get('organization'),
-                        'position_title': item.get('position'),
-                        'confidence_score': 1.0
-                    }
+            for obj in page['Contents']:
+                key = obj['Key']
+                if not key.endswith("extraction.json"):
+                    continue
                     
-                    record['position_key'] = generate_position_key(record)
-                    positions.append(record)
+                try:
+                    response = s3.get_object(Bucket=S3_BUCKET, Key=key)
+                    data = json.loads(response['Body'].read())
                     
-        except Exception as e:
-            logger.error(f"Error processing {json_file}: {e}")
-            
-    if not positions:
-        logger.warning("No positions found")
+                    doc_id = data.get('doc_id')
+                    
+                    # Get metadata
+                    bronze_meta = data.get('bronze_metadata', {})
+                    filer_name = bronze_meta.get('filer_name') or data.get('document_header', {}).get('filer_name')
+                    state_district = bronze_meta.get('state_district')
+                    
+                    # Extract Schedule E (Positions)
+                    positions = data.get('schedule_e') or data.get('positions', [])
+                    
+                    if not positions:
+                        continue
+                        
+                    for idx, pos in enumerate(positions):
+                        # Clean up fields
+                        position_title = pos.get('position_title', '').strip()
+                        if not position_title:
+                            continue
+                            
+                        record = {
+                            'doc_id': doc_id,
+                            'filing_year': year,
+                            'filer_name': filer_name,
+                            'state_district': state_district,
+                            'filing_type': ftype,
+                            
+                            'position_title': position_title,
+                            
+                            'position_key': generate_position_key(doc_id, position_title, idx)
+                        }
+                        positions_list.append(record)
+                    
+                    processed_count += 1
+                    if processed_count % 100 == 0:
+                        logger.info(f"Processed {processed_count} filings...")
+                        
+                except Exception as e:
+                    logger.error(f"Error processing {key}: {e}")
+
+    if not positions_list:
+        logger.warning(f"No positions found for year {year}")
         return
 
-    df = pd.DataFrame(positions)
-    df['year'] = df['year'].astype(int)
+    # Create DataFrame
+    df = pd.DataFrame(positions_list)
     
-    output_path = GOLD_DIR / f"year={year}"
-    output_path.mkdir(parents=True, exist_ok=True)
+    # Write to S3 (Hive partitioned by year)
+    output_key = f"gold/house/financial/facts/fact_positions/year={year}/part-0000.parquet"
     
-    table = pa.Table.from_pandas(df)
-    pq.write_table(table, output_path / "part-0000.parquet")
+    buffer = io.BytesIO()
+    df.to_parquet(buffer, index=False, engine="pyarrow")
     
-    logger.info(f"Wrote {len(df)} positions to {output_path}")
+    s3.put_object(
+        Bucket=S3_BUCKET,
+        Key=output_key,
+        Body=buffer.getvalue(),
+        ContentType="application/x-parquet"
+    )
+    
+    logger.info(f"Processed {processed_count} filings, wrote {len(df)} positions to s3://{S3_BUCKET}/{output_key}")
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--year', type=int, help='Process specific year')
+    parser.add_argument('--year', type=int, required=True, help='Process specific year')
     args = parser.parse_args()
     
-    if args.year:
-        process_year(args.year)
-    else:
-        if SILVER_DIR.exists():
-            years = [int(p.name.split('=')[1]) for p in SILVER_DIR.glob("year=*")]
-            for year in sorted(years):
-                process_year(year)
+    process_year(args.year)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

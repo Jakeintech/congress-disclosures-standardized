@@ -44,10 +44,13 @@ locals {
   # List of API Lambda functions to create
   api_lambdas = {
     # Member endpoints
-    "get_members"          = { route = "GET /v1/members" }
-    "get_member"           = { route = "GET /v1/members/{bioguide_id}" }
-    "get_member_trades"    = { route = "GET /v1/members/{bioguide_id}/trades" }
-    "get_member_portfolio" = { route = "GET /v1/members/{bioguide_id}/portfolio" }
+    "get_members"                 = { route = "GET /v1/members" }
+    "get_member"                  = { route = "GET /v1/members/{bioguide_id}" }
+    "get_member_trades"           = { route = "GET /v1/members/{bioguide_id}/trades" }
+    "get_member_portfolio"        = { route = "GET /v1/members/{bioguide_id}/portfolio" }
+    "get_member_filings"          = { route = "GET /v1/members/{name}/filings" }
+    "get_member_transactions"     = { route = "GET /v1/members/{name}/transactions" }
+    "get_member_assets"           = { route = "GET /v1/members/{name}/assets" }
 
     # Trading & Stock endpoints
     "get_trades"         = { route = "GET /v1/trades" }
@@ -67,6 +70,9 @@ locals {
     "search"      = { route = "GET /v1/search" }
     "get_filings" = { route = "GET /v1/filings" }
     "get_filing"  = { route = "GET /v1/filings/{doc_id}" }
+    "get_filing_transactions" = { route = "GET /v1/filings/{doc_id}/transactions" }
+    "get_filing_assets"       = { route = "GET /v1/filings/{doc_id}/assets" }
+    "get_filing_positions"    = { route = "GET /v1/filings/{doc_id}/positions" }
 
     # System endpoints
     "get_aws_costs"    = { route = "GET /v1/costs" }

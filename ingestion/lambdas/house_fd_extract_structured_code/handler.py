@@ -13,7 +13,7 @@ import logging
 import gzip
 import os
 from datetime import datetime, timezone
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import boto3
 
 # Setup logging

@@ -29,7 +29,7 @@ aws s3 cp build/ingestion/house_fd_extract_structured_code.zip s3://congress-dis
 
 echo "Updating Lambda function code..."
 aws lambda update-function-code \
-    --function-name congress-disclosures-development-extract-structured-code \
+    --function-name congress-disclosures-development-structured-extraction \
     --s3-bucket congress-disclosures-standardized \
     --s3-key lambda-deployments/ingestion/house_fd_extract_structured_code.zip \
     --query 'LastUpdateStatus' \

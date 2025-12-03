@@ -63,6 +63,36 @@ ASSET_TYPE_CODES = {
     "WU": "Whole Life Insurance"
 }
 
+INCOME_TYPE_CODES = {
+    "DIV": "Dividends",
+    "INT": "Interest",
+    "RENT": "Rent",
+    "CG": "Capital Gains",
+    "QI": "Qualified Income",
+    "EI": "Earned Income",
+    "NONE": "None"
+}
+
+VALUE_RANGE_CODES = {
+    "A": "$1,001 - $15,000",
+    "B": "$15,001 - $50,000",
+    "C": "$50,001 - $100,000",
+    "D": "$100,001 - $250,000",
+    "E": "$250,001 - $500,000",
+    "F": "$500,001 - $1,000,000",
+    "G": "$1,000,001 - $5,000,000",
+    "H": "$5,000,001 - $25,000,000",
+    "I": "$25,000,001 - $50,000,000",
+    "J": "Over $50,000,000"
+}
+
+TRANSACTION_TYPE_CODES = {
+    "P": "Purchase",
+    "S": "Sale",
+    "E": "Exchange",
+    "S (partial)": "Sale (Partial)"
+}
+
 FILING_TYPES = {
     "P": "Periodic Transaction Report",
     "A": "Annual Financial Disclosure",

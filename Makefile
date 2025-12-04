@@ -164,6 +164,17 @@ package-quality: ## Package data_quality_validator Lambda
 	@cd $(LAMBDA_DIR)/data_quality_validator/package && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/data_quality_validator/function.zip"
 
+package-congress-fetch: ## Package congress_api_fetch_entity Lambda
+	@echo "Packaging congress_api_fetch_entity..."
+	@rm -rf $(LAMBDA_DIR)/congress_api_fetch_entity/package $(LAMBDA_DIR)/congress_api_fetch_entity/function.zip
+	@mkdir -p $(LAMBDA_DIR)/congress_api_fetch_entity/package
+	$(PIP) install -r $(LAMBDA_DIR)/congress_api_fetch_entity/requirements.txt -t $(LAMBDA_DIR)/congress_api_fetch_entity/package
+	@cp $(LAMBDA_DIR)/congress_api_fetch_entity/handler.py $(LAMBDA_DIR)/congress_api_fetch_entity/package/
+	@cp -r ingestion/lib $(LAMBDA_DIR)/congress_api_fetch_entity/package/lib
+	@cd $(LAMBDA_DIR)/congress_api_fetch_entity/package && zip -r ../function.zip . > /dev/null
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/congress_api_fetch_entity/function.zip"
+	@ls -lh $(LAMBDA_DIR)/congress_api_fetch_entity/function.zip | awk '{print "  Package size:", $$5}'
+
 ##@ Testing
 
 test: ## Run all tests

@@ -92,13 +92,22 @@ resource "aws_iam_role_policy" "lambda_sqs_access" {
           "sqs:GetQueueAttributes",
           "sqs:SendMessage" # For ingestion Lambda to send messages
         ]
-        Resource = [
-          aws_sqs_queue.extraction_queue.arn,
-          aws_sqs_queue.extraction_dlq.arn,
-          aws_sqs_queue.structured_extraction_queue.arn, # For extract Lambda to queue structured extraction
-          aws_sqs_queue.code_extraction_queue.arn,       # For code-based extraction
-          aws_sqs_queue.code_extraction_dlq.arn          # Code extraction DLQ
-        ]
+        Resource = concat(
+          [
+            aws_sqs_queue.extraction_queue.arn,
+            aws_sqs_queue.extraction_dlq.arn,
+            aws_sqs_queue.structured_extraction_queue.arn, # For extract Lambda to queue structured extraction
+            aws_sqs_queue.code_extraction_queue.arn,       # For code-based extraction
+            aws_sqs_queue.code_extraction_dlq.arn          # Code extraction DLQ
+          ],
+          # Congress.gov pipeline queues (conditional)
+          var.enable_congress_pipeline ? [
+            aws_sqs_queue.congress_fetch_queue[0].arn,
+            aws_sqs_queue.congress_fetch_dlq[0].arn,
+            aws_sqs_queue.congress_silver_queue[0].arn,
+            aws_sqs_queue.congress_silver_dlq[0].arn
+          ] : []
+        )
       }
     ]
   })

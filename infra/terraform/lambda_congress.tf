@@ -1,0 +1,112 @@
+# Congress.gov Pipeline Lambda Functions
+
+# =============================================================================
+# Lambda Function: congress_api_fetch_entity
+# =============================================================================
+
+resource "aws_lambda_function" "congress_fetch_entity" {
+  count = var.enable_congress_pipeline ? 1 : 0
+
+  function_name = local.congress_fetch_lambda_name
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+
+  # Deploy from S3 (packages >50 MB must use S3)
+  s3_bucket        = aws_s3_bucket.data_lake.id
+  s3_key           = "lambda-deployments/congress_api_fetch_entity/function.zip"
+  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/congress_api_fetch_entity/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/congress_api_fetch_entity/function.zip") : null
+
+  timeout     = var.lambda_congress_timeout_seconds
+  memory_size = var.lambda_congress_fetch_memory_mb
+
+  # Environment variables
+  environment {
+    variables = {
+      S3_BUCKET_NAME             = aws_s3_bucket.data_lake.id
+      CONGRESS_API_KEY           = "" # Placeholder - will be overridden by SSM parameter at runtime
+      CONGRESS_API_BASE_URL      = var.congress_api_base_url
+      EXTRACTION_VERSION         = var.extraction_version
+      LOG_LEVEL                  = "INFO"
+      PYTHONUNBUFFERED           = "1"
+      TZ                         = "UTC"
+      CONGRESS_SILVER_QUEUE_URL  = var.enable_congress_pipeline ? aws_sqs_queue.congress_silver_queue[0].url : ""
+      CONGRESS_FETCH_QUEUE_URL   = var.enable_congress_pipeline ? aws_sqs_queue.congress_fetch_queue[0].url : ""
+    }
+  }
+
+  # Reserved concurrent executions disabled to avoid account limits
+  # Rate limiting handled by SQS scaling_config instead
+  # reserved_concurrent_executions = var.lambda_congress_fetch_max_concurrency
+
+  # Enable X-Ray tracing (optional)
+  tracing_config {
+    mode = var.enable_xray_tracing ? "Active" : "PassThrough"
+  }
+
+  tags = merge(
+    local.congress_tags,
+    {
+      Name      = local.congress_fetch_lambda_name
+      Component = "lambda"
+      Purpose   = "congress-api-fetch"
+    }
+  )
+
+  # Ignore changes to source code hash (managed by CI/CD)
+  lifecycle {
+    ignore_changes = [
+      source_code_hash,
+      filename,
+      environment[0].variables["CONGRESS_API_KEY"] # Will be populated by SSM at runtime
+    ]
+  }
+
+  # Depends on log group and IAM policies
+  depends_on = [
+    aws_cloudwatch_log_group.congress_fetch_lambda[0],
+    aws_iam_role_policy.lambda_logging,
+    aws_iam_role_policy.lambda_s3_access,
+    aws_iam_role_policy.lambda_sqs_access,
+    aws_iam_role_policy.lambda_ssm_congress_api
+  ]
+}
+
+# Lambda event source mapping for Congress fetch queue
+resource "aws_lambda_event_source_mapping" "congress_fetch_queue" {
+  count = var.enable_congress_pipeline ? 1 : 0
+
+  event_source_arn = aws_sqs_queue.congress_fetch_queue[0].arn
+  function_name    = aws_lambda_function.congress_fetch_entity[0].arn
+
+  # Batch processing configuration
+  batch_size                         = var.sqs_congress_fetch_batch_size
+  maximum_batching_window_in_seconds = 5 # Wait up to 5 seconds to collect batch
+
+  # Error handling
+  function_response_types = ["ReportBatchItemFailures"] # Partial batch failures
+
+  # Scaling configuration
+  scaling_config {
+    maximum_concurrency = var.lambda_congress_fetch_max_concurrency
+  }
+}
+
+# =============================================================================
+# Outputs
+# =============================================================================
+
+output "congress_fetch_lambda_arn" {
+  description = "ARN of Congress fetch Lambda function"
+  value       = var.enable_congress_pipeline ? aws_lambda_function.congress_fetch_entity[0].arn : ""
+}
+
+output "congress_fetch_lambda_name" {
+  description = "Name of Congress fetch Lambda function"
+  value       = var.enable_congress_pipeline ? aws_lambda_function.congress_fetch_entity[0].function_name : ""
+}
+
+output "congress_fetch_lambda_invoke_arn" {
+  description = "Invoke ARN of Congress fetch Lambda function"
+  value       = var.enable_congress_pipeline ? aws_lambda_function.congress_fetch_entity[0].invoke_arn : ""
+}

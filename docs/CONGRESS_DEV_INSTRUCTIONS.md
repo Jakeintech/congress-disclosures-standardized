@@ -4,6 +4,45 @@
 
 These instructions allow you to pick up development at any phase of the Congress.gov pipeline implementation.
 
+**Last Updated**: 2025-12-04
+
+## ✅ COMPLETED WORK (Session 2025-12-04)
+
+### STORY 1.1: S3 Bucket Structure & Terraform Base Configuration ✅ COMPLETE
+- **TASK 1.1.1** ✅: Created `docs/CONGRESS_S3_SCHEMA.md` with complete Bronze layer structure
+- **TASK 1.1.2** ✅: Created `infra/terraform/variables_congress.tf` with all Congress variables
+- **TASK 1.1.3** ✅: Created test S3 prefixes, verified bucket policies (no changes needed)
+
+### STORY 1.2: SQS Queues and Dead Letter Queues ✅ COMPLETE
+- **TASK 1.2.1** ✅: Created `infra/terraform/sqs_congress.tf` with 4 queues deployed
+- **TASK 1.2.2** ✅: Created `infra/terraform/cloudwatch_congress.tf` with 3 alarms + log groups
+- **TASK 1.2.2** ✅: Created `docs/MONITORING.md` with comprehensive monitoring guide
+
+### STORY 1.3: Lambda Function - congress_api_fetch_entity (IN PROGRESS)
+- **TASK 1.3.1** ✅: Created `ingestion/lib/congress_api_client.py` with full API client + unit tests
+- **TASK 1.3.2** 🔄: IN PROGRESS - Creating Lambda handler for entity fetch
+- **TASK 1.3.3** ⏳: Pending - Package and deploy Lambda
+- **TASK 1.3.4** ⏳: Pending - Write integration test
+
+**Deployed Infrastructure**:
+- 4 SQS Queues (fetch + silver, each with DLQ)
+- 3 CloudWatch Alarms (2 DLQs + 1 queue age)
+- 3 CloudWatch Log Groups (pre-created for Lambdas)
+- 9 S3 Bronze prefixes (member, bill, bill_*, house_vote, senate_vote, committee)
+
+**Files Created**:
+- `docs/CONGRESS_S3_SCHEMA.md`
+- `docs/MONITORING.md`
+- `infra/terraform/variables_congress.tf`
+- `infra/terraform/sqs_congress.tf`
+- `infra/terraform/cloudwatch_congress.tf`
+- `ingestion/lib/congress_api_client.py`
+- `tests/unit/test_congress_api_client.py`
+
+**Files Modified**:
+- `infra/terraform/iam.tf` (added Congress queues to SQS policy)
+- `.env.example` (added CONGRESS_API_KEY)
+
 ---
 
 ## Initial Context Loading
@@ -35,7 +74,7 @@ Read these files in order:
 
 Now continue with FEATURE 1 (Infrastructure & Bronze Layer Foundation) from the backlog.
 
-Start with STORY 1.1, TASK 1.1.1 and proceed sequentially through all tasks in Feature 1.
+Proceed where we left off sequentially through all tasks in Feature 1.
 
 Follow these principles:
 - Match the existing FD pipeline patterns (see ingestion/lambdas/house_fd_* for reference)

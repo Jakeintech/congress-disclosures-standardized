@@ -58,44 +58,73 @@ def process_year(year):
     """Process all filings for a specific year."""
     logger.info(f"Processing year {year}...")
     
-    # Scan silver/objects/ for all filing types for this year
-    # New Hive-style structure: silver/objects/filing_type={type}/year={year}/doc_id={doc_id}/extraction.json
-    
-    prefix = "silver/objects/"
-    paginator = s3.get_paginator('list_objects_v2')
-    pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
+    # Scan BOTH old and new structures for backward compatibility
+    # New: silver/house/financial/objects/year={year}/filing_type={type}/doc_id={doc_id}/extraction.json
+    # Old: silver/objects/filing_type={type}/year={year}/doc_id={doc_id}/extraction.json
+    prefixes = [
+        f'silver/house/financial/objects/',  # New standardized structure
+        f'silver/objects/',                   # Old structure (backward compat)
+    ]
     
     filings = []
     filing_type_counts = {}
     
-    for page in pages:
-        if 'Contents' not in page:
-            continue
-            
-        for obj in page['Contents']:
-            key = obj['Key']
-            # Check if it matches the year and is an extraction.json
-            # New format: silver/objects/filing_type=type_p/year=2025/doc_id=12345/extraction.json
-            if f"/year={year}/" in key and key.endswith("extraction.json"):
+    for prefix in prefixes:
+        logger.info(f"Scanning {prefix}...")
+        
+        paginator = s3.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
+        
+        for page in pages:
+            if 'Contents' not in page:
+                continue
+                
+            for obj in page['Contents']:
+                key = obj['Key']
+                
+                # Only process files for this year
+                if f"/year={year}/" not in key or not key.endswith("extraction.json"):
+                    continue
+                    
                 try:
+                    import re
+                    
                     response = s3.get_object(Bucket=S3_BUCKET, Key=key)
                     data = json.loads(response['Body'].read())
                     
-                    # Extract filing_type from S3 key path (Hive partition)
-                    # Key format: silver/objects/filing_type=type_p/year=2025/doc_id=12345/extraction.json
-                    filing_type = None
-                    if '/filing_type=' in key:
-                        filing_type_part = key.split('/filing_type=')[1].split('/')[0]
-                        filing_type = filing_type_part  # Keep as-is (e.g., "type_p")
+                    # Try to extract from new format first: year=2025/filing_type=type_p/doc_id=12345
+                    match_new = re.search(r'year=(\d+)/filing_type=([^/]+)/doc_id=([^/]+)/', key)
+                    # Try old format: filing_type=type_p/year=2025/doc_id=12345
+                    match_old = re.search(r'filing_type=([^/]+)/year=(\d+)/doc_id=([^/]+)/', key)
                     
+                    filing_type = None
+                    doc_id = None
+                    
+                    if match_new:
+                        # New format: year first
+                        year_from_path = int(match_new.group(1))
+                        filing_type = match_new.group(2)
+                        doc_id = match_new.group(3)
+                    elif match_old:
+                        # Old format: filing_type first
+                        filing_type = match_old.group(1)
+                        year_from_path = int(match_old.group(2))
+                        doc_id = match_old.group(3)
+                    
+                    # Fallback to data if path parsing failed
                     if not filing_type:
                         filing_type = data.get('filing_type', 'Unknown')
+                    if not doc_id:
+                        doc_id = data.get('doc_id')
+                    
+                    if not doc_id:
+                        logger.warning(f"Skipping {key}: no doc_id found")
+                        continue
+                    
+                    filing_date = data.get('filing_date')
                     
                     # Track counts
                     filing_type_counts[filing_type] = filing_type_counts.get(filing_type, 0) + 1
-                    
-                    doc_id = data.get('doc_id')
-                    filing_date = data.get('filing_date')
                     
                     # Get bronze metadata if available
                     bronze_meta = data.get('bronze_metadata', {})
@@ -103,7 +132,6 @@ def process_year(year):
                     state_district = bronze_meta.get('state_district')
                     
                     # Count items in schedules
-                    # New format has 'transactions', 'assets_and_income', etc.
                     schedule_a_count = len(data.get('assets_and_income', []))
                     schedule_b_count = len(data.get('transactions', []))
                     

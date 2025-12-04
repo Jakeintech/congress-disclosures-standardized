@@ -25,12 +25,8 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: https://{api-id}.execute-api.us-east-1.amazonaws.com
+  - url: https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com
     description: Production API Gateway
-    variables:
-      api-id:
-        default: your-api-id
-        description: API Gateway ID from Terraform deployment
 
 tags:
   - name: Members
@@ -554,6 +550,172 @@ paths:
               schema:
                 $ref: '#/components/schemas/FilingTransactionListResponse'
 
+  /v1/filings/{doc_id}/assets:
+    get:
+      tags: [Filings]
+      summary: Get filing assets
+      description: Get all asset holdings listed in a specific filing (Type A/B/C Schedule A)
+      parameters:
+        - name: doc_id
+          in: path
+          required: true
+          description: Document ID
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: asset_type
+          in: query
+          schema:
+            type: string
+        - name: owner
+          in: query
+          description: Filter by owner code (Self, SP, DC, JT)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of asset holdings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetHoldingListResponse'
+
+  /v1/filings/{doc_id}/positions:
+    get:
+      tags: [Filings]
+      summary: Get filing positions
+      description: Get all positions listed in a specific filing (Type A/B/C Schedule E)
+      parameters:
+        - name: doc_id
+          in: path
+          required: true
+          description: Document ID
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of positions held
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionListResponse'
+
+  # ============================================================================
+  # Member Analytics Endpoints
+  # ============================================================================
+
+  /v1/members/{name}/filings:
+    get:
+      tags: [Members]
+      summary: Get all filings for a member
+      description: |
+        Get all financial disclosure filings for a specific congress member.
+        Supports case-insensitive partial name matching.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Member name (case-insensitive, partial match supported)
+          schema:
+            type: string
+          example: pelosi
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: filing_type
+          in: query
+          description: Filter by filing type
+          schema:
+            type: string
+            enum: [type_p, type_a, type_b, type_c, type_t]
+        - name: year
+          in: query
+          description: Filter by filing year
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of member's filings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilingListResponse'
+
+  /v1/members/{name}/transactions:
+    get:
+      tags: [Members]
+      summary: Get all transactions for a member
+      description: |
+        Get all PTR (Periodic Transaction Report) transactions for a specific member.
+        Supports case-insensitive partial name matching.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Member name (case-insensitive, partial match supported)
+          schema:
+            type: string
+          example: pelosi
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: year
+          in: query
+          description: Filter by transaction year
+          schema:
+            type: integer
+        - name: ticker
+          in: query
+          description: Filter by stock ticker
+          schema:
+            type: string
+        - name: transaction_type
+          in: query
+          description: Filter by transaction type
+          schema:
+            type: string
+            enum: [Purchase, Sale, Exchange]
+      responses:
+        '200':
+          description: List of member's transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionListResponse'
+
+  /v1/members/{name}/assets:
+    get:
+      tags: [Members]
+      summary: Get member's current portfolio
+      description: |
+        Get current asset holdings from the member's most recent annual financial disclosure.
+        Automatically finds the latest Type A/B/C filing and returns Schedule A assets.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Member name (case-insensitive, partial match supported)
+          schema:
+            type: string
+          example: pelosi
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: asset_type
+          in: query
+          description: Filter by asset type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Member's current portfolio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberPortfolioResponse'
+        '404':
+          description: No annual filings found for member
+
 # ============================================================================
 # Components
 # ============================================================================
@@ -874,6 +1036,152 @@ components:
           items:
             $ref: '#/components/schemas/Filing'
 
+    AssetHoldingListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              holding_key:
+                type: string
+              doc_id:
+                type: string
+              filing_year:
+                type: integer
+              filer_name:
+                type: string
+              state_district:
+                type: string
+              asset_name:
+                type: string
+              ticker:
+                type: string
+              asset_type:
+                type: string
+              owner:
+                type: string
+                description: Owner code (Self, SP, DC, JT)
+              value_range:
+                type: string
+                description: Disclosure value category (A-J)
+              income_type:
+                type: string
+              income_amount:
+                type: string
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    PositionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              position_key:
+                type: string
+              doc_id:
+                type: string
+              filing_year:
+                type: integer
+              filer_name:
+                type: string
+              state_district:
+                type: string
+              position_title:
+                type: string
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    TransactionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              transaction_key:
+                type: string
+              doc_id:
+                type: string
+              filing_year:
+                type: integer
+              filer_name:
+                type: string
+              state_district:
+                type: string
+              asset_name:
+                type: string
+              ticker:
+                type: string
+              asset_type:
+                type: string
+              transaction_type:
+                type: string
+                enum: [Purchase, Sale, Exchange]
+              transaction_date:
+                type: string
+                format: date
+              notification_date:
+                type: string
+                format: date
+              amount_range:
+                type: string
+              amount_low:
+                type: integer
+              amount_high:
+                type: integer
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    MemberPortfolioResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        member:
+          type: string
+          description: Member name from filing
+        filing_doc_id:
+          type: string
+          description: Document ID of the latest annual filing
+        filing_year:
+          type: integer
+          description: Year of the latest annual filing
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              holding_key:
+                type: string
+              asset_name:
+                type: string
+              ticker:
+                type: string
+              asset_type:
+                type: string
+              owner:
+                type: string
+              value_range:
+                type: string
+              income_type:
+                type: string
+              income_amount:
+                type: string
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
     S3Object:
       type: object
       properties:
@@ -921,50 +1229,6 @@ components:
       type: apiKey
       in: header
       name: X-Api-Key
-
-paths:
-  /v1/storage/{layer}:
-    get:
-      tags:
-        - System
-      summary: List S3 objects in a storage layer
-      parameters:
-        - in: path
-          name: layer
-          schema:
-            type: string
-            enum: [bronze, silver, gold]
-          required: true
-          description: Storage layer to list
-        - in: query
-          name: prefix
-          schema:
-            type: string
-          description: Folder prefix to list
-        - in: query
-          name: maxKeys
-          schema:
-            type: integer
-            default: 1000
-          description: Maximum number of keys to return
-        - in: query
-          name: continuationToken
-          schema:
-            type: string
-          description: Pagination token
-      responses:
-        '200':
-          description: List of objects
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/S3ObjectList'
-        data:
-          type: array
-          items:
-            type: object
-        pagination:
-          $ref: '#/components/schemas/Pagination'
 
     CostResponse:
       type: object

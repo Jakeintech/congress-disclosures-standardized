@@ -127,6 +127,24 @@ def compute_document_quality_by_member(
 
     logger.info(f"Computing quality metrics for {len(period_filings):,} filings in period {period_start} to {period_end}")
 
+    # Check if required columns exist (handle schema migration)
+    required_cols = ['member_key', 'filing_type_key', 'pdf_type', 'overall_confidence']
+    missing_cols = [col for col in required_cols if col not in period_filings.columns]
+    
+    if missing_cols:
+        logger.warning(f"⚠️  Skipping quality computation - missing columns: {missing_cols}")
+        logger.info("Note: fact_filings schema has been updated. Analytics will be re-enabled after schema migration.")
+        return pd.DataFrame(columns=[
+            'member_key', 'period_start_date', 'period_end_date', 'total_filings',
+            'ptr_filings', 'annual_filings', 'text_pdf_count', 'image_pdf_count',
+            'hybrid_pdf_count', 'image_pdf_pct', 'avg_confidence_score',
+            'min_confidence_score', 'low_confidence_count', 'manual_review_count',
+            'extraction_failure_count', 'avg_data_completeness_pct',
+            'zero_transaction_filing_count', 'quality_score', 'quality_category',
+            'is_hard_to_process', 'quality_trend', 'days_since_last_filing',
+            'requires_additional_ocr'
+        ])
+
     # Group by member_key
     quality_metrics = []
 

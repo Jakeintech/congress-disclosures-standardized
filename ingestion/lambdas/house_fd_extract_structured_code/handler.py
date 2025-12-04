@@ -288,13 +288,14 @@ def extract_simple_notice(doc_id: str, year: int, text: str, filing_type: str) -
 def upload_structured_json(doc_id: str, year: int, data: Dict[str, Any]) -> str:
     """Upload structured JSON to S3."""
 
-    # Path: silver/objects/filing_type={type}/year={year}/doc_id={doc_id}/extraction.json
+    # Standardized Hive structure: year-first partitioning
+    # Path: silver/house/financial/objects/year={year}/filing_type={type}/doc_id={doc_id}/extraction.json
     filing_type = data.get('filing_type', 'Unknown').replace('/', '_').replace(' ', '_').lower()
     # Ensure filing_type starts with 'type_' if it's a single letter code
     if len(filing_type) == 1:
         filing_type = f"type_{filing_type}"
 
-    s3_key = f"{S3_SILVER_PREFIX}/objects/filing_type={filing_type}/year={year}/doc_id={doc_id}/extraction.json"
+    s3_key = f"{S3_SILVER_PREFIX}/house/financial/objects/year={year}/filing_type={filing_type}/doc_id={doc_id}/extraction.json"
 
     json_str = json.dumps(data, indent=2)
 

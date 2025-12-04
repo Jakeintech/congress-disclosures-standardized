@@ -365,6 +365,15 @@ def clean_asset_name(text: str) -> str:
     
     # Remove common prefixes that don't add value
     cleaned = re.sub(r'^(Asset:|Description:)\s*', '', cleaned, flags=re.IGNORECASE)
+
+    # Remove noise patterns (Filing ID, Doc ID, Page numbers)
+    noise_patterns = [
+        r'Filing\s+ID\s+#?\d+',
+        r'Doc\s+ID\s+#?\d+',
+        r'Page\s+\d+\s+of\s+\d+',
+    ]
+    for noise in noise_patterns:
+        cleaned = re.sub(noise, '', cleaned, flags=re.IGNORECASE).strip()
     
     # Convert multiple dashes to single
     cleaned = re.sub(r'-{2,}', '-', cleaned)

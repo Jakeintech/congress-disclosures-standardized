@@ -179,7 +179,7 @@ class PTRExtractor(BaseExtractor):
         # Note: Dates can be smashed together: 01/14/202501/14/2025
         # Note: Amount can span lines
         pattern = r'''
-            (?:\((?P<ticker>[A-Z]{1,5})\))?            # Ticker in parentheses (optional here, might be in asset name)
+            (?:\((?P<ticker>[A-Z]{1,5})\)|(?P<ticker_no_parens>[A-Z]{1,5})\s+(?=[PS]\s+\d{2}/\d{2}/\d{4})) # Ticker in parens OR no parens before Type/Date
             \s*
             (?:\[(?P<type_code>[A-Z]{2,4})\])?         # Asset type code in brackets (optional)
             \s*                                        # Optional space before type (handles [ST]S format)
@@ -221,11 +221,23 @@ class PTRExtractor(BaseExtractor):
             else:
                 transaction['owner_code'] = None
 
+            # Remove noise from asset name
+            noise_patterns = [
+                r'Filing\s+ID\s+#?\d+',
+                r'Doc\s+ID\s+#?\d+',
+                r'Page\s+\d+\s+of\s+\d+',
+                r'ID\s+Owner\s+Asset\s+Name.*', # Table header repetition
+            ]
+            for noise in noise_patterns:
+                asset_name_raw = re.sub(noise, '', asset_name_raw, flags=re.IGNORECASE).strip()
+
             transaction['asset_name'] = asset_name_raw
 
             # Post-process fields
             if transaction.get('ticker'):
                 transaction['ticker'] = transaction['ticker'].strip('() ')
+            elif transaction.get('ticker_no_parens'):
+                transaction['ticker'] = transaction['ticker_no_parens'].strip()
                 
             # Enrich with asset type description
             type_code = transaction.get('type_code')
@@ -240,6 +252,9 @@ class PTRExtractor(BaseExtractor):
             amount_str = transaction.get('amount', '')
             # Clean newlines in amount
             amount_str = amount_str.replace('\n', ' ').replace('\r', '')
+            # Normalize amount range spacing ($1,000-$15,000 -> $1,000 - $15,000)
+            amount_str = re.sub(r'(\$[\d,]+)\s*-\s*(\$[\d,]+)', r'\1 - \2', amount_str)
+            
             amount_low, amount_high, amount_range = self.extract_amount_range(amount_str)
             transaction['amount_low'] = amount_low
             transaction['amount_high'] = amount_high

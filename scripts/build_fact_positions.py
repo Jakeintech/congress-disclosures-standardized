@@ -49,7 +49,7 @@ def process_year(year):
     processed_count = 0
     
     for ftype in filing_types:
-        prefix = f"silver/objects/filing_type={ftype}/year={year}/"
+        prefix = f"silver/house/financial/objects/year={year}/filing_type={ftype}/"
         logger.info(f"Scanning {prefix}...")
         
         paginator = s3.get_paginator('list_objects_v2')

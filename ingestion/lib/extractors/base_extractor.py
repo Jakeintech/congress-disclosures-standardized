@@ -234,8 +234,8 @@ class BaseExtractor:
         low = int(low_str.replace(',', ''))
         high = int(high_str.replace(',', ''))
 
-        # Normalize to schema format: $X,XXX-$Y,YYY (no spaces)
-        normalized = f"${low:,}-${high:,}"
+        # Normalize to schema format: $X,XXX - $Y,YYY (with spaces)
+        normalized = f"${low:,} - ${high:,}"
 
         return (low, high, normalized)
 

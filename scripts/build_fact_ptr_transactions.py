@@ -64,8 +64,8 @@ def process_year(year):
     """Process all Type P filings for a specific year."""
     logger.info(f"Processing year {year}...")
     
-    # Scan silver/objects/filing_type=type_p/year={year}/
-    prefix = f"silver/objects/filing_type=type_p/year={year}/"
+    # Scan silver/house/financial/objects/year={year}/filing_type=type_p/
+    prefix = f"silver/house/financial/objects/year={year}/filing_type=type_p/"
     
     paginator = s3.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)

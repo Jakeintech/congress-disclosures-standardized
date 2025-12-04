@@ -211,6 +211,9 @@ deploy-extractors: package-extract-structured ## Package and deploy extraction L
 	@echo "✓ Extraction Lambda deployed with new extractors"
 
 deploy-website: ## Deploy website to S3 (regenerates all analytics data first)
+	@echo "🔄 Syncing API Gateway URL from Terraform..."
+	@./scripts/sync-api-url.sh
+	@echo ""
 	@echo "📊 Regenerating analytics data..."
 	@echo "  → Document quality..."
 	@$(PYTHON) scripts/compute_agg_document_quality.py

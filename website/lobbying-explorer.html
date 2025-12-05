@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobbying Explorer - Congress Disclosures</title>
+    <meta name="description" content="Explore lobbying disclosures, track money flows, and discover connections between lobbyists, clients, and legislation">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .explorer-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .explorer-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .explorer-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .filters-section {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e0e0e0;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .filings-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .filings-table thead {
+            background: #667eea;
+            color: white;
+        }
+
+        .filings-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .filings-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .filings-table tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .amount-badge {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            background: #fff3e0;
+            color: #e65100;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .issue-tag {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.3rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .quarter-tag {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: #f3e5f5;
+            color: #7b1fa2;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.3rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #f5f5f5;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <!-- Explorer Header -->
+        <div class="explorer-header">
+            <div class="container">
+                <h1 class="explorer-title">💰 Lobbying Explorer</h1>
+                <p class="explorer-subtitle">Track money flows, discover connections, and explore lobbying disclosures</p>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <div class="container">
+                <!-- Summary Stats -->
+                <div class="stats-row" id="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-value" id="total-filings">-</div>
+                        <div class="stat-label">Total Filings</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="total-spend">$0</div>
+                        <div class="stat-label">Total Lobbying Spend</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="total-clients">-</div>
+                        <div class="stat-label">Unique Clients</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="total-registrants">-</div>
+                        <div class="stat-label">Lobbying Firms</div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-section">
+                    <h3 style="margin-bottom: 1rem; color: #333;">🔍 Filters</h3>
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label class="filter-label">Client Name</label>
+                            <input type="text" id="filter-client" class="filter-input" placeholder="Search clients...">
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Registrant Name</label>
+                            <input type="text" id="filter-registrant" class="filter-input" placeholder="Search firms...">
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Issue Code</label>
+                            <select id="filter-issue" class="filter-select">
+                                <option value="">All Issues</option>
+                                <option value="DEF">Defense</option>
+                                <option value="HCR">Healthcare</option>
+                                <option value="ENG">Energy</option>
+                                <option value="TEC">Technology</option>
+                                <option value="FIN">Finance</option>
+                                <option value="TRD">Trade</option>
+                                <option value="TAX">Taxation</option>
+                                <option value="ENV">Environment</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Filing Year</label>
+                            <select id="filter-year" class="filter-select">
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Min Spend</label>
+                            <input type="number" id="filter-min-spend" class="filter-input" placeholder="Min $" min="0">
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Sort By</label>
+                            <select id="filter-sort" class="filter-select">
+                                <option value="income">Highest Spend</option>
+                                <option value="dt_posted">Most Recent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="apply-filters-btn">Apply Filters</button>
+                    <button class="btn btn-secondary" id="clear-filters-btn">Clear All</button>
+                </div>
+
+                <!-- Top Charts -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                    <div class="chart-container">
+                        <h3 class="chart-title">Top 10 Clients by Spend</h3>
+                        <div id="top-clients-chart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 class="chart-title">Top 10 Issues Lobbied</h3>
+                        <div id="top-issues-chart"></div>
+                    </div>
+                </div>
+
+                <!-- Filings Table -->
+                <div class="card">
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 1.5rem; color: #333;">📋 Lobbying Filings</h3>
+
+                        <div id="loading-state" style="text-align: center; padding: 3rem; color: #666;">
+                            <div class="spinner"></div>
+                            <p>Loading lobbying filings...</p>
+                        </div>
+
+                        <div id="filings-content" style="display: none;">
+                            <div style="overflow-x: auto;">
+                                <table class="filings-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Client</th>
+                                            <th>Lobbying Firm</th>
+                                            <th>Amount</th>
+                                            <th>Issue Codes</th>
+                                            <th>Quarter</th>
+                                            <th>Year</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="filings-tbody">
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="pagination" id="pagination">
+                                <button class="pagination-btn" id="prev-btn">← Previous</button>
+                                <span class="pagination-info" id="pagination-info">Page 1</span>
+                                <button class="pagination-btn" id="next-btn">Next →</button>
+                            </div>
+                        </div>
+
+                        <div id="empty-state" style="display: none; text-align: center; padding: 3rem; color: #666;">
+                            <p>No filings found matching your criteria.</p>
+                        </div>
+
+                        <div id="error-state" style="display: none; text-align: center; padding: 3rem; color: #d32f2f;">
+                            <p>Error loading filings. Please try again later.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <p>&copy; 2024 Congress Disclosures. Data from Senate LDA.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/lobbying-explorer.js"></script>
+</body>
+
+</html>

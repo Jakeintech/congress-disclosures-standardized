@@ -148,33 +148,44 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             documents_json_result = {"error": str(e)}
 
         logger.info("--> ENTERING STEP 7 <--")
-        # Step 7: Queue extraction jobs for each document
-        logger.info(f"Step 7: Queuing {len(document_records)} documents for extraction...")
+        # Step 7: Queue extraction jobs for each document (skip already extracted)
+        logger.info(f"Step 7: Checking {len(document_records)} documents for extraction...")
         queued_count = 0
+        skipped_count = 0
         failed_count = 0
-        
+
         if EXTRACTION_QUEUE_URL:
             batch = []
             for filing in filing_records:
                 try:
+                    # Check if PDF already extracted by checking Bronze metadata
+                    pdf_key = filing['pdf_s3_key']
+                    try:
+                        response = s3_client.head_object(Bucket=S3_BUCKET_NAME, Key=pdf_key)
+                        if response.get('Metadata', {}).get('extraction-processed') == 'true':
+                            skipped_count += 1
+                            continue  # Skip - already extracted
+                    except Exception:
+                        pass  # PDF doesn't exist or no metadata - queue it
+
                     # Construct filer name
                     filer_name = f"{filing.get('first_name', '')} {filing.get('last_name', '')}".strip()
-                    
+
                     message = {
                         'doc_id': filing['doc_id'],
                         'year': filing['year'],
-                        's3_pdf_key': filing['pdf_s3_key'],
+                        's3_pdf_key': pdf_key,
                         'filing_type': filing.get('filing_type'),
                         'filer_name': filer_name,
                         'filing_date': filing.get('filing_date'),
                         'state_district': filing.get('state_district')
                     }
-                    
+
                     batch.append({
                         'Id': filing['doc_id'],
                         'MessageBody': json.dumps(message)
                     })
-                    
+
                     if len(batch) >= 10:
                         sqs_client.send_message_batch(
                             QueueUrl=EXTRACTION_QUEUE_URL,
@@ -182,7 +193,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         )
                         queued_count += len(batch)
                         batch = []
-                        
+
                 except Exception as e:
                     logger.error(f"Failed to process doc {filing.get('doc_id')}: {e}")
                     failed_count += 1
@@ -198,8 +209,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 except Exception as e:
                     logger.error(f"Failed to send final batch: {e}")
                     failed_count += len(batch)
-            
-            logger.info(f"✅ Queued {queued_count} extraction jobs ({failed_count} failed)")
+
+            logger.info(f"✅ Queued {queued_count} extraction jobs ({skipped_count} already extracted, {failed_count} failed)")
         else:
             logger.warning("EXTRACTION_QUEUE_URL not set - skipping extraction job queuing")
 

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobbying Influence Network - Interactive Network Graph</title>
+    <meta name="description" content="Interactive network visualization of lobbying influence connections">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .network-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .network-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .network-hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .network-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-panel,
+        .details-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            height: 700px;
+            overflow-y: auto;
+        }
+
+        .control-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+        }
+
+        .control-section h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .filter-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .filter-group input[type="range"] {
+            padding: 0;
+        }
+
+        .node-type-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .checkbox-label input {
+            width: auto;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+        }
+
+        .control-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        #graph-container {
+            background: linear-gradient(145deg, #0f1419 0%, #1a202c 50%, #0f1419 100%);
+            border-radius: 12px;
+            position: relative;
+            height: 700px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        #graph-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node circle {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .node circle:hover {
+            stroke-width: 4px;
+        }
+
+        .node text {
+            font-size: 8px;
+            fill: rgba(255, 255, 255, 0.95);
+            text-anchor: middle;
+            pointer-events: none;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+            font-weight: 500;
+        }
+
+        .link {
+            stroke-opacity: 0.25;
+            transition: all 0.2s;
+        }
+
+        .link.highlighted {
+            stroke-opacity: 0.9;
+            stroke-width: 3px;
+        }
+
+        .legend-box {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .legend-shape {
+            width: 12px;
+            height: 12px;
+        }
+
+        .stats-overlay {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .stat-chip {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        .stat-chip strong {
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 20, 25, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .loading-overlay .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .details-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+            text-align: center;
+        }
+
+        .details-placeholder .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .node-details .detail-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .node-details .detail-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .node-details .detail-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .node-details .detail-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .detail-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-stat {
+            text-align: center;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .detail-stat .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-stat .label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .connections-list {
+            margin-bottom: 1.5rem;
+        }
+
+        .connections-list h5 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+        }
+
+        .connection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .connection-item .name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .connection-item .value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .tooltip {
+            position: absolute;
+            display: none;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 250px;
+        }
+
+        .instructions-box {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.7rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <div class="network-hero">
+            <div class="container">
+                <h1>🕸️ Lobbying Influence Network</h1>
+                <p>Interactive visualization of connections between Members, Bills, Clients, and Lobbyists</p>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="network-layout">
+                    <!-- Left Panel: Controls -->
+                    <div class="controls-panel">
+                        <div class="control-section">
+                            <h4>Node Types</h4>
+                            <div class="node-type-filters">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="show-members" checked>
+                                    <span>🏛️ Members</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="show-bills" checked>
+                                    <span>📜 Bills</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="show-clients" checked>
+                                    <span>🏢 Clients</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="show-lobbyists" checked>
+                                    <span>👔 Lobbyists</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>Filters</h4>
+                            <div class="filter-group">
+                                <label>Year</label>
+                                <select id="filter-year">
+                                    <option value="2024" selected>2024</option>
+                                    <option value="2023">2023</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Min Connection Strength</label>
+                                <input type="range" id="strength-slider" min="0" max="100" value="30" step="10">
+                                <span id="strength-value" style="font-size: 0.85rem; color: #667eea;">30</span>
+                            </div>
+                            <div class="filter-group">
+                                <label>Search</label>
+                                <input type="text" id="search-input" placeholder="Search nodes...">
+                            </div>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>Layout</h4>
+                            <div class="filter-group">
+                                <label>Force Strength</label>
+                                <input type="range" id="charge-slider" min="-500" max="-50" value="-200" step="10">
+                            </div>
+                            <div class="filter-group">
+                                <label>Link Distance</label>
+                                <input type="range" id="distance-slider" min="30" max="200" value="80" step="10">
+                            </div>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>Actions</h4>
+                            <div class="control-buttons">
+                                <button class="control-btn primary" id="reset-btn">Reset View</button>
+                                <button class="control-btn" id="labels-btn">Toggle Labels</button>
+                                <button class="control-btn" id="export-btn">Export PNG</button>
+                            </div>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>Network Stats</h4>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                <p><strong id="stat-visible-nodes">0</strong> nodes visible</p>
+                                <p><strong id="stat-visible-links">0</strong> connections</p>
+                                <p><strong id="stat-total-nodes">0</strong> total nodes</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center Panel: Graph -->
+                    <div id="graph-container">
+                        <svg id="graph-svg"></svg>
+
+                        <div class="stats-overlay">
+                            <span class="stat-chip">
+                                <strong id="members-count">0</strong> Members
+                            </span>
+                            <span class="stat-chip">
+                                <strong id="bills-count">0</strong> Bills
+                            </span>
+                            <span class="stat-chip">
+                                <strong id="clients-count">0</strong> Clients
+                            </span>
+                            <span class="stat-chip">
+                                <strong id="lobbyists-count">0</strong> Lobbyists
+                            </span>
+                        </div>
+
+                        <div class="legend-box">
+                            <div class="legend-item">
+                                <div class="legend-shape" style="background: #3b82f6; border-radius: 50%;"></div>
+                                <span>Member (Blue)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-shape" style="background: #10b981; border-radius: 50%;"></div>
+                                <span>Bill (Green)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-shape" style="background: #f59e0b; border-radius: 0 50%;"></div>
+                                <span>Client (Orange Square)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-shape" style="background: #a855f7;"
+                                     transform="rotate(45deg)"
+                                     clip-path="polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)"></div>
+                                <span>Lobbyist (Purple Diamond)</span>
+                            </div>
+                        </div>
+
+                        <div class="instructions-box">
+                            <strong>Controls:</strong><br>
+                            • Click node for details<br>
+                            • Drag nodes to reposition<br>
+                            • Scroll to zoom<br>
+                            • Hover to highlight connections
+                        </div>
+
+                        <div class="loading-overlay" id="loading">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 1rem;">Loading network data...</p>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: Details -->
+                    <div class="details-panel" id="details-panel">
+                        <div class="details-placeholder" id="details-placeholder">
+                            <div class="icon">👆</div>
+                            <h4>Select a Node</h4>
+                            <p style="margin-top: 0.5rem;">Click any node in the network to view detailed information</p>
+                        </div>
+                        <div id="node-details" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <p>&copy; 2024 Congress Disclosures. Network visualization powered by D3.js.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/lobbying-network.js"></script>
+</body>
+
+</html>

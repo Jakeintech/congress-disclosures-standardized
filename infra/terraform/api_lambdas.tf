@@ -85,6 +85,13 @@ locals {
     "get_member_leg_trades"   = { route = "GET /v1/analytics/members/{bioguide_id}/legislation-trades" }
     "get_stock_leg_exposure"  = { route = "GET /v1/analytics/stocks/{ticker}/legislative-exposure" }
 
+    # Lobbying Data endpoints (shortened names for 64 char limit)
+    "get_lobbying_filings"       = { route = "GET /v1/lobbying/filings" }
+    "get_lobbying_client"        = { route = "GET /v1/lobbying/clients/{client_id}" }
+    "get_lobbying_network"       = { route = "GET /v1/lobbying/network" }
+    "get_bill_lob_activity"      = { route = "GET /v1/congress/bills/{bill_id}/lobbying" }
+    "get_member_lob_connects"    = { route = "GET /v1/members/{bioguide_id}/lobbying" }
+
     # System endpoints
     "get_aws_costs"    = { route = "GET /v1/costs" }
     "list_s3_objects"  = { route = "GET /v1/storage/{layer}" }
@@ -116,6 +123,7 @@ resource "aws_lambda_function" "api" {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
   }
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -130,6 +138,9 @@ resource "aws_lambda_function" "api" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_iam_role_policy.lambda_logging
   ]
 }

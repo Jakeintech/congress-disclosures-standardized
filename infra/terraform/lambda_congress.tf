@@ -44,6 +44,7 @@ resource "aws_lambda_function" "congress_fetch_entity" {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
   }
 
+
   tags = merge(
     local.congress_tags,
     {
@@ -148,6 +149,7 @@ resource "aws_lambda_function" "congress_orchestrator" {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
   }
 
+
   tags = merge(
     local.congress_tags,
     {
@@ -232,6 +234,7 @@ resource "aws_lambda_function" "congress_bronze_to_silver" {
   tracing_config {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
   }
+
 
   tags = merge(
     local.congress_tags,

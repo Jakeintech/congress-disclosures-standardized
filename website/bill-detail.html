@@ -554,6 +554,65 @@
             font-weight: normal;
         }
 
+        /* Lobbying Section Styles */
+        .lobbying-summary {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            color: #e65100;
+            font-weight: 600;
+        }
+
+        .lobbying-summary strong {
+            color: #bf360c;
+        }
+
+        #lobbying-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #lobbying-table th {
+            padding: 0.75rem;
+            text-align: left;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        #lobbying-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        #lobbying-table tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .issue-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.3rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .quarter-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: #f3e5f5;
+            color: #7b1fa2;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.3rem;
+        }
+
         @media print {
             .action-buttons,
             .breadcrumb,
@@ -644,6 +703,52 @@
                             <div class="section" id="committees-section">
                                 <h3 class="section-title">🏛️ Committee Assignments</h3>
                                 <ul id="committees-list" class="committee-list"></ul>
+                            </div>
+
+                            <!-- Lobbying Activity Section -->
+                            <div class="section" id="lobbying-section">
+                                <h3 class="section-title">💰 Lobbying Activity</h3>
+                                <div id="lobbying-container">
+                                    <div id="lobbying-loading" style="text-align: center; padding: 2rem; color: #666;">
+                                        Loading lobbying data...
+                                    </div>
+                                    <div id="lobbying-content" style="display: none;">
+                                        <!-- Lobbying Summary Badge -->
+                                        <div id="lobbying-summary" class="lobbying-summary" style="margin-bottom: 1rem;"></div>
+
+                                        <!-- Lobbying Activities Table -->
+                                        <div style="overflow-x: auto;">
+                                            <table id="lobbying-table" class="data-table" style="width: 100%; border-collapse: collapse;">
+                                                <thead>
+                                                    <tr style="background: #f5f5f5; border-bottom: 2px solid #ddd;">
+                                                        <th style="padding: 0.75rem; text-align: left;">Client</th>
+                                                        <th style="padding: 0.75rem; text-align: left;">Lobbying Firm</th>
+                                                        <th style="padding: 0.75rem; text-align: left;">Issue Codes</th>
+                                                        <th style="padding: 0.75rem; text-align: left;">Quarters</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="lobbying-table-body">
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Timeline visualization -->
+                                        <div id="lobbying-timeline" style="margin-top: 1.5rem;">
+                                            <h4 style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Lobbying Timeline</h4>
+                                            <div id="lobbying-timeline-chart" style="height: 100px; background: #f9f9f9; border-radius: 4px; padding: 1rem;">
+                                                <!-- Timeline will be rendered here -->
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="lobbying-empty" style="display: none; text-align: center; padding: 2rem; color: #666;">
+                                        No lobbying activity found for this bill.
+                                    </div>
+
+                                    <div id="lobbying-error" style="display: none; text-align: center; padding: 2rem; color: #d32f2f;">
+                                        <p>Error loading lobbying data.</p>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Related Trades (STAR FEATURE) -->

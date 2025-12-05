@@ -90,6 +90,19 @@ function injectNavigation() {
                         </div>
                     </div>
                     <div class="dropdown">
+                        <button class="dropbtn ${isActive(currentPage, ['lobbying-explorer.html', 'influence-tracker.html', 'lobbying-network.html'])}">
+                            💰 Lobbying
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-content">
+                            <a href="${base}lobbying-explorer.html" class="nav-link ${isActive(currentPage, 'lobbying-explorer.html')}">Lobbying Explorer</a>
+                            <a href="${base}influence-tracker.html" class="nav-link ${isActive(currentPage, 'influence-tracker.html')}">⭐ Influence Tracker</a>
+                            <a href="${base}lobbying-network.html" class="nav-link ${isActive(currentPage, 'lobbying-network.html')}">Network Graph</a>
+                        </div>
+                    </div>
+                    <div class="dropdown">
                         <button class="dropbtn ${isActive(currentPage, ['browse-bronze.html', 'browse-silver.html', 'browse-gold.html'])}">
                             Browse Data
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

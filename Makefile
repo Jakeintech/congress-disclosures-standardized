@@ -110,21 +110,21 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-api ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api ## Package all Lambda functions
 
-package-api: ## Package and upload API Lambda functions to S3
+package-api: ## Package and upload ALL API Lambda functions to S3
 	@echo "Packaging API Lambda functions..."
 	@rm -rf /tmp/api_lambda_pkg && mkdir -p /tmp/api_lambda_pkg/api
 	@cp -r api/lib /tmp/api_lambda_pkg/api/
-	@cd api/lambdas && for dir in get_congress_* get_member_leg_* get_stock_leg_*; do \
-		if [ -d "$$dir" ]; then \
+	@cd api/lambdas && find . -maxdepth 1 -type d ! -name '.' ! -name '..*' ! -name '__pycache__' | sed 's|./||' | while read dir; do \
+		if [ -f "$$dir/handler.py" ]; then \
 			echo "  Packaging $$dir..."; \
 			rm -f "$${dir}.zip"; \
 			zip -j "$${dir}.zip" "$${dir}/handler.py" > /dev/null; \
 			cd /tmp/api_lambda_pkg && zip -r "/Users/jake/Documents/GitHub/congress-disclosures-standardized/api/lambdas/$${dir}.zip" api/ > /dev/null; \
 			cd /Users/jake/Documents/GitHub/congress-disclosures-standardized/api/lambdas; \
 			aws s3 cp "$${dir}.zip" "s3://$(S3_BUCKET)/lambda-deployments/api/$${dir}.zip" > /dev/null; \
-		fi \
+		fi; \
 	done
 	@echo "✓ API Lambda packages uploaded to S3"
 
@@ -202,6 +202,17 @@ package-quality: ## Package data_quality_validator Lambda
 	@cp -r ingestion/schemas $(LAMBDA_DIR)/data_quality_validator/package/ingestion/schemas
 	@cd $(LAMBDA_DIR)/data_quality_validator/package && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/data_quality_validator/function.zip"
+
+package-lda-ingest: ## Package lda_ingest_filings Lambda
+	@echo "Packaging lda_ingest_filings..."
+	@rm -rf $(LAMBDA_DIR)/lda_ingest_filings/package
+	@mkdir -p $(LAMBDA_DIR)/lda_ingest_filings/package
+	$(PIP) install -r $(LAMBDA_DIR)/lda_ingest_filings/requirements.txt -t $(LAMBDA_DIR)/lda_ingest_filings/package
+	@cp $(LAMBDA_DIR)/lda_ingest_filings/handler.py $(LAMBDA_DIR)/lda_ingest_filings/package/
+	@mkdir -p $(LAMBDA_DIR)/lda_ingest_filings/package/ingestion
+	@cp -r ingestion/lib $(LAMBDA_DIR)/lda_ingest_filings/package/ingestion/lib
+	@cd $(LAMBDA_DIR)/lda_ingest_filings/package && zip -r ../function.zip . > /dev/null
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/lda_ingest_filings/function.zip"
 
 package-congress-fetch: ## Package congress_api_fetch_entity Lambda
 	@echo "Packaging congress_api_fetch_entity..."
@@ -392,6 +403,15 @@ aggregate-data: ## Aggregate all filing types into Gold layer
 	@$(PYTHON) scripts/compute_agg_member_trading_stats.py
 	@$(PYTHON) scripts/compute_agg_trending_stocks.py
 	@$(PYTHON) scripts/compute_agg_network_graph.py
+	@echo "Computing Bills & Congress Analytics..."
+	@$(PYTHON) scripts/analyze_bill_industry_impact.py || echo "  ⚠️  Bill industry analysis skipped (may need data)"
+	@$(PYTHON) scripts/compute_agg_bill_trade_correlation.py || echo "  ⚠️  Bill-trade correlation skipped (may need data)"
+	@$(PYTHON) scripts/congress_build_agg_bill_latest_action.py || echo "  ⚠️  Bill latest action skipped (may need data)"
+	@echo "Computing Lobbying Analytics..."
+	@$(PYTHON) scripts/compute_agg_bill_lobbying_correlation.py || echo "  ⚠️  Bill-lobbying correlation skipped (may need data)"
+	@$(PYTHON) scripts/compute_agg_member_lobbyist_network.py || echo "  ⚠️  Member-lobbyist network skipped (may need data)"
+	@$(PYTHON) scripts/compute_agg_triple_correlation.py || echo "  ⚠️  Triple correlation skipped (may need data)"
+	@$(PYTHON) scripts/compute_lobbying_network_metrics.py 2024 || echo "  ⚠️  Network metrics skipped (may need data)"
 	@echo "Generating Gold Layer Manifests..."
 	@$(PYTHON) scripts/generate_document_quality_manifest.py
 	@$(PYTHON) scripts/generate_all_gold_manifests.py
@@ -511,8 +531,11 @@ run-congress-pipeline-incremental: ## Run incremental Congress pipeline
 pipeline: ## Smart Pipeline: End-to-end execution with interactive mode (Full/Incremental/Reprocess)
 	@$(PYTHON) scripts/run_smart_pipeline.py
 
-run-pipeline: pipeline ## Alias for pipeline
-	@echo "✓ Pipeline executed via smart runner"
+incremental: ## True Incremental Pipeline: Only process NEW data since last run (RECOMMENDED)
+	@$(PYTHON) scripts/run_true_incremental_pipeline.py
+
+incremental-force: ## Force incremental pipeline (treat as first run)
+	@$(PYTHON) scripts/run_true_incremental_pipeline.py --force
 
 check-extraction-queue: ## Check SQS extraction queue status
 	@echo "Checking extraction queue status..."
@@ -551,6 +574,108 @@ reset-and-run-all: ## Full System Reset & Run: Deploy Infra -> Reset Data -> Run
 validate-pipeline: ## Validate pipeline integrity (S3 vs XML, Tags, DLQ, Silver Layer)
 	@echo "Validating pipeline integrity..."
 	@$(PYTHON) scripts/validate_pipeline_integrity.py
+
+##@ Lobbying Data Integration (Epic 5)
+
+ingest-lobbying-filings: ## Ingest LDA lobbying filings (Usage: make ingest-lobbying-filings YEAR=2024)
+	@if [ -z "$(YEAR)" ]; then \
+		echo "Error: YEAR variable required. Usage: make ingest-lobbying-filings YEAR=2024"; \
+		exit 1; \
+	fi
+	@echo "Ingesting lobbying filings for $(YEAR)..."
+	@$(PYTHON) scripts/trigger_lda_ingestion.py --year $(YEAR) --type filings
+
+ingest-lobbying-contributions: ## Ingest LDA political contributions (Usage: make ingest-lobbying-contributions YEAR=2024)
+	@if [ -z "$(YEAR)" ]; then \
+		echo "Error: YEAR variable required. Usage: make ingest-lobbying-contributions YEAR=2024"; \
+		exit 1; \
+	fi
+	@echo "Ingesting lobbying contributions for $(YEAR)..."
+	@$(PYTHON) scripts/trigger_lda_ingestion.py --year $(YEAR) --type contributions
+
+ingest-lobbying-all: ## Ingest both filings and contributions (Usage: make ingest-lobbying-all YEAR=2024)
+	@if [ -z "$(YEAR)" ]; then \
+		echo "Error: YEAR variable required. Usage: make ingest-lobbying-all YEAR=2024"; \
+		exit 1; \
+	fi
+	@echo "Ingesting all lobbying data for $(YEAR)..."
+	@$(PYTHON) scripts/trigger_lda_ingestion.py --year $(YEAR) --type all
+
+build-lobbying-silver-filings: ## Build lobbying Silver filings table
+	@echo "Building lobbying Silver filings..."
+	@$(PYTHON) scripts/lobbying_build_silver_filings.py
+
+build-lobbying-silver-registrants: ## Build lobbying Silver registrants table
+	@echo "Building lobbying Silver registrants..."
+	@$(PYTHON) scripts/lobbying_build_silver_registrants.py
+
+build-lobbying-silver-clients: ## Build lobbying Silver clients table
+	@echo "Building lobbying Silver clients..."
+	@$(PYTHON) scripts/lobbying_build_silver_clients.py
+
+build-lobbying-silver-lobbyists: ## Build lobbying Silver lobbyists table
+	@echo "Building lobbying Silver lobbyists..."
+	@$(PYTHON) scripts/lobbying_build_silver_lobbyists.py
+
+build-lobbying-silver-activities: ## Build lobbying Silver activities table
+	@echo "Building lobbying Silver activities..."
+	@$(PYTHON) scripts/lobbying_build_silver_activities.py
+
+build-lobbying-silver-government-entities: ## Build lobbying Silver government_entities table
+	@echo "Building lobbying Silver government_entities..."
+	@$(PYTHON) scripts/lobbying_build_silver_government_entities.py
+
+build-lobbying-silver-activity-bills: ## Build lobbying Silver activity_bills table (NLP extraction)
+	@echo "Building lobbying Silver activity_bills..."
+	@$(PYTHON) scripts/lobbying_build_silver_activity_bills.py
+
+build-lobbying-silver-contributions: ## Build lobbying Silver contributions table
+	@echo "Building lobbying Silver contributions..."
+	@$(PYTHON) scripts/lobbying_build_silver_contributions.py
+
+build-lobbying-silver-all: build-lobbying-silver-filings build-lobbying-silver-registrants build-lobbying-silver-clients build-lobbying-silver-lobbyists build-lobbying-silver-activities build-lobbying-silver-government-entities build-lobbying-silver-activity-bills build-lobbying-silver-contributions ## Build all lobbying Silver tables
+	@echo "✓ Lobbying Silver layer build complete"
+
+build-lobbying-gold-fact: ## Build lobbying Gold fact_lobbying_activity
+	@echo "Building lobbying Gold fact_lobbying_activity..."
+	@$(PYTHON) scripts/lobbying_build_fact_activity.py
+
+build-lobbying-gold-dim-client: ## Build lobbying Gold dim_client
+	@echo "Building lobbying Gold dim_client..."
+	@$(PYTHON) scripts/lobbying_build_dim_client.py
+
+build-lobbying-gold-dim-registrant: ## Build lobbying Gold dim_registrant
+	@echo "Building lobbying Gold dim_registrant..."
+	@$(PYTHON) scripts/lobbying_build_dim_registrant.py
+
+build-lobbying-gold-dim-lobbyist: ## Build lobbying Gold dim_lobbyist
+	@echo "Building lobbying Gold dim_lobbyist..."
+	@$(PYTHON) scripts/lobbying_build_dim_lobbyist.py
+
+build-lobbying-gold-all: build-lobbying-gold-fact build-lobbying-gold-dim-client build-lobbying-gold-dim-registrant build-lobbying-gold-dim-lobbyist ## Build all lobbying Gold tables
+	@echo "✓ Lobbying Gold layer build complete"
+
+compute-lobbying-bill-correlation: ## Compute bill-lobbying correlation aggregate
+	@echo "Computing bill-lobbying correlations..."
+	@$(PYTHON) scripts/compute_agg_bill_lobbying_correlation.py
+
+compute-lobbying-member-network: ## Compute member-lobbyist network aggregate
+	@echo "Computing member-lobbyist network..."
+	@$(PYTHON) scripts/compute_agg_member_lobbyist_network.py
+
+compute-lobbying-triple-correlation: ## Compute triple correlation (Trade-Bill-Lobbying) - STAR FEATURE
+	@echo "Computing triple correlations..."
+	@$(PYTHON) scripts/compute_agg_triple_correlation.py
+
+compute-lobbying-network-metrics: ## Compute social network analysis metrics (centrality, communities, influence)
+	@echo "Computing lobbying network metrics..."
+	@$(PYTHON) scripts/compute_lobbying_network_metrics.py 2024
+
+compute-lobbying-all: compute-lobbying-bill-correlation compute-lobbying-member-network compute-lobbying-triple-correlation compute-lobbying-network-metrics ## Compute all lobbying aggregates
+	@echo "✓ Lobbying aggregates computation complete"
+
+build-lobbying-pipeline: build-lobbying-silver-all build-lobbying-gold-all compute-lobbying-all ## Full lobbying data pipeline (Silver → Gold → Aggregates)
+	@echo "✓ Full lobbying pipeline complete"
 
 purge-dlq: ## Purge dead letter queue
 	@echo "Purging dead letter queue..."

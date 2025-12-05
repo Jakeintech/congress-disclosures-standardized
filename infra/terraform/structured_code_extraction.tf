@@ -14,6 +14,7 @@ resource "aws_sqs_queue" "code_extraction_queue" {
     maxReceiveCount     = 3 # Retry 3 times before DLQ
   })
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -28,6 +29,7 @@ resource "aws_sqs_queue" "code_extraction_queue" {
 resource "aws_sqs_queue" "code_extraction_dlq" {
   name                      = "${local.name_prefix}-code-extraction-dlq"
   message_retention_seconds = 1209600 # 14 days
+
 
   tags = merge(
     local.standard_tags,
@@ -53,6 +55,7 @@ resource "aws_sqs_queue_redrive_allow_policy" "code_extraction_dlq_redrive" {
 resource "aws_cloudwatch_log_group" "extract_structured_code" {
   name              = "/aws/lambda/${local.name_prefix}-extract-structured-code"
   retention_in_days = var.cloudwatch_log_retention_days
+
 
   tags = merge(
     local.standard_tags,
@@ -97,6 +100,7 @@ resource "aws_lambda_function" "extract_structured_code" {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
   }
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -114,6 +118,9 @@ resource "aws_lambda_function" "extract_structured_code" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.extract_structured_code,
     aws_iam_role_policy.lambda_logging
   ]
@@ -133,6 +140,9 @@ resource "aws_lambda_event_source_mapping" "code_extraction_trigger" {
   enabled = true # ENABLED from the start
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_iam_role_policy.lambda_sqs_access
   ]
 }

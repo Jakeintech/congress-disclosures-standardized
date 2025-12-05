@@ -57,8 +57,9 @@ resource "aws_lambda_function" "ingest_zip" {
     ]
   }
 
-  # Depends on log group being created first
+  # Depends on log group being created first and Lambda packages being built
   depends_on = [
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.ingest_zip,
     aws_iam_role_policy.lambda_logging
   ]
@@ -107,6 +108,7 @@ resource "aws_lambda_function" "index_to_silver" {
     ["arn:aws:lambda:us-east-1:464813693153:layer:python-custom-dependencies:3"]
   )
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -124,6 +126,9 @@ resource "aws_lambda_function" "index_to_silver" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.index_to_silver,
     aws_iam_role_policy.lambda_logging
   ]
@@ -177,6 +182,7 @@ resource "aws_lambda_function" "extract_document" {
     ["arn:aws:lambda:us-east-1:464813693153:layer:python-custom-dependencies:3"] # Custom layer for jsonschema, etc.
   )
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -194,6 +200,9 @@ resource "aws_lambda_function" "extract_document" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.extract_document,
     aws_iam_role_policy.lambda_logging
   ]
@@ -280,6 +289,7 @@ resource "aws_lambda_function" "gold_seed" {
     ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
   )
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -297,6 +307,9 @@ resource "aws_lambda_function" "gold_seed" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.gold_seed,
     aws_iam_role_policy.lambda_logging
   ]
@@ -340,6 +353,7 @@ resource "aws_lambda_function" "gold_seed_members" {
     ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
   )
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -357,6 +371,9 @@ resource "aws_lambda_function" "gold_seed_members" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.gold_seed_members,
     aws_iam_role_policy.lambda_logging,
     aws_iam_role_policy.lambda_ssm_congress_api
@@ -400,6 +417,7 @@ resource "aws_lambda_function" "data_quality_validator" {
     ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
   )
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -417,6 +435,9 @@ resource "aws_lambda_function" "data_quality_validator" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.data_quality_validator,
     aws_iam_role_policy.lambda_logging
   ]

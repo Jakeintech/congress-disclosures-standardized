@@ -3,11 +3,14 @@
  * Fetches and displays AWS cost data from the API.
  */
 
-const API_BASE_URL = 'https://api.congress-trading.org/v1'; // Adjust if needed
+// Resolve API base from config if available, otherwise use deployed API Gateway URL
+const API_BASE_URL = (typeof API_GATEWAY_URL !== 'undefined' && API_GATEWAY_URL)
+    ? API_GATEWAY_URL
+    : 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
 
 async function fetchCosts() {
     try {
-        const response = await fetch(`${API_BASE_URL}/costs`);
+        const response = await fetch(`${API_BASE_URL}/v1/costs`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

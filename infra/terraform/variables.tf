@@ -123,7 +123,7 @@ variable "sqs_message_retention_days" {
 variable "sqs_max_receive_count" {
   description = "Max receives before moving to DLQ"
   type        = number
-  default     = 3
+  default     = 5
 
   validation {
     condition     = var.sqs_max_receive_count >= 1 && var.sqs_max_receive_count <= 1000

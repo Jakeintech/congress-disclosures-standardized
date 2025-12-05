@@ -610,6 +610,132 @@ function shareLink() {
     });
 }
 
+// Fetch and render lobbying activity
+async function fetchAndRenderLobbyingActivity(billId) {
+    const loadingEl = document.getElementById('lobbying-loading');
+    const contentEl = document.getElementById('lobbying-content');
+    const emptyEl = document.getElementById('lobbying-empty');
+    const errorEl = document.getElementById('lobbying-error');
+
+    try {
+        // Fetch lobbying activity from API
+        const response = await fetch(`${API_BASE}/v1/lobbying/bills/${billId}/lobbying-activity`);
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                // No lobbying activity found
+                loadingEl.style.display = 'none';
+                emptyEl.style.display = 'block';
+                return;
+            }
+            throw new Error(`Failed to fetch lobbying data: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const lobbyingData = data.data || data;
+
+        // Hide loading
+        loadingEl.style.display = 'none';
+
+        // Check if there's any lobbying activity
+        if (!lobbyingData.lobbying_activity || lobbyingData.lobbying_activity.length === 0) {
+            emptyEl.style.display = 'block';
+            return;
+        }
+
+        // Show content
+        contentEl.style.display = 'block';
+
+        // Render summary badge
+        const summaryEl = document.getElementById('lobbying-summary');
+        const totalSpend = lobbyingData.total_lobbying_spend || 0;
+        const clientCount = lobbyingData.client_count || 0;
+
+        summaryEl.innerHTML = `
+            💰 <strong>$${totalSpend.toLocaleString()}</strong> in lobbying activity from
+            <strong>${clientCount}</strong> ${clientCount === 1 ? 'organization' : 'organizations'}
+        `;
+
+        // Render lobbying activities table
+        const tableBody = document.getElementById('lobbying-table-body');
+        tableBody.innerHTML = '';
+
+        lobbyingData.lobbying_activity.forEach(activity => {
+            const row = document.createElement('tr');
+
+            // Client
+            const clientCell = document.createElement('td');
+            clientCell.textContent = activity.client || 'Unknown';
+            row.appendChild(clientCell);
+
+            // Registrant (firm)
+            const registrantCell = document.createElement('td');
+            registrantCell.textContent = activity.registrant || 'Unknown';
+            row.appendChild(registrantCell);
+
+            // Issue codes
+            const issuesCell = document.createElement('td');
+            const issueCodes = activity.issue_codes || [];
+            if (issueCodes.length > 0) {
+                issueCodes.slice(0, 3).forEach(code => {
+                    const badge = document.createElement('span');
+                    badge.className = 'issue-badge';
+                    badge.textContent = code;
+                    issuesCell.appendChild(badge);
+                });
+                if (issueCodes.length > 3) {
+                    const moreBadge = document.createElement('span');
+                    moreBadge.className = 'issue-badge';
+                    moreBadge.textContent = `+${issueCodes.length - 3} more`;
+                    issuesCell.appendChild(moreBadge);
+                }
+            } else {
+                issuesCell.textContent = 'N/A';
+            }
+            row.appendChild(issuesCell);
+
+            // Quarters
+            const quartersCell = document.createElement('td');
+            const quarters = activity.quarters || [];
+            if (quarters.length > 0) {
+                quarters.forEach(quarter => {
+                    const badge = document.createElement('span');
+                    badge.className = 'quarter-badge';
+                    badge.textContent = quarter;
+                    quartersCell.appendChild(badge);
+                });
+            } else {
+                quartersCell.textContent = 'N/A';
+            }
+            row.appendChild(quartersCell);
+
+            tableBody.appendChild(row);
+        });
+
+        // Render timeline (simple text-based for now)
+        const timelineChart = document.getElementById('lobbying-timeline-chart');
+        const firstDate = lobbyingData.first_lobbying_date || 'N/A';
+        const lastDate = lobbyingData.last_lobbying_date || 'N/A';
+
+        timelineChart.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>First Activity:</strong> ${formatDate(firstDate)}
+                </div>
+                <div style="color: #999;">━━━━━━━━━━━━━━</div>
+                <div>
+                    <strong>Latest Activity:</strong> ${formatDate(lastDate)}
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error fetching lobbying data:', error);
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'block';
+    }
+}
+
 // Print page
 function printPage() {
     window.print();
@@ -637,6 +763,9 @@ async function init() {
         renderTimeline(billData);
         renderCommittees(billData);
         renderTrades(billData);
+
+        // Fetch and render lobbying activity (async, non-blocking)
+        fetchAndRenderLobbyingActivity(billId);
 
         // Set up action buttons
         document.getElementById('share-btn').addEventListener('click', shareLink);

@@ -172,16 +172,19 @@ def run_full_pipeline(congress: int = None, wait: bool = True):
         'congress_build_dim_member.py',
         'congress_build_dim_bill.py',
         'congress_build_fact_member_bill_role.py',
+        'congress_build_agg_bill_latest_action.py',  # Epic 1: Bill latest action aggregate
     ]
     for script in gold_scripts:
         run_script(script)
-    
-    # Step 4: Build Analytics
+
+    # Step 4: Build Analytics (Epic 2: Bill Industry Analysis & Correlation)
     logger.info("\n📊 STEP 4: Building Analytics")
     analytics_scripts = [
         'congress_build_analytics_trade_windows.py',
         'congress_build_analytics_stock_activity.py',
         'congress_compute_agg_member_stats.py',
+        'analyze_bill_industry_impact.py',  # Epic 2: Industry classification for bills
+        'compute_agg_bill_trade_correlation.py',  # Epic 2: Bill-trade correlation scores
     ]
     for script in analytics_scripts:
         run_script(script)
@@ -216,27 +219,30 @@ def run_aggregate_pipeline():
     logger.info("=" * 80)
     logger.info("RUNNING AGGREGATE PIPELINE (Gold + Analytics)")
     logger.info("=" * 80)
-    
+
     # Gold layer
     logger.info("\n🏆 Building Gold Layer...")
     gold_scripts = [
         'congress_build_dim_member.py',
         'congress_build_dim_bill.py',
         'congress_build_fact_member_bill_role.py',
+        'congress_build_agg_bill_latest_action.py',  # Epic 1: Bill latest action aggregate
     ]
     for script in gold_scripts:
         run_script(script)
-    
+
     # Analytics
     logger.info("\n📊 Building Analytics...")
     analytics_scripts = [
         'congress_build_analytics_trade_windows.py',
         'congress_build_analytics_stock_activity.py',
         'congress_compute_agg_member_stats.py',
+        'analyze_bill_industry_impact.py',  # Epic 2: Industry classification for bills
+        'compute_agg_bill_trade_correlation.py',  # Epic 2: Bill-trade correlation scores
     ]
     for script in analytics_scripts:
         run_script(script)
-    
+
     logger.info("\n✅ AGGREGATE PIPELINE COMPLETE!")
 
 

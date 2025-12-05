@@ -329,6 +329,7 @@
                             <div class="tab active" data-tab="legislative">🏛️ Legislative Activity</div>
                             <div class="tab" data-tab="trades">💹 Trade Windows</div>
                             <div class="tab" data-tab="holdings">📊 Holdings</div>
+                            <div class="tab" data-tab="lobbying">💰 Lobbying Connections</div>
                         </div>
 
                         <!-- Legislative Activity Tab -->
@@ -364,6 +365,62 @@
                         <div id="tab-holdings" class="tab-content">
                             <div class="empty-state">Holdings data available through Financial Disclosures API.</div>
                         </div>
+
+                        <!-- Lobbying Connections Tab -->
+                        <div id="tab-lobbying" class="tab-content">
+                            <div id="lobbying-loading" style="text-align: center; padding: 2rem; color: #666;">
+                                Loading lobbying connections...
+                            </div>
+
+                            <div id="lobbying-content" style="display: none;">
+                                <!-- Summary Stats -->
+                                <div id="lobbying-stats" class="stats-grid" style="margin-bottom: 2rem;"></div>
+
+                                <!-- Connections Table -->
+                                <div style="margin-bottom: 2rem;">
+                                    <h4 style="margin-bottom: 1rem; color: #333;">Client Connections</h4>
+                                    <div style="overflow-x: auto;">
+                                        <table id="lobbying-connections-table" style="width: 100%; border-collapse: collapse;">
+                                            <thead>
+                                                <tr style="background: #f5f5f5; border-bottom: 2px solid #ddd;">
+                                                    <th style="padding: 0.75rem; text-align: left;">Client</th>
+                                                    <th style="padding: 0.75rem; text-align: left;">Connection Score</th>
+                                                    <th style="padding: 0.75rem; text-align: left;">Connection Types</th>
+                                                    <th style="padding: 0.75rem; text-align: left;">Bills in Common</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="lobbying-connections-tbody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Contributions Received -->
+                                <div style="margin-bottom: 2rem;">
+                                    <h4 style="margin-bottom: 1rem; color: #333;">Contributions from Lobbyists</h4>
+                                    <div id="lobbying-contributions-container">
+                                        <p style="color: #666; font-style: italic;">Contribution data will be displayed here.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Network Visualization -->
+                                <div>
+                                    <h4 style="margin-bottom: 1rem; color: #333;">Influence Network</h4>
+                                    <div id="lobbying-network-viz" style="background: #f9f9f9; border-radius: 8px; padding: 2rem; min-height: 300px;">
+                                        <p style="color: #666; text-align: center; font-style: italic;">Network visualization will be displayed here.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="lobbying-empty" style="display: none; text-align: center; padding: 3rem; color: #666;">
+                                <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No lobbying connections found</p>
+                                <p style="font-size: 0.9rem;">This member has no documented lobbying connections for the selected year.</p>
+                            </div>
+
+                            <div id="lobbying-error" style="display: none; text-align: center; padding: 3rem; color: #d32f2f;">
+                                <p>Error loading lobbying connections data.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -394,6 +451,11 @@
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 tab.classList.add('active');
                 document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+
+                // Load lobbying data when lobbying tab is clicked
+                if (tab.dataset.tab === 'lobbying') {
+                    loadLobbyingConnections(bioguideId);
+                }
             });
         });
 
@@ -629,6 +691,112 @@
 
         function capitalize(str) {
             return str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+        }
+
+        // Fetch and render lobbying connections
+        let lobbyingDataLoaded = false;
+        async function loadLobbyingConnections(bioguideId) {
+            if (lobbyingDataLoaded) return; // Load only once
+
+            const loadingEl = document.getElementById('lobbying-loading');
+            const contentEl = document.getElementById('lobbying-content');
+            const emptyEl = document.getElementById('lobbying-empty');
+            const errorEl = document.getElementById('lobbying-error');
+
+            try {
+                const currentYear = new Date().getFullYear();
+                const response = await fetch(`${PROFILE_API_BASE}/v1/members/${bioguideId}/lobbying-connections?year=${currentYear}`);
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        loadingEl.style.display = 'none';
+                        emptyEl.style.display = 'block';
+                        lobbyingDataLoaded = true;
+                        return;
+                    }
+                    throw new Error(`Failed to fetch lobbying connections: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const lobbyingData = data.data || data;
+
+                loadingEl.style.display = 'none';
+
+                if (!lobbyingData.connections || lobbyingData.connections.length === 0) {
+                    emptyEl.style.display = 'block';
+                    lobbyingDataLoaded = true;
+                    return;
+                }
+
+                contentEl.style.display = 'block';
+
+                // Render stats
+                const statsEl = document.getElementById('lobbying-stats');
+                statsEl.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-label">Total Connections</div>
+                        <div class="stat-value">${lobbyingData.connection_count || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Connection Score</div>
+                        <div class="stat-value">${Math.round(lobbyingData.total_connection_score || 0)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Bills with Lobbying</div>
+                        <div class="stat-value">${lobbyingData.bills_sponsored_with_lobbying?.length || 0}</div>
+                    </div>
+                `;
+
+                // Render connections table
+                const tbody = document.getElementById('lobbying-connections-tbody');
+                tbody.innerHTML = '';
+
+                lobbyingData.connections.slice(0, 20).forEach(conn => {
+                    const row = document.createElement('tr');
+                    row.style.borderBottom = '1px solid #eee';
+
+                    // Client
+                    const clientCell = document.createElement('td');
+                    clientCell.style.padding = '0.75rem';
+                    clientCell.textContent = conn.client_name || 'Unknown';
+                    row.appendChild(clientCell);
+
+                    // Score
+                    const scoreCell = document.createElement('td');
+                    scoreCell.style.padding = '0.75rem';
+                    const score = conn.total_connection_score || 0;
+                    scoreCell.innerHTML = `<strong style="color: ${score >= 80 ? '#d32f2f' : score >= 50 ? '#ff9800' : '#666'}">${score}</strong>`;
+                    row.appendChild(scoreCell);
+
+                    // Connection Types
+                    const typesCell = document.createElement('td');
+                    typesCell.style.padding = '0.75rem';
+                    const types = conn.connection_types || [];
+                    types.forEach(type => {
+                        const badge = document.createElement('span');
+                        badge.style.cssText = 'display:inline-block; padding:0.2rem 0.5rem; background:#e3f2fd; color:#1976d2; border-radius:4px; font-size:0.75rem; margin-right:0.3rem;';
+                        badge.textContent = type.replace('_', ' ');
+                        typesCell.appendChild(badge);
+                    });
+                    row.appendChild(typesCell);
+
+                    // Bills
+                    const billsCell = document.createElement('td');
+                    billsCell.style.padding = '0.75rem';
+                    const bills = conn.bills_in_common || [];
+                    billsCell.textContent = bills.length > 0 ? `${bills.length} bills` : 'N/A';
+                    row.appendChild(billsCell);
+
+                    tbody.appendChild(row);
+                });
+
+                lobbyingDataLoaded = true;
+
+            } catch (error) {
+                console.error('Error loading lobbying connections:', error);
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', loadMemberProfile);

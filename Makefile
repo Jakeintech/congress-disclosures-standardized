@@ -399,6 +399,37 @@ aggregate-data: ## Aggregate all filing types into Gold layer
 	@$(PYTHON) scripts/generate_pipeline_errors.py
 	@echo "✓ Data aggregation complete"
 
+##@ Congress Ingestion
+
+ingest-congress-bill-subresources: ## Trigger ingestion of bill subresources (cosponsors, actions, committees, subjects)
+	@echo "Triggering bill subresource ingestion..."
+	@if [ -z "$(CONGRESS)" ]; then \
+		echo "Error: CONGRESS variable required. Usage: make ingest-congress-bill-subresources CONGRESS=118"; \
+		exit 1; \
+	fi
+	@$(PYTHON) scripts/trigger_bill_subresource_ingestion.py --congress $(CONGRESS)
+
+ingest-congress-bill-subresources-test: ## Test bill subresource ingestion (10 bills only)
+	@echo "Testing bill subresource ingestion (10 bills)..."
+	@if [ -z "$(CONGRESS)" ]; then \
+		echo "Error: CONGRESS variable required. Usage: make ingest-congress-bill-subresources-test CONGRESS=118"; \
+		exit 1; \
+	fi
+	@$(PYTHON) scripts/trigger_bill_subresource_ingestion.py --congress $(CONGRESS) --limit 10
+
+##@ Congress Silver Layer
+
+build-congress-silver-cosponsors: ## Build Congress Silver bill_cosponsors from Bronze
+	@echo "Building Congress Silver bill_cosponsors..."
+	@$(PYTHON) scripts/congress_build_silver_bill_cosponsors.py
+
+build-congress-silver-actions: ## Build Congress Silver bill_actions from Bronze
+	@echo "Building Congress Silver bill_actions..."
+	@$(PYTHON) scripts/congress_build_silver_bill_actions.py
+
+build-congress-silver-bills: build-congress-silver-cosponsors build-congress-silver-actions ## Build all Congress bill Silver tables
+	@echo "✓ Congress bill Silver layer build complete"
+
 ##@ Congress Gold Layer
 
 build-congress-gold-member: ## Build Congress Gold dim_member from Silver
@@ -413,7 +444,11 @@ build-congress-gold-fact: ## Build Congress Gold fact_member_bill_role from Silv
 	@echo "Building Congress Gold fact_member_bill_role..."
 	@$(PYTHON) scripts/congress_build_fact_member_bill_role.py
 
-build-congress-gold: build-congress-gold-member build-congress-gold-bill build-congress-gold-fact ## Build all Congress Gold tables
+build-congress-gold-agg-latest-action: ## Build Congress Gold agg_bill_latest_action from Silver
+	@echo "Building Congress Gold agg_bill_latest_action..."
+	@$(PYTHON) scripts/congress_build_agg_bill_latest_action.py
+
+build-congress-gold: build-congress-gold-member build-congress-gold-bill build-congress-gold-fact build-congress-gold-agg-latest-action ## Build all Congress Gold tables
 	@echo "✓ Congress Gold layer build complete"
 
 ##@ Congress Analytics (FD-Congress Correlation)
@@ -432,6 +467,35 @@ build-congress-member-stats: ## Compute member legislative + trading stats
 
 build-congress-analytics: build-congress-analytics-trade-windows build-congress-analytics-stock-activity build-congress-member-stats ## Build all Congress analytics
 	@echo "✓ Congress analytics build complete"
+
+##@ Bill Industry & Correlation Analysis (Epic 2)
+
+analyze-bill-industry: ## Analyze bills for industry impact and generate tags
+	@echo "Analyzing bills for industry impact..."
+	@$(PYTHON) scripts/analyze_bill_industry_impact.py
+
+analyze-bill-industry-congress: ## Analyze specific congress only (Usage: CONGRESS=118)
+	@echo "Analyzing congress $(CONGRESS) bills..."
+	@$(PYTHON) scripts/analyze_bill_industry_impact.py --congress $(CONGRESS)
+
+analyze-bill-industry-test: ## Test industry analysis (first 10 bills)
+	@echo "Testing industry analysis..."
+	@$(PYTHON) scripts/analyze_bill_industry_impact.py --test
+
+compute-bill-trade-correlation: ## Compute bill-trade correlation scores
+	@echo "Computing bill-trade correlations..."
+	@$(PYTHON) scripts/compute_agg_bill_trade_correlation.py
+
+compute-bill-trade-correlation-congress: ## Compute correlations for specific congress (Usage: CONGRESS=118)
+	@echo "Computing correlations for congress $(CONGRESS)..."
+	@$(PYTHON) scripts/compute_agg_bill_trade_correlation.py --congress $(CONGRESS)
+
+compute-bill-trade-correlation-strict: ## Compute correlations with stricter threshold (min score 40)
+	@echo "Computing correlations (strict threshold)..."
+	@$(PYTHON) scripts/compute_agg_bill_trade_correlation.py --min-score 40
+
+build-bill-correlation-pipeline: analyze-bill-industry compute-bill-trade-correlation ## Full Epic 2 pipeline (industry + correlation)
+	@echo "✓ Bill correlation pipeline complete"
 
 ##@ Congress Pipeline Orchestration
 

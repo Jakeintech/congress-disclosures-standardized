@@ -77,6 +77,7 @@ locals {
     # Congress.gov API endpoints
     "get_congress_bills"    = { route = "GET /v1/congress/bills" }
     "get_congress_bill"     = { route = "GET /v1/congress/bills/{bill_id}" }
+    "get_bill_actions"      = { route = "GET /v1/congress/bills/{bill_id}/actions" }
     "get_congress_members"  = { route = "GET /v1/congress/members" }
     "get_congress_member"   = { route = "GET /v1/congress/members/{bioguide_id}" }
 

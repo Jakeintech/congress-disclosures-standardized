@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Detail - Congress Disclosures</title>
+    <meta name="description" content="View comprehensive bill details including sponsors, cosponsors, industry impact, and related trades">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .breadcrumb {
+            padding: 1rem 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            margin: 0 0.5rem;
+            color: #999;
+        }
+
+        .bill-header {
+            margin-bottom: 2rem;
+        }
+
+        .bill-id-display {
+            font-family: monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0066cc;
+            margin-bottom: 0.5rem;
+        }
+
+        .bill-title-display {
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-passed {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status-failed {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .key-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .metric-value a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .metric-value a:hover {
+            text-decoration: underline;
+        }
+
+        .section {
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .industry-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #90caf9;
+        }
+
+        .ticker-badge {
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffb74d;
+            cursor: pointer;
+        }
+
+        .ticker-badge:hover {
+            background: #ffe0b2;
+        }
+
+        .trade-alert-banner {
+            background: #fff9c4;
+            border: 2px solid #fbc02d;
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .trade-alert-banner:hover {
+            background: #fff59d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .trade-alert-banner strong {
+            color: #f57f17;
+        }
+
+        .sponsor-card {
+            padding: 1.5rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 1rem;
+        }
+
+        .sponsor-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0066cc;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+
+        .sponsor-name:hover {
+            text-decoration: underline;
+        }
+
+        .party-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .party-D {
+            background: #2196f3;
+            color: white;
+        }
+
+        .party-R {
+            background: #f44336;
+            color: white;
+        }
+
+        .party-I {
+            background: #9c27b0;
+            color: white;
+        }
+
+        .state-badge {
+            background: #e0e0e0;
+            color: #333;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .cosponsors-summary {
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d5d5d5;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-close {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .cosponsor-search {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .cosponsor-list {
+            list-style: none;
+        }
+
+        .cosponsor-item {
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cosponsor-item:hover {
+            background: #f9f9f9;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.45rem;
+            top: 0.3rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #1976d2;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #e0e0e0;
+        }
+
+        .timeline-date {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-text {
+            font-size: 0.9rem;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .timeline-chamber {
+            display: inline-block;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .chamber-house {
+            background: #4caf50;
+            color: white;
+        }
+
+        .chamber-senate {
+            background: #2196f3;
+            color: white;
+        }
+
+        .committee-list {
+            list-style: none;
+        }
+
+        .committee-item {
+            padding: 0.8rem;
+            background: #f9f9f9;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #1976d2;
+        }
+
+        .committee-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .committee-date {
+            font-size: 0.85rem;
+            color: #666;
+            margin-left: 1rem;
+        }
+
+        .trades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .trades-table th,
+        .trades-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .trades-table th {
+            background: #f9f9f9;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #666;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .trades-table th:hover {
+            background: #f0f0f0;
+        }
+
+        .trades-table tr:hover {
+            background: #fafafa;
+        }
+
+        .correlation-score {
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .score-high {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        .score-moderate {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .score-low {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .trade-type-purchase {
+            color: #388e3c;
+            font-weight: 600;
+        }
+
+        .trade-type-sale {
+            color: #d32f2f;
+            font-weight: 600;
+        }
+
+        .committee-badge {
+            display: inline-block;
+            font-size: 1rem;
+            margin-left: 0.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            padding: 2rem;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1976d2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            padding: 2rem;
+            text-align: center;
+            color: #d32f2f;
+            background: #ffebee;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .congress-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: #2e7d32;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .congress-link:hover {
+            background: #1b5e20;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .confidence-score {
+            font-size: 0.75rem;
+            color: #666;
+            font-weight: normal;
+        }
+
+        @media print {
+            .action-buttons,
+            .breadcrumb,
+            #nav-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <!-- Breadcrumb -->
+                <div class="breadcrumb">
+                    <a href="index.html">Home</a>
+                    <span class="breadcrumb-separator">›</span>
+                    <a href="congress-bills.html">Bills</a>
+                    <span class="breadcrumb-separator">›</span>
+                    <span id="breadcrumb-bill-id">Loading...</span>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-state" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading bill details...</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="error-state" class="error-message" style="display: none;">
+                    <h3>⚠️ Error Loading Bill</h3>
+                    <p id="error-message"></p>
+                    <a href="congress-bills.html" class="btn btn-primary" style="margin-top: 1rem;">Back to Bills</a>
+                </div>
+
+                <!-- Main Content -->
+                <div id="main-content" style="display: none;">
+                    <div class="card">
+                        <div class="card-content">
+                            <!-- Bill Header -->
+                            <div class="bill-header">
+                                <div class="bill-id-display" id="bill-id"></div>
+                                <div class="bill-title-display" id="bill-title"></div>
+                                <span id="status-badge" class="status-badge"></span>
+                            </div>
+
+                            <!-- Key Metrics -->
+                            <div class="key-metrics" id="key-metrics"></div>
+
+                            <!-- Action Buttons -->
+                            <div class="action-buttons">
+                                <button class="btn btn-primary" id="share-btn">📋 Share Link</button>
+                                <button class="btn btn-secondary" id="export-csv-btn">📊 Export Trades (CSV)</button>
+                                <button class="btn btn-secondary" id="print-btn">🖨️ Print</button>
+                                <a id="congress-link" class="congress-link" href="#" target="_blank">
+                                    🏛️ View on Congress.gov
+                                </a>
+                            </div>
+
+                            <!-- Industry & Stock Impact -->
+                            <div class="section" id="industry-section">
+                                <h3 class="section-title">🏭 Industry & Stock Impact</h3>
+                                <div id="trade-alert-banner"></div>
+                                <div id="industry-tags"></div>
+                                <div id="stock-tickers"></div>
+                            </div>
+
+                            <!-- Sponsor & Cosponsors -->
+                            <div class="section" id="sponsors-section">
+                                <h3 class="section-title">👥 Sponsor & Cosponsors</h3>
+                                <div id="sponsor-card"></div>
+                                <div id="cosponsors-summary"></div>
+                            </div>
+
+                            <!-- Legislative Timeline -->
+                            <div class="section" id="timeline-section">
+                                <h3 class="section-title">📅 Legislative Timeline</h3>
+                                <div id="timeline" class="timeline"></div>
+                                <button class="btn btn-secondary" id="load-full-history-btn" style="display: none;">
+                                    Load Full History
+                                </button>
+                            </div>
+
+                            <!-- Committee Assignments -->
+                            <div class="section" id="committees-section">
+                                <h3 class="section-title">🏛️ Committee Assignments</h3>
+                                <ul id="committees-list" class="committee-list"></ul>
+                            </div>
+
+                            <!-- Related Trades (STAR FEATURE) -->
+                            <div class="section" id="trades-section">
+                                <h3 class="section-title">⚠️ Related Trades</h3>
+                                <p style="color: #666; margin-bottom: 1rem;">
+                                    This section shows legislators who traded stocks related to this bill's industries within 90 days of bill activity.
+                                </p>
+                                <div id="trades-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Cosponsors Modal -->
+        <div id="cosponsors-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Cosponsors</h3>
+                    <button class="modal-close" id="modal-close">&times;</button>
+                </div>
+                <input type="text" id="cosponsor-search" class="cosponsor-search" placeholder="Search by name or party...">
+                <ul id="cosponsor-list" class="cosponsor-list"></ul>
+            </div>
+        </div>
+
+        <script src="js/navigation.js"></script>
+        <script src="js/bill-detail.js"></script>
+    </div>
+</body>
+
+</html>

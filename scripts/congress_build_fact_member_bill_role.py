@@ -92,7 +92,7 @@ def build_fact_member_bill_role() -> pd.DataFrame:
                     'role': 'cosponsor',
                     'is_sponsor': False,
                     'is_cosponsor': True,
-                    'action_date': cosponsor.get('cosponsored_date'),
+                    'action_date': cosponsor.get('sponsorship_date'),  # Fixed field name
                 })
         logger.info(f"Created {len(cosponsor_records)} cosponsor records")
     else:
@@ -106,10 +106,14 @@ def build_fact_member_bill_role() -> pd.DataFrame:
     
     df = pd.DataFrame(all_records)
     
-    # 5. Add metadata
+    # 5. Normalize action_date column to string (handle mixed types from different sources)
+    if 'action_date' in df.columns:
+        df['action_date'] = pd.to_datetime(df['action_date'], errors='coerce').dt.strftime('%Y-%m-%d')
+
+    # 6. Add metadata
     df['gold_created_at'] = datetime.utcnow().isoformat()
     df['gold_version'] = 1
-    
+
     return df
 
 

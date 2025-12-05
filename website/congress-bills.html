@@ -144,6 +144,87 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .count-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .trade-alert-badge {
+            background: #fff9c4;
+            color: #f57f17;
+            cursor: pointer;
+        }
+
+        .trade-alert-badge:hover {
+            background: #fff59d;
+        }
+
+        .industry-badge {
+            background: #e8f5e9;
+            color: #2e7d32;
+            margin-right: 0.25rem;
+        }
+
+        .industry-more {
+            background: #f5f5f5;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .industry-more:hover {
+            background: #e0e0e0;
+        }
+
+        .filter-advanced {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ddd;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .clear-filters-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .clear-filters-btn:hover {
+            background: #d32f2f;
+        }
+
+        .bill-id {
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .bill-id:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -166,6 +247,15 @@
                         <!-- Filters -->
                         <div class="filters">
                             <div class="filter-group">
+                                <label>Sort By</label>
+                                <select id="sort-by">
+                                    <option value="recent_activity">Recent Activity</option>
+                                    <option value="cosponsor_count">Cosponsor Count</option>
+                                    <option value="trade_correlations">Trade Correlations</option>
+                                    <option value="introduced_date">Introduced Date</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
                                 <label>Congress</label>
                                 <select id="filter-congress">
                                     <option value="">All</option>
@@ -185,10 +275,37 @@
                                 </select>
                             </div>
                             <div class="filter-group">
+                                <label>Industry</label>
+                                <select id="filter-industry">
+                                    <option value="">All Industries</option>
+                                    <option value="Defense">🛡️ Defense</option>
+                                    <option value="Healthcare">🏥 Healthcare</option>
+                                    <option value="Finance">💰 Finance</option>
+                                    <option value="Energy">⚡ Energy</option>
+                                    <option value="Technology">💻 Technology</option>
+                                    <option value="Agriculture">🌾 Agriculture</option>
+                                    <option value="Transportation">🚗 Transportation</option>
+                                    <option value="Real Estate">🏠 Real Estate</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
                                 <label>Sponsor</label>
                                 <input type="text" id="filter-sponsor" placeholder="Search by name...">
                             </div>
+                            <div class="filter-group">
+                                <label>Min Cosponsors</label>
+                                <input type="number" id="filter-min-cosponsors" placeholder="0" min="0">
+                            </div>
                             <button id="apply-filters" class="btn">Apply Filters</button>
+                            <button id="clear-filters" class="clear-filters-btn">Clear</button>
+
+                            <!-- Advanced Filters -->
+                            <div class="filter-advanced" style="width: 100%;">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="filter-has-trades">
+                                    <label for="filter-has-trades">Has Trade Correlations</label>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Bills Table -->
@@ -225,14 +342,28 @@
             const container = document.getElementById('bills-container');
             container.innerHTML = '<div class="loading">Loading bills...</div>';
 
+            // Get all filter values
+            const sortBy = document.getElementById('sort-by').value;
             const congress = document.getElementById('filter-congress').value;
             const billType = document.getElementById('filter-type').value;
+            const industry = document.getElementById('filter-industry').value;
             const sponsor = document.getElementById('filter-sponsor').value;
+            const minCosponsors = document.getElementById('filter-min-cosponsors').value;
+            const hasTrades = document.getElementById('filter-has-trades').checked;
 
+            // Build query params
             const params = new URLSearchParams({ limit: LIMIT, offset });
+            if (sortBy) params.append('sort_by', sortBy);
             if (congress) params.append('congress', congress);
             if (billType) params.append('bill_type', billType);
+            if (industry) params.append('industry', industry);
             if (sponsor) params.append('sponsor', sponsor);
+            if (minCosponsors) params.append('min_cosponsors', minCosponsors);
+            if (hasTrades) params.append('has_trade_correlations', 'true');
+
+            // Update URL query string for bookmarking
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.replaceState({}, '', newUrl);
 
             try {
                 const response = await fetch(`${BILLS_API_BASE}/v1/congress/bills?${params}`);
@@ -246,13 +377,16 @@
                 // Update stats
                 updateStats(data.pagination?.total || data.data.length);
 
-                // Render table
+                // Render table with new columns
                 let html = `<table class="bills-table">
                     <thead>
                         <tr>
                             <th>Bill ID</th>
                             <th>Title</th>
                             <th>Sponsor</th>
+                            <th>Cosponsors</th>
+                            <th>Industries</th>
+                            <th>Trade Alerts</th>
                             <th>Policy Area</th>
                             <th>Introduced</th>
                         </tr>
@@ -261,10 +395,40 @@
 
                 for (const bill of data.data) {
                     const billId = `${bill.congress}-${bill.bill_type}-${bill.bill_number}`;
+
+                    // Cosponsors count badge
+                    const cosponsorsCount = bill.cosponsors_count || 0;
+                    const cosponsorsBadge = `<span class="badge count-badge">${cosponsorsCount}</span>`;
+
+                    // Industry tags (top 2)
+                    const industries = bill.top_industry_tags || bill.industry_tags || [];
+                    let industryHtml = '';
+                    if (industries.length > 0) {
+                        const topTwo = industries.slice(0, 2);
+                        topTwo.forEach(ind => {
+                            const industryName = typeof ind === 'string' ? ind : ind.industry;
+                            industryHtml += `<span class="badge industry-badge">${industryName}</span>`;
+                        });
+                        if (industries.length > 2) {
+                            industryHtml += `<span class="badge industry-more" title="${industries.length - 2} more">+${industries.length - 2}</span>`;
+                        }
+                    } else {
+                        industryHtml = '-';
+                    }
+
+                    // Trade alerts
+                    const tradeAlertsCount = bill.trade_correlations_count || 0;
+                    const tradeAlertsHtml = tradeAlertsCount > 0
+                        ? `<span class="badge trade-alert-badge" title="${tradeAlertsCount} legislator(s) traded related stocks">⚠️ ${tradeAlertsCount}</span>`
+                        : '-';
+
                     html += `<tr>
-                        <td><a href="#" class="bill-id" data-bill="${billId}">${bill.bill_type?.toUpperCase() || ''} ${bill.bill_number || ''}</a></td>
-                        <td class="bill-title" title="${bill.title || ''}">${truncate(bill.title, 60)}</td>
+                        <td><a href="bill-detail.html?id=${billId}" class="bill-id">${bill.bill_type?.toUpperCase() || ''} ${bill.bill_number || ''}</a></td>
+                        <td class="bill-title" title="${bill.title || ''}">${truncate(bill.title, 50)}</td>
                         <td class="sponsor-name">${bill.sponsor_name || bill.sponsor_first_name && bill.sponsor_last_name ? `${bill.sponsor_first_name} ${bill.sponsor_last_name}` : 'N/A'}</td>
+                        <td>${cosponsorsBadge}</td>
+                        <td>${industryHtml}</td>
+                        <td>${tradeAlertsHtml}</td>
                         <td>${bill.policy_area ? `<span class="policy-badge">${bill.policy_area}</span>` : '-'}</td>
                         <td>${formatDate(bill.introduced_date)}</td>
                     </tr>`;
@@ -301,6 +465,17 @@
             `;
         }
 
+        function clearFilters() {
+            document.getElementById('sort-by').value = 'recent_activity';
+            document.getElementById('filter-congress').value = '118';
+            document.getElementById('filter-type').value = '';
+            document.getElementById('filter-industry').value = '';
+            document.getElementById('filter-sponsor').value = '';
+            document.getElementById('filter-min-cosponsors').value = '';
+            document.getElementById('filter-has-trades').checked = false;
+            loadBills(0);
+        }
+
         function truncate(str, len) {
             if (!str) return '';
             return str.length > len ? str.substring(0, len) + '...' : str;
@@ -313,8 +488,27 @@
             } catch { return dateStr; }
         }
 
+        // Load filters from URL on page load
+        function loadFiltersFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('sort_by')) document.getElementById('sort-by').value = params.get('sort_by');
+            if (params.has('congress')) document.getElementById('filter-congress').value = params.get('congress');
+            if (params.has('bill_type')) document.getElementById('filter-type').value = params.get('bill_type');
+            if (params.has('industry')) document.getElementById('filter-industry').value = params.get('industry');
+            if (params.has('sponsor')) document.getElementById('filter-sponsor').value = params.get('sponsor');
+            if (params.has('min_cosponsors')) document.getElementById('filter-min-cosponsors').value = params.get('min_cosponsors');
+            if (params.has('has_trade_correlations')) document.getElementById('filter-has-trades').checked = true;
+        }
+
+        // Event listeners
         document.getElementById('apply-filters').addEventListener('click', () => loadBills(0));
-        document.addEventListener('DOMContentLoaded', () => loadBills(0));
+        document.getElementById('clear-filters').addEventListener('click', clearFilters);
+        document.getElementById('sort-by').addEventListener('change', () => loadBills(0));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFiltersFromUrl();
+            loadBills(0);
+        });
     </script>
 </body>
 

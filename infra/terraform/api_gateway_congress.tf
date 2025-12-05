@@ -86,3 +86,17 @@ resource "aws_apigatewayv2_integration" "get_stock_leg_exposure" {
   integration_method = "POST"
   integration_uri    = aws_lambda_function.api["get_stock_leg_exposure"].invoke_arn
 }
+
+# GET /v1/congress/bills/{bill_id}/actions (Epic 3 - Bill Actions Timeline)
+resource "aws_apigatewayv2_route" "get_bill_actions" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/actions"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_actions.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_bill_actions" {
+  api_id             = aws_apigatewayv2_api.congress_api.id
+  integration_type   = "AWS_PROXY"
+  integration_method = "POST"
+  integration_uri    = aws_lambda_function.api["get_bill_actions"].invoke_arn
+}

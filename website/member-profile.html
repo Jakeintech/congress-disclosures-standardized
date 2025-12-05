@@ -207,6 +207,96 @@
             color: #e65100;
         }
 
+        .role-tab {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .role-tab:hover {
+            color: #333;
+            background: #f9f9f9;
+        }
+
+        .role-tab.active {
+            color: #1976d2;
+            border-bottom-color: #1976d2;
+        }
+
+        .count-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            background: #e0e0e0;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: 0.25rem;
+        }
+
+        .role-tab.active .count-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .bill-id {
+            font-family: monospace;
+            padding: 0.25rem 0.5rem;
+            background: #e3f2fd;
+            color: #1565c0;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .bill-id:hover {
+            background: #bbdefb;
+            text-decoration: underline;
+        }
+
+        .cosponsor-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .trade-correlation-badge {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            background: #fff9c4;
+            border: 1px solid #fbc02d;
+            color: #f57f17;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            cursor: pointer;
+        }
+
+        .trade-correlation-badge:hover {
+            background: #fff59d;
+        }
+
+        .score-high {
+            background: #ffcdd2;
+            border-color: #f44336;
+            color: #c62828;
+        }
+
+        .score-moderate {
+            background: #fff9c4;
+            border-color: #fbc02d;
+            color: #f57f17;
+        }
+
         .loading {
             text-align: center;
             padding: 2rem;
@@ -244,7 +334,20 @@
                         <!-- Legislative Activity Tab -->
                         <div id="tab-legislative" class="tab-content active">
                             <div id="legislative-stats" class="stats-grid"></div>
-                            <h3>Sponsored Bills</h3>
+
+                            <!-- Role Filter Tabs -->
+                            <div class="role-filter-tabs" style="margin: 1.5rem 0 1rem; display: flex; gap: 0.5rem; border-bottom: 2px solid #e0e0e0;">
+                                <button class="role-tab active" data-role="all" onclick="filterBillsByRole('all')">
+                                    All Bills <span id="count-all" class="count-badge">0</span>
+                                </button>
+                                <button class="role-tab" data-role="sponsor" onclick="filterBillsByRole('sponsor')">
+                                    Sponsored <span id="count-sponsor" class="count-badge">0</span>
+                                </button>
+                                <button class="role-tab" data-role="cosponsor" onclick="filterBillsByRole('cosponsor')">
+                                    Cosponsored <span id="count-cosponsor" class="count-badge">0</span>
+                                </button>
+                            </div>
+
                             <ul id="bills-list" class="bills-list">
                                 <div class="loading">Loading bills...</div>
                             </ul>
@@ -379,48 +482,21 @@
                     document.getElementById('bio-content').innerHTML = '<p class="empty-state">No service history available.</p>';
                 }
 
-                // Render Bills (Clickable)
-                if (bills && bills.length > 0) {
-                    document.getElementById('bills-list').innerHTML = bills.map((bill, index) => `
-                        <li class="bill-item" onclick="toggleBillDetails(${index})">
-                            <div class="bill-header">
-                                <div class="bill-main-info">
-                                    <h4>${bill.title || bill.bill_id}</h4>
-                                    <div class="bill-meta">
-                                        <span class="bill-id">${bill.bill_id}</span>
-                                        <span class="role-badge role-${bill.role || 'sponsor'}">${bill.role || 'Sponsor'}</span>
-                                        <span style="color:#666; font-size:0.8rem; margin-left:0.5rem">
-                                            ${bill.action_date ? new Date(bill.action_date).toLocaleDateString() : ''}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="bill-toggle">▼</div>
-                            </div>
-                            
-                            <div id="bill-details-${index}" class="bill-details" style="display:none">
-                                <div class="detail-row">
-                                    <strong>Policy Area:</strong> ${bill.policy_area || 'N/A'}
-                                </div>
-                                ${bill.trade_windows && bill.trade_windows.length > 0 ? `
-                                    <div class="trade-window-alert">
-                                        <strong>⚠️ Potential Conflict detected:</strong><br>
-                                        ${bill.trade_windows.length} trade(s) by this member occurred within ±30 days of legislative action.
-                                        <ul style="margin:0.5rem 0 0 1rem; font-size:0.85rem">
-                                            ${bill.trade_windows.map(t => `
-                                                <li>${t.transaction_date}: ${t.ticker} (${t.transaction_type}) - $${t.amount}</li>
-                                            `).join('')}
-                                        </ul>
-                                    </div>
-                                ` : ''}
-                                <div style="margin-top:0.5rem">
-                                    <a href="https://www.congress.gov/bill/${bill.congress || 118}th-congress/${(bill.bill_type == 'hr' ? 'house-bill' : 'senate-bill')}/${bill.bill_number}" target="_blank" onclick="event.stopPropagation()">View on Congress.gov ↗</a>
-                                </div>
-                            </div>
-                        </li>
-                    `).join('');
-                } else {
-                    document.getElementById('bills-list').innerHTML = '<div class="empty-state">No bills found for this member.</div>';
-                }
+                // Store bills globally for filtering
+                window.allBills = bills || [];
+
+                // Update role counts
+                const sponsorCount = bills.filter(b => (b.role_type || b.role) === 'sponsor').length;
+                const cosponsorCount = bills.filter(b => (b.role_type || b.role) === 'cosponsor').length;
+                document.getElementById('count-all').textContent = bills.length;
+                document.getElementById('count-sponsor').textContent = sponsorCount;
+                document.getElementById('count-cosponsor').textContent = cosponsorCount;
+
+                // Render Bills (Clickable with all enhancements)
+                renderBills(bills);
+
+                // Initialize role filter
+                window.currentRoleFilter = 'all';
 
                 // Render Trade Windows (Summary Tab)
                 if (stats.trades_in_windows > 0) {
@@ -452,6 +528,95 @@
             const details = document.getElementById(`bill-details-${index}`);
             const isHidden = details.style.display === 'none';
             details.style.display = isHidden ? 'block' : 'none';
+        }
+
+        function renderBills(bills) {
+            if (!bills || bills.length === 0) {
+                document.getElementById('bills-list').innerHTML = '<div class="empty-state">No bills found for this member.</div>';
+                return;
+            }
+
+            const html = bills.map((bill, index) => {
+                const billId = bill.bill_id || `${bill.congress}-${bill.bill_type}-${bill.bill_number}`;
+                const role = bill.role_type || bill.role || 'sponsor';
+                const cosponsorsCount = bill.cosponsors_count || 0;
+
+                // Trade correlation
+                const correlationScore = bill.correlation_score || 0;
+                let correlationHtml = '';
+                if (correlationScore > 0) {
+                    const scoreClass = correlationScore >= 70 ? 'score-high' : (correlationScore >= 40 ? 'score-moderate' : '');
+                    correlationHtml = `
+                        <div class="trade-correlation-badge ${scoreClass}" onclick="window.location.href='bill-detail.html?id=${billId}#trades-section'">
+                            ⚠️ Trade Correlation: ${correlationScore}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <li class="bill-item" onclick="toggleBillDetails(${index})" data-role="${role}">
+                        <div class="bill-header">
+                            <div class="bill-main-info">
+                                <h4>${bill.title || billId}</h4>
+                                <div class="bill-meta">
+                                    <a href="bill-detail.html?id=${billId}" class="bill-id" onclick="event.stopPropagation()">${billId}</a>
+                                    <span class="role-badge role-${role}">${capitalize(role)}</span>
+                                    ${cosponsorsCount > 0 ? `<span class="cosponsor-badge">${cosponsorsCount} cosponsors</span>` : ''}
+                                    <span style="color:#666; font-size:0.8rem; margin-left:0.5rem">
+                                        ${bill.action_date ? new Date(bill.action_date).toLocaleDateString() : ''}
+                                    </span>
+                                </div>
+                                ${correlationHtml}
+                            </div>
+                            <div class="bill-toggle">▼</div>
+                        </div>
+
+                        <div id="bill-details-${index}" class="bill-details" style="display:none">
+                            <div class="detail-row">
+                                <strong>Policy Area:</strong> ${bill.policy_area || 'N/A'}
+                            </div>
+                            ${bill.trade_windows && bill.trade_windows.length > 0 ? `
+                                <div class="trade-window-alert">
+                                    <strong>⚠️ Potential Conflict detected:</strong><br>
+                                    ${bill.trade_windows.length} trade(s) by this member occurred within ±30 days of legislative action.
+                                    <ul style="margin:0.5rem 0 0 1rem; font-size:0.85rem">
+                                        ${bill.trade_windows.map(t => `
+                                            <li>${t.transaction_date}: ${t.ticker} (${t.transaction_type}) - $${t.amount}</li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            <div style="margin-top:0.5rem">
+                                <a href="bill-detail.html?id=${billId}" onclick="event.stopPropagation()">View Bill Details →</a>
+                                <span style="margin:0 0.5rem">|</span>
+                                <a href="https://www.congress.gov/bill/${bill.congress || 118}th-congress/${(bill.bill_type == 'hr' ? 'house-bill' : 'senate-bill')}/${bill.bill_number}" target="_blank" onclick="event.stopPropagation()">View on Congress.gov ↗</a>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+
+            document.getElementById('bills-list').innerHTML = html;
+        }
+
+        window.filterBillsByRole = function (role) {
+            window.currentRoleFilter = role;
+
+            // Update active tab
+            document.querySelectorAll('.role-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.role === role) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Filter bills
+            let filteredBills = window.allBills || [];
+            if (role !== 'all') {
+                filteredBills = filteredBills.filter(b => (b.role_type || b.role) === role);
+            }
+
+            renderBills(filteredBills);
         }
 
         function getInitials(member) {

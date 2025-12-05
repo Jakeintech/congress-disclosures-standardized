@@ -51,6 +51,28 @@ fresh-start: setup init deploy-auto ## Complete fresh start: Setup -> Init -> De
 	@$(MAKE) ingest-year YEAR=2025
 	@echo "✓ Fresh start complete! Data is ingesting."
 
+##@ Pipeline Execution
+
+run-pipeline: ## Run full pipeline (silver → gold → website)
+	@echo "🚀 Running full pipeline..."
+	$(PYTHON) scripts/run_pipeline.py --all
+	@echo "✓ Pipeline complete"
+
+run-pipeline-silver: ## Run Silver layer transformation only
+	$(PYTHON) scripts/run_pipeline.py --silver
+
+run-pipeline-gold: ## Run Gold layer aggregation only
+	$(PYTHON) scripts/run_pipeline.py --gold
+
+run-pipeline-website: ## Regenerate website static data (ISR)
+	$(PYTHON) scripts/run_pipeline.py --website
+
+run-pipeline-full: ## Full clean refresh (requires PIPELINE_CONFIRM_CLEAN=YES)
+	$(PYTHON) scripts/run_pipeline.py --all --clean --audit
+
+run-pipeline-dry: ## Show what pipeline would run
+	$(PYTHON) scripts/run_pipeline.py --all --dry-run
+
 ##@ Terraform
 
 init: ## Initialize Terraform

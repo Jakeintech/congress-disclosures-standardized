@@ -278,10 +278,9 @@
         </footer>
     </div>
 
-    <script src="config.js"></script>
     <script src="nav.js"></script>
     <script>
-        const API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
+        const PROFILE_API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
         const params = new URLSearchParams(window.location.search);
         const bioguideId = params.get('id');
 
@@ -302,75 +301,157 @@
             }
 
             try {
-                // Load member details
-                const memberRes = await fetch(`${API_BASE}/v1/congress/members/${bioguideId}`);
-                const memberData = await memberRes.json();
+                // Try fetching static ISR data first (fast)
+                let profileData;
+                try {
+                    const res = await fetch(`data/member_profiles/${bioguideId}.json`);
+                    if (res.ok) {
+                        profileData = await res.json();
+                    } else {
+                        throw new Error('Static profile not found');
+                    }
+                } catch (e) {
+                    console.log('Falling back to API:', e);
+                    // Fallback to API (slower, separate calls)
+                    const memberRes = await fetch(`${PROFILE_API_BASE}/v1/congress/members/${bioguideId}`);
+                    const memberJson = await memberRes.json();
+                    if (!memberJson.member) throw new Error('Member not found');
 
-                if (!memberData.member) {
-                    throw new Error('Member not found');
+                    const legRes = await fetch(`${PROFILE_API_BASE}/v1/analytics/members/${bioguideId}/legislation-trades`);
+                    const legJson = await legRes.json();
+
+                    profileData = {
+                        member: memberJson.member,
+                        bills: legJson.bills || [],
+                        stats: {
+                            bills_sponsored: memberJson.member.sponsored_legislation_count || legJson.bills_count || 0,
+                            bills_cosponsored: memberJson.member.cosponsored_legislation_count || memberJson.member.bills_cosponsored || 0,
+                            trades_in_windows: legJson.trades_in_windows || 0,
+                            fd_transaction_count: memberJson.member.fd_transaction_count || 0
+                        }
+                    };
                 }
 
-                const member = memberData.member;
+                const member = profileData.member;
+                const stats = profileData.stats;
+                const bills = profileData.bills;
 
                 // Render profile header
+                const avatarHtml = member.image_url
+                    ? `<img src="${member.image_url}" alt="${member.first_name} ${member.last_name}" class="profile-avatar-img" onerror="this.outerHTML='<div class=\\'profile-avatar\\'>${getInitials(member)}</div>'">`
+                    : `<div class="profile-avatar">${getInitials(member)}</div>`;
+
                 document.getElementById('profile-header').innerHTML = `
-                    <div class="profile-avatar">${getInitials(member)}</div>
+                    ${avatarHtml}
                     <div class="profile-info">
                         <h1>${member.first_name} ${member.last_name}</h1>
                         <div class="profile-meta">
                             <span class="party-badge party-${member.party || 'I'}">${getPartyName(member.party)}</span>
                             ${member.state || ''} • ${capitalize(member.chamber || '')}
                         </div>
+                        ${member.official_url ? `<div style="margin-top:0.5rem"><a href="${member.official_url}" target="_blank" style="font-size:0.85rem">Official Website ↗</a></div>` : ''}
                     </div>
                 `;
 
-                // Load legislation-trades data
-                const legTradesRes = await fetch(`${API_BASE}/v1/analytics/members/${bioguideId}/legislation-trades`);
-                const legData = await legTradesRes.json();
-
-                // Render stats
+                // Render Stats
                 document.getElementById('legislative-stats').innerHTML = `
-                    <div class="stat-card purple"><h3>${legData.bills_count || 0}</h3><p>Bills Sponsored</p></div>
-                    <div class="stat-card blue"><h3>${member.bills_cosponsored || 0}</h3><p>Bills Cosponsored</p></div>
-                    <div class="stat-card green"><h3>${legData.trades_in_windows || 0}</h3><p>Trades in Windows</p></div>
-                    <div class="stat-card orange"><h3>${member.fd_transaction_count || 0}</h3><p>Total FD Trades</p></div>
+                    <div class="stat-card purple"><h3>${stats.bills_sponsored}</h3><p>Bills Sponsored</p></div>
+                    <div class="stat-card blue"><h3>${stats.bills_cosponsored}</h3><p>Bills Cosponsored</p></div>
+                    <div class="stat-card green"><h3>${stats.trades_in_windows}</h3><p>Trades in Windows</p></div>
+                    <div class="stat-card orange"><h3>${stats.fd_transaction_count}</h3><p>Total FD Trades</p></div>
                 `;
 
-                // Render bills
-                if (legData.bills && legData.bills.length > 0) {
-                    document.getElementById('bills-list').innerHTML = legData.bills.map(bill => `
-                        <li class="bill-item">
-                            <div class="bill-info">
-                                <h4>${bill.title || bill.bill_id}</h4>
-                                <p>
-                                    <span class="bill-id">${bill.bill_id}</span>
-                                    <span class="role-badge role-${bill.role || 'sponsor'}">${bill.role || 'Sponsor'}</span>
-                                </p>
+                // Render Biography (Terms)
+                const terms = member.terms || [];
+                if (terms.length > 0) {
+                    document.getElementById('bio-content').innerHTML = `
+                        <p><strong>Service History:</strong></p>
+                        <ul class="role-list">
+                            ${terms.map(t => `
+                                <li>
+                                    <strong>${t.congress}th Congress</strong> (${t.start_year}-${t.end_year})<br>
+                                    <span style="color:#666">${capitalize(t.chamber || '')} • ${t.state_code || ''} ${t.district ? `District ${t.district}` : ''}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                     `;
+                } else {
+                    document.getElementById('bio-content').innerHTML = '<p class="empty-state">No service history available.</p>';
+                }
+
+                // Render Bills (Clickable)
+                if (bills && bills.length > 0) {
+                    document.getElementById('bills-list').innerHTML = bills.map((bill, index) => `
+                        <li class="bill-item" onclick="toggleBillDetails(${index})">
+                            <div class="bill-header">
+                                <div class="bill-main-info">
+                                    <h4>${bill.title || bill.bill_id}</h4>
+                                    <div class="bill-meta">
+                                        <span class="bill-id">${bill.bill_id}</span>
+                                        <span class="role-badge role-${bill.role || 'sponsor'}">${bill.role || 'Sponsor'}</span>
+                                        <span style="color:#666; font-size:0.8rem; margin-left:0.5rem">
+                                            ${bill.action_date ? new Date(bill.action_date).toLocaleDateString() : ''}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="bill-toggle">▼</div>
+                            </div>
+                            
+                            <div id="bill-details-${index}" class="bill-details" style="display:none">
+                                <div class="detail-row">
+                                    <strong>Policy Area:</strong> ${bill.policy_area || 'N/A'}
+                                </div>
                                 ${bill.trade_windows && bill.trade_windows.length > 0 ? `
-                                    <div class="trade-window">⚠️ ${bill.trade_windows.length} trade(s) detected within ±30 days</div>
+                                    <div class="trade-window-alert">
+                                        <strong>⚠️ Potential Conflict detected:</strong><br>
+                                        ${bill.trade_windows.length} trade(s) by this member occurred within ±30 days of legislative action.
+                                        <ul style="margin:0.5rem 0 0 1rem; font-size:0.85rem">
+                                            ${bill.trade_windows.map(t => `
+                                                <li>${t.transaction_date}: ${t.ticker} (${t.transaction_type}) - $${t.amount}</li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
                                 ` : ''}
+                                <div style="margin-top:0.5rem">
+                                    <a href="https://www.congress.gov/bill/${bill.congress || 118}th-congress/${(bill.bill_type == 'hr' ? 'house-bill' : 'senate-bill')}/${bill.bill_number}" target="_blank" onclick="event.stopPropagation()">View on Congress.gov ↗</a>
+                                </div>
                             </div>
                         </li>
                     `).join('');
                 } else {
-                    document.getElementById('bills-list').innerHTML = '<div class="empty-state">No sponsored bills found.</div>';
+                    document.getElementById('bills-list').innerHTML = '<div class="empty-state">No bills found for this member.</div>';
                 }
 
-                // Trade windows content
-                if (legData.trades_in_windows > 0) {
+                // Render Trade Windows (Summary Tab)
+                if (stats.trades_in_windows > 0) {
+                    const conflictBills = bills.filter(b => b.trade_windows && b.trade_windows.length > 0);
                     document.getElementById('trade-windows-content').innerHTML = `
-                        <div class="stats-grid">
-                            <div class="stat-card orange"><h3>${legData.trades_in_windows}</h3><p>Trades in Legislative Windows</p></div>
+                        <div class="alert-box">
+                            <strong>${stats.trades_in_windows} Trades</strong> identified in windows surrounding legislative activity.
                         </div>
-                        <p>Trade window analysis shows ${legData.trades_in_windows} transaction(s) occurring within ±30 days of legislative actions.</p>
-                    `;
+                        <ul class="bills-list">
+                            ${conflictBills.map(bill => `
+                                <li class="bill-item">
+                                    <h4>${bill.title}</h4>
+                                    <div class="trade-window">${bill.trade_windows.length} trade(s)</div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                     `;
                 } else {
                     document.getElementById('trade-windows-content').innerHTML = '<div class="empty-state">No trades detected within legislative windows.</div>';
                 }
 
             } catch (error) {
+                console.error(error);
                 document.getElementById('profile-header').innerHTML = `<div class="loading">Error: ${error.message}. <a href="congress-members.html">Browse all members</a></div>`;
             }
+        }
+
+        window.toggleBillDetails = function (index) {
+            const details = document.getElementById(`bill-details-${index}`);
+            const isHidden = details.style.display === 'none';
+            details.style.display = isHidden ? 'block' : 'none';
         }
 
         function getInitials(member) {

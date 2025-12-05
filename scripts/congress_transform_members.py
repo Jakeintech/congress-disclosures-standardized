@@ -37,6 +37,28 @@ def extract_member_data(member_json: dict) -> dict:
     terms = m.get('terms', m.get('termsOfService', []))
     current_term = terms[-1] if terms else {}
     
+    # Extract detailed terms history
+    terms_data = []
+    for t in terms:
+        start_year = t.get('startYear') or (t.get('startDate', '')[:4])
+        end_year = t.get('endYear') or (t.get('endDate', '')[:4])
+        terms_data.append({
+            'chamber': t.get('chamber'),
+            'congress': t.get('congress'),
+            'state_code': t.get('stateCode'),
+            'district': t.get('district'),
+            'start_year': int(start_year) if start_year and str(start_year).isdigit() else None,
+            'end_year': int(end_year) if end_year and str(end_year).isdigit() else None,
+            'member_type': t.get('memberType')
+        })
+
+    # Determine chamber (ensure string type)
+    chamber = 'house' if m.get('district') else 'senate'
+    if current_term and current_term.get('chamber'):
+         chamber = current_term.get('chamber').lower()
+         if 'house' in chamber: chamber = 'house'
+         if 'senate' in chamber: chamber = 'senate'
+
     return {
         'bioguide_id': m.get('bioguideId'),
         'first_name': m.get('firstName'),
@@ -45,13 +67,14 @@ def extract_member_data(member_json: dict) -> dict:
         'party': current_party,
         'state': m.get('state') or current_term.get('stateCode'),
         'district': m.get('district'),
-        'chamber': 'house' if m.get('district') else 'senate',
+        'chamber': str(chamber), # Enforce string type
         'birth_year': m.get('birthYear'),
         'image_url': m.get('depiction', {}).get('imageUrl'),
         'official_url': m.get('officialWebsiteUrl'),
         'is_current': m.get('currentMember', False),
         'sponsored_legislation_count': m.get('sponsoredLegislation', {}).get('count', 0),
         'cosponsored_legislation_count': m.get('cosponsoredLegislation', {}).get('count', 0),
+        'terms_data': json.dumps(terms_data), # Store as JSON string for compatibility
     }
 
 

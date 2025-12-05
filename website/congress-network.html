@@ -4,24 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Congress Network Graph - Legislation & Trading</title>
+    <title>Congress Network Analysis - Social Network Visualization</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        .network-container {
+        .network-layout {
             display: grid;
-            grid-template-columns: 280px 1fr;
+            grid-template-columns: 300px 1fr 350px;
             gap: 1rem;
-            height: calc(100vh - 200px);
-            min-height: 600px;
+            height: calc(100vh - 180px);
+            min-height: 650px;
         }
 
         .controls-panel {
             background: white;
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: 12px;
+            padding: 1.25rem;
             overflow-y: auto;
-            border: 1px solid #eee;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .control-section {
@@ -30,63 +31,82 @@
 
         .control-section h4 {
             margin: 0 0 0.75rem;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #666;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .view-mode-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .view-mode-list {
+            display: flex;
+            flex-direction: column;
             gap: 0.5rem;
         }
 
         .view-mode-btn {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e0e0e0;
             background: white;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            text-align: left;
             transition: all 0.2s;
         }
 
         .view-mode-btn:hover {
             background: #f5f5f5;
+            border-color: #667eea;
         }
 
         .view-mode-btn.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-color: transparent;
         }
 
-        .filter-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
+        .view-mode-btn .icon {
+            font-size: 1.2rem;
         }
 
-        .filter-row label {
-            font-size: 0.8rem;
-            min-width: 60px;
-        }
-
-        .filter-row select,
-        .filter-row input {
+        .view-mode-btn .label {
             flex: 1;
-            padding: 0.4rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        }
+
+        .view-mode-btn .count {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .filter-group {
+            margin-bottom: 1rem;
+        }
+
+        .filter-group label {
+            display: block;
             font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+            color: #666;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85rem;
         }
 
         #graph-container {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-radius: 8px;
+            background: linear-gradient(145deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%);
+            border-radius: 12px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         #graph-svg {
@@ -94,33 +114,41 @@
             height: 100%;
         }
 
-        .node {
+        .node circle {
             cursor: pointer;
+            transition: r 0.2s, stroke-width 0.2s;
         }
 
-        .node circle {
-            transition: r 0.3s, opacity 0.3s;
+        .node circle:hover {
+            stroke-width: 3px;
         }
 
         .node text {
-            font-size: 10px;
-            fill: white;
+            font-size: 9px;
+            fill: rgba(255, 255, 255, 0.9);
             text-anchor: middle;
             pointer-events: none;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
         }
 
         .link {
-            stroke-opacity: 0.4;
-            transition: stroke-opacity 0.3s;
+            stroke-opacity: 0.3;
+            transition: stroke-opacity 0.2s;
         }
 
-        .legend {
+        .link.highlighted {
+            stroke-opacity: 0.8;
+            stroke-width: 2;
+        }
+
+        .legend-box {
             position: absolute;
             bottom: 1rem;
             left: 1rem;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 0.75rem;
-            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 8px;
             color: white;
             font-size: 0.75rem;
         }
@@ -129,86 +157,168 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.3rem;
         }
 
-        .legend-color {
-            width: 12px;
-            height: 12px;
+        .legend-dot {
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-        }
-
-        .stat-box {
-            background: #f5f5f5;
-            padding: 0.5rem;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .stat-box .value {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .stat-box .label {
-            font-size: 0.7rem;
-            color: #666;
-        }
-
-        .sidebar {
+        .stats-bar {
             position: absolute;
-            right: 0;
-            top: 0;
-            width: 300px;
-            height: 100%;
-            background: white;
-            border-left: 1px solid #ddd;
-            padding: 1rem;
-            transform: translateX(100%);
-            transition: transform 0.3s;
-            overflow-y: auto;
-        }
-
-        .sidebar.open {
-            transform: translateX(0);
-        }
-
-        .sidebar-header {
+            top: 1rem;
+            left: 1rem;
+            right: 1rem;
             display: flex;
-            justify-content: space-between;
+            gap: 1rem;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .stat-chip {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-chip strong {
+            color: #667eea;
+        }
+
+        /* Profile Panel */
+        .profile-panel {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-placeholder {
+            display: flex;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .profile-placeholder .icon {
+            font-size: 3rem;
             margin-bottom: 1rem;
         }
 
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
         }
 
-        .connection-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .profile-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid white;
+            margin-bottom: 0.75rem;
+            object-fit: cover;
+            background: #ddd;
         }
 
-        .connection-list li {
-            padding: 0.5rem;
-            border-bottom: 1px solid #eee;
+        .profile-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-meta {
             font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            background: #eee;
+        }
+
+        .profile-stat {
+            background: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .profile-stat .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .profile-stat .label {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+
+        .profile-body {
+            padding: 1rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .connections-section h5 {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            margin: 0 0 0.75rem;
+        }
+
+        .connection-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: #f8f8f8;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .connection-item img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-actions {
+            padding: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .profile-actions a {
+            display: block;
+            text-align: center;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
         }
 
         .loading-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(26, 26, 46, 0.9);
+            background: rgba(15, 15, 35, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -217,10 +327,10 @@
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -229,6 +339,32 @@
             to {
                 transform: rotate(360deg);
             }
+        }
+
+        /* Bill card */
+        .bill-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .bill-card .bill-id {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .bill-card .bill-title {
+            font-size: 0.85rem;
+            color: #333;
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }
+
+        .bill-card .bill-meta {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
         }
     </style>
 </head>
@@ -239,122 +375,143 @@
 
         <main class="main-content">
             <div class="container">
-                <h2 style="margin-bottom: 1rem;">🏛️ Congress Network Graph</h2>
-                <p style="color: #666; margin-bottom: 1rem;">Visualize relationships between members, bills, policy
-                    areas, and sectors</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <h2 style="margin: 0;">🏛️ Congress Network Analysis</h2>
+                        <p style="color: #666; margin: 0.5rem 0 0; font-size: 0.9rem;">
+                            Explore relationships between members, legislation, and policy areas
+                        </p>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #999;">
+                        Last updated: <span id="data-timestamp">--</span>
+                    </div>
+                </div>
 
-                <div class="network-container">
-                    <!-- Controls Panel -->
+                <div class="network-layout">
+                    <!-- Left: Controls -->
                     <div class="controls-panel">
                         <div class="control-section">
                             <h4>View Mode</h4>
-                            <div class="view-mode-grid">
-                                <button class="view-mode-btn active" data-mode="member-bill">Member → Bills</button>
-                                <button class="view-mode-btn" data-mode="member-sector">Member → Sectors</button>
-                                <button class="view-mode-btn" data-mode="bill-policy">Bills → Policy</button>
-                                <button class="view-mode-btn" data-mode="cosponsor">Cosponsorship</button>
-                                <button class="view-mode-btn" data-mode="fd-trade">FD Trades</button>
-                                <button class="view-mode-btn" data-mode="full">Full Network</button>
+                            <div class="view-mode-list">
+                                <button class="view-mode-btn active" data-mode="state">
+                                    <span class="icon">🗺️</span>
+                                    <span class="label">State Delegation</span>
+                                    <span class="count" id="count-state">--</span>
+                                </button>
+                                <button class="view-mode-btn" data-mode="sponsor">
+                                    <span class="icon">📝</span>
+                                    <span class="label">Sponsor → Bills</span>
+                                    <span class="count" id="count-sponsor">--</span>
+                                </button>
+                                <button class="view-mode-btn" data-mode="policy">
+                                    <span class="icon">🏷️</span>
+                                    <span class="label">Policy Clusters</span>
+                                    <span class="count" id="count-policy">--</span>
+                                </button>
+                                <button class="view-mode-btn" data-mode="party">
+                                    <span class="icon">🎭</span>
+                                    <span class="label">Party Overview</span>
+                                    <span class="count" id="count-party">--</span>
+                                </button>
+                                <button class="view-mode-btn" data-mode="chamber">
+                                    <span class="icon">🏛️</span>
+                                    <span class="label">Chamber View</span>
+                                    <span class="count" id="count-chamber">--</span>
+                                </button>
+                                <button class="view-mode-btn" data-mode="full">
+                                    <span class="icon">🌐</span>
+                                    <span class="label">Full Network</span>
+                                    <span class="count" id="count-full">--</span>
+                                </button>
                             </div>
                         </div>
 
                         <div class="control-section">
                             <h4>Filters</h4>
-                            <div class="filter-row">
-                                <label>Party:</label>
-                                <select id="filter-party">
-                                    <option value="">All</option>
-                                    <option value="D">Democrat</option>
-                                    <option value="R">Republican</option>
-                                    <option value="I">Independent</option>
+                            <div class="filter-group">
+                                <label>Congress</label>
+                                <select id="filter-congress">
+                                    <option value="119" selected>119th (Current)</option>
+                                    <option value="118">118th</option>
                                 </select>
                             </div>
-                            <div class="filter-row">
-                                <label>Chamber:</label>
+                            <div class="filter-group">
+                                <label>Party</label>
+                                <select id="filter-party">
+                                    <option value="">All Parties</option>
+                                    <option value="D">Democrats</option>
+                                    <option value="R">Republicans</option>
+                                    <option value="I">Independents</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Chamber</label>
                                 <select id="filter-chamber">
-                                    <option value="">All</option>
+                                    <option value="">All Chambers</option>
                                     <option value="house">House</option>
                                     <option value="senate">Senate</option>
                                 </select>
                             </div>
-                            <div class="filter-row">
-                                <label>Congress:</label>
-                                <select id="filter-congress">
-                                    <option value="">All</option>
-                                    <option value="119">119th</option>
-                                    <option value="118" selected>118th</option>
-                                    <option value="117">117th</option>
+                            <div class="filter-group">
+                                <label>State</label>
+                                <select id="filter-state">
+                                    <option value="">All States</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="control-section">
-                            <h4>Node Sizing</h4>
-                            <select id="node-size" style="width: 100%; padding: 0.4rem;">
-                                <option value="bills">Bills Sponsored</option>
-                                <option value="trades">FD Trades</option>
-                                <option value="connections">Connections</option>
-                                <option value="uniform">Uniform</option>
-                            </select>
-                        </div>
-
-                        <div class="control-section">
-                            <h4>Graph Stats</h4>
-                            <div class="stats-grid">
-                                <div class="stat-box">
-                                    <div class="value" id="stat-nodes">0</div>
-                                    <div class="label">Nodes</div>
-                                </div>
-                                <div class="stat-box">
-                                    <div class="value" id="stat-links">0</div>
-                                    <div class="label">Links</div>
-                                </div>
-                                <div class="stat-box">
-                                    <div class="value" id="stat-members">0</div>
-                                    <div class="label">Members</div>
-                                </div>
-                                <div class="stat-box">
-                                    <div class="value" id="stat-bills">0</div>
-                                    <div class="label">Bills</div>
-                                </div>
+                            <h4>Network Stats</h4>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                <p><strong id="stat-nodes">--</strong> nodes visible</p>
+                                <p><strong id="stat-edges">--</strong> connections</p>
                             </div>
-                        </div>
-
-                        <div class="control-section">
-                            <button id="reset-view" style="width: 100%; padding: 0.5rem;">Reset View</button>
                         </div>
                     </div>
 
-                    <!-- Graph Container -->
+                    <!-- Center: Graph -->
                     <div id="graph-container">
                         <svg id="graph-svg"></svg>
-                        <div class="legend">
+
+                        <div class="stats-bar">
+                            <span class="stat-chip"><strong id="stat-members">--</strong> Members</span>
+                            <span class="stat-chip"><strong id="stat-bills">--</strong> Bills</span>
+                            <span class="stat-chip"><strong id="stat-policies">--</strong> Policy Areas</span>
+                        </div>
+
+                        <div class="legend-box" id="legend">
                             <div class="legend-item">
-                                <div class="legend-color" style="background: #667eea;"></div> Members
+                                <div class="legend-dot" style="background: #3b82f6;"></div>
+                                <span>Democrats</span>
                             </div>
                             <div class="legend-item">
-                                <div class="legend-color" style="background: #4caf50;"></div> Bills
+                                <div class="legend-dot" style="background: #ef4444;"></div>
+                                <span>Republicans</span>
                             </div>
                             <div class="legend-item">
-                                <div class="legend-color" style="background: #ff9800;"></div> Policy Areas
+                                <div class="legend-dot" style="background: #10b981;"></div>
+                                <span>Bills</span>
                             </div>
                             <div class="legend-item">
-                                <div class="legend-color" style="background: #e91e63;"></div> Sectors
+                                <div class="legend-dot" style="background: #f59e0b;"></div>
+                                <span>Policy Areas</span>
                             </div>
                         </div>
+
                         <div class="loading-overlay" id="loading">
                             <div class="spinner"></div>
                             <p style="margin-top: 1rem;">Loading network data...</p>
                         </div>
+                    </div>
 
-                        <!-- Details Sidebar -->
-                        <div class="sidebar" id="sidebar">
-                            <div class="sidebar-header">
-                                <h3 id="sidebar-title">Node Details</h3>
-                                <button class="close-btn" id="close-sidebar">&times;</button>
-                            </div>
-                            <div id="sidebar-content"></div>
+                    <!-- Right: Profile Panel -->
+                    <div class="profile-panel" id="profile-panel">
+                        <div class="profile-placeholder" id="profile-placeholder">
+                            <div class="icon">👆</div>
+                            <h4>Select a Node</h4>
+                            <p>Click on a member or bill to see details</p>
                         </div>
+                        <div id="profile-content" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -363,22 +520,22 @@
 
     <script src="nav.js"></script>
     <script>
-        const NETWORK_API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
+        // Data and state
+        let networkData = null;
+        let currentMode = 'state';
+        let simulation = null;
+        let svg, g;
 
-        // Color scheme
         const COLORS = {
-            member: '#667eea',
-            memberD: '#1565c0',
-            memberR: '#c62828',
-            memberI: '#7b1fa2',
-            bill: '#4caf50',
-            policy: '#ff9800',
-            sector: '#e91e63',
-            link: '#666'
+            memberD: '#3b82f6',
+            memberR: '#ef4444',
+            memberI: '#8b5cf6',
+            bill: '#10b981',
+            policy: '#f59e0b',
+            party: '#6366f1',
+            chamber: '#ec4899',
+            link: '#4b5563'
         };
-
-        let simulation, svg, g, nodes = [], links = [];
-        let currentMode = 'member-bill';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -395,7 +552,7 @@
 
             g = svg.append('g');
 
-            // Zoom behavior
+            // Zoom
             const zoom = d3.zoom()
                 .scaleExtent([0.1, 4])
                 .on('zoom', (event) => g.attr('transform', event.transform));
@@ -404,109 +561,177 @@
 
         async function loadNetworkData() {
             try {
-                // Load pre-generated static JSON (ISR - refreshed daily)
-                const response = await fetch('data/congress_network.json');
-                if (!response.ok) throw new Error('Failed to load network data');
+                const response = await fetch('https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/data/congress_network/network.json');
+                networkData = await response.json();
 
-                const graphData = await response.json();
+                // Update timestamp
+                document.getElementById('data-timestamp').textContent =
+                    new Date(networkData.generated_at).toLocaleDateString();
 
-                // Use pre-computed nodes and links
-                nodes = graphData.nodes || [];
-                links = graphData.links || [];
+                // Update stats
+                document.getElementById('stat-members').textContent = networkData.stats.total_members;
+                document.getElementById('stat-bills').textContent = networkData.stats.total_bills_119;
+                document.getElementById('stat-policies').textContent = networkData.stats.policy_areas;
 
-                // Update stats from pre-computed metadata
-                const stats = graphData.stats || {};
-                document.getElementById('stat-nodes').textContent = stats.total_nodes || nodes.length;
-                document.getElementById('stat-links').textContent = stats.total_links || links.length;
-                document.getElementById('stat-members').textContent = stats.members || 0;
-                document.getElementById('stat-bills').textContent = stats.bills || 0;
+                // Update edge counts
+                document.getElementById('count-state').textContent = networkData.edges.state_delegation?.length || 0;
+                document.getElementById('count-sponsor').textContent = networkData.edges.sponsorship?.length || 0;
+                document.getElementById('count-policy').textContent = networkData.edges.policy_area?.length || 0;
+                document.getElementById('count-party').textContent = networkData.stats.total_members;
+                document.getElementById('count-chamber').textContent = networkData.stats.total_members;
+                document.getElementById('count-full').textContent =
+                    networkData.nodes.members.length + networkData.nodes.bills.length;
 
-                console.log(`Loaded: ${stats.members} members, ${stats.bills} bills, ${stats.policy_areas} policy areas, ${stats.total_links} links`);
-                console.log(`Congress: ${stats.congress}th, Generated: ${stats.generated_at}`);
+                // Populate state filter
+                const states = [...new Set(networkData.nodes.members.map(m => m.state))].sort();
+                const stateSelect = document.getElementById('filter-state');
+                states.forEach(state => {
+                    if (state) {
+                        const opt = document.createElement('option');
+                        opt.value = state;
+                        opt.textContent = state;
+                        stateSelect.appendChild(opt);
+                    }
+                });
 
-                renderGraph();
                 document.getElementById('loading').style.display = 'none';
+                renderGraph();
 
             } catch (error) {
                 console.error('Error loading network:', error);
-                document.getElementById('loading').innerHTML = `<p style="color: #ff5252;">Error loading data: ${error.message}</p>`;
+                document.getElementById('loading').innerHTML =
+                    `<p style="color: #ff5252;">Error: ${error.message}</p>`;
             }
         }
 
+        function getFilteredData() {
+            const partyFilter = document.getElementById('filter-party').value;
+            const chamberFilter = document.getElementById('filter-chamber').value;
+            const stateFilter = document.getElementById('filter-state').value;
+            const congressFilter = document.getElementById('filter-congress').value;
+
+            let members = [...networkData.nodes.members];
+            let bills = congressFilter === '119' ? [...networkData.nodes.bills] : [...networkData.nodes.bills_118];
+
+            // Apply filters
+            if (partyFilter) members = members.filter(m => m.party === partyFilter);
+            if (chamberFilter) members = members.filter(m => m.chamber === chamberFilter);
+            if (stateFilter) members = members.filter(m => m.state === stateFilter);
+
+            return { members, bills };
+        }
+
         function renderGraph() {
-            // Clear previous
             g.selectAll('*').remove();
 
-            // Filter nodes/links based on mode
-            let filteredNodes = [...nodes];
-            let filteredLinks = [...links];
+            const { members, bills } = getFilteredData();
+            const memberIds = new Set(members.map(m => m.id));
 
-            const party = document.getElementById('filter-party').value;
-            const chamber = document.getElementById('filter-chamber').value;
+            let nodes = [];
+            let links = [];
 
-            if (party) {
-                const memberIds = new Set(filteredNodes.filter(n => n.type === 'member' && n.party === party).map(n => n.id));
-                filteredNodes = filteredNodes.filter(n => n.type !== 'member' || memberIds.has(n.id));
+            switch (currentMode) {
+                case 'state':
+                    nodes = members.map(m => ({ ...m, type: 'member' }));
+                    links = networkData.edges.state_delegation
+                        .filter(e => memberIds.has(e.source) && memberIds.has(e.target));
+                    break;
+
+                case 'sponsor':
+                    nodes = [
+                        ...members.map(m => ({ ...m, type: 'member' })),
+                        ...bills.filter(b => memberIds.has(b.sponsor_id)).map(b => ({ ...b, type: 'bill' }))
+                    ];
+                    links = networkData.edges.sponsorship
+                        .filter(e => memberIds.has(e.source));
+                    break;
+
+                case 'policy':
+                    const relevantBills = bills.filter(b => memberIds.has(b.sponsor_id));
+                    const policyAreas = [...new Set(relevantBills.map(b => b.policy_area).filter(Boolean))];
+                    nodes = [
+                        ...relevantBills.map(b => ({ ...b, type: 'bill' })),
+                        ...policyAreas.map(p => ({ id: `policy-${p}`, name: p, type: 'policy' }))
+                    ];
+                    links = networkData.edges.policy_area
+                        .filter(e => policyAreas.includes(e.target.replace('policy-', '')));
+                    break;
+
+                case 'party':
+                    nodes = [
+                        ...members.map(m => ({ ...m, type: 'member' })),
+                        ...networkData.nodes.auxiliary.filter(n => n.type === 'party')
+                    ];
+                    links = networkData.edges.party.filter(e => memberIds.has(e.source));
+                    break;
+
+                case 'chamber':
+                    nodes = [
+                        ...members.map(m => ({ ...m, type: 'member' })),
+                        ...networkData.nodes.auxiliary.filter(n => n.type === 'chamber')
+                    ];
+                    links = networkData.edges.chamber.filter(e => memberIds.has(e.source));
+                    break;
+
+                case 'full':
+                    nodes = [
+                        ...members.map(m => ({ ...m, type: 'member' })),
+                        ...bills.slice(0, 100).map(b => ({ ...b, type: 'bill' }))
+                    ];
+                    links = [
+                        ...networkData.edges.sponsorship.filter(e => memberIds.has(e.source)).slice(0, 200),
+                        ...networkData.edges.state_delegation.filter(e => memberIds.has(e.source)).slice(0, 500)
+                    ];
+                    break;
             }
 
-            if (chamber) {
-                const memberIds = new Set(filteredNodes.filter(n => n.type === 'member' && n.chamber === chamber).map(n => n.id));
-                filteredNodes = filteredNodes.filter(n => n.type !== 'member' || memberIds.has(n.id));
-            }
+            // Update stats
+            document.getElementById('stat-nodes').textContent = nodes.length;
+            document.getElementById('stat-edges').textContent = links.length;
 
-            // Mode filtering
-            if (currentMode === 'member-bill') {
-                filteredNodes = filteredNodes.filter(n => n.type === 'member' || n.type === 'bill');
-                filteredLinks = filteredLinks.filter(l => l.type === 'sponsors');
-            } else if (currentMode === 'bill-policy') {
-                filteredNodes = filteredNodes.filter(n => n.type === 'bill' || n.type === 'policy');
-                filteredLinks = filteredLinks.filter(l => l.type === 'policy');
-            }
-
-            // Ensure links reference existing nodes
-            const nodeIds = new Set(filteredNodes.map(n => n.id));
-            filteredLinks = filteredLinks.filter(l =>
-                nodeIds.has(typeof l.source === 'string' ? l.source : l.source.id) &&
-                nodeIds.has(typeof l.target === 'string' ? l.target : l.target.id)
-            );
+            if (nodes.length === 0) return;
 
             // Create simulation
-            simulation = d3.forceSimulation(filteredNodes)
-                .force('link', d3.forceLink(filteredLinks).id(d => d.id).distance(80))
-                .force('charge', d3.forceManyBody().strength(-150))
+            simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(60))
+                .force('charge', d3.forceManyBody().strength(currentMode === 'state' ? -30 : -80))
                 .force('center', d3.forceCenter(svg.attr('width') / 2, svg.attr('height') / 2))
-                .force('collision', d3.forceCollide().radius(20));
+                .force('collision', d3.forceCollide().radius(15));
 
             // Draw links
             const link = g.append('g')
                 .selectAll('line')
-                .data(filteredLinks)
+                .data(links)
                 .join('line')
                 .attr('class', 'link')
                 .attr('stroke', COLORS.link)
-                .attr('stroke-width', 1);
+                .attr('stroke-width', d => d.weight || 1);
 
             // Draw nodes
             const node = g.append('g')
                 .selectAll('g')
-                .data(filteredNodes)
+                .data(nodes)
                 .join('g')
                 .attr('class', 'node')
                 .call(d3.drag()
                     .on('start', dragstarted)
                     .on('drag', dragged)
                     .on('end', dragended))
-                .on('click', (event, d) => showNodeDetails(d));
+                .on('click', (event, d) => showProfile(d))
+                .on('mouseover', (event, d) => highlightConnections(d, true))
+                .on('mouseout', (event, d) => highlightConnections(d, false));
 
             node.append('circle')
                 .attr('r', d => getNodeRadius(d))
-                .attr('fill', d => getNodeColor(d));
+                .attr('fill', d => getNodeColor(d))
+                .attr('stroke', 'white')
+                .attr('stroke-width', 1.5);
 
             node.append('text')
                 .attr('dy', d => getNodeRadius(d) + 12)
-                .text(d => d.label?.substring(0, 15));
+                .text(d => getNodeLabel(d));
 
-            // Tick
+            // Update positions
             simulation.on('tick', () => {
                 link
                     .attr('x1', d => d.source.x)
@@ -516,55 +741,207 @@
 
                 node.attr('transform', d => `translate(${d.x},${d.y})`);
             });
-
-            updateStats(filteredNodes.length, filteredLinks.length);
         }
 
         function getNodeColor(d) {
             if (d.type === 'member') {
-                return d.party === 'D' ? COLORS.memberD : d.party === 'R' ? COLORS.memberR : COLORS.memberI;
+                return d.party === 'D' ? COLORS.memberD :
+                    d.party === 'R' ? COLORS.memberR : COLORS.memberI;
             }
-            return COLORS[d.type] || COLORS.member;
+            if (d.type === 'bill') return COLORS.bill;
+            if (d.type === 'policy') return COLORS.policy;
+            if (d.type === 'party') return COLORS.party;
+            if (d.type === 'chamber') return COLORS.chamber;
+            return '#999';
         }
 
         function getNodeRadius(d) {
-            const sizing = document.getElementById('node-size').value;
-            if (sizing === 'uniform') return 8;
-            if (d.type === 'member') {
-                if (sizing === 'bills') return 5 + Math.sqrt(d.bills_sponsored || 0) * 2;
-                if (sizing === 'trades') return 5 + Math.sqrt(d.fd_trades || 0);
-            }
-            return d.type === 'policy' ? 12 : 8;
+            if (d.type === 'member') return 6 + Math.sqrt(d.bills_sponsored || 0) * 0.5;
+            if (d.type === 'bill') return 5;
+            if (d.type === 'policy') return 15;
+            if (d.type === 'party' || d.type === 'chamber') return 20;
+            return 8;
         }
 
-        function updateStats(nodeCount, linkCount) {
-            document.getElementById('stat-nodes').textContent = nodeCount || nodes.length;
-            document.getElementById('stat-links').textContent = linkCount || links.length;
-            document.getElementById('stat-members').textContent = nodes.filter(n => n.type === 'member').length;
-            document.getElementById('stat-bills').textContent = nodes.filter(n => n.type === 'bill').length;
+        function getNodeLabel(d) {
+            if (d.type === 'member') return d.last_name || '';
+            if (d.type === 'bill') return `${d.bill_type} ${d.bill_number}`;
+            return d.name || d.id;
         }
 
-        function showNodeDetails(d) {
-            const sidebar = document.getElementById('sidebar');
-            const title = document.getElementById('sidebar-title');
-            const content = document.getElementById('sidebar-content');
+        function highlightConnections(d, highlight) {
+            // Find connected nodes
+            const connectedIds = new Set([d.id]);
+            g.selectAll('.link')
+                .each(function (l) {
+                    const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                    const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+                    if (sourceId === d.id) connectedIds.add(targetId);
+                    if (targetId === d.id) connectedIds.add(sourceId);
+                })
+                .classed('highlighted', highlight && (l => {
+                    const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                    const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+                    return sourceId === d.id || targetId === d.id;
+                }));
+        }
 
-            title.textContent = d.label;
+        function showProfile(d) {
+            document.getElementById('profile-placeholder').style.display = 'none';
+            const content = document.getElementById('profile-content');
+            content.style.display = 'block';
 
-            let html = `<p><strong>Type:</strong> ${d.type}</p>`;
             if (d.type === 'member') {
-                html += `<p><strong>Party:</strong> ${d.party}</p>`;
-                html += `<p><strong>Chamber:</strong> ${d.chamber}</p>`;
-                html += `<p><strong>Bills Sponsored:</strong> ${d.bills_sponsored}</p>`;
-                html += `<p><strong>FD Trades:</strong> ${d.fd_trades}</p>`;
-                html += `<p><a href="member-profile.html?id=${d.id}">View Full Profile →</a></p>`;
+                showMemberProfile(d, content);
             } else if (d.type === 'bill') {
-                html += `<p><strong>Title:</strong> ${d.title || 'N/A'}</p>`;
-                html += `<p><strong>Policy Area:</strong> ${d.policy_area || 'N/A'}</p>`;
+                showBillProfile(d, content);
+            } else {
+                showGenericProfile(d, content);
             }
+        }
 
-            content.innerHTML = html;
-            sidebar.classList.add('open');
+        function showMemberProfile(member, container) {
+            const partyName = { D: 'Democrat', R: 'Republican', I: 'Independent' }[member.party] || 'Unknown';
+            const chamberName = member.chamber === 'house' ? 'House' : 'Senate';
+            const districtInfo = member.district ? `${member.state}-${member.district}` : member.state;
+
+            // Find connected bills
+            const sponsoredBills = networkData.nodes.bills
+                .filter(b => b.sponsor_id === member.id)
+                .slice(0, 5);
+
+            // Find same-state colleagues
+            const colleagues = networkData.nodes.members
+                .filter(m => m.state === member.state && m.id !== member.id)
+                .slice(0, 5);
+
+            container.innerHTML = `
+                <div class="profile-header">
+                    <img class="profile-photo" src="${member.image_url || ''}" 
+                         onerror="this.src='https://via.placeholder.com/80?text=${member.last_name?.[0] || '?'}'" 
+                         alt="${member.name}">
+                    <div class="profile-name">${member.name}</div>
+                    <div class="profile-meta">${partyName} • ${chamberName} • ${districtInfo}</div>
+                </div>
+                
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="value">${member.bills_sponsored || 0}</div>
+                        <div class="label">Bills Sponsored</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="value">${member.bills_cosponsored || 0}</div>
+                        <div class="label">Co-Sponsored</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="value">${member.fd_trades || 0}</div>
+                        <div class="label">FD Trades</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="value">${colleagues.length}</div>
+                        <div class="label">State Colleagues</div>
+                    </div>
+                </div>
+                
+                <div class="profile-body">
+                    ${sponsoredBills.length > 0 ? `
+                    <div class="connections-section">
+                        <h5>Recent Bills</h5>
+                        ${sponsoredBills.map(b => `
+                            <div class="bill-card">
+                                <div class="bill-id">${b.bill_type?.toUpperCase()} ${b.bill_number}</div>
+                                <div class="bill-title">${b.title?.substring(0, 120)}...</div>
+                                <div class="bill-meta">${b.introduced_date} • ${b.policy_area || 'No policy area'}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
+                    
+                    ${colleagues.length > 0 ? `
+                    <div class="connections-section">
+                        <h5>State Delegation</h5>
+                        ${colleagues.map(c => `
+                            <div class="connection-item">
+                                <img src="${c.image_url || ''}" 
+                                     onerror="this.src='https://via.placeholder.com/32?text=${c.last_name?.[0] || '?'}'"
+                                     alt="${c.name}">
+                                <div>
+                                    <strong>${c.name}</strong>
+                                    <div style="font-size: 0.75rem; color: #666;">
+                                        ${c.party === 'D' ? 'Democrat' : c.party === 'R' ? 'Republican' : 'Independent'}
+                                        • ${c.chamber === 'house' ? 'House' : 'Senate'}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="profile-actions">
+                    <a href="member-profile.html?id=${member.id}">View Full Profile →</a>
+                </div>
+            `;
+        }
+
+        function showBillProfile(bill, container) {
+            const sponsor = networkData.nodes.members.find(m => m.id === bill.sponsor_id);
+
+            container.innerHTML = `
+                <div class="profile-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <div style="font-size: 2rem;">📜</div>
+                    <div class="profile-name">${bill.bill_type?.toUpperCase()} ${bill.bill_number}</div>
+                    <div class="profile-meta">Congress ${bill.congress}</div>
+                </div>
+                
+                <div class="profile-body">
+                    <p style="font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">
+                        ${bill.title || 'No title available'}
+                    </p>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <strong style="font-size: 0.8rem; color: #666; text-transform: uppercase;">Sponsor</strong>
+                        ${sponsor ? `
+                        <div class="connection-item" style="margin-top: 0.5rem;">
+                            <img src="${sponsor.image_url || ''}" 
+                                 onerror="this.src='https://via.placeholder.com/32?text=${sponsor.last_name?.[0]}'"
+                                 alt="${sponsor.name}">
+                            <div>
+                                <strong>${sponsor.name}</strong>
+                                <div style="font-size: 0.75rem; color: #666;">
+                                    ${sponsor.party === 'D' ? 'Democrat' : 'Republican'} • ${sponsor.state}
+                                </div>
+                            </div>
+                        </div>
+                        ` : `<p style="color: #999;">Unknown</p>`}
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem;">
+                        <div><strong>Introduced:</strong> ${bill.introduced_date || 'N/A'}</div>
+                        <div><strong>Co-sponsors:</strong> ${bill.cosponsors_count || 0}</div>
+                        <div style="grid-column: span 2;"><strong>Policy Area:</strong> ${bill.policy_area || 'N/A'}</div>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <a href="https://www.congress.gov/bill/${bill.congress}th-congress/${bill.bill_type}/${bill.bill_number}" target="_blank">
+                        View on Congress.gov →
+                    </a>
+                </div>
+            `;
+        }
+
+        function showGenericProfile(d, container) {
+            container.innerHTML = `
+                <div class="profile-header">
+                    <div style="font-size: 2rem;">${d.type === 'policy' ? '🏷️' : '🏛️'}</div>
+                    <div class="profile-name">${d.name || d.id}</div>
+                    <div class="profile-meta">${d.type}</div>
+                </div>
+                <div class="profile-body">
+                    ${d.count ? `<p><strong>${d.count}</strong> members</p>` : ''}
+                </div>
+            `;
         }
 
         function dragstarted(event, d) {
@@ -596,21 +973,8 @@
             });
 
             // Filters
-            ['filter-party', 'filter-chamber', 'filter-congress', 'node-size'].forEach(id => {
+            ['filter-congress', 'filter-party', 'filter-chamber', 'filter-state'].forEach(id => {
                 document.getElementById(id)?.addEventListener('change', renderGraph);
-            });
-
-            // Reset
-            document.getElementById('reset-view').addEventListener('click', () => {
-                svg.transition().duration(500).call(
-                    d3.zoom().transform,
-                    d3.zoomIdentity
-                );
-            });
-
-            // Close sidebar
-            document.getElementById('close-sidebar').addEventListener('click', () => {
-                document.getElementById('sidebar').classList.remove('open');
             });
         }
     </script>

@@ -215,10 +215,9 @@
         </footer>
     </div>
 
-    <script src="config.js"></script>
     <script src="nav.js"></script>
     <script>
-        const API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
+        const BILLS_API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
         let currentOffset = 0;
         const LIMIT = 50;
 
@@ -236,7 +235,7 @@
             if (sponsor) params.append('sponsor', sponsor);
 
             try {
-                const response = await fetch(`${API_BASE}/v1/congress/bills?${params}`);
+                const response = await fetch(`${BILLS_API_BASE}/v1/congress/bills?${params}`);
                 const data = await response.json();
 
                 if (!data.data || data.data.length === 0) {

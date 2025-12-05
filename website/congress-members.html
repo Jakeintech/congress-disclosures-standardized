@@ -157,6 +157,13 @@
         .view-profile:hover {
             background: #e8e8e8;
         }
+
+        .profile-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
     </style>
 </head>
 
@@ -175,11 +182,18 @@
                         <!-- Filters -->
                         <div class="filters">
                             <div class="filter-group">
+                                <label>Congress</label>
+                                <select id="filter-congress">
+                                    <option value="true" selected>119th (Current)</option>
+                                    <option value="">All (incl. former)</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
                                 <label>Chamber</label>
                                 <select id="filter-chamber">
                                     <option value="">All</option>
-                                    <option value="House">House</option>
-                                    <option value="Senate">Senate</option>
+                                    <option value="house">House</option>
+                                    <option value="senate">Senate</option>
                                 </select>
                             </div>
                             <div class="filter-group">
@@ -222,10 +236,9 @@
         </footer>
     </div>
 
-    <script src="config.js"></script>
     <script src="nav.js"></script>
     <script>
-        const API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
+        const MEMBERS_API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
         const STATES = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC', 'PR', 'GU', 'VI', 'AS'];
 
         // Populate states dropdown
@@ -241,17 +254,19 @@
             const container = document.getElementById('members-container');
             container.innerHTML = '<div class="loading">Loading members...</div>';
 
+            const isCurrent = document.getElementById('filter-congress').value;
             const chamber = document.getElementById('filter-chamber').value;
             const party = document.getElementById('filter-party').value;
             const state = document.getElementById('filter-state').value;
 
             const params = new URLSearchParams({ limit: 100 });
+            if (isCurrent) params.append('is_current', isCurrent);
             if (chamber) params.append('chamber', chamber);
             if (party) params.append('party', party);
             if (state) params.append('state', state);
 
             try {
-                const response = await fetch(`${API_BASE}/v1/congress/members?${params}`);
+                const response = await fetch(`${MEMBERS_API_BASE}/v1/congress/members?${params}`);
                 const data = await response.json();
 
                 if (!data.data || data.data.length === 0) {
@@ -262,7 +277,12 @@
                 container.innerHTML = data.data.map(member => `
                     <div class="member-card">
                         <div class="member-header">
-                            <div class="member-avatar">${getInitials(member)}</div>
+                            <div class="member-avatar">
+                                ${member.image_url
+                        ? `<img src="${member.image_url}" alt="${member.first_name} ${member.last_name}" class="profile-avatar-img" onerror="this.outerHTML='${getInitials(member)}'">`
+                        : getInitials(member)
+                    }
+                            </div>
                             <div>
                                 <h3 class="member-name">${member.first_name || ''} ${member.last_name || ''}</h3>
                                 <div class="member-meta">
@@ -273,11 +293,11 @@
                         </div>
                         <div class="member-stats">
                             <div class="stat-item">
-                                <div class="stat-value">${member.bills_sponsored || 0}</div>
+                                <div class="stat-value">${member.sponsored_legislation_count || member.bills_sponsored || 0}</div>
                                 <div class="stat-label">Bills</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value">${member.bills_cosponsored || 0}</div>
+                                <div class="stat-value">${member.cosponsored_legislation_count || member.bills_cosponsored || 0}</div>
                                 <div class="stat-label">Cosponsored</div>
                             </div>
                             <div class="stat-item">

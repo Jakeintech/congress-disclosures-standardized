@@ -232,17 +232,16 @@
         </footer>
     </div>
 
-    <script src="config.js"></script>
     <script src="nav.js"></script>
     <script>
-        const API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
+        const CORRELATION_API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
 
         async function loadCorrelationData() {
             const container = document.getElementById('correlation-container');
 
             try {
-                // Fetch stock activity data (which includes sector correlations)
-                const response = await fetch(`${API_BASE}/v1/congress/bills?limit=50`);
+                // Fetch bill data
+                const response = await fetch(`${CORRELATION_API_BASE}/v1/congress/bills?limit=50`);
                 const billsData = await response.json();
 
                 if (!billsData.data || billsData.data.length === 0) {

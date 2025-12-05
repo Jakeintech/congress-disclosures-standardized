@@ -6,44 +6,99 @@ These instructions allow you to pick up development at any phase of the Congress
 
 **Last Updated**: 2025-12-04
 
-## ✅ COMPLETED WORK (Session 2025-12-04)
+## ✅ PHASE 1 & 2 COMPLETE
 
-### STORY 1.1: S3 Bucket Structure & Terraform Base Configuration ✅ COMPLETE
-- **TASK 1.1.1** ✅: Created `docs/CONGRESS_S3_SCHEMA.md` with complete Bronze layer structure
-- **TASK 1.1.2** ✅: Created `infra/terraform/variables_congress.tf` with all Congress variables
-- **TASK 1.1.3** ✅: Created test S3 prefixes, verified bucket policies (no changes needed)
+### Phase 1: Infrastructure & Bronze Layer ✅
+- Terraform: SQS queues, CloudWatch alarms, Lambda functions deployed
+- `congress_api_fetch_entity` Lambda: Fetches individual entities to Bronze
+- `congress_api_ingest_orchestrator` Lambda: Paginates API and queues fetch jobs
 
-### STORY 1.2: SQS Queues and Dead Letter Queues ✅ COMPLETE
-- **TASK 1.2.1** ✅: Created `infra/terraform/sqs_congress.tf` with 4 queues deployed
-- **TASK 1.2.2** ✅: Created `infra/terraform/cloudwatch_congress.tf` with 3 alarms + log groups
-- **TASK 1.2.2** ✅: Created `docs/MONITORING.md` with comprehensive monitoring guide
-
-### STORY 1.3: Lambda Function - congress_api_fetch_entity (IN PROGRESS)
-- **TASK 1.3.1** ✅: Created `ingestion/lib/congress_api_client.py` with full API client + unit tests
-- **TASK 1.3.2** 🔄: IN PROGRESS - Creating Lambda handler for entity fetch
-- **TASK 1.3.3** ⏳: Pending - Package and deploy Lambda
-- **TASK 1.3.4** ⏳: Pending - Write integration test
-
-**Deployed Infrastructure**:
-- 4 SQS Queues (fetch + silver, each with DLQ)
-- 3 CloudWatch Alarms (2 DLQs + 1 queue age)
-- 3 CloudWatch Log Groups (pre-created for Lambdas)
-- 9 S3 Bronze prefixes (member, bill, bill_*, house_vote, senate_vote, committee)
-
-**Files Created**:
-- `docs/CONGRESS_S3_SCHEMA.md`
-- `docs/MONITORING.md`
-- `infra/terraform/variables_congress.tf`
-- `infra/terraform/sqs_congress.tf`
-- `infra/terraform/cloudwatch_congress.tf`
-- `ingestion/lib/congress_api_client.py`
-- `tests/unit/test_congress_api_client.py`
-
-**Files Modified**:
-- `infra/terraform/iam.tf` (added Congress queues to SQS policy)
-- `.env.example` (added CONGRESS_API_KEY)
+### Phase 2: Silver Layer - Normalized Schema & CDC ✅
+- Created `docs/CONGRESS_SILVER_SCHEMA.md` with 6 table schemas
+- Created `ingestion/lib/congress_cdc_handler.py` for SCD Type 2 member history
+- Created `ingestion/lib/congress_schema_mappers.py` with 6 mapper functions
+- Created `ingestion/lambdas/congress_bronze_to_silver/handler.py`
+- Deployed `congress_bronze_to_silver` Lambda with SQS trigger
 
 ---
+
+## 📊 Current Ingestion Status (2025-12-04)
+
+**Bronze Queue**: ~12,000 jobs processing (members + bills Congress 118/119)
+
+### Queued Data:
+- **Members**: 2,599 (all historical + current)
+- **Congress 119 Bills**: 11,503 (current Congress, 2025)
+- **Congress 118 Bills**: Partial (Lambda timeout at 15min)
+
+### To Check Progress:
+```bash
+# Check fetch queue
+aws sqs get-queue-attributes \
+  --queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-congress-fetch-queue \
+  --attribute-names ApproximateNumberOfMessages --query 'Attributes' --output table
+
+# Count Bronze files
+aws s3 ls s3://congress-disclosures-standardized/bronze/congress/ --recursive | wc -l
+
+# Check Silver output
+aws s3 ls s3://congress-disclosures-standardized/silver/congress/ --recursive
+```
+
+---
+
+## 🚀 Key Commands
+
+### Ingest New Data
+```bash
+# Ingest all current members
+python3.11 scripts/invoke_congress_orchestrator.py --entity-type member
+
+# Ingest bills for specific Congress
+python3.11 scripts/invoke_congress_orchestrator.py --entity-type bill --congress 119
+
+# Ingest with limit (for testing)
+python3.11 scripts/invoke_congress_orchestrator.py --entity-type member --limit 10
+```
+
+### Package & Deploy Lambdas
+```bash
+# Orchestrator
+make package-congress-orchestrator
+aws s3 cp ingestion/lambdas/congress_api_ingest_orchestrator/function.zip \
+  s3://congress-disclosures-standardized/lambda-deployments/congress_api_ingest_orchestrator/function.zip
+
+# Bronze-to-Silver
+make package-congress-silver
+aws s3 cp ingestion/lambdas/congress_bronze_to_silver/function.zip \
+  s3://congress-disclosures-standardized/lambda-deployments/congress_bronze_to_silver/function.zip
+
+# Deploy all
+cd infra/terraform && terraform apply
+```
+
+---
+
+## Files Reference
+
+| Component | Path |
+|-----------|------|
+| Orchestrator Lambda | `ingestion/lambdas/congress_api_ingest_orchestrator/handler.py` |
+| Fetch Entity Lambda | `ingestion/lambdas/congress_api_fetch_entity/handler.py` |
+| Bronze-to-Silver Lambda | `ingestion/lambdas/congress_bronze_to_silver/handler.py` |
+| CDC Handler (SCD2) | `ingestion/lib/congress_cdc_handler.py` |
+| Schema Mappers | `ingestion/lib/congress_schema_mappers.py` |
+| API Client | `ingestion/lib/congress_api_client.py` |
+| Bronze Schema | `docs/CONGRESS_S3_SCHEMA.md` |
+| Silver Schema | `docs/CONGRESS_SILVER_SCHEMA.md` |
+| Terraform | `infra/terraform/lambda_congress.tf`, `sqs_congress.tf` |
+
+---
+
+## Next: Phase 3 - Gold Layer & API Integration
+
+The Gold layer will aggregate Silver data for analytics and expose via API.
+
 
 ## Initial Context Loading
 

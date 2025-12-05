@@ -6,12 +6,15 @@ This Lambda (triggered by SQS):
 3. Compresses response as gzip JSON
 4. Uploads to Bronze S3 with metadata
 5. Optionally queues subresource fetch jobs (for bills)
+
+Supports multiple API keys for 5x parallel throughput.
 """
 
 import gzip
 import json
 import logging
 import os
+import random
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,15 +40,75 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 # Environment variables
 S3_BUCKET = os.environ.get("S3_BUCKET_NAME")
-CONGRESS_API_KEY = os.environ.get("CONGRESS_API_KEY")
 CONGRESS_API_BASE_URL = os.environ.get("CONGRESS_API_BASE_URL")
 INGEST_VERSION = os.environ.get("EXTRACTION_VERSION", "1.0.0")
 CONGRESS_SILVER_QUEUE_URL = os.environ.get("CONGRESS_SILVER_QUEUE_URL")
 CONGRESS_FETCH_QUEUE_URL = os.environ.get("CONGRESS_FETCH_QUEUE_URL")
+CONGRESS_API_KEY_SSM_PATH = os.environ.get(
+    "CONGRESS_API_KEY_SSM_PATH",
+    "/congress-disclosures-standardized/development/congress-api-key"
+)
 
 # Initialize clients
 s3_client = boto3.client("s3")
 sqs_client = boto3.client("sqs")
+ssm_client = boto3.client("ssm")
+
+# Global cache for API keys (loaded once per Lambda cold start)
+_API_KEYS: List[str] = []
+
+
+def load_api_keys() -> List[str]:
+    """Load all Congress API keys from SSM Parameter Store.
+    
+    Returns list of API keys for rotation.
+    """
+    global _API_KEYS
+    
+    if _API_KEYS:
+        return _API_KEYS
+    
+    # Try to load keys 1-5
+    base_path = CONGRESS_API_KEY_SSM_PATH.rstrip("-key")
+    keys = []
+    
+    # Load primary key
+    try:
+        response = ssm_client.get_parameter(
+            Name=CONGRESS_API_KEY_SSM_PATH,
+            WithDecryption=True
+        )
+        keys.append(response["Parameter"]["Value"])
+        logger.info("Loaded primary API key")
+    except Exception as e:
+        logger.error(f"Failed to load primary API key: {e}")
+    
+    # Load additional keys (2-5)
+    for i in range(2, 6):
+        try:
+            response = ssm_client.get_parameter(
+                Name=f"{base_path}-key-{i}",
+                WithDecryption=True
+            )
+            keys.append(response["Parameter"]["Value"])
+            logger.info(f"Loaded API key {i}")
+        except ssm_client.exceptions.ParameterNotFound:
+            pass  # Key doesn't exist, skip
+        except Exception as e:
+            logger.warning(f"Failed to load API key {i}: {e}")
+    
+    _API_KEYS = keys
+    logger.info(f"Loaded {len(_API_KEYS)} API keys for rotation")
+    return _API_KEYS
+
+
+def get_random_api_key() -> str:
+    """Get a random API key for load balancing across rate limits."""
+    keys = load_api_keys()
+    if not keys:
+        raise ValueError("No API keys available")
+    return random.choice(keys)
+
 
 
 def get_bronze_s3_key(entity_type: str, entity_id: str, ingest_date: str, **kwargs) -> str:
@@ -285,9 +348,10 @@ def process_fetch_job(message_body: Dict[str, Any]) -> None:
         f"congress={congress}, bill_type={bill_type}, chamber={chamber}"
     )
 
-    # Initialize API client
+    # Initialize API client with random key for load balancing
+    api_key = get_random_api_key()
     client = CongressAPIClient(
-        api_key=CONGRESS_API_KEY,
+        api_key=api_key,
         base_url=CONGRESS_API_BASE_URL,
     )
 

@@ -74,6 +74,16 @@ locals {
     "get_filing_assets"       = { route = "GET /v1/filings/{doc_id}/assets" }
     "get_filing_positions"    = { route = "GET /v1/filings/{doc_id}/positions" }
 
+    # Congress.gov API endpoints
+    "get_congress_bills"    = { route = "GET /v1/congress/bills" }
+    "get_congress_bill"     = { route = "GET /v1/congress/bills/{bill_id}" }
+    "get_congress_members"  = { route = "GET /v1/congress/members" }
+    "get_congress_member"   = { route = "GET /v1/congress/members/{bioguide_id}" }
+
+    # Cross-domain Analytics endpoints (shortened names for 64 char limit)
+    "get_member_leg_trades"   = { route = "GET /v1/analytics/members/{bioguide_id}/legislation-trades" }
+    "get_stock_leg_exposure"  = { route = "GET /v1/analytics/stocks/{ticker}/legislative-exposure" }
+
     # System endpoints
     "get_aws_costs"    = { route = "GET /v1/costs" }
     "list_s3_objects"  = { route = "GET /v1/storage/{layer}" }

@@ -1,0 +1,53 @@
+name: Congress Daily Sync
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Run at 3:00 AM UTC daily
+  workflow_dispatch:      # Allow manual trigger
+
+jobs:
+  congress-sync:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: us-east-1
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install boto3 requests pandas pyarrow
+
+    - name: Run Congress Incremental Pipeline
+      env:
+        S3_BUCKET_NAME: congress-disclosures-standardized
+        AWS_REGION: us-east-1
+      run: |
+        python scripts/run_congress_pipeline.py --mode incremental
+
+    - name: Upload Logs to S3
+      if: always()
+      run: |
+        DATE=$(date +%Y-%m-%d)
+        echo "Pipeline completed at $(date)" > /tmp/pipeline_log.txt
+        aws s3 cp /tmp/pipeline_log.txt s3://congress-disclosures-standardized/logs/congress_pipeline/${DATE}.log
+
+    - name: Notify on Failure
+      if: failure()
+      run: |
+        echo "Congress pipeline failed! Check GitHub Actions logs."
+        # Optional: Add Slack notification here

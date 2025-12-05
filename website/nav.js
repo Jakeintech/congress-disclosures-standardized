@@ -76,6 +76,20 @@ function injectNavigation() {
                     </a>
                     
                     <div class="dropdown">
+                        <button class="dropbtn ${isActive(currentPage, ['congress-bills.html', 'congress-members.html', 'bill-trade-correlation.html', 'member-profile.html'])}">
+                            🏛️ Congress
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-content">
+                            <a href="${base}congress-bills.html" class="nav-link ${isActive(currentPage, 'congress-bills.html')}">Bills</a>
+                            <a href="${base}congress-members.html" class="nav-link ${isActive(currentPage, 'congress-members.html')}">Members</a>
+                            <a href="${base}congress-network.html" class="nav-link ${isActive(currentPage, 'congress-network.html')}">Network Graph</a>
+                            <a href="${base}bill-trade-correlation.html" class="nav-link ${isActive(currentPage, 'bill-trade-correlation.html')}">Bill-Trade Correlation</a>
+                        </div>
+                    </div>
+                    <div class="dropdown">
                         <button class="dropbtn ${isActive(currentPage, ['browse-bronze.html', 'browse-silver.html', 'browse-gold.html'])}">
                             Browse Data
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

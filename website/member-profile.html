@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Legislative Profile</title>
+    <meta name="description" content="View Congress member's legislative activity and financial disclosures">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-header {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .profile-info h1 {
+            margin: 0 0 0.5rem;
+            font-size: 1.75rem;
+        }
+
+        .profile-meta {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .party-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .party-D {
+            background: #bbdefb;
+            color: #1565c0;
+        }
+
+        .party-R {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        .party-I {
+            background: #e1bee7;
+            color: #7b1fa2;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .tab:hover {
+            color: #333;
+        }
+
+        .tab.active {
+            color: #0066cc;
+            border-bottom-color: #0066cc;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .stat-card.purple {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .stat-card.blue {
+            background: linear-gradient(135deg, #42a5f5, #1976d2);
+            color: white;
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #66bb6a, #388e3c);
+            color: white;
+        }
+
+        .stat-card.orange {
+            background: linear-gradient(135deg, #ffa726, #f57c00);
+            color: white;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+        .stat-card p {
+            margin: 0.25rem 0 0;
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .bills-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .bill-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bill-item:last-child {
+            border-bottom: none;
+        }
+
+        .bill-item:hover {
+            background: #fafafa;
+        }
+
+        .bill-info h4 {
+            margin: 0 0 0.25rem;
+        }
+
+        .bill-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .bill-id {
+            font-family: monospace;
+            padding: 0.25rem 0.5rem;
+            background: #e3f2fd;
+            color: #1565c0;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .role-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .role-sponsor {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .role-cosponsor {
+            background: #fff9c4;
+            color: #f9a825;
+        }
+
+        .trade-window {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #fff3e0;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #e65100;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="card">
+                    <div class="card-content">
+                        <!-- Profile Header -->
+                        <div id="profile-header" class="profile-header">
+                            <div class="loading">Loading member profile...</div>
+                        </div>
+
+                        <!-- Tabs -->
+                        <div class="tabs">
+                            <div class="tab active" data-tab="legislative">🏛️ Legislative Activity</div>
+                            <div class="tab" data-tab="trades">💹 Trade Windows</div>
+                            <div class="tab" data-tab="holdings">📊 Holdings</div>
+                        </div>
+
+                        <!-- Legislative Activity Tab -->
+                        <div id="tab-legislative" class="tab-content active">
+                            <div id="legislative-stats" class="stats-grid"></div>
+                            <h3>Sponsored Bills</h3>
+                            <ul id="bills-list" class="bills-list">
+                                <div class="loading">Loading bills...</div>
+                            </ul>
+                        </div>
+
+                        <!-- Trade Windows Tab -->
+                        <div id="tab-trades" class="tab-content">
+                            <div id="trade-windows-content">
+                                <div class="loading">Loading trade windows...</div>
+                            </div>
+                        </div>
+
+                        <!-- Holdings Tab -->
+                        <div id="tab-holdings" class="tab-content">
+                            <div class="empty-state">Holdings data available through Financial Disclosures API.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <p><a href="congress-members.html">← Back to Members</a> |
+                        <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank">View
+                            on GitHub</a>
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        const API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
+        const params = new URLSearchParams(window.location.search);
+        const bioguideId = params.get('id');
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+            });
+        });
+
+        async function loadMemberProfile() {
+            if (!bioguideId) {
+                document.getElementById('profile-header').innerHTML = '<div class="loading">No member ID provided. <a href="congress-members.html">Browse all members</a></div>';
+                return;
+            }
+
+            try {
+                // Load member details
+                const memberRes = await fetch(`${API_BASE}/v1/congress/members/${bioguideId}`);
+                const memberData = await memberRes.json();
+
+                if (!memberData.member) {
+                    throw new Error('Member not found');
+                }
+
+                const member = memberData.member;
+
+                // Render profile header
+                document.getElementById('profile-header').innerHTML = `
+                    <div class="profile-avatar">${getInitials(member)}</div>
+                    <div class="profile-info">
+                        <h1>${member.first_name} ${member.last_name}</h1>
+                        <div class="profile-meta">
+                            <span class="party-badge party-${member.party || 'I'}">${getPartyName(member.party)}</span>
+                            ${member.state || ''} • ${capitalize(member.chamber || '')}
+                        </div>
+                    </div>
+                `;
+
+                // Load legislation-trades data
+                const legTradesRes = await fetch(`${API_BASE}/v1/analytics/members/${bioguideId}/legislation-trades`);
+                const legData = await legTradesRes.json();
+
+                // Render stats
+                document.getElementById('legislative-stats').innerHTML = `
+                    <div class="stat-card purple"><h3>${legData.bills_count || 0}</h3><p>Bills Sponsored</p></div>
+                    <div class="stat-card blue"><h3>${member.bills_cosponsored || 0}</h3><p>Bills Cosponsored</p></div>
+                    <div class="stat-card green"><h3>${legData.trades_in_windows || 0}</h3><p>Trades in Windows</p></div>
+                    <div class="stat-card orange"><h3>${member.fd_transaction_count || 0}</h3><p>Total FD Trades</p></div>
+                `;
+
+                // Render bills
+                if (legData.bills && legData.bills.length > 0) {
+                    document.getElementById('bills-list').innerHTML = legData.bills.map(bill => `
+                        <li class="bill-item">
+                            <div class="bill-info">
+                                <h4>${bill.title || bill.bill_id}</h4>
+                                <p>
+                                    <span class="bill-id">${bill.bill_id}</span>
+                                    <span class="role-badge role-${bill.role || 'sponsor'}">${bill.role || 'Sponsor'}</span>
+                                </p>
+                                ${bill.trade_windows && bill.trade_windows.length > 0 ? `
+                                    <div class="trade-window">⚠️ ${bill.trade_windows.length} trade(s) detected within ±30 days</div>
+                                ` : ''}
+                            </div>
+                        </li>
+                    `).join('');
+                } else {
+                    document.getElementById('bills-list').innerHTML = '<div class="empty-state">No sponsored bills found.</div>';
+                }
+
+                // Trade windows content
+                if (legData.trades_in_windows > 0) {
+                    document.getElementById('trade-windows-content').innerHTML = `
+                        <div class="stats-grid">
+                            <div class="stat-card orange"><h3>${legData.trades_in_windows}</h3><p>Trades in Legislative Windows</p></div>
+                        </div>
+                        <p>Trade window analysis shows ${legData.trades_in_windows} transaction(s) occurring within ±30 days of legislative actions.</p>
+                    `;
+                } else {
+                    document.getElementById('trade-windows-content').innerHTML = '<div class="empty-state">No trades detected within legislative windows.</div>';
+                }
+
+            } catch (error) {
+                document.getElementById('profile-header').innerHTML = `<div class="loading">Error: ${error.message}. <a href="congress-members.html">Browse all members</a></div>`;
+            }
+        }
+
+        function getInitials(member) {
+            return ((member.first_name?.[0] || '') + (member.last_name?.[0] || '')).toUpperCase();
+        }
+
+        function getPartyName(party) {
+            return { 'D': 'Democrat', 'R': 'Republican', 'I': 'Independent' }[party] || party || 'Unknown';
+        }
+
+        function capitalize(str) {
+            return str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMemberProfile);
+    </script>
+</body>
+
+</html>

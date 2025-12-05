@@ -39,6 +39,8 @@ tags:
     description: Search and discovery
   - name: Filings
     description: Financial disclosure filings
+  - name: Congress
+    description: Congress.gov legislative data (bills, votes, members)
   - name: System
     description: System status and metrics
 
@@ -602,6 +604,160 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PositionListResponse'
+
+  # ============================================================================
+  # Congress.gov API Endpoints
+  # ============================================================================
+
+  /v1/congress/bills:
+    get:
+      tags: [Congress]
+      summary: List Congress bills
+      description: Get paginated list of bills with optional filtering by congress and bill type
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: congress
+          in: query
+          description: Filter by congress number (e.g., 118, 119)
+          schema:
+            type: integer
+        - name: bill_type
+          in: query
+          description: Filter by bill type
+          schema:
+            type: string
+            enum: [hr, s, hres, sres, hjres, sjres, hconres, sconres]
+        - name: sponsor
+          in: query
+          description: Filter by sponsor name (partial match)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated list of bills
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillListResponse'
+
+  /v1/congress/bills/{bill_id}:
+    get:
+      tags: [Congress]
+      summary: Get bill details
+      description: Get detailed information about a specific bill
+      parameters:
+        - name: bill_id
+          in: path
+          required: true
+          description: Bill ID in format congress-type-number (e.g., 118-hr-1)
+          schema:
+            type: string
+          example: "118-hr-1"
+      responses:
+        '200':
+          description: Bill details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/congress/members:
+    get:
+      tags: [Congress]
+      summary: List Congress members
+      description: Get paginated list of Congress members with optional filtering
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: chamber
+          in: query
+          description: Filter by chamber
+          schema:
+            type: string
+            enum: [House, Senate]
+        - name: state
+          in: query
+          description: Filter by state
+          schema:
+            type: string
+        - name: party
+          in: query
+          description: Filter by party
+          schema:
+            type: string
+            enum: [D, R, I]
+      responses:
+        '200':
+          description: Paginated list of Congress members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CongressMemberListResponse'
+
+  /v1/congress/members/{bioguide_id}:
+    get:
+      tags: [Congress]
+      summary: Get Congress member details
+      description: Get detailed profile including legislative stats
+      parameters:
+        - name: bioguide_id
+          in: path
+          required: true
+          description: Member's bioguide ID
+          schema:
+            type: string
+          example: "P000197"
+      responses:
+        '200':
+          description: Congress member profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CongressMemberDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/analytics/members/{bioguide_id}/legislation-trades:
+    get:
+      tags: [Congress, Analytics]
+      summary: Get member legislation with trade windows
+      description: Get member's sponsored bills with correlated trading activity
+      parameters:
+        - name: bioguide_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Legislation and trade correlation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegislationTradesResponse'
+
+  /v1/analytics/stocks/{ticker}/legislative-exposure:
+    get:
+      tags: [Congress, Analytics]
+      summary: Get stock legislative exposure
+      description: Get congressional activity and trading for a stock
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "AAPL"
+      responses:
+        '200':
+          description: Stock legislative exposure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegislativeExposureResponse'
 
   # ============================================================================
   # Member Analytics Endpoints
@@ -1224,12 +1380,6 @@ components:
         nextContinuationToken:
           type: string
 
-  securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: X-Api-Key
-
     CostResponse:
       type: object
       properties:
@@ -1270,6 +1420,127 @@ components:
         success:
           type: boolean
         data:
+          type: object
+
+    # Congress.gov Schemas
+    BillListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bill'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Bill:
+      type: object
+      properties:
+        bill_id:
+          type: string
+          example: "118-hr-1"
+        congress:
+          type: integer
+        bill_type:
+          type: string
+        bill_number:
+          type: integer
+        title:
+          type: string
+        sponsor_name:
+          type: string
+        policy_area:
+          type: string
+        introduced_date:
+          type: string
+          format: date
+
+    BillDetail:
+      type: object
+      properties:
+        bill:
+          $ref: '#/components/schemas/Bill'
+
+    CongressMemberListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CongressMember'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    CongressMember:
+      type: object
+      properties:
+        bioguide_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        party:
+          type: string
+        state:
+          type: string
+        chamber:
+          type: string
+          enum: [house, senate]
+
+    CongressMemberDetail:
+      type: object
+      properties:
+        member:
+          allOf:
+            - $ref: '#/components/schemas/CongressMember'
+            - type: object
+              properties:
+                bills_sponsored:
+                  type: integer
+                bills_cosponsored:
+                  type: integer
+                fd_transaction_count:
+                  type: integer
+
+    LegislationTradesResponse:
+      type: object
+      properties:
+        member:
+          $ref: '#/components/schemas/CongressMember'
+        bills_count:
+          type: integer
+        bills:
+          type: array
+          items:
+            type: object
+            properties:
+              bill_id:
+                type: string
+              role:
+                type: string
+              trade_windows:
+                type: array
+                items:
+                  type: object
+        trades_in_windows:
+          type: integer
+
+    LegislativeExposureResponse:
+      type: object
+      properties:
+        ticker:
+          type: string
+        legislative_activity:
+          type: object
+          properties:
+            exposure_score:
+              type: integer
+            members_trading:
+              type: integer
+            total_transactions:
+              type: integer
+        trading_activity:
           type: object
 
     Error:

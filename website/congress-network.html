@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congress Network Graph - Legislation & Trading</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .network-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 1rem;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+
+        .controls-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-y: auto;
+            border: 1px solid #eee;
+        }
+
+        .control-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-section h4 {
+            margin: 0 0 0.75rem;
+            font-size: 0.85rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .view-mode-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .view-mode-btn {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .view-mode-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .view-mode-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-row label {
+            font-size: 0.8rem;
+            min-width: 60px;
+        }
+
+        .filter-row select,
+        .filter-row input {
+            flex: 1;
+            padding: 0.4rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        #graph-container {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #graph-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node {
+            cursor: pointer;
+        }
+
+        .node circle {
+            transition: r 0.3s, opacity 0.3s;
+        }
+
+        .node text {
+            font-size: 10px;
+            fill: white;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .link {
+            stroke-opacity: 0.4;
+            transition: stroke-opacity 0.3s;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.75rem;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .stat-box {
+            background: #f5f5f5;
+            padding: 0.5rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .stat-box .label {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .sidebar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 300px;
+            height: 100%;
+            background: white;
+            border-left: 1px solid #ddd;
+            padding: 1rem;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .connection-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .connection-list li {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(26, 26, 46, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <h2 style="margin-bottom: 1rem;">🏛️ Congress Network Graph</h2>
+                <p style="color: #666; margin-bottom: 1rem;">Visualize relationships between members, bills, policy
+                    areas, and sectors</p>
+
+                <div class="network-container">
+                    <!-- Controls Panel -->
+                    <div class="controls-panel">
+                        <div class="control-section">
+                            <h4>View Mode</h4>
+                            <div class="view-mode-grid">
+                                <button class="view-mode-btn active" data-mode="member-bill">Member → Bills</button>
+                                <button class="view-mode-btn" data-mode="member-sector">Member → Sectors</button>
+                                <button class="view-mode-btn" data-mode="bill-policy">Bills → Policy</button>
+                                <button class="view-mode-btn" data-mode="cosponsor">Cosponsorship</button>
+                                <button class="view-mode-btn" data-mode="fd-trade">FD Trades</button>
+                                <button class="view-mode-btn" data-mode="full">Full Network</button>
+                            </div>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>Filters</h4>
+                            <div class="filter-row">
+                                <label>Party:</label>
+                                <select id="filter-party">
+                                    <option value="">All</option>
+                                    <option value="D">Democrat</option>
+                                    <option value="R">Republican</option>
+                                    <option value="I">Independent</option>
+                                </select>
+                            </div>
+                            <div class="filter-row">
+                                <label>Chamber:</label>
+                                <select id="filter-chamber">
+                                    <option value="">All</option>
+                                    <option value="house">House</option>
+                                    <option value="senate">Senate</option>
+                                </select>
+                            </div>
+                            <div class="filter-row">
+                                <label>Congress:</label>
+                                <select id="filter-congress">
+                                    <option value="">All</option>
+                                    <option value="119">119th</option>
+                                    <option value="118" selected>118th</option>
+                                    <option value="117">117th</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>Node Sizing</h4>
+                            <select id="node-size" style="width: 100%; padding: 0.4rem;">
+                                <option value="bills">Bills Sponsored</option>
+                                <option value="trades">FD Trades</option>
+                                <option value="connections">Connections</option>
+                                <option value="uniform">Uniform</option>
+                            </select>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>Graph Stats</h4>
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <div class="value" id="stat-nodes">0</div>
+                                    <div class="label">Nodes</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="value" id="stat-links">0</div>
+                                    <div class="label">Links</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="value" id="stat-members">0</div>
+                                    <div class="label">Members</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="value" id="stat-bills">0</div>
+                                    <div class="label">Bills</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-section">
+                            <button id="reset-view" style="width: 100%; padding: 0.5rem;">Reset View</button>
+                        </div>
+                    </div>
+
+                    <!-- Graph Container -->
+                    <div id="graph-container">
+                        <svg id="graph-svg"></svg>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #667eea;"></div> Members
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #4caf50;"></div> Bills
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ff9800;"></div> Policy Areas
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #e91e63;"></div> Sectors
+                            </div>
+                        </div>
+                        <div class="loading-overlay" id="loading">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 1rem;">Loading network data...</p>
+                        </div>
+
+                        <!-- Details Sidebar -->
+                        <div class="sidebar" id="sidebar">
+                            <div class="sidebar-header">
+                                <h3 id="sidebar-title">Node Details</h3>
+                                <button class="close-btn" id="close-sidebar">&times;</button>
+                            </div>
+                            <div id="sidebar-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="nav.js"></script>
+    <script>
+        const NETWORK_API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
+
+        // Color scheme
+        const COLORS = {
+            member: '#667eea',
+            memberD: '#1565c0',
+            memberR: '#c62828',
+            memberI: '#7b1fa2',
+            bill: '#4caf50',
+            policy: '#ff9800',
+            sector: '#e91e63',
+            link: '#666'
+        };
+
+        let simulation, svg, g, nodes = [], links = [];
+        let currentMode = 'member-bill';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            initSVG();
+            await loadNetworkData();
+            setupEventListeners();
+        });
+
+        function initSVG() {
+            const container = document.getElementById('graph-container');
+            svg = d3.select('#graph-svg')
+                .attr('width', container.clientWidth)
+                .attr('height', container.clientHeight);
+
+            g = svg.append('g');
+
+            // Zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 4])
+                .on('zoom', (event) => g.attr('transform', event.transform));
+            svg.call(zoom);
+        }
+
+        async function loadNetworkData() {
+            try {
+                // Load pre-generated static JSON (ISR - refreshed daily)
+                const response = await fetch('data/congress_network.json');
+                if (!response.ok) throw new Error('Failed to load network data');
+
+                const graphData = await response.json();
+
+                // Use pre-computed nodes and links
+                nodes = graphData.nodes || [];
+                links = graphData.links || [];
+
+                // Update stats from pre-computed metadata
+                const stats = graphData.stats || {};
+                document.getElementById('stat-nodes').textContent = stats.total_nodes || nodes.length;
+                document.getElementById('stat-links').textContent = stats.total_links || links.length;
+                document.getElementById('stat-members').textContent = stats.members || 0;
+                document.getElementById('stat-bills').textContent = stats.bills || 0;
+
+                console.log(`Loaded: ${stats.members} members, ${stats.bills} bills, ${stats.policy_areas} policy areas, ${stats.total_links} links`);
+                console.log(`Congress: ${stats.congress}th, Generated: ${stats.generated_at}`);
+
+                renderGraph();
+                document.getElementById('loading').style.display = 'none';
+
+            } catch (error) {
+                console.error('Error loading network:', error);
+                document.getElementById('loading').innerHTML = `<p style="color: #ff5252;">Error loading data: ${error.message}</p>`;
+            }
+        }
+
+        function renderGraph() {
+            // Clear previous
+            g.selectAll('*').remove();
+
+            // Filter nodes/links based on mode
+            let filteredNodes = [...nodes];
+            let filteredLinks = [...links];
+
+            const party = document.getElementById('filter-party').value;
+            const chamber = document.getElementById('filter-chamber').value;
+
+            if (party) {
+                const memberIds = new Set(filteredNodes.filter(n => n.type === 'member' && n.party === party).map(n => n.id));
+                filteredNodes = filteredNodes.filter(n => n.type !== 'member' || memberIds.has(n.id));
+            }
+
+            if (chamber) {
+                const memberIds = new Set(filteredNodes.filter(n => n.type === 'member' && n.chamber === chamber).map(n => n.id));
+                filteredNodes = filteredNodes.filter(n => n.type !== 'member' || memberIds.has(n.id));
+            }
+
+            // Mode filtering
+            if (currentMode === 'member-bill') {
+                filteredNodes = filteredNodes.filter(n => n.type === 'member' || n.type === 'bill');
+                filteredLinks = filteredLinks.filter(l => l.type === 'sponsors');
+            } else if (currentMode === 'bill-policy') {
+                filteredNodes = filteredNodes.filter(n => n.type === 'bill' || n.type === 'policy');
+                filteredLinks = filteredLinks.filter(l => l.type === 'policy');
+            }
+
+            // Ensure links reference existing nodes
+            const nodeIds = new Set(filteredNodes.map(n => n.id));
+            filteredLinks = filteredLinks.filter(l =>
+                nodeIds.has(typeof l.source === 'string' ? l.source : l.source.id) &&
+                nodeIds.has(typeof l.target === 'string' ? l.target : l.target.id)
+            );
+
+            // Create simulation
+            simulation = d3.forceSimulation(filteredNodes)
+                .force('link', d3.forceLink(filteredLinks).id(d => d.id).distance(80))
+                .force('charge', d3.forceManyBody().strength(-150))
+                .force('center', d3.forceCenter(svg.attr('width') / 2, svg.attr('height') / 2))
+                .force('collision', d3.forceCollide().radius(20));
+
+            // Draw links
+            const link = g.append('g')
+                .selectAll('line')
+                .data(filteredLinks)
+                .join('line')
+                .attr('class', 'link')
+                .attr('stroke', COLORS.link)
+                .attr('stroke-width', 1);
+
+            // Draw nodes
+            const node = g.append('g')
+                .selectAll('g')
+                .data(filteredNodes)
+                .join('g')
+                .attr('class', 'node')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended))
+                .on('click', (event, d) => showNodeDetails(d));
+
+            node.append('circle')
+                .attr('r', d => getNodeRadius(d))
+                .attr('fill', d => getNodeColor(d));
+
+            node.append('text')
+                .attr('dy', d => getNodeRadius(d) + 12)
+                .text(d => d.label?.substring(0, 15));
+
+            // Tick
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            updateStats(filteredNodes.length, filteredLinks.length);
+        }
+
+        function getNodeColor(d) {
+            if (d.type === 'member') {
+                return d.party === 'D' ? COLORS.memberD : d.party === 'R' ? COLORS.memberR : COLORS.memberI;
+            }
+            return COLORS[d.type] || COLORS.member;
+        }
+
+        function getNodeRadius(d) {
+            const sizing = document.getElementById('node-size').value;
+            if (sizing === 'uniform') return 8;
+            if (d.type === 'member') {
+                if (sizing === 'bills') return 5 + Math.sqrt(d.bills_sponsored || 0) * 2;
+                if (sizing === 'trades') return 5 + Math.sqrt(d.fd_trades || 0);
+            }
+            return d.type === 'policy' ? 12 : 8;
+        }
+
+        function updateStats(nodeCount, linkCount) {
+            document.getElementById('stat-nodes').textContent = nodeCount || nodes.length;
+            document.getElementById('stat-links').textContent = linkCount || links.length;
+            document.getElementById('stat-members').textContent = nodes.filter(n => n.type === 'member').length;
+            document.getElementById('stat-bills').textContent = nodes.filter(n => n.type === 'bill').length;
+        }
+
+        function showNodeDetails(d) {
+            const sidebar = document.getElementById('sidebar');
+            const title = document.getElementById('sidebar-title');
+            const content = document.getElementById('sidebar-content');
+
+            title.textContent = d.label;
+
+            let html = `<p><strong>Type:</strong> ${d.type}</p>`;
+            if (d.type === 'member') {
+                html += `<p><strong>Party:</strong> ${d.party}</p>`;
+                html += `<p><strong>Chamber:</strong> ${d.chamber}</p>`;
+                html += `<p><strong>Bills Sponsored:</strong> ${d.bills_sponsored}</p>`;
+                html += `<p><strong>FD Trades:</strong> ${d.fd_trades}</p>`;
+                html += `<p><a href="member-profile.html?id=${d.id}">View Full Profile →</a></p>`;
+            } else if (d.type === 'bill') {
+                html += `<p><strong>Title:</strong> ${d.title || 'N/A'}</p>`;
+                html += `<p><strong>Policy Area:</strong> ${d.policy_area || 'N/A'}</p>`;
+            }
+
+            content.innerHTML = html;
+            sidebar.classList.add('open');
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function setupEventListeners() {
+            // View mode buttons
+            document.querySelectorAll('.view-mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.view-mode-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentMode = btn.dataset.mode;
+                    renderGraph();
+                });
+            });
+
+            // Filters
+            ['filter-party', 'filter-chamber', 'filter-congress', 'node-size'].forEach(id => {
+                document.getElementById(id)?.addEventListener('change', renderGraph);
+            });
+
+            // Reset
+            document.getElementById('reset-view').addEventListener('click', () => {
+                svg.transition().duration(500).call(
+                    d3.zoom().transform,
+                    d3.zoomIdentity
+                );
+            });
+
+            // Close sidebar
+            document.getElementById('close-sidebar').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.remove('open');
+            });
+        }
+    </script>
+</body>
+
+</html>

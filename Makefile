@@ -12,6 +12,7 @@ endif
 # Variables
 TERRAFORM_DIR := infra/terraform
 LAMBDA_DIR := ingestion/lambdas
+S3_BUCKET ?= congress-disclosures-standardized
 PYTHON := python3.11
 PIP := $(PYTHON) -m pip
 PYTEST := $(PYTHON) -m pytest
@@ -87,7 +88,23 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-api ## Package all Lambda functions
+
+package-api: ## Package and upload API Lambda functions to S3
+	@echo "Packaging API Lambda functions..."
+	@rm -rf /tmp/api_lambda_pkg && mkdir -p /tmp/api_lambda_pkg/api
+	@cp -r api/lib /tmp/api_lambda_pkg/api/
+	@cd api/lambdas && for dir in get_congress_* get_member_leg_* get_stock_leg_*; do \
+		if [ -d "$$dir" ]; then \
+			echo "  Packaging $$dir..."; \
+			rm -f "$${dir}.zip"; \
+			zip -j "$${dir}.zip" "$${dir}/handler.py" > /dev/null; \
+			cd /tmp/api_lambda_pkg && zip -r "/Users/jake/Documents/GitHub/congress-disclosures-standardized/api/lambdas/$${dir}.zip" api/ > /dev/null; \
+			cd /Users/jake/Documents/GitHub/congress-disclosures-standardized/api/lambdas; \
+			aws s3 cp "$${dir}.zip" "s3://$(S3_BUCKET)/lambda-deployments/api/$${dir}.zip" > /dev/null; \
+		fi \
+	done
+	@echo "✓ API Lambda packages uploaded to S3"
 
 package-ingest: ## Package house_fd_ingest_zip Lambda
 	@echo "Packaging house_fd_ingest_zip..."
@@ -172,10 +189,31 @@ package-congress-fetch: ## Package congress_api_fetch_entity Lambda
 	@cp $(LAMBDA_DIR)/congress_api_fetch_entity/handler.py $(LAMBDA_DIR)/congress_api_fetch_entity/package/
 	@cp -r ingestion/lib $(LAMBDA_DIR)/congress_api_fetch_entity/package/lib
 	@cd $(LAMBDA_DIR)/congress_api_fetch_entity/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/congress_api_fetch_entity/package
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/congress_api_fetch_entity/function.zip"
 	@ls -lh $(LAMBDA_DIR)/congress_api_fetch_entity/function.zip | awk '{print "  Package size:", $$5}'
 
+package-congress-silver: ## Package congress_bronze_to_silver Lambda
+	@echo "Packaging congress_bronze_to_silver..."
+	@rm -rf $(LAMBDA_DIR)/congress_bronze_to_silver/package $(LAMBDA_DIR)/congress_bronze_to_silver/function.zip
+	@mkdir -p $(LAMBDA_DIR)/congress_bronze_to_silver/package
+	@# Install Linux-compatible binaries for deps (jsonschema/rpds-py)
+	$(PIP) install \
+		--platform manylinux2014_x86_64 \
+		--target $(LAMBDA_DIR)/congress_bronze_to_silver/package \
+		--implementation cp \
+		--python-version 3.11 \
+		--only-binary=:all: --upgrade \
+		-r $(LAMBDA_DIR)/congress_bronze_to_silver/requirements.txt
+	@cp $(LAMBDA_DIR)/congress_bronze_to_silver/handler.py $(LAMBDA_DIR)/congress_bronze_to_silver/package/
+	@cp -r ingestion/lib $(LAMBDA_DIR)/congress_bronze_to_silver/package/lib
+	@cd $(LAMBDA_DIR)/congress_bronze_to_silver/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/congress_bronze_to_silver/package
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/congress_bronze_to_silver/function.zip"
+	@ls -lh $(LAMBDA_DIR)/congress_bronze_to_silver/function.zip | awk '{print "  Package size:", $$5}'
+
 ##@ Testing
+
 
 test: ## Run all tests
 	$(PYTEST) tests/ -v
@@ -338,6 +376,51 @@ aggregate-data: ## Aggregate all filing types into Gold layer
 	@echo "Generating Pipeline Error Report..."
 	@$(PYTHON) scripts/generate_pipeline_errors.py
 	@echo "✓ Data aggregation complete"
+
+##@ Congress Gold Layer
+
+build-congress-gold-member: ## Build Congress Gold dim_member from Silver
+	@echo "Building Congress Gold dim_member..."
+	@$(PYTHON) scripts/congress_build_dim_member.py
+
+build-congress-gold-bill: ## Build Congress Gold dim_bill from Silver
+	@echo "Building Congress Gold dim_bill..."
+	@$(PYTHON) scripts/congress_build_dim_bill.py
+
+build-congress-gold-fact: ## Build Congress Gold fact_member_bill_role from Silver
+	@echo "Building Congress Gold fact_member_bill_role..."
+	@$(PYTHON) scripts/congress_build_fact_member_bill_role.py
+
+build-congress-gold: build-congress-gold-member build-congress-gold-bill build-congress-gold-fact ## Build all Congress Gold tables
+	@echo "✓ Congress Gold layer build complete"
+
+##@ Congress Analytics (FD-Congress Correlation)
+
+build-congress-analytics-trade-windows: ## Analyze member trades around bill actions
+	@echo "Building trade window analysis..."
+	@$(PYTHON) scripts/congress_build_analytics_trade_windows.py
+
+build-congress-analytics-stock-activity: ## Build stock-level congress activity
+	@echo "Building stock congress activity..."
+	@$(PYTHON) scripts/congress_build_analytics_stock_activity.py
+
+build-congress-member-stats: ## Compute member legislative + trading stats
+	@echo "Computing member stats..."
+	@$(PYTHON) scripts/congress_compute_agg_member_stats.py
+
+build-congress-analytics: build-congress-analytics-trade-windows build-congress-analytics-stock-activity build-congress-member-stats ## Build all Congress analytics
+	@echo "✓ Congress analytics build complete"
+
+##@ Congress Pipeline Orchestration
+
+run-congress-pipeline: ## Run Congress pipeline (aggregate mode by default)
+	@$(PYTHON) scripts/run_congress_pipeline.py --mode aggregate
+
+run-congress-pipeline-full: ## Run full Congress pipeline (ingestion + processing)
+	@$(PYTHON) scripts/run_congress_pipeline.py --mode full --congress 118
+
+run-congress-pipeline-incremental: ## Run incremental Congress pipeline
+	@$(PYTHON) scripts/run_congress_pipeline.py --mode incremental
 
 pipeline: ## Smart Pipeline: End-to-end execution with interactive mode (Full/Incremental/Reprocess)
 	@$(PYTHON) scripts/run_smart_pipeline.py
@@ -509,3 +592,16 @@ self-host-setup: setup init ## Complete setup for self-hosting
 	@echo ""
 	@echo "For detailed instructions, see docs/DEPLOYMENT.md"
 	@echo "==================================================================="
+
+package-congress-orchestrator: ## Package Congress Orchestrator Lambda
+	@echo "Packaging Congress Orchestrator Lambda..."
+	@rm -rf $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip
+	@mkdir -p $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package
+	$(PIP) install -r $(LAMBDA_DIR)/congress_api_ingest_orchestrator/requirements.txt -t $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package
+	@cp $(LAMBDA_DIR)/congress_api_ingest_orchestrator/handler.py $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package/
+	@cp -r ingestion/lib $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package/lib
+	@cd $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip"
+	@ls -lh $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip | awk '{print "  Package size:", $$5}'
+

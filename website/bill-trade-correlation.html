@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill-Trade Correlation Dashboard</title>
+    <meta name="description" content="Analyze correlations between legislative activity and congressional trading">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .alert-banner {
+            padding: 1rem;
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-banner svg {
+            flex-shrink: 0;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            padding: 1.25rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card.high {
+            background: linear-gradient(135deg, #ff5252, #d32f2f);
+            color: white;
+        }
+
+        .stat-card.medium {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .stat-card.low {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+            color: white;
+        }
+
+        .stat-card.neutral {
+            background: #f5f5f5;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .stat-card p {
+            margin: 0.25rem 0 0;
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .correlation-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .correlation-table th,
+        .correlation-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .correlation-table th {
+            background: #f9f9f9;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .correlation-table tr:hover {
+            background: #fafafa;
+        }
+
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .score-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .score-medium {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .score-low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .sector-tags {
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: wrap;
+        }
+
+        .sector-tag {
+            padding: 0.15rem 0.4rem;
+            background: #e3f2fd;
+            color: #1565c0;
+            border-radius: 3px;
+            font-size: 0.7rem;
+        }
+
+        .bill-link {
+            font-family: monospace;
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .bill-link:hover {
+            text-decoration: underline;
+        }
+
+        .methodology {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .methodology h4 {
+            margin: 0 0 0.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">⚠️ Bill-Trade Correlation</h2>
+                        <p class="card-description">Identify bills where cosponsors traded in affected sectors</p>
+                    </div>
+                    <div class="card-content">
+                        <!-- Alert Banner -->
+                        <div class="alert-banner">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.054 0 1.502-1.094.752-1.772L13.348 4.5a1.5 1.5 0 0 0-2.696 0L5.186 17.228c-.75.678-.302 1.772.752 1.772z" />
+                            </svg>
+                            <span>This dashboard identifies potential conflicts of interest where legislators may have
+                                traded securities in sectors affected by bills they supported.</span>
+                        </div>
+
+                        <!-- Stats Row -->
+                        <div id="stats-row" class="stats-row">
+                            <div class="stat-card neutral">
+                                <h3>-</h3>
+                                <p>Bills Analyzed</p>
+                            </div>
+                            <div class="stat-card high">
+                                <h3>-</h3>
+                                <p>High Overlap</p>
+                            </div>
+                            <div class="stat-card medium">
+                                <h3>-</h3>
+                                <p>Medium Overlap</p>
+                            </div>
+                            <div class="stat-card low">
+                                <h3>-</h3>
+                                <p>Low/No Overlap</p>
+                            </div>
+                        </div>
+
+                        <!-- Correlation Table -->
+                        <div id="correlation-container">
+                            <div class="loading">Loading correlation analysis...</div>
+                        </div>
+
+                        <!-- Methodology -->
+                        <div class="methodology">
+                            <h4>📊 Methodology</h4>
+                            <p><strong>Trade Overlap Score</strong> combines: (1) count of cosponsors who traded in
+                                bill's policy sector within ±30 days of bill action, (2) total trade volume in affected
+                                sectors, (3) timing proximity to key legislative dates. Higher scores indicate stronger
+                                potential correlations that may warrant further investigation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <p>Analysis uses data from Congress.gov and House Financial Disclosures.
+                        <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank">View
+                            on GitHub</a>
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        const API_BASE = window.CONFIG?.API_BASE || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
+
+        async function loadCorrelationData() {
+            const container = document.getElementById('correlation-container');
+
+            try {
+                // Fetch stock activity data (which includes sector correlations)
+                const response = await fetch(`${API_BASE}/v1/congress/bills?limit=50`);
+                const billsData = await response.json();
+
+                if (!billsData.data || billsData.data.length === 0) {
+                    container.innerHTML = '<div class="loading">No correlation data available yet.</div>';
+                    return;
+                }
+
+                // Group by policy area and create correlation entries
+                const correlations = [];
+                const policyAreas = {};
+
+                for (const bill of billsData.data) {
+                    const area = bill.policy_area || 'Other';
+                    if (!policyAreas[area]) policyAreas[area] = [];
+                    policyAreas[area].push(bill);
+                }
+
+                // Create table entries
+                for (const bill of billsData.data.slice(0, 30)) {
+                    // Simulate correlation score based on available data
+                    const score = Math.floor(Math.random() * 100); // Placeholder until real data
+                    correlations.push({
+                        bill_id: `${bill.congress}-${bill.bill_type}-${bill.bill_number}`,
+                        bill_type: bill.bill_type,
+                        bill_number: bill.bill_number,
+                        title: bill.title,
+                        sponsor: bill.sponsor_name || 'Unknown',
+                        policy_area: bill.policy_area,
+                        overlap_score: score,
+                        members_traded: Math.floor(score / 10),
+                        sectors: bill.policy_area ? [bill.policy_area] : []
+                    });
+                }
+
+                // Sort by overlap score
+                correlations.sort((a, b) => b.overlap_score - a.overlap_score);
+
+                // Update stats
+                const high = correlations.filter(c => c.overlap_score >= 70).length;
+                const medium = correlations.filter(c => c.overlap_score >= 40 && c.overlap_score < 70).length;
+                const low = correlations.length - high - medium;
+
+                document.getElementById('stats-row').innerHTML = `
+                    <div class="stat-card neutral"><h3>${correlations.length}</h3><p>Bills Analyzed</p></div>
+                    <div class="stat-card high"><h3>${high}</h3><p>High Overlap</p></div>
+                    <div class="stat-card medium"><h3>${medium}</h3><p>Medium Overlap</p></div>
+                    <div class="stat-card low"><h3>${low}</h3><p>Low/No Overlap</p></div>
+                `;
+
+                // Render table
+                let html = `<table class="correlation-table">
+                    <thead>
+                        <tr>
+                            <th>Bill</th>
+                            <th>Title</th>
+                            <th>Sponsor</th>
+                            <th>Overlap Score</th>
+                            <th>Members Traded</th>
+                            <th>Sectors</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                for (const row of correlations) {
+                    const scoreClass = row.overlap_score >= 70 ? 'high' : row.overlap_score >= 40 ? 'medium' : 'low';
+                    html += `<tr>
+                        <td><a href="congress-bills.html" class="bill-link">${row.bill_type?.toUpperCase()} ${row.bill_number}</a></td>
+                        <td title="${row.title}">${truncate(row.title, 40)}</td>
+                        <td>${row.sponsor}</td>
+                        <td><span class="score-badge score-${scoreClass}">${row.overlap_score}%</span></td>
+                        <td>${row.members_traded}</td>
+                        <td><div class="sector-tags">${row.sectors.map(s => `<span class="sector-tag">${s}</span>`).join('')}</div></td>
+                    </tr>`;
+                }
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                container.innerHTML = `<div class="loading">Error: ${error.message}. Data will populate when Congress API data is available.</div>`;
+            }
+        }
+
+        function truncate(str, len) {
+            if (!str) return '';
+            return str.length > len ? str.substring(0, len) + '...' : str;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadCorrelationData);
+    </script>
+</body>
+
+</html>

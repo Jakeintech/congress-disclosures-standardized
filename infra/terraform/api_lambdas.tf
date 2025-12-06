@@ -65,6 +65,7 @@ locals {
     "get_compliance"        = { route = "GET /v1/analytics/compliance" }
     "get_trading_timeline"  = { route = "GET /v1/analytics/trading-timeline" }
     "get_summary"           = { route = "GET /v1/analytics/summary" }
+    "get_network_graph"     = { route = "GET /v1/analytics/network-graph" }
 
     # Search & Filing endpoints
     "search"      = { route = "GET /v1/search" }

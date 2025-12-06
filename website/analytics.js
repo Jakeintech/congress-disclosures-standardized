@@ -1,7 +1,11 @@
 /**
  * Analytics Logic (analytics.html)
  * Handles Member Trading Stats, Trending Stocks, and Sector Analysis.
+ * Uses API Gateway endpoints for live data.
  */
+
+// API Gateway URL (from config.js or fallback)
+const ANALYTICS_API_BASE = window.API_GATEWAY_URL || window.CONFIG?.API_GATEWAY_URL || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadAnalyticsData();
@@ -19,13 +23,28 @@ async function loadAnalyticsData() {
 
 async function loadMemberTradingStats() {
     try {
-        const response = await fetch('https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/data/member_trading_stats.json');
+        const response = await fetch(`${ANALYTICS_API_BASE}/v1/analytics/top-traders?limit=50`);
         if (response.ok) {
-            const data = await response.json();
+            const result = await response.json();
+            // API returns { success: true, data: { top_traders: [...] } }
+            const traders = result.data?.top_traders || result.top_traders || [];
+            // Transform API response to expected format
+            const data = {
+                members: traders.map(t => ({
+                    name: `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'Unknown',
+                    party: t.party || 'I',
+                    state: t.state || 'N/A',
+                    total_trades: t.total_trades || 0,
+                    buy_volume: t.purchase_count || 0,
+                    sell_volume: t.sale_count || 0,
+                    total_volume: t.total_trades || 0 // Use trade count as volume proxy
+                })),
+                total_volume: traders.reduce((sum, t) => sum + (t.total_trades || 0), 0)
+            };
             initMemberTradingStats(data);
         }
     } catch (err) {
-        console.log('Member trading stats not yet available');
+        console.error('Error loading member trading stats:', err);
     }
 }
 
@@ -120,13 +139,26 @@ function exportMemberStatsCSV() {
 
 async function loadTrendingStocks() {
     try {
-        const response = await fetch('https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/data/trending_stocks.json');
+        const response = await fetch(`${ANALYTICS_API_BASE}/v1/analytics/trending-stocks?limit=30`);
         if (response.ok) {
-            const data = await response.json();
+            const result = await response.json();
+            // API returns { success: true, data: { trending_stocks: [...] } }
+            const stocks = result.data?.trending_stocks || result.trending_stocks || [];
+            // Transform API response to expected format
+            const data = {
+                stocks: stocks.map(s => ({
+                    ticker: s.ticker || 'N/A',
+                    asset_name: s.ticker || 'Unknown',
+                    trade_count: s.trade_count || 0,
+                    buy_count: Math.floor((s.trade_count || 0) / 2),
+                    sell_count: Math.ceil((s.trade_count || 0) / 2),
+                    total_volume: s.trade_count || 0
+                }))
+            };
             initTrendingStocks(data);
         }
     } catch (err) {
-        console.log('Trending stocks not yet available');
+        console.error('Error loading trending stocks:', err);
     }
 }
 
@@ -209,13 +241,25 @@ function exportTrendingStocksCSV() {
 
 async function loadSectorAnalysis() {
     try {
-        const response = await fetch('https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/data/sector_analysis.json');
+        const response = await fetch(`${ANALYTICS_API_BASE}/v1/analytics/sector-activity`);
         if (response.ok) {
-            const data = await response.json();
+            const result = await response.json();
+            // API returns { success: true, data: { sectors: [...] } }
+            const sectors = result.data?.sectors || result.sectors || [];
+            // Transform API response to expected format
+            const data = {
+                sectors: sectors.map(s => ({
+                    sector: s.sector || 'Unknown',
+                    trade_count: s.trade_count || 0,
+                    buy_count: s.buy_count || 0,
+                    sell_count: s.sell_count || 0,
+                    total_volume: s.total_volume || 0
+                }))
+            };
             initSectorAnalysis(data);
         }
     } catch (err) {
-        console.log('Sector analysis not yet available');
+        console.error('Error loading sector analysis:', err);
     }
 }
 

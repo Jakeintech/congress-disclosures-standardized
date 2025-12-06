@@ -37,15 +37,18 @@ def handler(event, context):
         if 'filing_type' in query_params:
             filters['filing_type'] = query_params['filing_type'].lower()
         
-        # Date range
+        # Date range (using filing_date_key which is stored as YYYYMMDD integer)
         if 'start_date' in query_params or 'end_date' in query_params:
-            date_field = 'filing_date'
+            date_field = 'filing_date_key'
             if 'start_date' in query_params:
+                # Convert YYYY-MM-DD to YYYYMMDD integer
+                start_int = int(query_params['start_date'].replace('-', ''))
                 filters[date_field] = filters.get(date_field, {})
-                filters[date_field]['gte'] = query_params['start_date']
+                filters[date_field]['gte'] = start_int
             if 'end_date' in query_params:
+                end_int = int(query_params['end_date'].replace('-', ''))
                 filters[date_field] = filters.get(date_field, {})
-                filters[date_field]['lte'] = query_params['end_date']
+                filters[date_field]['lte'] = end_int
         
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
@@ -57,7 +60,7 @@ def handler(event, context):
         filings_df = qb.query_parquet(
             'gold/house/financial/facts/fact_filings',
             filters=filters if filters else None,
-            order_by='filing_date DESC',
+            order_by='filing_date_key DESC',
             limit=limit,
             offset=offset
         )

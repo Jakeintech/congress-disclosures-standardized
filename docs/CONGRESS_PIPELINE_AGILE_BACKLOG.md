@@ -2137,7 +2137,7 @@
 
 **Feature Goal**: Update website to display Congress data and FD-Congress correlations.
 
-**Feature Value**: Makes Congress data accessible via user-friendly UI.
+**Feature Value**: Makes Congress data accessible via user-friendly UI, adding to our existing S3 serverless website i.e. https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/browse-gold.html.
 
 **Feature Dependencies**: Feature 7 (API endpoints)
 
@@ -2172,7 +2172,7 @@
 **Description**: Create wireframe/mockup for new tab.
 
 **DoD**:
-- ✅ Mockup created (Figma, sketch, or HTML prototype)
+- ✅ Mockup created
 - ✅ Shows layout: tabs, bill list, vote list, stats cards
 - ✅ Responsive design (desktop + mobile)
 - ✅ Peer reviewed for UX

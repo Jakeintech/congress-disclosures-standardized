@@ -375,6 +375,29 @@ deploy-website: ## Deploy website to S3 (regenerates all analytics data first)
 	@echo "✓ API Docs deployed to s3://congress-disclosures-standardized/website/api-docs/"
 	@echo "  URL: https://congress-disclosures-standardized.s3.amazonaws.com/website/api-docs/index.html"
 
+##@ Next.js Website (New Frontend)
+
+build-nextjs: ## Build Next.js static export
+	@echo "📦 Building Next.js static export..."
+	@cd website-next && npm run build
+	@echo "✓ Next.js build complete in website-next/out/"
+
+build-bill-isr: ## Pre-generate ISR JSON files for archived congresses (115-118)
+	@echo "🔄 Pre-generating bill detail ISR files..."
+	@$(PYTHON) scripts/build_bill_detail_pages.py --congress 115 116 117 118 --output-dir website-next/out/data/bill_details
+	@echo "✓ ISR files generated"
+
+build-bill-isr-test: ## Test ISR generation (10 bills from Congress 118 only)
+	@echo "🧪 Testing ISR generation..."
+	@$(PYTHON) scripts/build_bill_detail_pages.py --congress 118 --limit 10 --output-dir website-next/out/data/bill_details
+	@echo "✓ Test ISR files generated"
+
+deploy-website-next: build-nextjs build-bill-isr ## Build and deploy Next.js website to S3
+	@echo "🚀 Deploying Next.js website to S3..."
+	@aws s3 sync website-next/out/ s3://congress-disclosures-standardized/website/ --exclude "*.DS_Store" --delete
+	@echo "✓ Next.js website deployed to s3://congress-disclosures-standardized/website/"
+
+
 deploy-all-lambdas: package-all ## Package and deploy all Lambdas
 	@echo "Deploying all Lambda functions..."
 	cd $(TERRAFORM_DIR) && terraform apply -auto-approve

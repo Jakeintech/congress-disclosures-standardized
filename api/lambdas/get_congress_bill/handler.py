@@ -376,8 +376,15 @@ def handler(event, context):
             'industry_tags': industry_tags,
             'trade_correlations': trade_correlations,
             'trade_correlations_count': trade_correlations_count,
+            'summary': bill.get('summary'),
+            'text_versions': [
+                {'format': 'txt', 'url': bill.get('text_url')},
+                {'format': 'pdf', 'url': bill.get('pdf_url')}
+            ] if bill.get('text_url') or bill.get('pdf_url') else [],
             'committees': [],  # TODO: Add committee data when available
             'related_bills': [],  # TODO: Add related bills when available
+            'subjects': bill.get('subjects', []), # Assuming subjects might be in dim_bill
+            'titles': bill.get('titles', []), # Assuming titles might be in dim_bill
             'congress_gov_url': congress_gov_url
         }
 

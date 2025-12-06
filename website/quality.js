@@ -1,7 +1,11 @@
 /**
  * Document Quality Logic (quality.html)
  * Loads and displays document quality metrics.
+ * Uses API Gateway endpoints for live data.
  */
+
+// API Gateway URL (from config.js or fallback)
+const QUALITY_API_BASE = window.API_GATEWAY_URL || window.CONFIG?.API_GATEWAY_URL || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
 
 let qualityData = [];
 let filteredQualityData = [];
@@ -15,10 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initDocumentQuality() {
     console.log('Initializing Document Quality...');
     try {
-        const response = await fetch('https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/data/document_quality.json');
+        const response = await fetch(`${QUALITY_API_BASE}/v1/analytics/compliance`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        const data = await response.json();
+        const result = await response.json();
+        // API returns { success: true, data: { members: [...], ... } }
+        const data = result.data || result;
         qualityData = data.members || [];
         filteredQualityData = [...qualityData];
 

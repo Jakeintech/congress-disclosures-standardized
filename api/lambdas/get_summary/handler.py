@@ -34,7 +34,7 @@ def handler(event, context):
     """
     try:
         # Check cache first
-        cache_key = 'analytics_summary'
+        cache_key = 'analytics_summary_v3'
         cached = get_cached(cache_key)
         if cached:
             logger.info("Returning cached summary")
@@ -58,7 +58,7 @@ def handler(event, context):
         try:
             trades_df = qb.query_parquet(
                 'gold/house/financial/facts/fact_ptr_transactions',
-                columns=['transaction_id', 'transaction_date', 'ticker']
+                columns=['transaction_key', 'transaction_date', 'ticker']
             )
             total_trades = len(trades_df)
             unique_stocks = len(trades_df['ticker'].unique()) if len(trades_df) > 0 else 0
@@ -73,12 +73,13 @@ def handler(event, context):
         try:
             filings_df = qb.query_parquet(
                 'gold/house/financial/facts/fact_filings',
-                columns=['doc_id', 'filing_date', 'filing_year']
+                columns=['doc_id', 'filing_date_key', 'year']
             )
             total_filings = len(filings_df)
-            latest_filing = filings_df['filing_date'].max() if len(filings_df) > 0 else None
-            earliest_filing = filings_df['filing_date'].min() if len(filings_df) > 0 else None
-            filing_years = sorted(filings_df['filing_year'].unique().tolist()) if len(filings_df) > 0 else []
+            # filing_date_key is stored as YYYYMMDD double/int
+            latest_filing = int(filings_df['filing_date_key'].max()) if len(filings_df) > 0 and filings_df['filing_date_key'].notna().any() else None
+            earliest_filing = int(filings_df['filing_date_key'].min()) if len(filings_df) > 0 and filings_df['filing_date_key'].notna().any() else None
+            filing_years = sorted(filings_df['year'].dropna().unique().tolist()) if len(filings_df) > 0 else []
         except Exception as e:
             logger.warning(f"Could not get filing stats: {e}")
             total_filings = 0
@@ -86,6 +87,17 @@ def handler(event, context):
             earliest_filing = None
             filing_years = []
         
+        # Get bill statistics
+        try:
+            bills_df = qb.query_parquet(
+                'gold/congress/dim_bill',
+                columns=['bill_id']
+            )
+            total_bills = len(bills_df)
+        except Exception as e:
+            logger.warning(f"Could not get bill stats: {e}")
+            total_bills = 0
+            
         # Build summary response
         summary = {
             'members': {
@@ -101,6 +113,9 @@ def handler(event, context):
                 'latest_filing': str(latest_filing) if latest_filing else None,
                 'earliest_filing': str(earliest_filing) if earliest_filing else None,
                 'coverage_years': filing_years
+            },
+            'bills': {
+                'total': total_bills
             },
             'last_updated': str(latest_filing) if latest_filing else None
         }

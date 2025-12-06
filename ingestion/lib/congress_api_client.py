@@ -26,7 +26,12 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
     retry_if_exception_type,
+    retry_if_exception_type,
 )
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if present
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 

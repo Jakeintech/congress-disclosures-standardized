@@ -190,8 +190,7 @@ def download_zip_file(url: str, timeout: int = 120) -> tuple:
             base, filename = url.rsplit("/", 1)
             year_part = filename.replace("FD.zip", "")
             alt_url = f"{base}/{year_part}/{filename}"
-            logger.info(f"Primary download failed (status={getattr(last_response, 'status_code', 'n/a')}). Trying fallback URL: {alt_url}
-")
+            logger.info(f"Primary download failed (status={getattr(last_response, 'status_code', 'n/a')}). Trying fallback URL: {alt_url}")
             response = _try_download(alt_url)
         except Exception:
             # Ignore fallback construction errors

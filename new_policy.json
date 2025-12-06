@@ -1,0 +1,44 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": [
+                "arn:aws:s3:::congress-disclosures-standardized/website/*",
+                "arn:aws:s3:::congress-disclosures-standardized/website/api/*",
+                "arn:aws:s3:::congress-disclosures-standardized/website-next/*",
+                "arn:aws:s3:::congress-disclosures-standardized/docs/*",
+                "arn:aws:s3:::congress-disclosures-standardized/favicon.ico",
+                "arn:aws:s3:::congress-disclosures-standardized/robots.txt",
+                "arn:aws:s3:::congress-disclosures-standardized/manifest.json",
+                "arn:aws:s3:::congress-disclosures-standardized/bronze/*",
+                "arn:aws:s3:::congress-disclosures-standardized/silver/*"
+            ]
+        },
+        {
+            "Sid": "PublicListSpecificPrefixes",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::congress-disclosures-standardized",
+            "Condition": {
+                "StringLike": {
+                    "s3:prefix": [
+                        "website/*",
+                        "website/api/*",
+                        "website-next/*",
+                        "docs/*",
+                        "favicon.ico",
+                        "robots.txt",
+                        "manifest.json",
+                        "bronze/*",
+                        "silver/*"
+                    ]
+                }
+            }
+        }
+    ]
+}

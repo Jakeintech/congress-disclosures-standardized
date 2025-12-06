@@ -1,10 +1,11 @@
-S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
 """Lambda handler: GET /v1/analytics/trading-timeline - Daily trading volume over time."""
 import os
 import logging
 from api.lib import ParquetQueryBuilder, success_response, error_response
 from datetime import datetime, timedelta
+
+S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

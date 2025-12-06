@@ -11,7 +11,7 @@ resource "aws_apigatewayv2_api" "congress_api" {
   description   = "Congressional Trading Data API - Public access to Gold layer analytics"
 
   cors_configuration {
-    allow_origins = ["*"]
+    allow_origins = ["*", "http://congress-disclosures-standardized.s3-website-us-east-1.amazonaws.com"]
     allow_methods = ["GET", "POST", "OPTIONS"]
     allow_headers = ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"]
     max_age       = 300
@@ -290,6 +290,20 @@ resource "aws_apigatewayv2_integration" "get_summary" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
   integration_uri  = aws_lambda_function.api["get_summary"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/analytics/network-graph
+resource "aws_apigatewayv2_route" "get_network_graph" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/analytics/network-graph"
+  target    = "integrations/${aws_apigatewayv2_integration.get_network_graph.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_network_graph" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_network_graph"].invoke_arn
   payload_format_version = "2.0"
 }
 

@@ -1,6 +1,10 @@
 /**
  * Enhanced Network Graph with Hierarchical Drill-Down
+ * Uses API Gateway endpoints for live data.
  */
+
+// API Gateway URL (from config.js or fallback)
+const NETWORK_API_BASE = window.API_GATEWAY_URL || window.CONFIG?.API_GATEWAY_URL || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
 
 let originalData = null;
 let filteredData = null;
@@ -20,9 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadNetworkGraph() {
     try {
-        const response = await fetch('https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com/website/data/network_graph.json');
+        const response = await fetch(`${NETWORK_API_BASE}/v1/analytics/network-graph`);
         if (response.ok) {
-            originalData = await response.json();
+            const result = await response.json();
+            // API returns { success: true, data: { nodes: [...], links: [...] } }
+            originalData = result.data || result;
             // Initialize with no groups expanded
             expandedGroups.clear();
 
@@ -30,7 +36,7 @@ async function loadNetworkGraph() {
             applyFilters();
         }
     } catch (err) {
-        console.log('Network graph not yet available:', err);
+        console.error('Network graph not yet available:', err);
         document.getElementById('network-graph-container').innerHTML = `<div class="error-state"><p>Error loading graph data. Please try again later.</p></div>`;
     }
 }

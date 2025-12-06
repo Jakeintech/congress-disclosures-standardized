@@ -1,13 +1,20 @@
 /**
  * Transactions Logic (transactions.html)
  * Handles PTR (Periodic Transaction Report) data.
+ * Uses API Gateway endpoints for live data.
  */
+
+// API Gateway URL (from config.js or fallback)
+const TRANSACTIONS_API_BASE = window.API_GATEWAY_URL || window.CONFIG?.API_GATEWAY_URL || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
 
 let allPTRTransactions = [];
 let filteredPTRTransactions = [];
 let ptrCurrentPage = 1;
 let ptrSortColumn = 'transaction_date';
 let ptrSortDirection = 'desc';
+
+// Items per page - may be defined in config.js or default to 50
+const ITEMS_PER_PAGE = window.ITEMS_PER_PAGE || 50;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadPTRTransactions();
@@ -17,15 +24,40 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadPTRTransactions() {
     try {
         showPTRLoading();
-        console.log('Fetching PTR data from:', PTR_TRANSACTIONS_URL);
+        console.log('Fetching PTR data from API Gateway...');
 
-        const response = await fetch(PTR_TRANSACTIONS_URL);
+        const response = await fetch(`${TRANSACTIONS_API_BASE}/v1/trades?limit=1000`);
         if (!response.ok) throw new Error('Failed to fetch PTR transactions');
 
-        const data = await response.json();
-        allPTRTransactions = data.transactions || [];
+        const result = await response.json();
+        // API returns { success: true, data: [...] } OR { success: true, data: { trades: [...] } }
+        const data = result.data || result;
+        if (Array.isArray(data)) {
+            allPTRTransactions = data;
+        } else {
+            allPTRTransactions = data.trades || data.transactions || [];
+        }
 
-        updatePTRStats(data);
+        // Transform API response to expected format
+        allPTRTransactions = allPTRTransactions.map(t => ({
+            transaction_date: t.transaction_date,
+            first_name: t.first_name || '',
+            last_name: t.last_name || '',
+            state_district: t.state || '',
+            asset_name: t.ticker || t.asset_name || '',
+            transaction_type: t.transaction_type || '',
+            amount_range: t.amount || t.amount_range || '',
+            owner_code: t.owner || '',
+            pdf_url: t.pdf_url || '',
+            extraction_confidence: t.confidence || 1.0
+        }));
+
+        updatePTRStats({
+            total_transactions: allPTRTransactions.length,
+            total_ptrs: new Set(allPTRTransactions.map(t => t.first_name + t.last_name)).size,
+            latest_date: allPTRTransactions.length > 0 ?
+                allPTRTransactions.reduce((max, t) => t.transaction_date > max ? t.transaction_date : max, '') : null
+        });
         populatePTRFilters();
         applyPTRFilters();
         hidePTRLoading();

@@ -1,7 +1,111 @@
 {
-  "updated_at": "2025-12-01T19:03:06.496673",
-  "count": 2599,
+  "updated_at": "2025-12-06T14:57:57.477339",
+  "count": 2600,
   "members": [
+    {
+      "bioguideId": "N000147",
+      "depiction": {
+        "attribution": "Congressional Pictorial Directory",
+        "imageUrl": "https://www.congress.gov/img/member/116_dg_dc_norton_eleanor_200.jpg"
+      },
+      "name": "Norton, Eleanor Holmes",
+      "partyName": "Democratic",
+      "state": "District of Columbia",
+      "terms": {
+        "item": [
+          {
+            "chamber": "House of Representatives",
+            "startYear": 1991
+          }
+        ]
+      },
+      "updateDate": "2025-12-06T08:30:20Z",
+      "url": "https://api.congress.gov/v3/member/N000147?format=json"
+    },
+    {
+      "bioguideId": "D000216",
+      "depiction": {
+        "attribution": "Congressional Pictorial Directory",
+        "imageUrl": "https://www.congress.gov/img/member/116_rp_ct_3_delauro_rosa_200.jpg"
+      },
+      "district": 3,
+      "name": "DeLauro, Rosa L.",
+      "partyName": "Democratic",
+      "state": "Connecticut",
+      "terms": {
+        "item": [
+          {
+            "chamber": "House of Representatives",
+            "startYear": 1991
+          }
+        ]
+      },
+      "updateDate": "2025-12-06T08:30:20Z",
+      "url": "https://api.congress.gov/v3/member/D000216?format=json"
+    },
+    {
+      "bioguideId": "W000187",
+      "depiction": {
+        "attribution": "Image courtesy of the Member",
+        "imageUrl": "https://www.congress.gov/img/member/w000187_200.jpg"
+      },
+      "district": 43,
+      "name": "Waters, Maxine",
+      "partyName": "Democratic",
+      "state": "California",
+      "terms": {
+        "item": [
+          {
+            "chamber": "House of Representatives",
+            "startYear": 1991
+          }
+        ]
+      },
+      "updateDate": "2025-12-06T08:30:19Z",
+      "url": "https://api.congress.gov/v3/member/W000187?format=json"
+    },
+    {
+      "bioguideId": "P000197",
+      "depiction": {
+        "attribution": "Image courtesy of the Member",
+        "imageUrl": "https://www.congress.gov/img/member/p000197_200.jpg"
+      },
+      "district": 11,
+      "name": "Pelosi, Nancy",
+      "partyName": "Democratic",
+      "state": "California",
+      "terms": {
+        "item": [
+          {
+            "chamber": "House of Representatives",
+            "startYear": 1987
+          }
+        ]
+      },
+      "updateDate": "2025-12-06T08:30:18Z",
+      "url": "https://api.congress.gov/v3/member/P000197?format=json"
+    },
+    {
+      "bioguideId": "V000139",
+      "depiction": {
+        "attribution": "Image courtesy of the Member",
+        "imageUrl": "https://www.congress.gov/img/member/6931b7d5f478c0f1228e9abe_200.jpg"
+      },
+      "district": 7,
+      "name": "Van Epps, Matt",
+      "partyName": "Republican",
+      "state": "Tennessee",
+      "terms": {
+        "item": [
+          {
+            "chamber": "House of Representatives",
+            "startYear": 2025
+          }
+        ]
+      },
+      "updateDate": "2025-12-05T14:29:00Z",
+      "url": "https://api.congress.gov/v3/member/V000139?format=json"
+    },
     {
       "bioguideId": "S001207",
       "depiction": {
@@ -6552,27 +6656,6 @@
       "url": "https://api.congress.gov/v3/member/M001163?format=json"
     },
     {
-      "bioguideId": "P000197",
-      "depiction": {
-        "attribution": "Image courtesy of the Member",
-        "imageUrl": "https://www.congress.gov/img/member/p000197_200.jpg"
-      },
-      "district": 11,
-      "name": "Pelosi, Nancy",
-      "partyName": "Democratic",
-      "state": "California",
-      "terms": {
-        "item": [
-          {
-            "chamber": "House of Representatives",
-            "startYear": 1987
-          }
-        ]
-      },
-      "updateDate": "2025-09-24T07:40:17Z",
-      "url": "https://api.congress.gov/v3/member/P000197?format=json"
-    },
-    {
       "bioguideId": "T000460",
       "depiction": {
         "attribution": "Congressional Pictorial Directory",
@@ -10579,27 +10662,6 @@
       "url": "https://api.congress.gov/v3/member/M000312?format=json"
     },
     {
-      "bioguideId": "W000187",
-      "depiction": {
-        "attribution": "Image courtesy of the Member",
-        "imageUrl": "https://www.congress.gov/img/member/w000187_200.jpg"
-      },
-      "district": 43,
-      "name": "Waters, Maxine",
-      "partyName": "Democratic",
-      "state": "California",
-      "terms": {
-        "item": [
-          {
-            "chamber": "House of Representatives",
-            "startYear": 1991
-          }
-        ]
-      },
-      "updateDate": "2025-09-24T07:40:13Z",
-      "url": "https://api.congress.gov/v3/member/W000187?format=json"
-    },
-    {
       "bioguideId": "N000015",
       "depiction": {
         "attribution": "Image, Congressional Pictorial Directory, 109th.",
@@ -10619,26 +10681,6 @@
       },
       "updateDate": "2025-09-24T07:40:13Z",
       "url": "https://api.congress.gov/v3/member/N000015?format=json"
-    },
-    {
-      "bioguideId": "N000147",
-      "depiction": {
-        "attribution": "Congressional Pictorial Directory",
-        "imageUrl": "https://www.congress.gov/img/member/116_dg_dc_norton_eleanor_200.jpg"
-      },
-      "name": "Norton, Eleanor Holmes",
-      "partyName": "Democratic",
-      "state": "District of Columbia",
-      "terms": {
-        "item": [
-          {
-            "chamber": "House of Representatives",
-            "startYear": 1991
-          }
-        ]
-      },
-      "updateDate": "2025-09-24T07:40:13Z",
-      "url": "https://api.congress.gov/v3/member/N000147?format=json"
     },
     {
       "bioguideId": "M001160",
@@ -11499,27 +11541,6 @@
       },
       "updateDate": "2025-09-24T07:40:12Z",
       "url": "https://api.congress.gov/v3/member/C000537?format=json"
-    },
-    {
-      "bioguideId": "D000216",
-      "depiction": {
-        "attribution": "Congressional Pictorial Directory",
-        "imageUrl": "https://www.congress.gov/img/member/116_rp_ct_3_delauro_rosa_200.jpg"
-      },
-      "district": 3,
-      "name": "DeLauro, Rosa L.",
-      "partyName": "Democratic",
-      "state": "Connecticut",
-      "terms": {
-        "item": [
-          {
-            "chamber": "House of Representatives",
-            "startYear": 1991
-          }
-        ]
-      },
-      "updateDate": "2025-09-24T07:40:12Z",
-      "url": "https://api.congress.gov/v3/member/D000216?format=json"
     },
     {
       "bioguideId": "K000009",

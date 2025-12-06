@@ -1,9 +1,10 @@
-S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
 """Lambda handler: GET /v1/stocks/{ticker}/activity - Stock trading activity timeline."""
 import os
 import logging
 from api.lib import ParquetQueryBuilder, success_response, error_response, parse_pagination_params, build_pagination_response
+
+S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

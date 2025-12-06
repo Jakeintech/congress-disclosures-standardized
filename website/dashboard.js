@@ -1,13 +1,20 @@
 /**
  * Dashboard Logic (index.html)
  * Handles the Bronze layer statistics and filings table.
+ * Uses API Gateway endpoints for live data.
  */
+
+// API Gateway URL (from config.js or fallback)
+const DASHBOARD_API_BASE = window.API_GATEWAY_URL || window.CONFIG?.API_GATEWAY_URL || 'https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com';
 
 let allFilings = [];
 let filteredFilings = [];
 let currentPage = 1;
 let sortColumn = 'filing_date';
 let sortDirection = 'desc';
+
+// Items per page - may be defined in config.js or default to 50
+const ITEMS_PER_PAGE = window.ITEMS_PER_PAGE || 50;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData();
@@ -16,30 +23,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadDashboardData() {
     try {
-        console.log('Loading Bronze manifest from:', MANIFEST_URL);
+        console.log('Loading data from API Gateway...');
         showLoading();
 
-        const response = await fetch(MANIFEST_URL);
-        if (!response.ok) {
-            if (response.status === 403 || response.status === 404) {
-                console.warn('Bronze manifest not available. Continuing without data.');
-                allFilings = [];
-                hideLoading();
-                return;
-            }
-            throw new Error(`Failed to fetch manifest: HTTP ${response.status}`);
+        // Load filings from API
+        const filingsResponse = await fetch(`${DASHBOARD_API_BASE}/v1/filings?limit=500`);
+        if (!filingsResponse.ok) {
+            console.warn('Filings endpoint not available.');
+            allFilings = [];
+            hideLoading();
+            return;
         }
 
-        const data = await response.json();
-        allFilings = data.filings || [];
+        const filingsResult = await filingsResponse.json();
+        // API returns { success: true, data: { filings: [...] } }
+        const filingsData = filingsResult.data || filingsResult;
+        allFilings = filingsData.filings || [];
 
-        updateStats(data.stats || {});
+        // Load summary stats from API
+        try {
+            const summaryResponse = await fetch(`${DASHBOARD_API_BASE}/v1/analytics/summary`);
+            if (summaryResponse.ok) {
+                const summaryResult = await summaryResponse.json();
+                const stats = summaryResult.data || summaryResult;
+                updateStats({
+                    total_filings: stats.filings?.total || allFilings.length,
+                    total_members: stats.members?.total || 0,
+                    latest_year: stats.filings?.coverage_years?.slice(-1)[0] || new Date().getFullYear(),
+                    last_updated: stats.filings?.latest_filing || new Date().toISOString()
+                });
+            }
+        } catch (summaryError) {
+            console.warn('Summary stats not available:', summaryError);
+        }
+
         populateFilters();
         applyFilters();
         hideLoading();
 
     } catch (error) {
-        console.error('Error loading Bronze data:', error);
+        console.error('Error loading Dashboard data:', error);
         allFilings = [];
         hideLoading();
     }

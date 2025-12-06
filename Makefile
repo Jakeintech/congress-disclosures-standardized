@@ -73,6 +73,59 @@ run-pipeline-full: ## Full clean refresh (requires PIPELINE_CONFIRM_CLEAN=YES)
 run-pipeline-dry: ## Show what pipeline would run
 	$(PYTHON) scripts/run_pipeline.py --all --dry-run
 
+##@ Local Emulator (Development)
+
+local-ingest: ## Download data locally (no AWS)
+	@echo "🏠 Downloading data locally..."
+	$(PYTHON) scripts/local_ingestion.py --year 2025 --limit-pdfs 50
+
+local-ingest-full: ## Download ALL data locally (large download!)
+	@echo "🏠 Downloading ALL data locally (this may take a while)..."
+	$(PYTHON) scripts/local_ingestion.py --year 2025 --limit-pdfs 0
+
+local-ingest-sample: ## Download small sample (10 PDFs)
+	@echo "🏠 Downloading sample data..."
+	$(PYTHON) scripts/local_ingestion.py --year 2025 --limit-pdfs 10 --limit-bills 5 --limit-lobbying 5
+
+local-sync: ## Sync ALL S3 data to local_data/ (mirrors your S3 bucket)
+	@echo "📦 Syncing S3 data to local_data/..."
+	$(PYTHON) scripts/sync_s3_to_local.py --layer all --source all
+
+local-sync-bronze: ## Sync only Bronze layer from S3
+	@echo "📦 Syncing Bronze layer..."
+	$(PYTHON) scripts/sync_s3_to_local.py --layer bronze
+
+local-sync-sample: ## Sync small sample from S3 (100 files)
+	@echo "📦 Syncing sample data..."
+	$(PYTHON) scripts/sync_s3_to_local.py --max-files 100
+
+local-sync-year: ## Sync specific year from S3 (usage: make local-sync-year YEAR=2025)
+	@echo "📦 Syncing year $(YEAR)..."
+	$(PYTHON) scripts/sync_s3_to_local.py --year $(YEAR)
+
+local-sync-dry-run: ## Show what would be synced (no download)
+	@echo "🔍 Dry run - showing what would be synced..."
+	$(PYTHON) scripts/sync_s3_to_local.py --dry-run
+
+local-view: ## View local data structure
+	@echo "📊 Local data structure:"
+	@if command -v tree > /dev/null; then \
+		tree -L 3 local_data; \
+	else \
+		find local_data -maxdepth 3 -type d; \
+	fi
+
+local-serve: ## Start HTTP server to browse local data
+	@echo "📡 Starting local data viewer at http://localhost:8000"
+	@echo "   Press Ctrl+C to stop"
+	@cd local_data && $(PYTHON) -m http.server 8000
+
+local-clean: ## Clean local data directory
+	@echo "🧹 Cleaning local data..."
+	@rm -rf local_data
+	@mkdir -p local_data
+	@echo "✓ Local data cleaned"
+
 ##@ Terraform
 
 init: ## Initialize Terraform
@@ -282,6 +335,10 @@ check-all: format-check lint type-check test-unit ## Run all checks (format, lin
 	@echo "✓ All checks passed!"
 
 ##@ Deployment
+
+fix-lobbying: ## Fix lobbying pipeline (run all Silver + Gold scripts, usage: make fix-lobbying YEAR=2025)
+	@echo "🔧 Fixing lobbying pipeline..."
+	$(PYTHON) scripts/fix_lobbying_pipeline.py --year $(or $(YEAR),2025)
 
 deploy-extractors: package-extract-structured ## Package and deploy extraction Lambda with new extractors
 	@echo "Uploading house_fd_extract_structured_code to S3..."

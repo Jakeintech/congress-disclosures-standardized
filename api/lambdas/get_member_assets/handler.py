@@ -16,7 +16,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 GOLD_PREFIX = 'gold/house/financial/facts'
 
-def lambda_handler(event, context):
+def handler(event, context):
     """
     Handle GET /v1/members/{name}/portfolio requests.
     

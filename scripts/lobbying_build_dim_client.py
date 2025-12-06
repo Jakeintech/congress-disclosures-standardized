@@ -29,10 +29,12 @@ S3_GOLD_PREFIX = os.environ.get("S3_GOLD_PREFIX", "gold")
 
 
 def read_silver_parquet(s3_client: boto3.client, key: str) -> pd.DataFrame:
-    """Read Parquet file from S3."""
+    """Read Parquet file from S3 into pandas via pyarrow."""
     try:
         obj = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
-        df = pd.read_parquet(obj["Body"])
+        data = obj["Body"].read()
+        table = pq.read_table(pa.BufferReader(data))
+        df = table.to_pandas()
         logger.info(f"Read {len(df)} records from {key}")
         return df
     except Exception as e:
@@ -91,12 +93,12 @@ def build_dimension(s3_client: boto3.client, year: int) -> pd.DataFrame:
     if not top_issues.empty:
         dim_df = dim_df.merge(top_issues, on="client_id", how="left")
     else:
-        dim_df["top_issue_codes"] = [[]]
+        dim_df["top_issue_codes"] = [[] for _ in range(len(dim_df))]
 
     # Fill NaN values
-    dim_df["total_income"] = dim_df["total_income"].fillna(0.0)
-    dim_df["total_expenses"] = dim_df["total_expenses"].fillna(0.0)
-    dim_df["filing_count"] = dim_df["filing_count"].fillna(0).astype(int)
+    dim_df["total_income"] = pd.to_numeric(dim_df["total_income"], errors="coerce").fillna(0.0)
+    dim_df["total_expenses"] = pd.to_numeric(dim_df["total_expenses"], errors="coerce").fillna(0.0)
+    dim_df["filing_count"] = pd.to_numeric(dim_df["filing_count"], errors="coerce").fillna(0).astype(int)
     dim_df["top_issue_codes"] = dim_df["top_issue_codes"].apply(
         lambda x: x if isinstance(x, list) else []
     )
@@ -124,6 +126,11 @@ def write_gold_table(df: pd.DataFrame) -> None:
 
     s3_key = f"{S3_GOLD_PREFIX}/lobbying/dim_client/dim_client.parquet"
     logger.info(f"Writing Gold table to s3://{S3_BUCKET}/{s3_key}")
+
+    # Ensure numeric types for Arrow conversion
+    for col in ["total_income", "total_expenses", "filing_count", "total_spend"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
 
     table = pa.Table.from_pandas(df)
 

@@ -240,7 +240,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .details-placeholder {
@@ -409,11 +411,33 @@
                         </div>
 
                         <div class="control-section">
+                            <h4>View Mode</h4>
+                            <div class="filter-group">
+                                <label>Size Nodes By</label>
+                                <select id="view-mode">
+                                    <option value="spend">💰 Dollar Flow</option>
+                                    <option value="connections">🔗 Connections</option>
+                                    <option value="bills">📜 Bills Impact</option>
+                                    <option value="uniform">⚪ Uniform</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Color By</label>
+                                <select id="color-mode">
+                                    <option value="type">Node Type</option>
+                                    <option value="sector">Industry Sector</option>
+                                    <option value="spend">Spending Level</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-section">
                             <h4>Filters</h4>
                             <div class="filter-group">
                                 <label>Year</label>
                                 <select id="filter-year">
-                                    <option value="2024" selected>2024</option>
+                                    <option value="2025" selected>2025</option>
+                                    <option value="2024">2024</option>
                                     <option value="2023">2023</option>
                                 </select>
                             </div>
@@ -492,9 +516,8 @@
                                 <span>Client (Orange Square)</span>
                             </div>
                             <div class="legend-item">
-                                <div class="legend-shape" style="background: #a855f7;"
-                                     transform="rotate(45deg)"
-                                     clip-path="polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)"></div>
+                                <div class="legend-shape" style="background: #a855f7;" transform="rotate(45deg)"
+                                    clip-path="polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)"></div>
                                 <span>Lobbyist (Purple Diamond)</span>
                             </div>
                         </div>
@@ -518,7 +541,8 @@
                         <div class="details-placeholder" id="details-placeholder">
                             <div class="icon">👆</div>
                             <h4>Select a Node</h4>
-                            <p style="margin-top: 0.5rem;">Click any node in the network to view detailed information</p>
+                            <p style="margin-top: 0.5rem;">Click any node in the network to view detailed information
+                            </p>
                         </div>
                         <div id="node-details" style="display: none;"></div>
                     </div>

@@ -175,8 +175,15 @@ def transform_bronze_to_silver():
         logger.info(f"   By chamber: {df['chamber'].value_counts().to_dict()}")
 
 
-if __name__ == '__main__':
+def main():
+    """Main entry point for pipeline runner."""
     logger.info("=" * 80)
     logger.info("Transforming Bronze Congress bill_actions to Silver")
     logger.info("=" * 80)
     transform_bronze_to_silver()
+    return 0
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())

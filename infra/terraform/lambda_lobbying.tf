@@ -35,6 +35,8 @@ resource "aws_lambda_function" "lda_ingest_filings" {
     variables = {
       S3_BUCKET_NAME     = aws_s3_bucket.data_lake.id
       S3_BRONZE_PREFIX   = "bronze"
+      # Queue for follow-up processing (bill reference extraction)
+      LDA_EXTRACTION_QUEUE_URL = aws_sqs_queue.lda_bill_extraction_queue.url
       EXTRACTION_VERSION = var.extraction_version
       LOG_LEVEL          = "INFO"
       PYTHONUNBUFFERED   = "1"

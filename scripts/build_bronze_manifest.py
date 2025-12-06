@@ -102,15 +102,22 @@ def build_manifest_from_xml(year=2025):
     
     return manifest
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for pipeline runner."""
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--year', type=int, default=2025)
     args = parser.parse_args()
-    
+
     manifest = build_manifest_from_xml(args.year)
-    
+
     if manifest:
         print("\n✅ Bronze manifest created successfully!")
         print(f"\nTo list Type A doc IDs:")
         print(f"  jq '.filing_types.A.doc_ids[]' data/bronze/house/financial/year={args.year}/index/manifest.json")
+        return 0
+    return 1
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())

@@ -91,6 +91,7 @@ locals {
     "get_lobbying_network"       = { route = "GET /v1/lobbying/network" }
     "get_bill_lob_activity"      = { route = "GET /v1/congress/bills/{bill_id}/lobbying" }
     "get_member_lob_connects"    = { route = "GET /v1/members/{bioguide_id}/lobbying" }
+    "get_triple_correlations"    = { route = "GET /v1/correlations/triple" }
 
     # System endpoints
     "get_aws_costs"    = { route = "GET /v1/costs" }

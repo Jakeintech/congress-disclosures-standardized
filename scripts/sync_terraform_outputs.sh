@@ -53,6 +53,8 @@ SQS_EXTRACTION_DLQ_URL=$(echo "$OUTPUTS" | jq -r '.sqs_dlq_url.value')
 SQS_EXTRACTION_DLQ_ARN=$(echo "$OUTPUTS" | jq -r '.sqs_dlq_arn.value')
 SQS_CODE_EXTRACTION_URL=$(echo "$OUTPUTS" | jq -r '.code_extraction_queue_url.value')
 SQS_CODE_EXTRACTION_ARN=$(echo "$OUTPUTS" | jq -r '.code_extraction_queue_arn.value')
+SQS_LDA_BILL_EXTRACTION_URL=$(echo "$OUTPUTS" | jq -r '.lda_bill_extraction_queue_url.value')
+SQS_LDA_BILL_EXTRACT_ARN=$(echo "$OUTPUTS" | jq -r '.lda_bill_extraction_queue_arn.value')
 
 # DynamoDB
 DYNAMODB_TABLE_NAME=$(echo "$OUTPUTS" | jq -r '.dynamodb_table_name.value')
@@ -152,12 +154,17 @@ SQS_EXTRACTION_DLQ_ARN=${SQS_EXTRACTION_DLQ_ARN}
 SQS_CODE_EXTRACTION_URL=${SQS_CODE_EXTRACTION_URL}
 SQS_CODE_EXTRACTION_ARN=${SQS_CODE_EXTRACTION_ARN}
 
+# LDA Bill Extraction Queue (post-ingest for filings)
+SQS_LDA_BILL_EXTRACTION_URL=${SQS_LDA_BILL_EXTRACTION_URL}
+SQS_LDA_BILL_EXTRACTION_ARN=${SQS_LDA_BILL_EXTRACT_ARN}
+
 # SNS Alerts
 SNS_TOPIC_ARN=${SNS_TOPIC_ARN}
 
 # Legacy Compatibility Variables
 EXTRACTION_QUEUE_URL=${SQS_EXTRACTION_URL}
 CODE_EXTRACTION_QUEUE_URL=${SQS_CODE_EXTRACTION_URL}
+LDA_EXTRACTION_QUEUE_URL=${SQS_LDA_BILL_EXTRACTION_URL}
 
 # ============================================================================
 # Database (DynamoDB)

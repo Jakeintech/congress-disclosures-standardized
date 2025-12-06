@@ -23,6 +23,7 @@ import pyarrow.parquet as pq
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ingestion.lib.bill_reference_extractor import extract_bill_references_from_filing
+from ingestion.lib.bill_reference_extractor_enhanced import extract_bill_references_from_filing_enhanced
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -52,8 +53,14 @@ def list_bronze_filings(s3_client: boto3.client, year: int) -> List[str]:
     return filings
 
 
-def extract_bill_references(s3_client: boto3.client, year: int) -> pd.DataFrame:
-    """Extract bill references from all activity descriptions."""
+def extract_bill_references(s3_client: boto3.client, year: int, use_enhanced: bool = True) -> pd.DataFrame:
+    """Extract bill references from all activity descriptions.
+
+    Args:
+        s3_client: Boto3 S3 client
+        year: Filing year
+        use_enhanced: Use enhanced extractor with fuzzy matching (default: True)
+    """
     filing_keys = list_bronze_filings(s3_client, year)
 
     if not filing_keys:
@@ -62,6 +69,9 @@ def extract_bill_references(s3_client: boto3.client, year: int) -> pd.DataFrame:
 
     all_references = []
     filings_with_bills = 0
+
+    extraction_method = "enhanced" if use_enhanced else "basic"
+    logger.info(f"Using {extraction_method} bill reference extractor")
 
     for idx, key in enumerate(filing_keys, 1):
         if idx % 100 == 0:
@@ -77,7 +87,15 @@ def extract_bill_references(s3_client: boto3.client, year: int) -> pd.DataFrame:
             filing_uuid = filing_data.get("filing_uuid")
 
             # Extract bill references using NLP
-            references = extract_bill_references_from_filing(filing_data, filing_year)
+            if use_enhanced:
+                references = extract_bill_references_from_filing_enhanced(
+                    filing_data,
+                    filing_year,
+                    s3_bucket=S3_BUCKET,
+                    use_fuzzy=True
+                )
+            else:
+                references = extract_bill_references_from_filing(filing_data, filing_year)
 
             if references:
                 filings_with_bills += 1
@@ -128,12 +146,16 @@ def write_silver_table(df: pd.DataFrame, year: int) -> None:
 def main():
     parser = argparse.ArgumentParser(description="Build Silver lobbying activity_bills table")
     parser.add_argument("--year", type=int, required=True, help="Filing year")
+    parser.add_argument("--enhanced", action="store_true", default=True,
+                        help="Use enhanced extractor with fuzzy matching (default: True)")
+    parser.add_argument("--basic", dest="enhanced", action="store_false",
+                        help="Use basic regex-only extractor")
     args = parser.parse_args()
 
     logger.info(f"Building Silver activity_bills table for year {args.year}")
 
     s3_client = boto3.client("s3")
-    df = extract_bill_references(s3_client, args.year)
+    df = extract_bill_references(s3_client, args.year, use_enhanced=args.enhanced)
 
     if df.empty:
         logger.warning("No bill references extracted")

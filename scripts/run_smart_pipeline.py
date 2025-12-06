@@ -227,37 +227,50 @@ def run_ingestion(year, skip_existing=False):
         "skip_existing": skip_existing
     }
 
-    try:
-        invoke_start = time.time()
-        response = lambda_client.invoke(
-            FunctionName=INGEST_FUNCTION,
-            InvocationType='RequestResponse',
-            Payload=json.dumps(payload)
-        )
-        invoke_time = time.time() - invoke_start
+    max_attempts = 10
+    base_delay = 1.0
+    for attempt in range(1, max_attempts + 1):
+        try:
+            invoke_start = time.time()
+            response = lambda_client.invoke(
+                FunctionName=INGEST_FUNCTION,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(payload)
+            )
+            invoke_time = time.time() - invoke_start
 
-        response_payload = json.loads(response['Payload'].read())
+            response_payload = json.loads(response['Payload'].read())
 
-        if response.get('StatusCode') != 200 or response_payload.get('status') == 'error':
-            print(f"\n❌ Ingestion failed!")
-            print(f"Error: {response_payload}")
+            if response.get('StatusCode') != 200 or response_payload.get('status') == 'error':
+                print(f"\n❌ Ingestion failed!")
+                print(f"Error: {response_payload}")
+                return False
+
+            # Extract metrics from response
+            files_processed = response_payload.get('files_processed', 'N/A')
+            files_skipped = response_payload.get('files_skipped', 0)
+            pdfs_queued = response_payload.get('pdfs_queued', 'N/A')
+
+            print(f"\n✅ Ingestion complete (took {invoke_time:.1f}s)")
+            print(f"📊 Summary:")
+            print(f"   • Files processed: {files_processed}")
+            print(f"   • Files skipped: {files_skipped}")
+            print(f"   • PDFs queued for extraction: {pdfs_queued}")
+            return True
+
+        except Exception as e:
+            err_str = str(e)
+            throttled = ('TooManyRequestsException' in err_str) or ('Rate Exceeded' in err_str)
+            if attempt < max_attempts and throttled:
+                delay = base_delay * (2 ** (attempt - 1))
+                import random, time as _t
+                jitter = min(2.0, delay * 0.25)
+                sleep_s = delay + random.uniform(0, jitter)
+                print(f"⚠️  Lambda API throttled (attempt {attempt}/{max_attempts}). Backing off {sleep_s:.1f}s...")
+                _t.sleep(sleep_s)
+                continue
+            print(f"\n❌ Failed to invoke ingestion lambda: {e}")
             return False
-
-        # Extract metrics from response
-        files_processed = response_payload.get('files_processed', 'N/A')
-        files_skipped = response_payload.get('files_skipped', 0)
-        pdfs_queued = response_payload.get('pdfs_queued', 'N/A')
-
-        print(f"\n✅ Ingestion complete (took {invoke_time:.1f}s)")
-        print(f"📊 Summary:")
-        print(f"   • Files processed: {files_processed}")
-        print(f"   • Files skipped: {files_skipped}")
-        print(f"   • PDFs queued for extraction: {pdfs_queued}")
-        return True
-
-    except Exception as e:
-        print(f"\n❌ Failed to invoke ingestion lambda: {e}")
-        return False
 
 def run_silver_pipeline(limit=None):
     """Run Silver pipeline (re-extraction)."""
@@ -475,32 +488,25 @@ def trigger_index_to_silver(year):
 
     payload = {"year": year}
 
+    # Cooldown after heavy LDA dispatches to avoid hitting Invoke API rate limits
     try:
-        invoke_start = time.time()
+        time.sleep(10)
+    except Exception:
+        pass
+
+    # Fire-and-forget to avoid synchronous API pressure; monitor via queue later
+    try:
         response = lambda_client.invoke(
             FunctionName=function_name,
-            InvocationType='RequestResponse',
+            InvocationType='Event',  # async
             Payload=json.dumps(payload)
         )
-        invoke_time = time.time() - invoke_start
-
-        response_payload = json.loads(response['Payload'].read())
-
-        if response.get('StatusCode') != 200 or response_payload.get('status') == 'error':
-            print(f"\n❌ Silver Init failed!")
-            print(f"Error: {response_payload}")
-            return False
-
-        # Extract metrics
-        pdfs_queued = response_payload.get('pdfs_queued', 'N/A')
-        filings_processed = response_payload.get('filings_processed', 'N/A')
-
-        print(f"\n✅ Silver Init complete (took {invoke_time:.1f}s)")
-        print(f"📊 Summary:")
-        print(f"   • Filings processed: {filings_processed}")
-        print(f"   • PDFs queued for extraction: {pdfs_queued}")
-        return True
-
+        status = response.get('StatusCode')
+        if status in (200, 202):
+            print("\n✅ Silver Init queued (async). Will monitor extraction queue.")
+            return True
+        print(f"\n⚠️  Silver Init invoke returned status {status}")
+        return False
     except Exception as e:
         print(f"\n❌ Failed to invoke index-to-silver lambda: {e}")
         return False
@@ -561,7 +567,11 @@ def trigger_lobbying_ingestion(year=2024):
     print(f"\n⏳ Triggering LDA ingestion script...")
 
     # Run the trigger script
-    cmd = ["python3", "scripts/trigger_lda_ingestion.py", "--year", str(year), "--type", "all"]
+    cmd = [
+        "python3", "scripts/trigger_lda_ingestion.py",
+        "--year", str(year), "--type", "all",
+        "--chunked", "--pages-per-invoke", "25", "--concurrency", "3"
+    ]
 
     try:
         result = subprocess.run(

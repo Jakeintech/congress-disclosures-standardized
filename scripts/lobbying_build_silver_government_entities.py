@@ -70,10 +70,12 @@ def extract_government_entities(s3_client: boto3.client, year: int) -> pd.DataFr
             json_data = gzip.decompress(compressed_data)
             filing_data = json.loads(json_data)
 
-            for activity in filing_data.get("lobbying_activities", []):
-                activity_id = activity.get("id")
-                if not activity_id:
-                    continue
+            filing_uuid = filing_data.get("filing_uuid")
+
+            for idx, activity in enumerate(filing_data.get("lobbying_activities", [])):
+                # Generate same activity_id as activities table for joins
+                activity_id = f"{filing_uuid}_{idx}"
+                issue_code = activity.get("general_issue_code")
 
                 for govt_entity in activity.get("government_entities", []):
                     entity_name = govt_entity.get("name")
@@ -82,7 +84,8 @@ def extract_government_entities(s3_client: boto3.client, year: int) -> pd.DataFr
 
                     entities.append({
                         "activity_id": activity_id,
-                        "filing_uuid": filing_data.get("filing_uuid"),
+                        "filing_uuid": filing_uuid,
+                        "issue_code": issue_code,
                         "entity_name": entity_name,
                         "dt_updated": datetime.utcnow().isoformat(),
                     })

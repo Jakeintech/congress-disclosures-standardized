@@ -105,6 +105,47 @@ def extract_registrants(s3_client: boto3.client, year: int) -> pd.DataFrame:
     return df
 
 
+def read_endpoint_registrants(s3_client: boto3.client) -> pd.DataFrame:
+    """Read registrants from Bronze endpoint storage (if present)."""
+    prefix = f"{S3_BRONZE_PREFIX}/lobbying/registrants/"
+    rows: List[Dict[str, Any]] = []
+    total = 0
+    paginator = s3_client.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix):
+        for obj in page.get("Contents", []):
+            key = obj.get("Key", "")
+            if not key.endswith(".json.gz"):
+                continue
+            try:
+                o = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
+                data = gzip.decompress(o["Body"].read())
+                registrant = json.loads(data)
+                rid = registrant.get("id")
+                if rid is None:
+                    continue
+                rows.append({
+                    "registrant_id": rid,
+                    "name": registrant.get("name"),
+                    "description": registrant.get("description"),
+                    "address": registrant.get("address"),
+                    "address_2": registrant.get("address_2"),
+                    "city": registrant.get("city"),
+                    "state": registrant.get("state"),
+                    "zip": registrant.get("zip"),
+                    "country": registrant.get("country"),
+                    "ppb_country": registrant.get("ppb_country"),
+                    "contact_name": registrant.get("contact_name"),
+                    "contact_phone": registrant.get("contact_phone"),
+                    "dt_updated": datetime.utcnow().isoformat(),
+                })
+                total += 1
+            except Exception as e:
+                logger.warning(f"Failed to read {key}: {e}")
+    if total:
+        logger.info(f"Read {total} registrants from endpoint Bronze")
+    return pd.DataFrame(rows)
+
+
 def write_silver_table(df: pd.DataFrame) -> None:
     """Write DataFrame to Silver Parquet table."""
     if df.empty:
@@ -140,9 +181,21 @@ def main():
 
     s3_client = boto3.client("s3")
     df = extract_registrants(s3_client, args.year)
-
+    ep = read_endpoint_registrants(s3_client)
+    if not ep.empty:
+        if df.empty:
+            df = ep
+        else:
+            df = df.merge(ep, on="registrant_id", how="outer", suffixes=("", "_ep"))
+            for col in [
+                "name","description","address","address_2","city","state","zip","country","ppb_country","contact_name","contact_phone"
+            ]:
+                epcol = f"{col}_ep"
+                if epcol in df.columns:
+                    df[col] = df[epcol].where(df[epcol].notna(), df[col])
+            df = df[[c for c in df.columns if not c.endswith("_ep")]]
     if df.empty:
-        logger.error("No registrants extracted")
+        logger.error("No registrants extracted (neither from filings nor endpoint)")
         sys.exit(1)
 
     write_silver_table(df)

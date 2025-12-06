@@ -6,6 +6,7 @@ Extracts lobbying activity records (what was lobbied on, which issues, descripti
 
 import argparse
 import gzip
+import hashlib
 import json
 import logging
 import os
@@ -73,10 +74,15 @@ def extract_activities(s3_client: boto3.client, year: int) -> pd.DataFrame:
             filing_year = filing_data.get("filing_year")
             filing_period = filing_data.get("filing_period")
 
-            for activity in filing_data.get("lobbying_activities", []):
-                activity_id = activity.get("id")
-                if not activity_id:
-                    continue
+            for idx, activity in enumerate(filing_data.get("lobbying_activities", [])):
+                # Activities don't have IDs in the API, so we generate one
+                # using filing_uuid + index to ensure uniqueness
+                activity_id = f"{filing_uuid}_{idx}"
+
+                # Alternative: hash-based ID for deterministic regeneration
+                # activity_hash = hashlib.sha256(
+                #     f"{filing_uuid}_{activity.get('general_issue_code')}_{activity.get('description', '')[:100]}".encode()
+                # ).hexdigest()[:16]
 
                 activities.append({
                     "activity_id": activity_id,

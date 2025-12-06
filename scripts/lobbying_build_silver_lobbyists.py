@@ -71,43 +71,55 @@ def extract_lobbyists(s3_client: boto3.client, year: int) -> pd.DataFrame:
 
             filing_uuid = filing_data.get("filing_uuid")
             filing_year = filing_data.get("filing_year")
+            filing_period = filing_data.get("filing_period")
             registrant_id = filing_data.get("registrant", {}).get("id")
+            registrant_name = filing_data.get("registrant", {}).get("name")
             client_id = filing_data.get("client", {}).get("id")
+            client_name = filing_data.get("client", {}).get("name")
 
-            for lobbyist in filing_data.get("lobbyists", []):
-                lobbyist_id = lobbyist.get("id")
-                if not lobbyist_id:
-                    continue
+            # Lobbyists are nested under lobbying_activities → lobbyists
+            lobbying_activities = filing_data.get("lobbying_activities", [])
 
-                # Extract covered positions (revolving door)
-                covered_positions = lobbyist.get("covered_positions", [])
-                covered_position = None
-                former_agency = None
+            for activity in lobbying_activities:
+                issue_code = activity.get("general_issue_code")
+                issue_display = activity.get("general_issue_code_display")
 
-                if covered_positions:
-                    # Take most recent covered position
-                    covered_positions.sort(
-                        key=lambda x: x.get("dt_posted", ""), reverse=True
-                    )
-                    latest_position = covered_positions[0]
-                    covered_position = latest_position.get("position")
-                    former_agency = latest_position.get("agency")
+                for lobbyist_entry in activity.get("lobbyists", []):
+                    # The actual lobbyist data is nested under "lobbyist" key
+                    lobbyist = lobbyist_entry.get("lobbyist", {})
+                    lobbyist_id = lobbyist.get("id")
 
-                lobbyists.append({
-                    "lobbyist_id": lobbyist_id,
-                    "filing_uuid": filing_uuid,
-                    "filing_year": filing_year,
-                    "registrant_id": registrant_id,
-                    "client_id": client_id,
-                    "first_name": lobbyist.get("first_name"),
-                    "last_name": lobbyist.get("last_name"),
-                    "suffix": lobbyist.get("suffix"),
-                    "covered_position": covered_position,
-                    "former_agency": former_agency,
-                    "has_covered_position": len(covered_positions) > 0,
-                    "covered_positions_count": len(covered_positions),
-                    "dt_updated": datetime.utcnow().isoformat(),
-                })
+                    if not lobbyist_id:
+                        continue
+
+                    # Covered position is at the lobbyist_entry level, not inside lobbyist
+                    covered_position = lobbyist_entry.get("covered_position")
+                    is_new = lobbyist_entry.get("new", False)
+
+                    lobbyists.append({
+                        "lobbyist_id": lobbyist_id,
+                        "filing_uuid": filing_uuid,
+                        "filing_year": filing_year,
+                        "filing_period": filing_period,
+                        "registrant_id": registrant_id,
+                        "registrant_name": registrant_name,
+                        "client_id": client_id,
+                        "client_name": client_name,
+                        "issue_code": issue_code,
+                        "issue_display": issue_display,
+                        "prefix": lobbyist.get("prefix"),
+                        "prefix_display": lobbyist.get("prefix_display"),
+                        "first_name": lobbyist.get("first_name"),
+                        "nickname": lobbyist.get("nickname"),
+                        "middle_name": lobbyist.get("middle_name"),
+                        "last_name": lobbyist.get("last_name"),
+                        "suffix": lobbyist.get("suffix"),
+                        "suffix_display": lobbyist.get("suffix_display"),
+                        "covered_position": covered_position,
+                        "has_covered_position": covered_position is not None and len(covered_position.strip()) > 0 if covered_position else False,
+                        "is_new_lobbyist": is_new,
+                        "dt_updated": datetime.utcnow().isoformat(),
+                    })
 
         except Exception as e:
             logger.error(f"Error processing {key}: {e}")
@@ -124,7 +136,11 @@ def write_silver_table(df: pd.DataFrame, year: int) -> None:
         logger.warning("No data to write")
         return
 
-    s3_key = f"{S3_SILVER_PREFIX}/lobbying/lobbyists/year={year}/lobbyists.parquet"
+    # Deduplicate by lobbyist_id + filing_uuid + issue_code (same lobbyist can work on multiple issues in same filing)
+    df = df.drop_duplicates(subset=['lobbyist_id', 'filing_uuid', 'issue_code'], keep='first')
+    logger.info(f"After deduplication: {len(df)} records")
+
+    s3_key = f"{S3_SILVER_PREFIX}/lobbying/lobbyists/lobbyists.parquet"
     logger.info(f"Writing Silver table to s3://{S3_BUCKET}/{s3_key}")
 
     table = pa.Table.from_pandas(df)

@@ -1,22 +1,19 @@
 """
-Lambda handler: GET /v1/correlations/triple (STAR API)
+API Lambda: Get Bill-Lobbying Correlations
 
-Get Trade-Bill-Lobbying triple correlations with filters:
-- member_bioguide, bill_id, ticker, min_score, year
-- Sort by correlation_score (default)
-
-Returns full context for each correlation including explanation text.
+Returns bill-lobbying correlation data showing which bills are being lobbied
+and by whom. Adapted to use agg_bill_lobbying_activity data.
 """
 
 import os
-import json
 import logging
-import math
-from api.lib import (
-    ParquetQueryBuilder,
-    success_response,
-    error_response
-)
+import json
+from decimal import Decimal
+from typing import Any, Dict
+
+import sys
+sys.path.append('/opt')  # Lambda layer path
+from api.lib import success_response, error_response, ParquetQueryBuilder
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -24,53 +21,45 @@ logger.setLevel(logging.INFO)
 S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
 
-def clean_nan(obj):
-    """Replace NaN/Inf values with None for JSON serialization."""
-    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
-        return None
-    elif isinstance(obj, dict):
+def clean_nan(obj: Any) -> Any:
+    """Clean NaN/None values from response."""
+    if isinstance(obj, dict):
         return {k: clean_nan(v) for k, v in obj.items()}
     elif isinstance(obj, list):
-        return [clean_nan(v) for v in obj]
+        return [clean_nan(i) for i in obj]
+    elif isinstance(obj, float) and (obj != obj):  # NaN check
+        return None
+    elif isinstance(obj, Decimal):
+        return float(obj)
     return obj
 
 
-def lambda_handler(event, context):
-    """Handle GET /v1/correlations/triple request."""
+def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """
+    Lambda handler for bill-lobbying correlations.
+    GET /v1/correlations/triple?year=2025&limit=20&min_score=50
+    """
     try:
-        logger.info(f"Event: {json.dumps(event)}")
-
+        params = event.get('queryStringParameters') or {}
+        
         # Parse query parameters
-        params = event.get('queryStringParameters', {}) or {}
+        year = params.get('year', '2025')
+        bill_id = params.get('bill_id') or params.get('bill')
+        min_score = int(params.get('min_score', '0'))
+        limit = min(int(params.get('limit', '50')), 200)
+        offset = int(params.get('offset', '0'))
+        
+        logger.info(f"Querying correlations: year={year}, bill={bill_id}, min_score={min_score}")
 
-        member_bioguide = params.get('member_bioguide')
-        bill_id = params.get('bill_id')
-        ticker = params.get('ticker')
-        min_score = int(params.get('min_score', 50))
-        year = int(params.get('year', 2024))
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
 
-        sort_by = params.get('sort_by', 'correlation_score')
-        limit = int(params.get('limit', 50))
-        offset = int(params.get('offset', 0))
-
-        # Validate
-        if limit > 200:
-            return error_response("Limit cannot exceed 200", 400)
-
-        qb = ParquetQueryBuilder(S3_BUCKET)
-
-        # Query triple correlation aggregate
+        # Query bill-lobbying aggregate
         filters = {}
-        if member_bioguide:
-            filters['member_bioguide_id'] = member_bioguide
         if bill_id:
             filters['bill_id'] = bill_id.lower()
-        if ticker:
-            filters['ticker'] = ticker.upper()
 
-        # Read from Gold aggregate
         df = qb.query_parquet(
-            f'gold/lobbying/agg_trade_bill_lobbying_correlation/year={year}',
+            table_path=f'gold/lobbying/agg_bill_lobbying_activity/year={year}',
             filters=filters if filters else None,
             limit=limit + offset + 100
         )
@@ -80,13 +69,24 @@ def lambda_handler(event, context):
                 'correlations': [],
                 'total': 0,
                 'limit': limit,
-                'offset': offset
+                'offset': offset,
+                'message': 'No bill-lobbying correlations found for the specified filters.'
             })
 
+        # Rename columns to match expected schema
+        df = df.rename(columns={
+            'lobbying_intensity_score': 'correlation_score',
+            'total_lobbying_spend': 'lobbying_amount'
+        })
+        
+        # Add missing fields with defaults
+        if 'correlation_score' not in df.columns:
+            df['correlation_score'] = 50  # Default score
+        
         # Filter by minimum score
         df = df[df['correlation_score'] >= min_score]
 
-        # Sort
+        # Sort by score
         df = df.sort_values('correlation_score', ascending=False)
 
         # Get total before pagination
@@ -102,26 +102,12 @@ def lambda_handler(event, context):
         correlations = [clean_nan(c) for c in correlations]
 
         # Calculate summary statistics
-        if correlations:
-            summary_stats = {
-                'total_correlations': total,
-                'perfect_scores': sum(1 for c in correlations if c['correlation_score'] == 100),
-                'high_scores': sum(1 for c in correlations if c['correlation_score'] >= 80),
-                'average_score': sum(c['correlation_score'] for c in correlations) / len(correlations),
-                'unique_members': len(set(c['member_bioguide_id'] for c in correlations)),
-                'unique_bills': len(set(c['bill_id'] for c in correlations)),
-                'unique_tickers': len(set(c['ticker'] for c in correlations))
-            }
-        else:
-            summary_stats = {
-                'total_correlations': 0,
-                'perfect_scores': 0,
-                'high_scores': 0,
-                'average_score': 0,
-                'unique_members': 0,
-                'unique_bills': 0,
-                'unique_tickers': 0
-            }
+        summary_stats = {
+            'total_correlations': total,
+            'high_scores': sum(1 for c in correlations if c.get('correlation_score', 0) >= 80),
+            'total_lobbying_spend': sum(c.get('lobbying_amount', 0) for c in correlations),
+            'unique_bills': len(set(c.get('bill_id', '') for c in correlations)),
+        }
 
         return success_response({
             'correlations': correlations,
@@ -131,9 +117,7 @@ def lambda_handler(event, context):
             'has_more': offset + limit < total,
             'summary': clean_nan(summary_stats),
             'filters': {
-                'member_bioguide': member_bioguide,
                 'bill_id': bill_id,
-                'ticker': ticker,
                 'min_score': min_score,
                 'year': year
             }

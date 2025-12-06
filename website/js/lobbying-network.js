@@ -60,7 +60,7 @@ function initializeSVG() {
     svg.call(zoom);
 
     // Click background to deselect
-    svg.on('click', function(event) {
+    svg.on('click', function (event) {
         if (event.target.tagName === 'svg') {
             deselectNode();
         }
@@ -70,17 +70,36 @@ function initializeSVG() {
 async function fetchNetworkData() {
     try {
         const year = document.getElementById('filter-year').value;
-        const response = await fetch(`${API_BASE}/v1/lobbying/network-graph?year=${year}`);
+
+        // Add timeout for Lambda cold start (can take 3-5 seconds)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        console.log('Fetching network data for year:', year);
+        const response = await fetch(`${API_BASE}/v1/lobbying/network-graph?year=${year}`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
             throw new Error(`Failed to fetch network data: ${response.statusText}`);
         }
 
         networkData = await response.json();
-        const data = networkData.data || networkData;
+        // API returns {success:true, data: {graph: {nodes, links}, metadata: {...}}}
+        const apiData = networkData.data || networkData;
+        const graphData = apiData.graph || apiData;
+
+        // Normalize to {nodes, links} at top level for the rest of the code
+        networkData = {
+            nodes: graphData.nodes || [],
+            links: graphData.links || []
+        };
+
+        console.log('Network data loaded:', networkData.nodes.length, 'nodes,', networkData.links.length, 'links');
 
         // Update stats
-        updateTotalStats(data);
+        updateTotalStats(networkData);
 
         // Initial render
         applyFilters();
@@ -249,7 +268,7 @@ function renderGraph(data) {
         });
 
     // Draw shapes based on node type
-    node.each(function(d) {
+    node.each(function (d) {
         const nodeGroup = d3.select(this);
 
         if (d.type === 'client') {
@@ -298,26 +317,84 @@ function renderGraph(data) {
     });
 }
 
+// View mode determines how nodes are sized
 function getNodeSize(d) {
-    const base = {
-        member: 6,
-        bill: 5,
-        client: 7,
-        lobbyist: 6
-    }[d.type] || 5;
+    const viewMode = document.getElementById('view-mode')?.value || 'spend';
 
-    // Scale by importance/connections
-    const scale = Math.sqrt((d.connections || 1) * (d.spend || 1) / 100000);
-    return Math.max(base, Math.min(base + scale, 20));
+    const baseSize = {
+        member: 6,
+        bill: 7,
+        client: 8,
+        lobbyist: 7
+    }[d.type] || 6;
+
+    let scale = 0;
+
+    switch (viewMode) {
+        case 'spend':
+            // Size by dollar flow
+            scale = Math.sqrt((d.spend || 0) / 10000);
+            break;
+        case 'connections':
+            // Size by number of connections
+            scale = (d.connections || 1) * 1.5;
+            break;
+        case 'bills':
+            // Size by bill impact (clients/lobbyists with bill refs larger)
+            if (d.type === 'bill') {
+                scale = 5 + (d.connections || 1) * 2;
+            } else {
+                scale = (d.bill_count || d.connections || 1);
+            }
+            break;
+        case 'uniform':
+            // All same size
+            return baseSize;
+    }
+
+    return Math.max(baseSize, Math.min(baseSize + scale, 25));
 }
 
+// Sector color mapping
+const SECTOR_COLORS = {
+    'Defense': '#ef4444',      // Red
+    'Healthcare': '#10b981',   // Green
+    'Finance': '#3b82f6',      // Blue
+    'Energy': '#f59e0b',       // Orange
+    'Technology': '#8b5cf6',   // Purple
+    'Industrial': '#6b7280',   // Gray
+    'Consumer': '#ec4899',     // Pink
+    'Government': '#14b8a6',   // Teal
+    'Other': '#9ca3af'         // Light gray
+};
+
 function getNodeColor(d) {
-    if (d.type === 'member') {
-        // Color by party
-        if (d.party === 'Democrat') return '#3b82f6';
-        if (d.party === 'Republican') return '#ef4444';
-        return '#8b5cf6';
+    const colorMode = document.getElementById('color-mode')?.value || 'type';
+
+    switch (colorMode) {
+        case 'type':
+            // Color by node type (default)
+            if (d.type === 'member') {
+                if (d.party === 'Democrat') return '#3b82f6';
+                if (d.party === 'Republican') return '#ef4444';
+                return '#8b5cf6';
+            }
+            return COLORS[d.type] || '#9ca3af';
+
+        case 'sector':
+            // Color by industry sector
+            return SECTOR_COLORS[d.sector] || SECTOR_COLORS['Other'];
+
+        case 'spend':
+            // Color by spending level (heat map)
+            const spend = d.spend || 0;
+            if (spend > 100000) return '#ef4444';  // Red - high spend
+            if (spend > 50000) return '#f59e0b';   // Orange
+            if (spend > 10000) return '#fbbf24';   // Yellow
+            if (spend > 1000) return '#84cc16';    // Light green
+            return '#10b981';                       // Green - low spend
     }
+
     return COLORS[d.type] || '#9ca3af';
 }
 
@@ -349,20 +426,20 @@ function highlightConnections(d, highlight) {
 
     // Find all connected nodes
     g.selectAll('.link')
-        .each(function(l) {
+        .each(function (l) {
             const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
             const targetId = typeof l.target === 'object' ? l.target.id : l.target;
 
             if (sourceId === d.id) connectedIds.add(targetId);
             if (targetId === d.id) connectedIds.add(sourceId);
         })
-        .classed('highlighted', function(l) {
+        .classed('highlighted', function (l) {
             if (!highlight) return false;
             const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
             const targetId = typeof l.target === 'object' ? l.target.id : l.target;
             return sourceId === d.id || targetId === d.id;
         })
-        .style('stroke-opacity', function(l) {
+        .style('stroke-opacity', function (l) {
             if (!highlight) return 0.25;
             const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
             const targetId = typeof l.target === 'object' ? l.target.id : l.target;
@@ -371,7 +448,7 @@ function highlightConnections(d, highlight) {
 
     // Highlight connected nodes
     g.selectAll('.node')
-        .style('opacity', function(n) {
+        .style('opacity', function (n) {
             if (!highlight) return 1;
             return connectedIds.has(n.id) ? 1 : 0.2;
         });
@@ -488,14 +565,25 @@ function renderBillDetails(d) {
 }
 
 function renderClientDetails(d) {
+    const spendAmount = d.spend || d.total_spend || 0;
+    const firmsHired = d.registrants_hired || d.connections || 0;
+
+    // Build intelligent summary
+    let summary = '';
+    if (spendAmount > 100000) {
+        summary = `<p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">🔥 High-spend lobbying client with significant influence activity.</p>`;
+    } else if (spendAmount > 50000) {
+        summary = `<p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">📊 Active lobbying client engaging multiple firms.</p>`;
+    }
+
     return `
         <div class="detail-stats">
             <div class="detail-stat" style="grid-column: span 2;">
-                <div class="value">${formatCurrency(d.total_spend || 0)}</div>
+                <div class="value">${formatCurrency(spendAmount)}</div>
                 <div class="label">Total Lobbying Spend</div>
             </div>
             <div class="detail-stat">
-                <div class="value">${d.registrants_hired || 0}</div>
+                <div class="value">${firmsHired}</div>
                 <div class="label">Firms Hired</div>
             </div>
             <div class="detail-stat">
@@ -503,29 +591,38 @@ function renderClientDetails(d) {
                 <div class="label">Connections</div>
             </div>
         </div>
+        ${summary}
     `;
 }
 
 function renderLobbyistDetails(d) {
+    const spendAmount = d.spend || d.total_revenue || 0;
+    const clientCount = d.connections || d.client_count || 0;
+
+    // Build intelligent summary
+    let summary = '';
+    if (spendAmount > 200000) {
+        summary = `<p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">🏆 Major lobbying firm with substantial client portfolio.</p>`;
+    } else if (clientCount > 5) {
+        summary = `<p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">📈 Active firm representing multiple clients.</p>`;
+    }
+
     return `
         <div class="detail-stats">
-            <div class="detail-stat">
-                <div class="value">${d.registrant_name || 'N/A'}</div>
-                <div class="label">Firm</div>
+            <div class="detail-stat" style="grid-column: span 2;">
+                <div class="value">${formatCurrency(spendAmount)}</div>
+                <div class="label">Total Revenue</div>
             </div>
             <div class="detail-stat">
-                <div class="value">${d.covered_position ? 'Yes' : 'No'}</div>
-                <div class="label">Revolving Door</div>
+                <div class="value">${clientCount}</div>
+                <div class="label">Clients</div>
             </div>
             <div class="detail-stat">
-                <div class="value">${formatCurrency(d.contributions || 0)}</div>
-                <div class="label">Contributions</div>
-            </div>
-            <div class="detail-stat">
-                <div class="value">${d.connections || 0}</div>
-                <div class="label">Connections</div>
+                <div class="value">${d.bill_count || d.connections || 0}</div>
+                <div class="label">Bills Lobbied</div>
             </div>
         </div>
+        ${summary}
     `;
 }
 
@@ -533,7 +630,7 @@ function renderConnections(d) {
     // Find connected nodes
     const connections = [];
     g.selectAll('.link')
-        .each(function(l) {
+        .each(function (l) {
             const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
             const targetId = typeof l.target === 'object' ? l.target.id : l.target;
 
@@ -724,7 +821,7 @@ function exportToPNG() {
     canvas.width = svgElement.clientWidth;
     canvas.height = svgElement.clientHeight;
 
-    img.onload = function() {
+    img.onload = function () {
         ctx.fillStyle = '#0f1419';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);

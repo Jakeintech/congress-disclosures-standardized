@@ -29,10 +29,15 @@ S3_GOLD_PREFIX = os.environ.get("S3_GOLD_PREFIX", "gold")
 
 
 def read_silver_parquet(s3_client: boto3.client, key: str) -> pd.DataFrame:
-    """Read Parquet file from S3."""
+    """Read Parquet file from S3 into pandas via pyarrow.
+
+    Uses in-memory BytesIO to satisfy seekable requirement.
+    """
     try:
         obj = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
-        df = pd.read_parquet(obj["Body"])
+        data = obj["Body"].read()
+        table = pq.read_table(pa.BufferReader(data))
+        df = table.to_pandas()
         logger.info(f"Read {len(df)} records from {key}")
         return df
     except Exception as e:
@@ -121,7 +126,7 @@ def build_dimension(s3_client: boto3.client, year: int) -> pd.DataFrame:
     if not top_issues.empty:
         dim_df = dim_df.merge(top_issues, on="registrant_id", how="left")
     else:
-        dim_df["specialization_issues"] = [[]]
+        dim_df["specialization_issues"] = [[] for _ in range(len(dim_df))]
 
     # Fill NaN values
     dim_df["total_revenue"] = dim_df["total_revenue"].fillna(0.0)
@@ -143,6 +148,11 @@ def build_dimension(s3_client: boto3.client, year: int) -> pd.DataFrame:
 
     dim_df["year"] = year
     dim_df["dt_updated"] = datetime.utcnow().isoformat()
+
+    # Ensure numeric dtypes for Arrow conversion
+    for col in ["total_revenue", "total_expenses", "client_count", "filing_count", "lobbyist_count", "revolving_door_pct"]:
+        if col in dim_df.columns:
+            dim_df[col] = pd.to_numeric(dim_df[col], errors="coerce").fillna(0)
 
     logger.info(f"Built dimension with {len(dim_df)} registrants")
     return dim_df

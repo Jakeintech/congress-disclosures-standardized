@@ -760,6 +760,226 @@ paths:
                 $ref: '#/components/schemas/LegislativeExposureResponse'
 
   # ============================================================================
+  # Lobbying Disclosure Endpoints
+  # ============================================================================
+
+  /v1/lobbying/filings:
+    get:
+      tags: [Lobbying]
+      summary: List lobbying filings
+      description: Get paginated list of LDA lobbying filings with filtering
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: filing_year
+          in: query
+          description: Filter by filing year
+          schema:
+            type: integer
+          example: 2025
+        - name: client_id
+          in: query
+          description: Filter by client ID
+          schema:
+            type: integer
+        - name: registrant_id
+          in: query
+          description: Filter by registrant ID
+          schema:
+            type: integer
+        - name: issue_code
+          in: query
+          description: Filter by general issue code (e.g., HCR, ENV)
+          schema:
+            type: string
+        - name: min_income
+          in: query
+          description: Minimum income amount
+          schema:
+            type: number
+        - name: sort_by
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [income, dt_posted]
+            default: income
+      responses:
+        '200':
+          description: Paginated lobbying filings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LobbyingFilingsResponse'
+
+  /v1/lobbying/clients/{client_id}:
+    get:
+      tags: [Lobbying]
+      summary: Get lobbying client details
+      description: Get comprehensive profile of a lobbying client
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: Client ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Client profile with lobbying history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LobbyingClientResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/lobbying/network:
+    get:
+      tags: [Lobbying]
+      summary: Get lobbying network data
+      description: Get network graph showing connections between members, bills, clients, and lobbyists
+      parameters:
+        - name: year
+          in: query
+          description: Filter by year
+          schema:
+            type: integer
+          example: 2025
+        - name: congress
+          in: query
+          description: Filter by congress session
+          schema:
+            type: integer
+          example: 118
+        - name: limit
+          in: query
+          description: Max nodes to return
+          schema:
+            type: integer
+            default: 500
+            maximum: 1000
+      responses:
+        '200':
+          description: Network graph data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LobbyingNetworkResponse'
+
+  /v1/lobbying/network-graph:
+    get:
+      tags: [Lobbying]
+      summary: Get lobbying network graph (alias)
+      description: Alias for /v1/lobbying/network
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: congress
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Network graph data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LobbyingNetworkResponse'
+
+  /v1/congress/bills/{bill_id}/lobbying:
+    get:
+      tags: [Lobbying, Congress]
+      summary: Get lobbying activity for a bill
+      description: Get all lobbying activity related to a specific bill
+      parameters:
+        - name: bill_id
+          in: path
+          required: true
+          description: Bill ID in format congress-type-number
+          schema:
+            type: string
+          example: "118-hr-1"
+      responses:
+        '200':
+          description: Bill lobbying activity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillLobbyingResponse'
+
+  /v1/members/{bioguide_id}/lobbying:
+    get:
+      tags: [Lobbying, Members]
+      summary: Get member lobbying connections
+      description: Get lobbying activity and contributions related to a member
+      parameters:
+        - name: bioguide_id
+          in: path
+          required: true
+          description: Member's bioguide ID
+          schema:
+            type: string
+          example: "P000197"
+      responses:
+        '200':
+          description: Member lobbying connections
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberLobbyingResponse'
+
+  /v1/correlations/triple:
+    get:
+      tags: [Lobbying, Analytics]
+      summary: Get triple correlations (STAR API)
+      description: |
+        Get correlations showing connections between stock trades, bill activity, and lobbying.
+        This is the flagship Influence Tracker API showing potential influence chains.
+      parameters:
+        - name: year
+          in: query
+          description: Filter by year
+          schema:
+            type: integer
+          example: 2025
+        - name: min_score
+          in: query
+          description: Minimum correlation score (0-100)
+          schema:
+            type: integer
+            default: 50
+        - name: member_bioguide
+          in: query
+          description: Filter by member bioguide ID
+          schema:
+            type: string
+        - name: ticker
+          in: query
+          description: Filter by stock ticker
+          schema:
+            type: string
+        - name: bill_id
+          in: query
+          description: Filter by bill ID
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Triple correlations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripleCorrelationsResponse'
+
+  # ============================================================================
   # Member Analytics Endpoints
   # ============================================================================
 

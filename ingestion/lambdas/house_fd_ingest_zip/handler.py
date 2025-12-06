@@ -21,6 +21,8 @@ from typing import Any, Dict, List
 
 import boto3
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from botocore.exceptions import ClientError
 
 # Configure logging
@@ -37,8 +39,24 @@ EXTRACTION_VERSION = os.environ.get("EXTRACTION_VERSION", "1.0.0")
 s3_client = boto3.client("s3")
 sqs_client = boto3.client("sqs")
 
-# House FD base URL
-HOUSE_FD_BASE_URL = "https://disclosures-clerk.house.gov/public_disc/financial-pdfs"
+# House FD base URL (allow override via env for flexibility)
+HOUSE_FD_BASE_URL = os.environ.get(
+    "HOUSE_FD_BASE_URL",
+    "https://disclosures-clerk.house.gov/public_disc/financial-pdfs",
+)
+
+# Conservative request headers to avoid 403 from origin/CDN
+REQUEST_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://disclosures-clerk.house.gov/",
+    "Connection": "keep-alive",
+}
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -113,6 +131,23 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
 
 
+def _requests_session() -> requests.Session:
+    """Create a requests session with retries and sensible defaults."""
+    session = requests.Session()
+    retries = Retry(
+        total=5,
+        backoff_factor=0.5,
+        status_forcelist=[429, 500, 502, 503, 504, 403],
+        allowed_methods=["GET"],
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(max_retries=retries, pool_maxsize=20)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    session.headers.update(REQUEST_HEADERS)
+    return session
+
+
 def download_zip_file(url: str, timeout: int = 120) -> tuple:
     """Download zip file from House website.
 
@@ -129,22 +164,62 @@ def download_zip_file(url: str, timeout: int = 120) -> tuple:
     logger.info(f"Downloading from {url}")
 
     start_time = time.time()
+    session = _requests_session()
 
-    response = requests.get(url, timeout=timeout, stream=True)
-    response.raise_for_status()
+    tried_urls = []
+    last_response = None
+
+    def _try_download(u: str):
+        nonlocal last_response
+        logger.info(f"HTTP GET {u}")
+        tried_urls.append(u)
+        resp = session.get(u, timeout=timeout, stream=True, allow_redirects=True)
+        last_response = resp
+        if resp.status_code == 200:
+            return resp
+        return None
+
+    # Primary URL
+    response = _try_download(url)
+
+    # Fallback URL pattern some years use: include year subdirectory
+    if response is None:
+        try:
+            # Extract year and filename from provided URL
+            # Expected format: .../financial-pdfs/{year}FD.zip
+            base, filename = url.rsplit("/", 1)
+            year_part = filename.replace("FD.zip", "")
+            alt_url = f"{base}/{year_part}/{filename}"
+            logger.info(f"Primary download failed (status={getattr(last_response, 'status_code', 'n/a')}). Trying fallback URL: {alt_url}
+")
+            response = _try_download(alt_url)
+        except Exception:
+            # Ignore fallback construction errors
+            pass
+
+    # If still not successful, raise a descriptive error
+    if response is None:
+        status = getattr(last_response, "status_code", "n/a")
+        headers = getattr(last_response, "headers", {})
+        duration = time.time() - start_time
+        tried = ", ".join(tried_urls)
+        raise requests.HTTPError(
+            f"Failed to download FD zip (status={status}) after {duration:.2f}s. Tried: {tried}. "
+            f"Content-Type={headers.get('Content-Type')}, Server={headers.get('Server')}"
+        )
 
     # Read into memory (zip files are ~100-500 MB, within Lambda memory)
     zip_bytes = response.content
-
     duration = time.time() - start_time
 
     metadata = {
-        "source_url": url,
+        "source_url": response.url,
         "download_timestamp": datetime.now(timezone.utc).isoformat(),
         "file_size_bytes": str(len(zip_bytes)),
         "duration_seconds": f"{duration:.2f}",
         "http_status": str(response.status_code),
         "content_type": response.headers.get("Content-Type", ""),
+        "tried_urls": ",".join(tried_urls),
     }
 
     # Add HTTP caching headers if available
@@ -153,7 +228,7 @@ def download_zip_file(url: str, timeout: int = 120) -> tuple:
     if "Last-Modified" in response.headers:
         metadata["http_last_modified"] = response.headers["Last-Modified"]
 
-    logger.info(f"Downloaded {len(zip_bytes)} bytes in {duration:.2f}s")
+    logger.info(f"Downloaded {len(zip_bytes)} bytes in {duration:.2f}s from {response.url}")
 
     return zip_bytes, metadata
 
@@ -357,7 +432,8 @@ def download_and_process_individual_pdf(doc_id: str, year: int, filing_type: str
             pass
 
     try:
-        response = requests.get(url, timeout=30)
+        session = _requests_session()
+        response = session.get(url, timeout=30)
         if response.status_code == 200:
             return process_pdf_upload(
                 doc_id, year, response.content, filing_type, f"{doc_id}.pdf", False

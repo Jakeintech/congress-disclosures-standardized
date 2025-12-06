@@ -164,8 +164,15 @@ def transform_bronze_to_silver():
     logger.info(f"   Original cosponsors: {df['is_original_cosponsor'].sum()}")
 
 
-if __name__ == '__main__':
+def main():
+    """Main entry point for pipeline runner."""
     logger.info("=" * 80)
     logger.info("Transforming Bronze Congress bill_cosponsors to Silver")
     logger.info("=" * 80)
     transform_bronze_to_silver()
+    return 0
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())

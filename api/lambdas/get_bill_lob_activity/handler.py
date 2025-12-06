@@ -39,7 +39,7 @@ def clean_nan(obj):
     return obj
 
 
-def lambda_handler(event, context):
+def handler(event, context):
     """Handle GET /v1/lobbying/bills/{bill_id}/lobbying-activity request."""
     try:
         logger.info(f"Event: {json.dumps(event)}")

@@ -30,10 +30,12 @@ S3_GOLD_PREFIX = os.environ.get("S3_GOLD_PREFIX", "gold")
 
 
 def read_silver_parquet(s3_client: boto3.client, key: str) -> pd.DataFrame:
-    """Read Parquet file from S3."""
+    """Read Parquet file from S3 into pandas via pyarrow."""
     try:
         obj = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
-        df = pd.read_parquet(obj["Body"])
+        data = obj["Body"].read()
+        table = pq.read_table(pa.BufferReader(data))
+        df = table.to_pandas()
         logger.info(f"Read {len(df)} records from {key}")
         return df
     except Exception as e:
@@ -82,8 +84,12 @@ def build_fact_table(s3_client: boto3.client, year: int) -> pd.DataFrame:
     # Aggregate bills per activity
     logger.info("Aggregating bill references...")
     if not activity_bills_df.empty:
+        # Use bill_id_118 as primary reference (most 2025 lobbying references 118th Congress bills)
+        bill_col = 'bill_id_118' if 'bill_id_118' in activity_bills_df.columns else 'bill_id'
+        if 'confidence' not in activity_bills_df.columns:
+            activity_bills_df['confidence'] = 1.0  # Default confidence
         bills_agg = activity_bills_df.groupby("activity_id").agg({
-            "bill_id": list,
+            bill_col: list,
             "confidence": "mean"
         }).reset_index()
         bills_agg.columns = ["activity_id", "bills_referenced", "bill_confidence_avg"]
@@ -125,8 +131,8 @@ def build_fact_table(s3_client: boto3.client, year: int) -> pd.DataFrame:
     )
     fact_df["lobbyist_count"] = fact_df["lobbyist_count"].fillna(0).astype(int)
     fact_df["bill_confidence_avg"] = fact_df["bill_confidence_avg"].fillna(0.0)
-    fact_df["income"] = fact_df["income"].fillna(0.0)
-    fact_df["expenses"] = fact_df["expenses"].fillna(0.0)
+    fact_df["income"] = pd.to_numeric(fact_df["income"], errors="coerce").fillna(0.0)
+    fact_df["expenses"] = pd.to_numeric(fact_df["expenses"], errors="coerce").fillna(0.0)
 
     # Calculate derived fields
     fact_df["has_bill_references"] = fact_df["bills_referenced"].apply(len) > 0

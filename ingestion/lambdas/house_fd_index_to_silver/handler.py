@@ -161,7 +161,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     # Check if PDF already extracted by checking Bronze metadata
                     pdf_key = filing['pdf_s3_key']
                     try:
-                        response = s3_client.head_object(Bucket=S3_BUCKET_NAME, Key=pdf_key)
+                        response = s3_client.head_object(Bucket=S3_BUCKET, Key=pdf_key)
                         if response.get('Metadata', {}).get('extraction-processed') == 'true':
                             skipped_count += 1
                             continue  # Skip - already extracted
@@ -269,11 +269,12 @@ def parse_xml_index(
             continue
 
         # Extract fields
+        filing_type = member.findtext("FilingType", "").strip() or "U"
         record = {
             "doc_id": doc_id,
             "year": year,
             "filing_date": member.findtext("FilingDate", "").strip(),
-            "filing_type": member.findtext("FilingType", "").strip(),
+            "filing_type": filing_type,
             "prefix": member.findtext("Prefix", "").strip() or None,
             "first_name": member.findtext("First", "").strip(),
             "last_name": member.findtext("Last", "").strip(),
@@ -281,8 +282,11 @@ def parse_xml_index(
             "state_district": member.findtext("StateDst", "").strip(),
             "raw_xml_path": xml_s3_key,
             "raw_txt_path": xml_s3_key.replace(".xml", ".txt"),
+            # Align with ingest Lambda's bronze layout
+            # bronze/house/financial/year=YYYY/filing_type={filing_type}/pdfs/{doc_id}.pdf
             "pdf_s3_key": (
-                f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
+                f"{S3_BRONZE_PREFIX}/house/financial/year={year}/"
+                f"filing_type={filing_type}/pdfs/{doc_id}.pdf"
             ),
             "bronze_ingest_ts": datetime.now(timezone.utc).isoformat(),
             "silver_ingest_ts": datetime.now(timezone.utc).isoformat(),

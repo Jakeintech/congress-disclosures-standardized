@@ -412,3 +412,17 @@ def build_s3_uri(bucket: str, key: str) -> str:
         S3 URI (s3://bucket/key)
     """
     return f"s3://{bucket}/{key}"
+
+
+# Backward-compatibility helpers expected by some scripts
+def download_s3_file(bucket: str, key: str, local_path: Union[str, Path]) -> Dict[str, Any]:
+    """Compatibility wrapper around download_file_from_s3."""
+    return download_file_from_s3(bucket=bucket, s3_key=key, local_path=local_path)
+
+
+def upload_parquet_to_s3(buffer: bytes, bucket: str, key: str, content_type: str = "application/x-parquet") -> Dict[str, Any]:
+    """Compatibility helper to upload Parquet bytes to S3.
+
+    Some scripts expect a simple upload Parquet helper.
+    """
+    return upload_bytes_to_s3(data=buffer, bucket=bucket, s3_key=key, content_type=content_type)

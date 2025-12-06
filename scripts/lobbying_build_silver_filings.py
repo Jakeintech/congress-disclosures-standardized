@@ -207,6 +207,11 @@ def main():
         # Write to S3
         write_silver_table(df, args.year)
 
+    # Coerce numeric fields for safe aggregation
+    for col in ["income", "expenses", "amount", "amount_reported"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
     # Print summary
     logger.info(f"\n{'='*60}")
     logger.info("SUMMARY")

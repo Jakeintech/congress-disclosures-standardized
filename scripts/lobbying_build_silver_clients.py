@@ -102,6 +102,51 @@ def extract_clients(s3_client: boto3.client, year: int) -> pd.DataFrame:
     return df
 
 
+def read_endpoint_clients(s3_client: boto3.client) -> pd.DataFrame:
+    """Read clients directly from Bronze endpoint dir, if present."""
+    prefix = f"{S3_BRONZE_PREFIX}/lobbying/clients/"
+    rows: List[Dict[str, Any]] = []
+    total = 0
+    paginator = s3_client.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix):
+        for obj in page.get("Contents", []):
+            key = obj.get("Key", "")
+            if not key.endswith(".json.gz"):
+                continue
+            try:
+                o = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
+                data = gzip.decompress(o["Body"].read())
+                cli = json.loads(data)
+                cid = cli.get("id")
+                if cid is None:
+                    continue
+                rows.append({
+                    "client_id": cid,
+                    "name": cli.get("name"),
+                    "status": cli.get("status"),
+                    "status_display": cli.get("status_display"),
+                    "address": cli.get("address"),
+                    "address_2": cli.get("address_2"),
+                    "city": cli.get("city"),
+                    "state": cli.get("state"),
+                    "state_display": cli.get("state_display"),
+                    "zip": cli.get("zip"),
+                    "country": cli.get("country"),
+                    "country_display": cli.get("country_display"),
+                    "ppb_state": cli.get("ppb_state"),
+                    "ppb_country": cli.get("ppb_country"),
+                    "contact_name": cli.get("contact_name"),
+                    "senate_id": cli.get("senate_id"),
+                    "dt_updated": datetime.utcnow().isoformat(),
+                })
+                total += 1
+            except Exception as e:
+                logger.warning(f"Failed to read {key}: {e}")
+    if total:
+        logger.info(f"Read {total} clients from endpoint Bronze")
+    return pd.DataFrame(rows)
+
+
 def write_silver_table(df: pd.DataFrame) -> None:
     """Write DataFrame to Silver Parquet table."""
     if df.empty:
@@ -137,9 +182,21 @@ def main():
 
     s3_client = boto3.client("s3")
     df = extract_clients(s3_client, args.year)
-
+    ep = read_endpoint_clients(s3_client)
+    if not ep.empty:
+        if df.empty:
+            df = ep
+        else:
+            df = df.merge(ep, on="client_id", how="outer", suffixes=("", "_ep"))
+            for col in [
+                "name","status","status_display","address","address_2","city","state","state_display","zip","country","country_display","ppb_state","ppb_country","contact_name","senate_id"
+            ]:
+                epcol = f"{col}_ep"
+                if epcol in df.columns:
+                    df[col] = df[epcol].where(df[epcol].notna(), df[col])
+            df = df[[c for c in df.columns if not c.endswith("_ep")]]
     if df.empty:
-        logger.error("No clients extracted")
+        logger.error("No clients extracted (neither from filings nor endpoint)")
         sys.exit(1)
 
     write_silver_table(df)

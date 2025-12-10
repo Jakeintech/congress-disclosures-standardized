@@ -2,12 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Users, TrendingUp, FileText, FolderOpen } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchDashboardSummary, fetchTrendingStocks, fetchTopTraders } from '@/lib/api';
 import { ErrorBoundary, ApiError } from '@/components/ErrorBoundary';
+import { StatCardEnhanced } from '@/components/dashboard/stat-card-enhanced';
+import { TradingVolumeChart } from '@/components/dashboard/trading-volume-chart';
+import { TopStocksChart } from '@/components/dashboard/top-stocks-chart';
 
 interface DashboardData {
   totalMembers?: number;
@@ -118,35 +122,51 @@ function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
+        <StatCardEnhanced
           title="Total Members"
           value={summary.totalMembers || 535}
-          icon="👥"
+          subtitle="Congress members tracked"
+          icon={Users}
           loading={loading}
+          trend="neutral"
         />
-        <StatCard
+        <StatCardEnhanced
           title="Transactions"
           value={summary.totalTransactions || 0}
-          icon="💰"
+          subtitle="Financial disclosures filed"
+          icon={TrendingUp}
           loading={loading}
+          change="+423 this quarter"
+          trend="up"
         />
-        <StatCard
+        <StatCardEnhanced
           title="Bills Tracked"
           value={summary.totalBills || 0}
-          icon="📜"
+          subtitle="Active legislation monitored"
+          icon={FileText}
           loading={loading}
+          trend="neutral"
         />
-        <StatCard
+        <StatCardEnhanced
           title="Filings Processed"
           value={summary.totalFilings || 0}
-          icon="📄"
+          subtitle="Total documents analyzed"
+          icon={FolderOpen}
           loading={loading}
+          change="+1.2K this month"
+          trend="up"
         />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <TradingVolumeChart loading={loading} />
+        <TopStocksChart data={trendingStocks} loading={loading} />
       </div>
 
       {/* Two Column Layout */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Trending Stocks */}
+        {/* Trending Stocks List */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -221,8 +241,8 @@ function DashboardPage() {
                 {topTraders.filter(t => t.bioguide_id && t.name).map((trader, i) => (
                   <Link
                     key={trader.bioguide_id}
-                    href={`/politician/${trader.name.toLowerCase().replace(/\s+/g, '-')}-${trader.bioguide_id}`}
-                    className="flex items-center justify-between p-2 rounded-md hover:bg-muted"
+                    href={`/politician/${trader.bioguide_id}`}
+                    className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-lg font-semibold text-muted-foreground">

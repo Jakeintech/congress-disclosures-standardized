@@ -9,28 +9,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchMemberProfile, fetchMemberTrades } from '@/lib/api';
+import type { MemberProfile as APIMemberProfile, Transaction } from '@/types/api';
 
-interface Trade {
-    transaction_date: string;
-    ticker: string;
-    asset_name?: string;
-    trade_type: string;
-    amount_range?: string;
-    owner?: string;
-}
-
-interface MemberProfile {
-    bioguide_id: string;
-    name: string;
-    party?: string;
-    state?: string;
-    chamber?: string;
-    district?: string;
-    terms_served?: number;
+// Local type extending API type with computed fields
+type MemberProfile = APIMemberProfile & {
+    name?: string; // Computed from first_name + last_name
     trade_count?: number;
     total_volume?: string;
     most_traded_tickers?: string[];
-}
+    terms_served?: number;
+};
+
+type Trade = Transaction;
 
 interface MemberProfileClientProps {
     bioguideId: string;
@@ -230,14 +220,14 @@ export function MemberProfileClient({ bioguideId }: MemberProfileClientProps) {
                                                     {trade.ticker || 'N/A'}
                                                 </TableCell>
                                                 <TableCell className="max-w-xs truncate">
-                                                    {trade.asset_name || 'N/A'}
+                                                    {trade.asset_description || 'N/A'}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant={trade.trade_type === 'purchase' ? 'default' : 'secondary'}>
-                                                        {trade.trade_type}
+                                                    <Badge variant={trade.transaction_type === 'Purchase' ? 'default' : 'secondary'}>
+                                                        {trade.transaction_type}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell>{trade.amount_range || 'N/A'}</TableCell>
+                                                <TableCell>{trade.amount || 'N/A'}</TableCell>
                                                 <TableCell>{trade.owner || 'Self'}</TableCell>
                                             </TableRow>
                                         ))}

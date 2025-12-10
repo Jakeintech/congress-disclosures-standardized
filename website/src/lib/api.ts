@@ -219,7 +219,7 @@ export async function fetchTrendingStocks(limit = 10): Promise<TrendingStock[]> 
     const data = await fetchApi<ApiResponse<{ trending_stocks: TrendingStock[] }>>(
         `${API_BASE}/v1/analytics/trending-stocks?limit=${limit}`
     );
-    const result = data.data || (data as { trending_stocks: TrendingStock[] });
+    const result = data.data || (data as unknown as { trending_stocks: TrendingStock[] });
     return result.trending_stocks || [];
 }
 
@@ -230,7 +230,7 @@ export async function fetchTopTraders(limit = 10): Promise<TopTrader[]> {
     const data = await fetchApi<ApiResponse<{ top_traders: TopTrader[] }>>(
         `${API_BASE}/v1/analytics/top-traders?limit=${limit}`
     );
-    const result = data.data || (data as { top_traders: TopTrader[] });
+    const result = data.data || (data as unknown as { top_traders: TopTrader[] });
     return result.top_traders || [];
 }
 

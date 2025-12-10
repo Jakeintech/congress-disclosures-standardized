@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { type NetworkGraphData, type GraphNode, type GraphLink } from '@/lib/api';
+import { type NetworkGraphData, type NetworkGraphNode, type NetworkGraphLink } from '@/types/api';
 //yes 
 interface NetworkGraphProps {
     data: NetworkGraphData;
@@ -16,14 +16,14 @@ interface NetworkGraphProps {
 
 export function NetworkGraph({ data, width = 800, height = 600 }: NetworkGraphProps) {
     const svgRef = useRef<SVGSVGElement>(null);
-    const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+    const [selectedNode, setSelectedNode] = useState<NetworkGraphNode | null>(null);
     const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode } | null>(null);
 
     // Simulation state to keep it persistent across renders if needed
-    const simulationRef = useRef<d3.Simulation<GraphNode, GraphLink> | null>(null);
+    const simulationRef = useRef<d3.Simulation<NetworkGraphNode, NetworkGraphLink> | null>(null);
 
     useEffect(() => {
-        if (!data.nodes.length || !svgRef.current) return;
+        if (!data.nodes?.length || !svgRef.current) return;
 
         const svg = d3.select(svgRef.current);
         svg.selectAll('*').remove(); // Clear previous render
@@ -40,8 +40,8 @@ export function NetworkGraph({ data, width = 800, height = 600 }: NetworkGraphPr
         svg.call(zoom);
 
         // Process data copies to avoid mutating props
-        const nodes = data.nodes.map(d => ({ ...d })) as GraphNode[];
-        const links = data.links.map(d => ({ ...d })) as GraphLink[];
+        const nodes = (data.nodes || []).map(d => ({ ...d })) as NetworkGraphNode[];
+        const links = (data.links || []).map(d => ({ ...d })) as NetworkGraphLink[];
 
         // radius scale
         const radiusScale = d3.scaleLog()
@@ -49,14 +49,14 @@ export function NetworkGraph({ data, width = 800, height = 600 }: NetworkGraphPr
             .range([4, 20])
             .clamp(true);
 
-        const getNodeRadius = (d: GraphNode) => {
+        const getNodeRadius = (d: NetworkGraphNode) => {
             if (d.type === 'member') return 8;
             if (d.type === 'bill') return 6;
             // Clients/Lobbyists sized by spend/revenue if available
             return Math.max(5, Math.min(20, Math.sqrt((d.spend || 0) / 10000) + 5));
         };
 
-        const getNodeColor = (d: GraphNode) => {
+        const getNodeColor = (d: NetworkGraphNode) => {
             if (d.type === 'member') {
                 if (d.party === 'Democrat') return '#3b82f6'; // blue-500
                 if (d.party === 'Republican') return '#ef4444'; // red-500
@@ -70,16 +70,16 @@ export function NetworkGraph({ data, width = 800, height = 600 }: NetworkGraphPr
 
         // Forces
         const simulation = d3.forceSimulation(nodes)
-            .force('link', d3.forceLink<GraphNode, GraphLink>(links).id((d: GraphNode) => d.id).distance(100))
+            .force('link', d3.forceLink<NetworkGraphNode, NetworkGraphLink>(links).id((d: NetworkGraphNode) => d.id).distance(100))
             .force('charge', d3.forceManyBody().strength(-200))
             .force('center', d3.forceCenter(width / 2, height / 2))
-            .force('collide', d3.forceCollide<GraphNode>().radius((d: GraphNode) => getNodeRadius(d) + 2));
+            .force('collide', d3.forceCollide<NetworkGraphNode>().radius((d: NetworkGraphNode) => getNodeRadius(d) + 2));
 
         simulationRef.current = simulation;
 
         // Links
         const link = g.append('g')
-            .selectAll<SVGLineElement, GraphLink>('line')
+            .selectAll<SVGLineElement, NetworkGraphLink>('line')
             .data(links)
             .join('line')
             .attr('stroke', '#cbd5e1')

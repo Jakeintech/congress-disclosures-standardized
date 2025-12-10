@@ -11,20 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { fetchTransactions, type TransactionsParams } from '@/lib/api';
+import { fetchTransactions, type TransactionsParams, type Transaction } from '@/lib/api';
 import { ErrorBoundary, ApiError } from '@/components/ErrorBoundary';
-
-interface Transaction {
-    transaction_date: string;
-    ticker?: string;
-    asset_name?: string;
-    trade_type: string;
-    amount_range?: string;
-    member_name?: string;
-    bioguide_id?: string;
-    party?: string;
-    state?: string;
-}
 
 function TransactionsPage() {
     const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
@@ -64,9 +52,9 @@ function TransactionsPage() {
         const lowerMember = member.toLowerCase();
 
         const filtered = allTransactions.filter(t => {
-            const matchesTicker = !ticker || (t.ticker && t.ticker.toLowerCase().includes(lowerTicker)) || (t.asset_name && t.asset_name.toLowerCase().includes(lowerTicker));
-            const matchesMember = !member || (t.member_name && t.member_name.toLowerCase().includes(lowerMember)) || (t.party && t.party.toLowerCase().includes(lowerMember));
-            const matchesType = !tradeType || tradeType === 'all' || (t.trade_type && t.trade_type === tradeType);
+            const matchesTicker = !ticker || (t.ticker && t.ticker.toLowerCase().includes(lowerTicker)) || (t.asset_description && t.asset_description.toLowerCase().includes(lowerTicker));
+            const matchesMember = !member || (t.filer_name && t.filer_name.toLowerCase().includes(lowerMember)) || (t.party && t.party.toLowerCase().includes(lowerMember));
+            const matchesType = !tradeType || tradeType === 'all' || (t.transaction_type && t.transaction_type === tradeType);
 
             return matchesTicker && matchesMember && matchesType;
         });
@@ -173,9 +161,9 @@ function TransactionsPage() {
                                                         href={`/member?id=${tx.bioguide_id}`}
                                                         className="font-medium hover:underline"
                                                     >
-                                                        {tx.member_name}
+                                                        {tx.filer_name}
                                                     </Link>
-                                                ) : tx.member_name || 'Unknown'}
+                                                ) : tx.filer_name || 'Unknown'}
                                                 {tx.party && (
                                                     <span className="text-muted-foreground ml-1">
                                                         ({tx.party}-{tx.state})
@@ -186,14 +174,14 @@ function TransactionsPage() {
                                                 {tx.ticker || 'N/A'}
                                             </TableCell>
                                             <TableCell className="max-w-xs truncate">
-                                                {tx.asset_name || 'N/A'}
+                                                {tx.asset_description || 'N/A'}
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant={tx.trade_type === 'purchase' ? 'default' : 'secondary'}>
-                                                    {tx.trade_type}
+                                                <Badge variant={tx.transaction_type === 'Purchase' ? 'default' : 'secondary'}>
+                                                    {tx.transaction_type}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell>{tx.amount_range || 'N/A'}</TableCell>
+                                            <TableCell>{tx.amount || 'N/A'}</TableCell>
                                         </TableRow>
                                     ))
                                 )}

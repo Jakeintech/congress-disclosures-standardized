@@ -273,15 +273,17 @@ function BillsPage() {
                                                 )}
                                             </TableCell>
                                             <TableCell>
-                                                {bill.sponsor_bioguide_id && bill.sponsor_name ? (
+                                                {bill.sponsor_bioguide_id ? (
                                                     <Link
-                                                        href={`/politician/${bill.sponsor_name.toLowerCase().replace(/\s+/g, '-')}-${bill.sponsor_bioguide_id}`}
-                                                        className="hover:underline"
+                                                        href={`/politician/${bill.sponsor_bioguide_id}`}
+                                                        className="hover:underline text-blue-600 hover:text-blue-800"
                                                     >
-                                                        {bill.sponsor_name}
+                                                        {bill.sponsor_name || bill.sponsor_bioguide_id}
                                                     </Link>
                                                 ) : (
-                                                    bill.sponsor_name || 'Unknown'
+                                                    <span className="text-muted-foreground">
+                                                        {bill.sponsor_name || 'Unknown'}
+                                                    </span>
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-center">

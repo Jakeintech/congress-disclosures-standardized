@@ -12,6 +12,7 @@ import { ErrorBoundary, ApiError } from '@/components/ErrorBoundary';
 import { StatCardEnhanced } from '@/components/dashboard/stat-card-enhanced';
 import { TradingVolumeChart } from '@/components/dashboard/trading-volume-chart';
 import { TopStocksChart } from '@/components/dashboard/top-stocks-chart';
+import { StockLogo } from '@/components/ui/stock-logo';
 
 interface DashboardData {
   totalMembers?: number;
@@ -82,16 +83,29 @@ function DashboardPage() {
 
         if (summaryData.status === 'fulfilled') {
           setSummary(summaryData.value as DashboardData);
+          console.log('[Dashboard] Summary loaded:', summaryData.value);
+        } else {
+          console.error('[Dashboard] Summary failed:', summaryData.reason);
         }
+
         if (stocksData.status === 'fulfilled') {
-          setTrendingStocks(stocksData.value as TrendingStock[]);
+          const stocks = stocksData.value as TrendingStock[];
+          setTrendingStocks(stocks);
+          console.log('[Dashboard] Trending stocks loaded:', stocks.length, 'stocks');
+        } else {
+          console.error('[Dashboard] Trending stocks failed:', stocksData.reason);
         }
+
         if (tradersData.status === 'fulfilled') {
-          setTopTraders(tradersData.value as TopTrader[]);
+          const traders = tradersData.value as TopTrader[];
+          setTopTraders(traders);
+          console.log('[Dashboard] Top traders loaded:', traders.length, 'traders', traders);
+        } else {
+          console.error('[Dashboard] Top traders failed:', tradersData.reason);
         }
       } catch (err) {
         setError('Failed to load dashboard data');
-        console.error(err);
+        console.error('[Dashboard] Error:', err);
       } finally {
         setLoading(false);
       }
@@ -195,6 +209,7 @@ function DashboardPage() {
                       <span className="text-lg font-semibold text-muted-foreground">
                         #{i + 1}
                       </span>
+                      <StockLogo ticker={stock.ticker} size="md" />
                       <div>
                         <p className="font-medium">{stock.ticker}</p>
                         <p className="text-sm text-muted-foreground">
@@ -238,7 +253,13 @@ function DashboardPage() {
               </div>
             ) : topTraders.length > 0 ? (
               <div className="space-y-2">
-                {topTraders.filter(t => t.bioguide_id && t.name).map((trader, i) => (
+                {topTraders.map((trader, i) => {
+                  // Skip invalid traders
+                  if (!trader.bioguide_id || !trader.name) {
+                    console.warn('[Dashboard] Skipping invalid trader:', trader);
+                    return null;
+                  }
+                  return (
                   <Link
                     key={trader.bioguide_id}
                     href={`/politician/${trader.bioguide_id}`}
@@ -264,12 +285,16 @@ function DashboardPage() {
                       )}
                     </div>
                   </Link>
-                ))}
+                  );
+                })}
               </div>
             ) : (
-              <p className="text-muted-foreground text-center py-4">
-                No trader data available
-              </p>
+              <div className="text-center py-4">
+                <p className="text-muted-foreground">No trader data available</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  The analytics pipeline may still be processing data.
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>

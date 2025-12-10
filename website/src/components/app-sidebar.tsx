@@ -13,6 +13,8 @@ import {
     Users,
     DollarSign,
     Settings,
+    GitBranch,
+    Radar,
 } from 'lucide-react';
 
 import {
@@ -67,25 +69,34 @@ const navigation = [
                 url: '/transactions',
                 icon: TrendingUp,
             },
-            {
-                title: 'Trade Correlations',
-                url: '/influence',
-                icon: DollarSign,
-            },
         ],
     },
     {
-        title: 'Analysis',
+        title: 'Analysis & Networks',
         items: [
+            {
+                title: 'Influence Tracker',
+                url: '/analysis/influence',
+                icon: Radar,
+                description: 'Bill-Trade-Lobbying Correlations',
+            },
+            {
+                title: 'Trading Network',
+                url: '/analysis/trading-network',
+                icon: GitBranch,
+                description: 'Member-Asset Connections',
+            },
             {
                 title: 'Lobbying Network',
                 url: '/lobbying/network',
                 icon: Network,
+                description: 'Lobbying Relationships',
             },
             {
-                title: 'Analytics',
+                title: 'Analytics Dashboard',
                 url: '/analytics',
                 icon: BarChart3,
+                description: 'Comprehensive Metrics',
             },
         ],
     },

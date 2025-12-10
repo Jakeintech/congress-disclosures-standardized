@@ -120,16 +120,27 @@ def get_transaction_type(tx):
 def process_year(year):
     """Process all Type P filings for a specific year."""
     logger.info(f"Processing year {year}...")
-    
+
+    # Load Silver filings table to get member names
+    try:
+        filings_key = f"silver/house/financial/filings/year={year}/part-0000.parquet"
+        response = s3.get_object(Bucket=S3_BUCKET, Key=filings_key)
+        filings_df = pd.read_parquet(io.BytesIO(response['Body'].read()))
+        filings_dict = filings_df.set_index('doc_id').to_dict('index')
+        logger.info(f"Loaded {len(filings_df)} filings from Silver layer")
+    except Exception as e:
+        logger.error(f"Could not load filings table: {e}")
+        filings_dict = {}
+
     # Scan silver/objects/filing_type=type_p/year={year}/
     prefix = f"silver/objects/filing_type=type_p/year={year}/"
-    
+
     paginator = s3.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
-    
+
     transactions = []
     filing_count = 0
-    
+
     # Initialize member lookup for enrichment
     try:
         from lib.simple_member_lookup import SimpleMemberLookup
@@ -158,42 +169,23 @@ def process_year(year):
                     
                     doc_id = data.get('doc_id')
                     filing_date = data.get('filing_date')
-                    
-                    # Get bronze metadata
-                    bronze_meta = data.get('bronze_metadata', {})
-                    filer_name = bronze_meta.get('filer_name') or data.get('document_header', {}).get('filer_name')
-                    state_district = bronze_meta.get('state_district')
-                    
+
+                    # Get member info from filings table
+                    filing_info = filings_dict.get(doc_id, {})
+                    first = filing_info.get('first_name')
+                    last = filing_info.get('last_name')
+                    state_district = filing_info.get('state_district')
+                    filer_name = f"{first} {last}" if first and last else None
+
                     # Enrich with bioguide_id if available
                     bioguide_id = None
                     party = None
                     state = None
                     chamber = None
-                    first = None
-                    last = None
-                    
-                    if member_lookup and filer_name:
-                         # Clean name
-                        import re
-                        # Remove trailing state code
-                        clean_name = re.sub(r'\s+[A-Z]{2}$', '', str(filer_name)).strip()
-                        # Remove prefixes
-                        clean_name = re.sub(r'^(Hon\.|Rep\.|Mr\.|Mrs\.|Ms\.|Dr\.)\s+', '', clean_name, flags=re.IGNORECASE)
-                        
+
+                    if member_lookup and first and last:
                         state_hint = state_district[:2] if state_district else None
-                        
-                        # Try to parse name parts
-                        first = None
-                        last = clean_name
-                        if ',' in clean_name:
-                            parts = clean_name.split(',', 1)
-                            last = parts[0].strip()
-                            first = parts[1].strip()
-                        elif ' ' in clean_name:
-                            parts = clean_name.split(' ')
-                            first = parts[0]
-                            last = ' '.join(parts[1:])
-                            
+
                         enriched = member_lookup.enrich_member(
                             first_name=first,
                             last_name=last,
@@ -203,10 +195,6 @@ def process_year(year):
                         party = enriched.get('party')
                         state = enriched.get('state') or state_hint
                         chamber = enriched.get('chamber')
-                        
-                        if bioguide_id:
-                            # Use full name from enrichment if matched
-                             pass # we keep logic simple for now
 
                     # Get transactions list
                     # The extraction Lambda puts them in 'transactions' list for Type P

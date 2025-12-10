@@ -91,6 +91,12 @@ locals {
     "get_congress_members"  = { route = "GET /v1/congress/members" }
     "get_congress_member"   = { route = "GET /v1/congress/members/{bioguide_id}" }
 
+    # Committee endpoints
+    "get_congress_committees" = { route = "GET /v1/congress/committees" }
+    "get_congress_committee"  = { route = "GET /v1/congress/committees/{code}" }
+    "get_committee_bills"     = { route = "GET /v1/congress/committees/{code}/bills" }
+    "get_committee_members"   = { route = "GET /v1/congress/committees/{code}/members" }
+
     # Cross-domain Analytics endpoints (shortened names for 64 char limit)
     "get_member_leg_trades"   = { route = "GET /v1/analytics/members/{bioguide_id}/legislation-trades" }
     "get_stock_leg_exposure"  = { route = "GET /v1/analytics/stocks/{ticker}/legislative-exposure" }

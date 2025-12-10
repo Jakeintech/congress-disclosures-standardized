@@ -133,15 +133,18 @@ def handler(event, context):
             links = [l for l in links if l['source'] in top_members and l['target'] in top_stocks]
         
         # Build aggregated nodes for party view
-        dem_members = [n for n in nodes if n['group'] == 'member' and n.get('party') == 'D']
-        rep_members = [n for n in nodes if n['group'] == 'member' and n.get('party') == 'R']
-        
+        # Log party values for debugging
+        logger.info(f"Party values in nodes: {set(n.get('party') for n in nodes if n['group'] == 'member')}")
+
+        dem_members = [n for n in nodes if n['group'] == 'member' and n.get('party') in ('D', 'Democrat', 'Democratic')]
+        rep_members = [n for n in nodes if n['group'] == 'member' and n.get('party') in ('R', 'Republican')]
+
         aggregated_nodes = []
         if dem_members:
             aggregated_nodes.append({
                 'id': 'Democrat',
                 'group': 'party_agg',
-                'party': 'D',
+                'party': 'Democrat',
                 'value': sum(n['value'] for n in dem_members),
                 'transaction_count': sum(n['transaction_count'] for n in dem_members),
                 'member_count': len(dem_members)
@@ -150,7 +153,7 @@ def handler(event, context):
             aggregated_nodes.append({
                 'id': 'Republican',
                 'group': 'party_agg',
-                'party': 'R',
+                'party': 'Republican',
                 'value': sum(n['value'] for n in rep_members),
                 'transaction_count': sum(n['transaction_count'] for n in rep_members),
                 'member_count': len(rep_members)
@@ -158,23 +161,30 @@ def handler(event, context):
         
         # Build aggregated links (party -> stock)
         aggregated_links = []
-        party_stock_map = {'D': {}, 'R': {}}
-        
+        party_stock_map = {'Democrat': {}, 'Republican': {}}
+
         for link in links:
             source_node = next((n for n in nodes if n['id'] == link['source']), None)
-            if source_node and source_node.get('party') in party_stock_map:
-                party = source_node['party']
+            if source_node and source_node.get('group') == 'member':
+                party = source_node.get('party')
+                # Normalize party names
+                if party in ('D', 'Democrat', 'Democratic'):
+                    party = 'Democrat'
+                elif party in ('R', 'Republican'):
+                    party = 'Republican'
+                else:
+                    continue
+
                 target = link['target']
                 if target not in party_stock_map[party]:
                     party_stock_map[party][target] = {'value': 0, 'count': 0}
                 party_stock_map[party][target]['value'] += link['value']
                 party_stock_map[party][target]['count'] += link['count']
-        
+
         for party, stocks in party_stock_map.items():
-            party_name = 'Democrat' if party == 'D' else 'Republican'
             for stock, stats in stocks.items():
                 aggregated_links.append({
-                    'source': party_name,
+                    'source': party,
                     'target': stock,
                     'value': stats['value'],
                     'count': stats['count'],

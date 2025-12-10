@@ -8,7 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchBillDetail } from '@/lib/api';
+import {
+    fetchBillDetail,
+    fetchBillAmendments,
+    fetchBillCommittees,
+    fetchBillRelated,
+    fetchBillSubjects,
+    fetchBillTitles,
+    fetchBillActions
+} from '@/lib/api';
 
 interface Cosponsor {
     bioguide_id: string;
@@ -100,6 +108,14 @@ export function BillDetailClient({ billId }: BillDetailClientProps) {
     const [error, setError] = useState<string | null>(null);
     const [showAllActions, setShowAllActions] = useState(false);
 
+    // Additional Congress.gov data
+    const [amendments, setAmendments] = useState<any>(null);
+    const [committees, setCommittees] = useState<any>(null);
+    const [relatedBills, setRelatedBills] = useState<any>(null);
+    const [subjects, setSubjects] = useState<any>(null);
+    const [titles, setTitles] = useState<any>(null);
+    const [fullActions, setFullActions] = useState<any>(null);
+
     useEffect(() => {
         async function loadBill() {
             if (!billId) return;
@@ -110,6 +126,23 @@ export function BillDetailClient({ billId }: BillDetailClientProps) {
             try {
                 const data = await fetchBillDetail(billId);
                 setBill(data as BillDetail);
+
+                // Load additional Congress.gov data in parallel (non-blocking)
+                Promise.allSettled([
+                    fetchBillAmendments(billId),
+                    fetchBillCommittees(billId),
+                    fetchBillRelated(billId),
+                    fetchBillSubjects(billId),
+                    fetchBillTitles(billId),
+                    fetchBillActions(billId)
+                ]).then(([amendmentsRes, committeesRes, relatedRes, subjectsRes, titlesRes, actionsRes]) => {
+                    if (amendmentsRes.status === 'fulfilled') setAmendments(amendmentsRes.value);
+                    if (committeesRes.status === 'fulfilled') setCommittees(committeesRes.value);
+                    if (relatedRes.status === 'fulfilled') setRelatedBills(relatedRes.value);
+                    if (subjectsRes.status === 'fulfilled') setSubjects(subjectsRes.value);
+                    if (titlesRes.status === 'fulfilled') setTitles(titlesRes.value);
+                    if (actionsRes.status === 'fulfilled') setFullActions(actionsRes.value);
+                });
             } catch (err) {
                 setError('Failed to load bill details');
                 console.error(err);
@@ -229,8 +262,23 @@ export function BillDetailClient({ billId }: BillDetailClientProps) {
                     <TabsTrigger value="overview" className="px-6 py-2">Overview</TabsTrigger>
                     {bill.summary && <TabsTrigger value="summary" className="px-6 py-2">Summary</TabsTrigger>}
                     <TabsTrigger value="text" className="px-6 py-2">Text</TabsTrigger>
-                    <TabsTrigger value="actions" className="px-6 py-2">Actions <span className="ml-2 text-muted-foreground text-xs">{bill.actions_count_total}</span></TabsTrigger>
+                    <TabsTrigger value="actions" className="px-6 py-2">Actions <span className="ml-2 text-muted-foreground text-xs">{fullActions?.count || bill.actions_count_total}</span></TabsTrigger>
                     <TabsTrigger value="cosponsors" className="px-6 py-2">Cosponsors <span className="ml-2 text-muted-foreground text-xs">{bill.cosponsors_count}</span></TabsTrigger>
+                    {committees && committees.count > 0 && (
+                        <TabsTrigger value="committees" className="px-6 py-2">Committees <span className="ml-2 text-muted-foreground text-xs">{committees.count}</span></TabsTrigger>
+                    )}
+                    {amendments && amendments.count > 0 && (
+                        <TabsTrigger value="amendments" className="px-6 py-2">Amendments <span className="ml-2 text-muted-foreground text-xs">{amendments.count}</span></TabsTrigger>
+                    )}
+                    {relatedBills && relatedBills.count > 0 && (
+                        <TabsTrigger value="related" className="px-6 py-2">Related Bills <span className="ml-2 text-muted-foreground text-xs">{relatedBills.count}</span></TabsTrigger>
+                    )}
+                    {subjects && subjects.count > 0 && (
+                        <TabsTrigger value="subjects" className="px-6 py-2">Subjects <span className="ml-2 text-muted-foreground text-xs">{subjects.count}</span></TabsTrigger>
+                    )}
+                    {titles && titles.count > 0 && (
+                        <TabsTrigger value="titles" className="px-6 py-2">Titles <span className="ml-2 text-muted-foreground text-xs">{titles.count}</span></TabsTrigger>
+                    )}
                     <TabsTrigger value="trades" className="px-6 py-2">Analysis <span className="ml-2 text-muted-foreground text-xs">{bill.trade_correlations_count}</span></TabsTrigger>
                 </TabsList>
 
@@ -440,6 +488,197 @@ export function BillDetailClient({ billId }: BillDetailClientProps) {
                                             </div>
                                         ))}
                                     </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* COMMITTEES TAB */}
+                    <TabsContent value="committees">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Committee Referrals</CardTitle>
+                                <CardDescription>Committees that have jurisdiction over this bill</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {!committees ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <Skeleton className="h-32 w-full" />
+                                    </div>
+                                ) : committees.committees && committees.committees.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {committees.committees.map((committee: any, i: number) => (
+                                            <div key={i} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                                                <h4 className="font-semibold text-lg">{committee.name}</h4>
+                                                {committee.system_code && (
+                                                    <p className="text-sm text-muted-foreground font-mono mt-1">{committee.system_code}</p>
+                                                )}
+                                                {committee.activities && committee.activities.length > 0 && (
+                                                    <div className="mt-3 space-y-1">
+                                                        {committee.activities.map((activity: any, j: number) => (
+                                                            <div key={j} className="flex items-center gap-2 text-sm">
+                                                                <Badge variant="outline">{activity.name}</Badge>
+                                                                <span className="text-muted-foreground">{formatDate(activity.date)}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground text-center py-8">No committee referrals found.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* AMENDMENTS TAB */}
+                    <TabsContent value="amendments">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Amendments</CardTitle>
+                                <CardDescription>Proposed changes to this bill</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {!amendments ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <Skeleton className="h-32 w-full" />
+                                    </div>
+                                ) : amendments.amendments && amendments.amendments.length > 0 ? (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Amendment</TableHead>
+                                                <TableHead>Sponsor</TableHead>
+                                                <TableHead>Description</TableHead>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead>Status</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {amendments.amendments.map((amendment: any, i: number) => (
+                                                <TableRow key={i}>
+                                                    <TableCell className="font-mono">{amendment.number}</TableCell>
+                                                    <TableCell>{amendment.sponsor?.name || 'N/A'}</TableCell>
+                                                    <TableCell className="max-w-md truncate">{amendment.description || amendment.purpose || 'N/A'}</TableCell>
+                                                    <TableCell>{formatDate(amendment.submit_date)}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={amendment.latest_action?.action_code === 'APPROVED' ? 'default' : 'secondary'}>
+                                                            {amendment.latest_action?.text || 'Pending'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                ) : (
+                                    <p className="text-muted-foreground text-center py-8">No amendments found.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* RELATED BILLS TAB */}
+                    <TabsContent value="related">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Related Bills</CardTitle>
+                                <CardDescription>Bills with similar provisions or related subject matter</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {!relatedBills ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <Skeleton className="h-32 w-full" />
+                                    </div>
+                                ) : relatedBills.relatedBills && relatedBills.relatedBills.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {relatedBills.relatedBills.map((related: any, i: number) => (
+                                            <div key={i} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-semibold">
+                                                                {related.congress}-{related.type?.toUpperCase()}-{related.number}
+                                                            </h4>
+                                                            <Badge variant="outline">{related.relationship_type || related.type}</Badge>
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mt-1">{related.title}</p>
+                                                        {related.latest_action && (
+                                                            <p className="text-xs text-muted-foreground mt-2">
+                                                                Latest: {related.latest_action.text} ({formatDate(related.latest_action.action_date)})
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <Button variant="ghost" size="sm" asChild>
+                                                        <Link href={`/bills/${related.congress}/${related.type}/${related.number}`}>
+                                                            View →
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground text-center py-8">No related bills found.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* SUBJECTS TAB */}
+                    <TabsContent value="subjects">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Policy Subjects</CardTitle>
+                                <CardDescription>Legislative subjects assigned by the Library of Congress</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {!subjects ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <Skeleton className="h-32 w-full" />
+                                    </div>
+                                ) : subjects.subjects && subjects.subjects.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                        {subjects.subjects.map((subject: any, i: number) => (
+                                            <Badge key={i} variant="secondary" className="text-sm py-2 px-3">
+                                                {typeof subject === 'string' ? subject : subject.name}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground text-center py-8">No subjects assigned.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* TITLES TAB */}
+                    <TabsContent value="titles">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Bill Titles</CardTitle>
+                                <CardDescription>All official and short titles for this bill</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {!titles ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <Skeleton className="h-32 w-full" />
+                                    </div>
+                                ) : titles.titles && titles.titles.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {titles.titles.map((title: any, i: number) => (
+                                            <div key={i} className="border-b pb-4 last:border-b-0">
+                                                <div className="flex items-start gap-2 mb-1">
+                                                    <Badge variant="outline" className="shrink-0">{title.title_type || title.type}</Badge>
+                                                    {title.chamber && <Badge variant="secondary" className="shrink-0 capitalize">{title.chamber}</Badge>}
+                                                </div>
+                                                <p className="mt-2">{title.title}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground text-center py-8">No titles found.</p>
                                 )}
                             </CardContent>
                         </Card>

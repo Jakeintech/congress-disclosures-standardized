@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, FileText } from 'lucide-react';
+import { BillTimeline, TimelineEvent } from './bill-timeline';
 import {
     fetchBillText,
     fetchBillCommittees,
@@ -57,6 +58,31 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
 
     const [actions, setActions] = useState<any[] | null>(null);
     const [loadingActions, setLoadingActions] = useState(false);
+
+    // Convert actions to timeline events
+    const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
+
+    useEffect(() => {
+        if (actions && actions.length > 0) {
+            // Convert actions to timeline events
+            const events: TimelineEvent[] = actions.map((action, index) => {
+                const isLatest = index === 0;
+                const isCompleted = !isLatest;
+
+                return {
+                    date: action.action_date || action.date,
+                    title: action.action_text || action.text || 'Action taken',
+                    description: action.description,
+                    status: isLatest ? 'current' : 'completed',
+                    chamber: action.chamber,
+                    tradeAlert: false, // TODO: Connect with trade correlation data
+                    tradeCount: 0,
+                };
+            });
+
+            setTimelineEvents(events);
+        }
+    }, [actions]);
 
     // Fetch data when tabs are activated
     const handleTabChange = (val: string) => {
@@ -139,12 +165,21 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
             fetchBillActions(billId).then(data => setActions(data?.actions || []))
                 .finally(() => setLoadingActions(false));
         }
+
+        // Load actions for timeline tab
+        if (val === 'timeline' && !actions && !loadingActions) {
+            setLoadingActions(true);
+            // @ts-ignore
+            fetchBillActions(billId).then(data => setActions(data?.actions || []))
+                .finally(() => setLoadingActions(false));
+        }
     };
 
     return (
         <Tabs defaultValue="summary" className="w-full" onValueChange={handleTabChange}>
             <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap gap-2 p-1 bg-background border-b rounded-none mb-4">
                 <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="timeline">Timeline</TabsTrigger>
                 <TabsTrigger value="text">Text</TabsTrigger>
                 <TabsTrigger value="actions">
                     Actions <Badge variant="secondary" className="ml-1.5 text-[10px] h-5">{actionsCount}</Badge>
@@ -172,6 +207,36 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                             </div>
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                <TabsContent value="timeline">
+                    {loadingActions ? (
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="space-y-4">
+                                    <div className="animate-pulse space-y-3">
+                                        {[1, 2, 3, 4, 5].map(i => (
+                                            <div key={i} className="flex gap-4">
+                                                <div className="h-5 w-5 rounded-full bg-muted" />
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="h-4 bg-muted rounded w-3/4" />
+                                                    <div className="h-3 bg-muted rounded w-1/2" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : timelineEvents.length > 0 ? (
+                        <BillTimeline events={timelineEvents} billId={billId} />
+                    ) : (
+                        <Card>
+                            <CardContent className="pt-6">
+                                <p className="text-center text-muted-foreground">No timeline data available</p>
+                            </CardContent>
+                        </Card>
+                    )}
                 </TabsContent>
 
                 <TabsContent value="text">

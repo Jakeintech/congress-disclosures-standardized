@@ -36,8 +36,9 @@ locals {
       aws_lambda_layer_version.api_duckdb_layer.arn # Custom DuckDB layer
     ]
     environment_variables = {
-      S3_BUCKET_NAME = aws_s3_bucket.data_lake.id
-      LOG_LEVEL      = "INFO"
+      S3_BUCKET_NAME        = aws_s3_bucket.data_lake.id
+      LOG_LEVEL             = "INFO"
+      CONGRESS_GOV_API_KEY  = var.congress_gov_api_key
     }
   }
 
@@ -79,6 +80,14 @@ locals {
     "get_congress_bills"    = { route = "GET /v1/congress/bills" }
     "get_congress_bill"     = { route = "GET /v1/congress/bills/{bill_id}" }
     "get_bill_actions"      = { route = "GET /v1/congress/bills/{bill_id}/actions" }
+    "get_bill_text"         = { route = "GET /v1/congress/bills/{bill_id}/text" }
+    "get_bill_committees"   = { route = "GET /v1/congress/bills/{bill_id}/committees" }
+    "get_bill_cosponsors"   = { route = "GET /v1/congress/bills/{bill_id}/cosponsors" }
+    "get_bill_subjects"     = { route = "GET /v1/congress/bills/{bill_id}/subjects" }
+    "get_bill_summaries"    = { route = "GET /v1/congress/bills/{bill_id}/summaries" }
+    "get_bill_titles"       = { route = "GET /v1/congress/bills/{bill_id}/titles" }
+    "get_bill_amendments"   = { route = "GET /v1/congress/bills/{bill_id}/amendments" }
+    "get_bill_related"      = { route = "GET /v1/congress/bills/{bill_id}/related" }
     "get_congress_members"  = { route = "GET /v1/congress/members" }
     "get_congress_member"   = { route = "GET /v1/congress/members/{bioguide_id}" }
 

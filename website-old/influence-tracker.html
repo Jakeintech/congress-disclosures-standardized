@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Influence Tracker - Trade-Bill-Lobbying Correlations</title>
+    <meta name="description"
+        content="Track the complete influence chain: stock trades, bill sponsorship, lobbying activity, and campaign contributions">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #d32f2f 0%, #c2185b 100%);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            margin-bottom: 1rem;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+            opacity: 0.9;
+            max-width: 800px;
+        }
+
+        .alert-banner {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: #856404;
+        }
+
+        .alert-banner strong {
+            color: #d32f2f;
+        }
+
+        .filter-controls {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e0e0e0;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+        }
+
+        .filter-input,
+        .filter-select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .score-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .score-slider {
+            flex: 1;
+            height: 8px;
+        }
+
+        .score-value {
+            font-weight: 700;
+            color: #d32f2f;
+            min-width: 40px;
+        }
+
+        .correlation-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .correlation-card:hover {
+            border-color: #d32f2f;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .correlation-card.expanded {
+            border-color: #d32f2f;
+            background: #fffbf5;
+        }
+
+        .correlation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .correlation-score {
+            font-size: 2.5rem;
+            font-weight: 700;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .score-100 {
+            color: #d32f2f;
+        }
+
+        .score-80 {
+            color: #ff5722;
+        }
+
+        .score-60 {
+            color: #ff9800;
+        }
+
+        .score-40 {
+            color: #ffc107;
+        }
+
+        .score-low {
+            color: #9e9e9e;
+        }
+
+        .correlation-summary {
+            flex: 1;
+        }
+
+        .member-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .quick-facts {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .fact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .fact-label {
+            font-weight: 600;
+        }
+
+        .correlation-details {
+            display: none;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .correlation-details.visible {
+            display: block;
+        }
+
+        .explanation-text {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 4px solid #d32f2f;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .timeline-viz {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .timeline-track {
+            position: relative;
+            height: 60px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            margin: 2rem 0;
+        }
+
+        .timeline-event {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .timeline-label {
+            position: absolute;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            top: -25px;
+        }
+
+        .scoring-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .score-component {
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #667eea;
+        }
+
+        .component-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .component-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="container">
+                <h1 class="hero-title">🔍 Influence Tracker</h1>
+                <p class="hero-subtitle">Track the Complete Influence Chain</p>
+                <p class="hero-description">
+                    Discover connections between stock trades, bill sponsorship, lobbying activity, and campaign
+                    contributions.
+                    Each correlation shows the full story of potential influence.
+                </p>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <div class="container">
+                <!-- Alert Banner -->
+                <div class="alert-banner">
+                    <strong>⚠️ Important:</strong> These correlations show timing and relationships between public
+                    records.
+                    Correlation does not equal causation. All data comes from official government disclosures.
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-controls">
+                    <h3 style="margin-bottom: 1rem; color: #333;">🎯 Filters</h3>
+                    <div class="filter-row">
+                        <div>
+                            <div class="filter-label">Member</div>
+                            <input type="text" id="filter-member" class="filter-input" placeholder="Bioguide ID">
+                        </div>
+                        <div>
+                            <div class="filter-label">Stock Ticker</div>
+                            <input type="text" id="filter-ticker" class="filter-input" placeholder="e.g., AAPL">
+                        </div>
+                        <div>
+                            <div class="filter-label">Bill ID</div>
+                            <input type="text" id="filter-bill" class="filter-input" placeholder="e.g., 118-hr-1234">
+                        </div>
+                        <div>
+                            <div class="filter-label">Year</div>
+                            <select id="filter-year" class="filter-select">
+                                <option value="2025" selected>2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <div class="filter-label">Minimum Score: <span id="score-display" class="score-value">50</span>
+                        </div>
+                        <input type="range" id="score-slider" class="score-slider" min="0" max="100" value="50"
+                            step="10">
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-primary" id="apply-btn">Apply Filters</button>
+                        <button class="btn btn-secondary" id="clear-btn">Clear All</button>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-left: auto;">
+                            <input type="checkbox" id="contributions-only">
+                            <span>Show only with contributions</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Loading/Empty/Error States -->
+                <div id="loading-state" style="text-align: center; padding: 4rem; color: #666;">
+                    <div class="spinner"></div>
+                    <p>Loading correlations...</p>
+                </div>
+
+                <div id="empty-state" style="display: none; text-align: center; padding: 4rem; color: #666;">
+                    <h3>No Correlations Found</h3>
+                    <p>Try adjusting your filters or lowering the minimum score.</p>
+                </div>
+
+                <div id="error-state" style="display: none; text-align: center; padding: 4rem; color: #d32f2f;">
+                    <h3>Error Loading Data</h3>
+                    <p>Please try again later.</p>
+                </div>
+
+                <!-- Correlations Container -->
+                <div id="correlations-container" style="display: none;">
+                    <div
+                        style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="color: #333;">
+                            <span id="correlation-count">0</span> Correlations Found
+                        </h3>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            Sorted by correlation score (highest first)
+                        </div>
+                    </div>
+
+                    <div id="correlations-list"></div>
+
+                    <!-- Pagination -->
+                    <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+                        <button class="btn btn-secondary" id="load-more-btn">Load More</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <p>&copy; 2024 Congress Disclosures. Influence tracking powered by official disclosures.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/influence-tracker.js"></script>
+</body>
+
+</html>

@@ -9,7 +9,7 @@
             "Resource": [
                 "arn:aws:s3:::congress-disclosures-standardized/website/*",
                 "arn:aws:s3:::congress-disclosures-standardized/website/api/*",
-                "arn:aws:s3:::congress-disclosures-standardized/website-next/*",
+                "arn:aws:s3:::congress-disclosures-standardized/website/*",
                 "arn:aws:s3:::congress-disclosures-standardized/docs/*",
                 "arn:aws:s3:::congress-disclosures-standardized/favicon.ico",
                 "arn:aws:s3:::congress-disclosures-standardized/robots.txt",
@@ -29,7 +29,7 @@
                     "s3:prefix": [
                         "website/*",
                         "website/api/*",
-                        "website-next/*",
+                        "website/*",
                         "docs/*",
                         "favicon.ico",
                         "robots.txt",

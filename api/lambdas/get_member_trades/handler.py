@@ -55,6 +55,24 @@ def handler(event, context):
         
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
+        # LOOKUP: Get member_key from dim_members
+        # dim_members has string bioguide_id and integer member_key
+        member_df = qb.query_parquet(
+            'gold/house/financial/dimensions/dim_members',
+            filters={'bioguide_id': bioguide_id},
+            columns=['member_key'],
+            limit=1
+        )
+        
+        if member_df.empty:
+            return error_response(f"Member {bioguide_id} not found", 404)
+            
+        member_key = int(member_df.iloc[0]['member_key'])
+        
+        # Update filters to use integer member_key (which is stored in 'bioguide_id' column in facts)
+        # Note: In fact table, 'bioguide_id' column holds the integer member_key
+        filters['bioguide_id'] = member_key
+        
         # Count total
         total_count = qb.count_records(
             'gold/house/financial/facts/fact_ptr_transactions',

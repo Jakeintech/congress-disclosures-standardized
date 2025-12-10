@@ -1,0 +1,317 @@
+openapi: 3.0.0
+info:
+  title: Congress Bill API
+  version: 1.0.0
+  description: API for retrieving US Congress bill data via proxy to Congress.gov API.
+
+paths:
+  /v1/congress/bills/{bill_id}/actions:
+    get:
+      summary: Get bill actions
+      parameters:
+        - in: path
+          name: bill_id
+          required: true
+          schema:
+            type: string
+            example: "119-sconres-23"
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 250
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  actions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        action_date:
+                          type: string
+                        action_text:
+                          type: string
+                        type:
+                          type: string
+                        action_code:
+                          type: string
+                        source_system:
+                          type: string
+                  count:
+                    type: integer
+
+  /v1/congress/bills/{bill_id}/summaries:
+    get:
+      summary: Get bill summaries
+      parameters:
+        - in: path
+          name: bill_id
+          required: true
+          schema:
+            type: string
+            example: "119-sconres-23"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  summaries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        updateDate:
+                          type: string
+                        actionDate:
+                          type: string
+                        actionDesc:
+                          type: string
+                        text:
+                          type: string
+                        versionCode:
+                          type: string
+                  count:
+                    type: integer
+
+  /v1/congress/bills/{bill_id}/titles:
+    get:
+      summary: Get bill titles
+      parameters:
+        - in: path
+          name: bill_id
+          required: true
+          schema:
+            type: string
+            example: "119-sconres-23"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  titles:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        title:
+                          type: string
+                        chamber:
+                          type: string
+                        congress:
+                          type: integer
+                  count:
+                    type: integer
+
+  /v1/congress/bills/{bill_id}/cosponsors:
+    get:
+      summary: Get bill cosponsors
+      parameters:
+        - in: path
+          name: bill_id
+          required: true
+          schema:
+            type: string
+            example: "119-sconres-23"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  cosponsors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        bioguideId:
+                          type: string
+                        name:
+                          type: string
+                        state:
+                          type: string
+                        party:
+                          type: string
+                        district:
+                          type: string
+                        sponsorshipDate:
+                          type: string
+                        isOriginalCosponsor:
+                          type: boolean
+                  count:
+                    type: integer
+
+  /v1/congress/bills/{bill_id}/subjects:
+    get:
+      summary: Get bill subjects
+      parameters:
+        - in: path
+          name: bill_id
+          required: true
+          schema:
+            type: string
+            example: "119-sconres-23"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  subjects:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        updateDate:
+                          type: string
+                  count:
+                    type: integer
+
+  /v1/congress/bills/{bill_id}/amendments:
+    get:
+      summary: Get bill amendments
+      parameters:
+        - in: path
+          name: bill_id
+          required: true
+          schema:
+            type: string
+            example: "119-sconres-23"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  amendments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        number:
+                          type: string
+                        type:
+                          type: string
+                        congress:
+                          type: string
+                        description:
+                          type: string
+                        purpose:
+                          type: string
+                        latestAction:
+                          type: object
+                        updateDate:
+                          type: string
+                  count:
+                    type: integer
+
+  /v1/congress/bills/{bill_id}/committees:
+    get:
+      summary: Get bill committees
+      parameters:
+        - in: path
+          name: bill_id
+          required: true
+          schema:
+            type: string
+            example: "119-sconres-23"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  committees:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        systemCode:
+                          type: string
+                        name:
+                          type: string
+                        chamber:
+                          type: string
+                        type:
+                          type: string
+                        activities:
+                          type: array
+                  count:
+                    type: integer
+
+  /v1/congress/bills/{bill_id}/related:
+    get:
+      summary: Get related bills
+      parameters:
+        - in: path
+          name: bill_id
+          required: true
+          schema:
+            type: string
+            example: "119-sconres-23"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  relatedBills:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        number:
+                          type: integer
+                        congress:
+                          type: integer
+                        title:
+                          type: string
+                        relationshipType:
+                          type: string
+                        identifiedBy:
+                          type: string
+                  count:
+                    type: integer

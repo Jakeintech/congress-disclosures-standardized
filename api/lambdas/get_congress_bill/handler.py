@@ -234,6 +234,90 @@ def get_trade_correlations(qb, bill_id, limit=20):
         return []
 
 
+
+def get_committees(qb, bill_id):
+    """Get committee assignments for a bill."""
+    try:
+        filters = {'bill_id': bill_id}
+        # Try Gold first, fall back to Silver
+        try:
+            committees_df = qb.query_parquet(
+                'gold/congress/fact_bill_committees',
+                filters=filters
+            )
+        except:
+             committees_df = qb.query_parquet(
+                'silver/congress/bill_committees',
+                filters=filters
+            )
+
+        if committees_df.empty:
+            return []
+
+        committees = []
+        for _, row in committees_df.iterrows():
+            committees.append({
+                'system_code': row.get('system_code', ''),
+                'name': row.get('name', ''),
+                'chamber': row.get('chamber', ''),
+                'activity': row.get('activity', []) # list
+            })
+        return committees
+    except Exception as e:
+        logger.warning(f"Error fetching committees: {e}")
+        return []
+
+def get_related_bills(qb, bill_id):
+    """Get related bills."""
+    try:
+        filters = {'bill_id': bill_id}
+        related_df = qb.query_parquet(
+            'silver/congress/related_bills', # Assuming Silver for now
+            filters=filters
+        )
+        
+        if related_df.empty:
+            return []
+            
+        related = []
+        for _, row in related_df.iterrows():
+            related.append({
+                'related_bill_id': row.get('related_bill_id', ''),
+                'title': row.get('title', ''),
+                'type': row.get('relationship_type', ''),
+                'identified_by': row.get('identified_by', '')
+            })
+        return related
+    except Exception as e:
+        logger.warning(f"Error fetching related bills: {e}")
+        return []
+
+def get_titles(qb, bill_id):
+    """Get all titles for a bill."""
+    try:
+        filters = {'bill_id': bill_id}
+        titles_df = qb.query_parquet(
+            'silver/congress/bill_titles',
+            filters=filters
+        )
+        
+        if titles_df.empty:
+            return []
+            
+        titles = []
+        for _, row in titles_df.iterrows():
+            titles.append({
+                'title': row.get('title', ''),
+                'type': row.get('title_type', ''),
+                'chamber': row.get('chamber', ''),
+                'is_for_portion': row.get('is_for_portion', False)
+            })
+        return titles
+    except Exception as e:
+        logger.warning(f"Error fetching titles: {e}")
+        return []
+
+
 def handler(event, context):
     """
     GET /v1/congress/bills/{bill_id}
@@ -381,10 +465,10 @@ def handler(event, context):
                 {'format': 'txt', 'url': bill.get('text_url')},
                 {'format': 'pdf', 'url': bill.get('pdf_url')}
             ] if bill.get('text_url') or bill.get('pdf_url') else [],
-            'committees': [],  # TODO: Add committee data when available
-            'related_bills': [],  # TODO: Add related bills when available
+            'committees': get_committees(qb, bill_id),
+            'related_bills': get_related_bills(qb, bill_id),
             'subjects': bill.get('subjects', []), # Assuming subjects might be in dim_bill
-            'titles': bill.get('titles', []), # Assuming titles might be in dim_bill
+            'titles': get_titles(qb, bill_id),
             'congress_gov_url': congress_gov_url
         }
 

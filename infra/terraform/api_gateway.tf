@@ -11,7 +11,7 @@ resource "aws_apigatewayv2_api" "congress_api" {
   description   = "Congressional Trading Data API - Public access to Gold layer analytics"
 
   cors_configuration {
-    allow_origins = ["*", "http://congress-disclosures-standardized.s3-website-us-east-1.amazonaws.com"]
+    allow_origins = ["*", "http://congress-disclosures-standardized.s3-website-us-east-1.amazonaws.com", "https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com"]
     allow_methods = ["GET", "POST", "OPTIONS"]
     allow_headers = ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"]
     max_age       = 300

@@ -1,0 +1,203 @@
+name: website-old
+stack:
+  - static HTML
+  - vanilla JS
+  - CSS (single `style.css`)
+data_sources:
+  - api_gateway: https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com
+  - s3_public: https://congress-disclosures-standardized.s3.us-east-1.amazonaws.com
+  - house_official_pdfs: https://disclosures-clerk.house.gov
+routing: file-per-page (no framework routing)
+
+pages:
+  - path: index.html
+    title: Dashboard
+    purpose: Entry dashboard linking to documents, transactions, analytics, network, quality, downloads
+    components: [nav]
+
+  - path: documents.html
+    title: Documents (Silver Split View)
+    purpose: Browse filings with split-pane viewer (PDF + extracted data)
+    components: [nav, pdfjs, silver_split_view]
+    data:
+      - s3: /website/api/v1/documents/manifest.json (filings list)
+      - s3: silver/objects/.../extraction.json (structured data)
+      - s3: bronze/house/financial/year=YYYY/pdfs/YYYY/DOCID.pdf (cached pdf)
+    features:
+      - list filtering (search, year, type)
+      - PDF controls (prev/next, zoom)
+      - audit views (structured, pipeline diagram, raw_json, extracted_text)
+
+  - path: transactions.html
+    title: Transactions
+    purpose: PTR transactions table with filtering, sorting, pagination, CSV export
+    components: [nav]
+    data:
+      - api: /v1/trades?limit=1000
+    features:
+      - filters (search, type, amount, owner)
+      - sortable columns
+      - client-side pagination
+      - CSV export
+
+  - path: analytics.html
+    title: Analytics
+    purpose: Top traders, trending stocks, sector analysis
+    components: [nav]
+    data:
+      - api: /v1/analytics/top-traders
+      - api: /v1/analytics/trending-stocks
+      - api: /v1/analytics/sector-activity
+    features:
+      - volume bar chart (top members)
+      - trending table with buy/sell ratio
+      - sector pie chart + insights
+      - CSV export (members, stocks, sectors)
+
+  - path: network.html
+    title: Trading Network
+    purpose: Interactive D3 network graph of Members ↔ Assets with advanced aggregation
+    components: [nav, d3_network]
+    data:
+      - api: /v1/analytics/network-graph
+    features:
+      - filters (party, chamber, transaction type, min volume, search)
+      - aggregation modes (none, party, chamber, state, volume tiers)
+      - expand/collapse groups
+      - node sizing (volume, degree, count)
+      - details sidebar, export filtered
+
+  - path: quality.html
+    title: Quality Audit
+    purpose: Document machine-readability and OCR quality by member
+    components: [nav]
+    data:
+      - api: /v1/analytics/compliance (or equivalent)
+    features:
+      - filters (party/category/flagged)
+      - sortable metrics
+      - summary stats
+
+  - path: costs.html
+    title: Costs
+    purpose: Cost visualizer (ingestion/runtime)
+    components: [nav, cost_visualizer]
+
+  - path: downloads.html
+    title: Downloads
+    purpose: Browse S3 layers for downloadable artifacts
+    components: [nav, s3_browser]
+
+  - path: congress-bills.html
+    title: Bills
+    purpose: Browse bills with correlation markers
+    components: [nav]
+
+  - path: bill-detail.html
+    title: Bill Detail
+    purpose: Bill details with trade correlations, sponsors, actions
+    components: [nav]
+
+  - path: congress-members.html
+    title: Members
+    purpose: Browse congressional members
+    components: [nav]
+
+  - path: member-profile.html
+    title: Member Profile
+    purpose: Member stats, recent trades, sector mix
+    components: [nav]
+
+  - path: bill-trade-correlation.html
+    title: Bill-Trade Correlation
+    purpose: Correlation explorer for a specific bill (time-aligned trades vs actions)
+    components: [nav]
+
+  - path: lobbying-explorer.html
+    title: Lobbying Explorer
+    purpose: Explore lobbying clients and connections (tabular/summary)
+    components: [nav]
+
+  - path: lobbying-network.html
+    title: Lobbying Network
+    purpose: Network graph for lobbying entities
+    components: [nav]
+
+  - path: influence-tracker.html
+    title: Influence Tracker
+    purpose: Triple correlation (trade-bill-lobbying) scoring
+    components: [nav]
+
+  - path: api-docs/index.html
+    title: API Docs
+    purpose: Static API documentation index
+    components: [nav]
+
+  - path: admin.html
+    title: Admin Document Viewer
+    purpose: Internal split viewer and manifest explorer (bronze/silver), optional IP gating
+    components: [nav, pdfjs, admin_viewer]
+
+  - path: errors.html
+    title: Pipeline Errors
+    purpose: Surface recent pipeline errors
+    components: [nav]
+
+  - path: extraction_pipeline.html
+    title: Extraction Pipeline
+    purpose: Overview of extraction stages/health
+    components: [nav]
+
+components:
+  - name: nav
+    file: nav.js
+    purpose: Injects site navigation with active highlighting and dropdowns
+
+  - name: analytics
+    file: analytics.js
+    purpose: Top traders, trending stocks, sector analysis + CSV export
+
+  - name: transactions
+    file: transactions.js
+    purpose: PTR table, filters, sorting, pagination, CSV export
+
+  - name: network
+    file: network.js
+    purpose: D3 network with aggregation modes and advanced controls
+
+  - name: silver_split_view
+    file: silver_split_view.js
+    purpose: Split-pane PDF + structured data viewer with audit modes; fetches manifests and extraction.json
+
+  - name: document_quality
+    file: document_quality.js
+    purpose: Quality metrics UI
+
+  - name: s3_browser
+    file: s3_browser.js
+    purpose: Simple directory-style S3 layer browser
+
+  - name: cost_visualizer
+    file: cost_visualizer.js
+    purpose: Cost charts/estimates
+
+  - name: admin_viewer
+    file: admin.js
+    purpose: Enhanced admin document viewer, sorting, split panes, PDF rendering via pdf.js
+
+assets_and_data:
+  - vendor/pdfjs/pdf.min.js
+  - vendor/pdfjs/pdf.worker.min.js
+  - data/trending_stocks.json (sample)
+  - data/member_trading_stats.json (sample)
+  - data/sector_analysis.json (sample)
+  - data/network_graph.json (sample)
+  - data/document_quality.json (sample)
+
+global_features:
+  - shared navigation/header
+  - CSV export utilities on analytics/transactions
+  - client-side filtering/sorting/pagination
+  - pdf.js-based PDF rendering with controls
+  - multi-source fetch (API Gateway + S3 manifests)
+

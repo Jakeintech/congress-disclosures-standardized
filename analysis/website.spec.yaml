@@ -1,0 +1,141 @@
+name: website
+stack:
+  - Next.js (App Router)
+  - TypeScript + React
+  - shadcn/ui components
+  - d3 (network graph)
+data_sources:
+  - api_gateway: ${NEXT_PUBLIC_API_BASE} (defaults to https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com)
+  - s3_public (for admin manifests and PDFs via direct URL)
+routing: Next.js app routes under `src/app`
+
+routes:
+  - route: /
+    file: src/app/page.tsx
+    title: Dashboard
+    purpose: Summary stats, trending stocks, top traders, quick links
+    components: [ui/card, ui/badge, ui/button]
+    data:
+      - api: /v1/analytics/summary
+      - api: /v1/analytics/trending-stocks
+      - api: /v1/analytics/top-traders
+
+  - route: /transactions
+    file: src/app/transactions/page.tsx
+    title: Transactions
+    purpose: Client-side filtered transaction table
+    components: [ui/table, ui/select, ui/input]
+    data:
+      - api: /v1/trades?limit=1000
+    features:
+      - filters (ticker, member text, trade type)
+      - skeleton loading states
+
+  - route: /members
+    file: src/app/members/page.tsx
+    title: Members
+    purpose: Browse members with filters
+    components: [ui/card, ui/select, ui/input]
+    data:
+      - api: /v1/congress/members?limit=100
+
+  - route: /politician/[id]
+    file: src/app/politician/[id]/page.tsx
+    title: Member Profile
+    purpose: Member dashboard (header, trades, sector mix)
+    components: [politician-header, recent-trades-table, trade-volume-chart, sector-pie-chart]
+    data:
+      - api: /v1/members/{bioguideId}
+      - api: /v1/members/{bioguideId}/trades
+      - api: /v1/members/{bioguideId}/portfolio
+
+  - route: /bills
+    file: src/app/bills/page.tsx
+    title: Bills
+    purpose: Browse bills with filters and correlation count
+    components: [ui/table, ui/select, ui/input]
+    data:
+      - api: /v1/congress/bills?{filters}
+
+  - route: /bills/[congress]/[type]/[number]
+    file: src/app/bills/[congress]/[type]/[number]/page.tsx
+    title: Bill Detail
+    purpose: Bill metadata, actions, sponsors, trade correlations
+    components: [bill-header, bill-tabs, bill-detail-client]
+    data:
+      - api: /v1/congress/bills/{id}
+      - isr_fallback: /data/bill_details/{congress}/{type}/{number}.json
+
+  - route: /influence
+    file: src/app/influence/page.tsx
+    title: Influence Tracker
+    purpose: Triple correlation (trade-bill-lobbying) with score filters
+    components: [ui/table, ui/button, ui/badge]
+    data:
+      - api: /v1/correlations/triple?min_score=...
+
+  - route: /lobbying
+    file: src/app/lobbying/page.tsx
+    title: Lobbying (landing)
+    purpose: Section landing (lightweight)
+
+  - route: /lobbying/network
+    file: src/app/lobbying/network/page.tsx
+    title: Lobbying Network Graph
+    purpose: D3 force-directed graph of members/bills/lobbyists/clients
+    components: [components/lobbying/network-graph]
+    data:
+      - api: /v1/lobbying/network-graph?year=2025
+
+  - route: /quality
+    file: src/app/quality/page.tsx
+    title: Quality Audit
+    purpose: Document quality stats and member-level audit table
+    components: [ui/table, ui/select, ui/input]
+    data:
+      - api: /stats/quality
+      - api: /quality/members?limit=1000
+
+  - route: /admin
+    file: src/app/admin/page.tsx
+    title: Admin Document Viewer (V1)
+    purpose: Minimal split viewer using iframe and merged bronze/silver manifests
+    components: [ui/sidebar, ui/scroll-area]
+    data:
+      - s3: /website/api/v1/documents/manifest.json
+      - s3: /website/api/v1/documents/silver/manifest.json
+
+components:
+  - name: main-nav
+    file: src/components/nav/main-nav.tsx
+    purpose: Top navigation (Next.js layout)
+
+  - name: s3-browser
+    file: src/components/s3-browser.tsx
+    purpose: Generic S3 layer browser (bronze/silver/gold)
+
+  - name: lobbying-network-graph
+    file: src/components/lobbying/network-graph.tsx
+    purpose: Client-side D3 network with zoom/drag, node details sheet
+
+  - name: politician-dashboard
+    file: src/components/politicians/politician-dashboard.tsx
+    purpose: Aggregate member profile view and tabs
+
+  - name: bills
+    files:
+      - src/components/bills/bill-detail-client.tsx
+      - src/components/bills/bill-header.tsx
+      - src/components/bills/bill-tabs.tsx
+    purpose: Bill detail UI building blocks
+
+ui_primitives:
+  - src/components/ui/* (card, table, tabs, select, badge, button, alert, etc.)
+
+global_features:
+  - modern UI with skeleton loading states
+  - client-side filtering for lists
+  - ISR fallback for archived bill details
+  - modular API client `src/lib/api.ts` + `api-quality.ts`
+  - TypeScript types for API responses
+

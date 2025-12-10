@@ -71,11 +71,23 @@ def handler(event, context):
         # Get base filings
         base_path = f'silver/lobbying/filings/year={filing_year}' if filing_year else 'silver/lobbying/filings'
 
-        df = qb.query_parquet(
-            base_path,
-            filters=filters if filters else None,
-            limit=limit + offset + 100  # Get extra for filtering
-        )
+        try:
+            df = qb.query_parquet(
+                base_path,
+                filters=filters if filters else None,
+                limit=limit + offset + 100  # Get extra for filtering
+            )
+        except Exception as e:
+            if "No files found" in str(e) or "Hive partition" in str(e):
+                logger.warning(f"No files found for {base_path}: {e}")
+                return success_response({
+                    'filings': [],
+                    'total': 0,
+                    'limit': limit,
+                    'offset': offset,
+                    'has_more': False
+                })
+            raise e
 
         if df.empty:
             return success_response({

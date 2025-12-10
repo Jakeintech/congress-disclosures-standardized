@@ -21,8 +21,18 @@ def handler(event, context):
         except:
             # Fallback: calculate from filings
             filings_df = qb.query_parquet('gold/house/financial/facts/fact_filings', limit=10000)
-            # Basic compliance: count filings per member
-            compliance = filings_df.groupby('bioguide_id').size().reset_index(name='filing_count')
+            
+            # Group by member_key
+            compliance = filings_df.groupby('member_key').size().reset_index(name='filing_count')
+            
+            # Map member_key to bioguide_id
+            members_df = qb.query_parquet('gold/house/financial/dimensions/dim_members', columns=['member_key', 'bioguide_id'])
+            # Create mapping dict: member_key -> bioguide_id
+            key_map = dict(zip(members_df['member_key'], members_df['bioguide_id']))
+            
+            # Add bioguide_id to compliance df
+            compliance['bioguide_id'] = compliance['member_key'].map(key_map)
+            
             return success_response({'compliance': compliance.head(100).to_dict('records'), 'note': 'Basic metrics'})
     except Exception as e:
         logger.error(f"Error: {e}", exc_info=True)

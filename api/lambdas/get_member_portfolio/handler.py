@@ -18,11 +18,24 @@ def handler(event, context):
         
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
+        # LOOKUP: Get member_key from dim_members
+        member_df = qb.query_parquet(
+            'gold/house/financial/dimensions/dim_members',
+            filters={'bioguide_id': bioguide_id},
+            columns=['member_key'],
+            limit=1
+        )
+        
+        if member_df.empty:
+            return error_response(f"Member {bioguide_id} not found", 404)
+            
+        member_key = int(member_df.iloc[0]['member_key'])
+        
         # Get asset holdings (if available)
         try:
             holdings_df = qb.query_parquet(
                 'gold/house/financial/facts/fact_asset_holdings',
-                filters={'bioguide_id': bioguide_id},
+                filters={'bioguide_id': member_key}, # Use integer key
                 order_by='filing_date DESC',
                 limit=100
             )
@@ -31,7 +44,7 @@ def handler(event, context):
             # Fallback: aggregate from recent transactions
             trades_df = qb.query_parquet(
                 'gold/house/financial/facts/fact_ptr_transactions',
-                filters={'bioguide_id': bioguide_id},
+                filters={'bioguide_id': member_key},
                 limit=500
             )
             portfolio = trades_df.groupby('ticker').size().reset_index(name='trade_count').to_dict('records')

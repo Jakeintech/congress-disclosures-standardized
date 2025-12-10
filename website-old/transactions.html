@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - Congress Financial Disclosures</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">PTR Transactions</h2>
+                        <p class="card-description">Stock and securities transactions by House members</p>
+                    </div>
+                    <div class="card-content">
+                        <!-- Stats -->
+                        <div class="stats-grid" id="ptr-stats">
+                            <div class="stat-card">
+                                <div class="stat-value" id="ptr-total-trans">-</div>
+                                <div class="stat-label">Total Transactions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="ptr-total-ptrs">-</div>
+                                <div class="stat-label">PTRs Processed</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="ptr-latest-date">-</div>
+                                <div class="stat-label">Latest Filing</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="ptr-avg-confidence">-</div>
+                                <div class="stat-label">Avg Confidence</div>
+                            </div>
+                        </div>
+
+                        <!-- Owner Type Clarification -->
+                        <div class="alert alert-info" style="margin-top: 2rem;">
+                            <div class="alert-title">📘 Understanding Owner Types</div>
+                            <div class="alert-description">
+                                <strong>Filer</strong> = The Congress member who filed the disclosure<br>
+                                <strong>SP (Spouse)</strong> = Member's spouse owns the asset<br>
+                                <strong>DC (Dependent Child)</strong> = Member's dependent child owns the asset<br>
+                                <strong>JT (Joint)</strong> = Joint ownership with member<br><br>
+                                <em>Note: The "Member" column always shows the Congress member who filed. The
+                                    "Asset Owner" column shows who actually owns the traded asset.</em>
+                            </div>
+                        </div>
+
+                        <!-- Filters -->
+                        <div class="filters">
+                            <input type="text" id="ptr-search" placeholder="Search by name, asset, or ticker..."
+                                class="input">
+                            <div class="filter-grid">
+                                <select id="ptr-type-filter" class="select">
+                                    <option value="">All Transaction Types</option>
+                                </select>
+                                <select id="ptr-amount-filter" class="select">
+                                    <option value="">All Amounts</option>
+                                </select>
+                                <select id="ptr-owner-filter" class="select">
+                                    <option value="">All Asset Owners</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div id="ptr-loading" class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Loading PTR transactions...</p>
+                        </div>
+
+                        <!-- Error State -->
+                        <div id="ptr-error" class="error-state hidden">
+                            <p>Unable to load PTR transactions.</p>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div id="ptr-data-section" class="data-section hidden">
+                            <div class="table-actions">
+                                <span id="ptr-showing-count" class="text-muted">Showing 0 of 0 transactions</span>
+                                <button id="ptr-export-csv" class="btn btn-secondary">Export CSV</button>
+                            </div>
+
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th data-sort="transaction_date">Date</th>
+                                            <th data-sort="last_name">Member</th>
+                                            <th data-sort="state_district">State</th>
+                                            <th data-sort="asset_name">Asset</th>
+                                            <th data-sort="transaction_type">Type</th>
+                                            <th data-sort="amount_range">Amount</th>
+                                            <th data-sort="owner_code">Asset Owner</th>
+                                            <th>PDF</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ptr-table-body">
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="pagination" id="ptr-pagination">
+                                <button id="ptr-prev-page" class="btn btn-secondary" disabled>Previous</button>
+                                <span id="ptr-page-info">Page 1</span>
+                                <button id="ptr-next-page" class="btn btn-secondary">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="nav.js"></script>
+    <script src="transactions.js"></script>
+</body>
+
+</html>

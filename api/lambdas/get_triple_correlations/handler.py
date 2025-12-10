@@ -58,11 +58,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if bill_id:
             filters['bill_id'] = bill_id.lower()
 
-        df = qb.query_parquet(
-            table_path=f'gold/lobbying/agg_bill_lobbying_activity/year={year}',
-            filters=filters if filters else None,
-            limit=limit + offset + 100
-        )
+        try:
+            df = qb.query_parquet(
+                table_path=f'gold/lobbying/agg_bill_lobbying_activity/year={year}',
+                filters=filters if filters else None,
+                limit=limit + offset + 100
+            )
+        except Exception as e:
+            if "No files found" in str(e) or "Hive partition" in str(e):
+                logger.warning(f"No files found for correlations: {e}")
+                return success_response({
+                    'correlations': [],
+                    'total': 0,
+                    'limit': limit,
+                    'offset': offset,
+                    'message': 'No data found (empty S3)'
+                })
+            raise e
 
         if df.empty:
             return success_response({

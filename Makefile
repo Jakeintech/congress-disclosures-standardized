@@ -20,6 +20,10 @@ BLACK := $(PYTHON) -m black
 FLAKE8 := $(PYTHON) -m flake8
 MYPY := $(PYTHON) -m mypy
 
+# Ensure Terraform receives the Congress.gov API key from .env
+# Terraform reads variables from TF_VAR_* env vars.
+export TF_VAR_congress_gov_api_key := $(CONGRESS_GOV_API_KEY)
+
 ##@ General
 
 help: ## Display this help message
@@ -379,22 +383,22 @@ deploy-website: ## Deploy website to S3 (regenerates all analytics data first)
 
 build-nextjs: ## Build Next.js static export
 	@echo "📦 Building Next.js static export..."
-	@cd website-next && npm run build
-	@echo "✓ Next.js build complete in website-next/out/"
+	@cd website && npm run build
+	@echo "✓ Next.js build complete in website/out/"
 
 build-bill-isr: ## Pre-generate ISR JSON files for archived congresses (115-118)
 	@echo "🔄 Pre-generating bill detail ISR files..."
-	@$(PYTHON) scripts/build_bill_detail_pages.py --congress 115 116 117 118 --output-dir website-next/out/data/bill_details
+	@$(PYTHON) scripts/build_bill_detail_pages.py --congress 115 116 117 118 --output-dir website/out/data/bill_details
 	@echo "✓ ISR files generated"
 
 build-bill-isr-test: ## Test ISR generation (10 bills from Congress 118 only)
 	@echo "🧪 Testing ISR generation..."
-	@$(PYTHON) scripts/build_bill_detail_pages.py --congress 118 --limit 10 --output-dir website-next/out/data/bill_details
+	@$(PYTHON) scripts/build_bill_detail_pages.py --congress 118 --limit 10 --output-dir website/out/data/bill_details
 	@echo "✓ Test ISR files generated"
 
-deploy-website-next: build-nextjs build-bill-isr ## Build and deploy Next.js website to S3
+deploy-website: build-nextjs build-bill-isr ## Build and deploy Next.js website to S3
 	@echo "🚀 Deploying Next.js website to S3..."
-	@aws s3 sync website-next/out/ s3://congress-disclosures-standardized/website/ --exclude "*.DS_Store" --delete
+	@aws s3 sync website/out/ s3://congress-disclosures-standardized/website/ --exclude "*.DS_Store" --delete
 	@echo "✓ Next.js website deployed to s3://congress-disclosures-standardized/website/"
 
 
@@ -895,4 +899,3 @@ package-congress-orchestrator: ## Package Congress Orchestrator Lambda
 	@rm -rf $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip"
 	@ls -lh $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip | awk '{print "  Package size:", $$5}'
-

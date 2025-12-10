@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Gold Layer - Congress Financial Disclosures</title>
+    <meta name="description" content="Browse Gold layer files - aggregated analytics and insights">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .s3-browser {
+            margin: 2rem 0;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary, #f5f5f5);
+            border-radius: 6px;
+        }
+
+        .breadcrumb-link {
+            color: var(--link-color, #0066cc);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .breadcrumb-link:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: #666;
+        }
+
+        .browser-summary {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .file-list {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .file-item {
+            display: grid;
+            grid-template-columns: 40px 1fr 100px 180px;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-item:hover {
+            background: #f9f9f9;
+        }
+
+        .folder-item {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .file-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-icon.pdf svg {
+            stroke: #d32f2f;
+        }
+
+        .file-icon.json svg {
+            stroke: #1976d2;
+        }
+
+        .file-icon.parquet svg {
+            stroke: #388e3c;
+        }
+
+        .file-link {
+            color: var(--link-color, #0066cc);
+            text-decoration: none;
+        }
+
+        .file-link:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state,
+        .loading-state,
+        .error-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Gold Layer - Analytics Data</h2>
+                        <p class="card-description">Aggregated parquet files and analytics manifests</p>
+                    </div>
+                    <div class="card-content">
+                        <div id="browser-container"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <p>Open-source project for government transparency.
+                        <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank">View
+                            on GitHub</a>
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="nav.js"></script>
+    <script src="s3_browser.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('browser-container');
+            const browser = new S3Browser(container, 'gold');
+            browser.init();
+        });
+    </script>
+</body>
+
+</html>

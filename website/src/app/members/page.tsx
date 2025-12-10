@@ -12,6 +12,7 @@ import { ErrorBoundary, ApiError } from '@/components/ErrorBoundary';
 
 type Member = CongressMember & {
     name?: string; // Computed from first_name + last_name
+    trade_count?: number; // Optional trade count from API
 };
 
 const STATES = [

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,44 @@ type Member = CongressMember & {
     name?: string; // Computed from first_name + last_name
     trade_count?: number; // Optional trade count from API
 };
+
+/**
+ * Small member photo with fallback to initials
+ */
+function MemberPhotoSmall({ bioguideId, name, party }: { bioguideId: string, name?: string, party?: string }) {
+    const [imageError, setImageError] = useState(false);
+    const photoUrl = `https://bioguide.congress.gov/bioguide/photo/${bioguideId.charAt(0)}/${bioguideId}.jpg`;
+
+    function getPartyColor(party?: string): string {
+        switch (party) {
+            case 'D': return 'bg-blue-500 text-white';
+            case 'R': return 'bg-red-500 text-white';
+            default: return 'bg-gray-500 text-white';
+        }
+    }
+
+    if (imageError) {
+        return (
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${getPartyColor(party)}`}>
+                {name?.charAt(0) || '?'}
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0">
+            <Image
+                src={photoUrl}
+                alt={name || 'Member photo'}
+                width={48}
+                height={48}
+                className="object-cover"
+                onError={() => setImageError(true)}
+                unoptimized
+            />
+        </div>
+    );
+}
 
 const STATES = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -169,9 +208,11 @@ function MembersPage() {
                             <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
                                 <CardContent className="pt-6">
                                     <div className="flex items-start gap-4">
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${getPartyColor(member.party)}`}>
-                                            {member.name?.charAt(0) || '?'}
-                                        </div>
+                                        <MemberPhotoSmall
+                                            bioguideId={member.bioguide_id!}
+                                            name={member.name}
+                                            party={member.party}
+                                        />
                                         <div className="flex-1 min-w-0">
                                             <h3 className="font-semibold truncate">{member.name}</h3>
                                             <div className="flex items-center gap-2 mt-1">

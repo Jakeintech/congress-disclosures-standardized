@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -30,6 +31,10 @@ export function PoliticianHeader({ member }: PoliticianHeaderProps) {
     const [volume, setVolume] = useState<number | null>(null);
     const [totalTrades, setTotalTrades] = useState<number>(0);
     const [lastTraded, setLastTraded] = useState<string>('N/A');
+    const [imageError, setImageError] = useState(false);
+
+    // Congress.gov bioguide photo URL
+    const photoUrl = member.bioguide_id ? `https://bioguide.congress.gov/bioguide/photo/${member.bioguide_id.charAt(0)}/${member.bioguide_id}.jpg` : null;
 
     useEffect(() => {
         async function loadStats() {
@@ -101,7 +106,19 @@ export function PoliticianHeader({ member }: PoliticianHeaderProps) {
                     {/* Left: Profile Info */}
                     <div className="p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r md:w-1/3 bg-muted/10">
                         <div className="w-32 h-32 rounded-full bg-gray-200 mb-4 overflow-hidden border-4 border-background shadow-sm flex items-center justify-center text-4xl font-bold text-gray-400">
-                            {member.name.charAt(0)}
+                            {!imageError && photoUrl ? (
+                                <Image
+                                    src={photoUrl}
+                                    alt={member.name}
+                                    width={128}
+                                    height={128}
+                                    className="object-cover w-full h-full"
+                                    onError={() => setImageError(true)}
+                                    unoptimized
+                                />
+                            ) : (
+                                member.name.charAt(0)
+                            )}
                         </div>
                         <h1 className="text-2xl font-bold text-center">{member.name}</h1>
                         <p className="text-muted-foreground text-center mb-6">

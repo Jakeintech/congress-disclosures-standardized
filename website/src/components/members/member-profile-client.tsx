@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,48 @@ type MemberProfile = APIMemberProfile & {
 };
 
 type Trade = Transaction;
+
+/**
+ * Member Photo Component
+ * Uses Congress.gov bioguide photo URLs with fallback to initials avatar
+ */
+function MemberPhoto({ bioguideId, name, party }: { bioguideId: string, name?: string, party?: string }) {
+    const [imageError, setImageError] = useState(false);
+
+    // Congress.gov bioguide photo URL pattern
+    const photoUrl = `https://bioguide.congress.gov/bioguide/photo/${bioguideId.charAt(0)}/${bioguideId}.jpg`;
+
+    function getPartyColor(party?: string): string {
+        switch (party) {
+            case 'D': return 'bg-blue-500';
+            case 'R': return 'bg-red-500';
+            default: return 'bg-gray-500';
+        }
+    }
+
+    if (imageError) {
+        // Fallback to initials avatar
+        return (
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white ${getPartyColor(party)}`}>
+                {name?.charAt(0) || '?'}
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+            <Image
+                src={photoUrl}
+                alt={name || 'Member photo'}
+                width={80}
+                height={80}
+                className="object-cover"
+                onError={() => setImageError(true)}
+                unoptimized
+            />
+        </div>
+    );
+}
 
 interface MemberProfileClientProps {
     bioguideId: string;
@@ -116,9 +159,7 @@ export function MemberProfileClient({ bioguideId }: MemberProfileClientProps) {
 
             {/* Header */}
             <div className="flex items-start gap-6">
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white ${getPartyColor(member.party)}`}>
-                    {member.name?.charAt(0) || '?'}
-                </div>
+                <MemberPhoto bioguideId={bioguideId} name={member.name} party={member.party} />
                 <div>
                     <h1 className="text-3xl font-bold">{member.name}</h1>
                     <div className="flex items-center gap-2 mt-2">

@@ -1,10 +1,65 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Construction } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Users, Building2, FileText, Info } from 'lucide-react';
+import { fetchCommittees } from '@/lib/api';
+
+interface Committee {
+    systemCode: string;
+    name: string;
+    chamber: string;
+    type: string;
+    subcommittees?: any[];
+}
 
 export default function CommitteesPage() {
+    const [committees, setCommittees] = useState<Committee[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [chamberFilter, setChamberFilter] = useState('all');
+    const [search, setSearch] = useState('');
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function loadCommittees() {
+            setLoading(true);
+            try {
+                const data = await fetchCommittees(119);
+
+                // If API returns empty, use mock data for development
+                if (!data || data.length === 0) {
+                    setCommittees(getMockCommittees());
+                    setError('Using mock data - API endpoint not yet implemented');
+                } else {
+                    setCommittees(data);
+                }
+            } catch (err) {
+                console.error('Failed to load committees:', err);
+                setCommittees(getMockCommittees());
+                setError('Using mock data - API endpoint not available');
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadCommittees();
+    }, []);
+
+    const filteredCommittees = committees.filter(committee => {
+        const matchesChamber = chamberFilter === 'all' || committee.chamber === chamberFilter;
+        const matchesSearch = !search || committee.name.toLowerCase().includes(search.toLowerCase());
+        return matchesChamber && matchesSearch;
+    });
+
+    const houseCounts = committees.filter(c => c.chamber === 'House').length;
+    const senateCounts = committees.filter(c => c.chamber === 'Senate').length;
+    const jointCounts = committees.filter(c => c.chamber === 'Joint').length;
+
     return (
         <div className="space-y-6">
             <div>
@@ -14,51 +69,221 @@ export default function CommitteesPage() {
                 </p>
             </div>
 
-            <Alert>
-                <Construction className="h-4 w-4" />
-                <AlertTitle>Page Under Construction</AlertTitle>
-                <AlertDescription>
-                    The committees explorer is being built with Congress.gov integration.
-                    Check back soon for committee rosters, bills referred, hearings, and reports.
-                </AlertDescription>
-            </Alert>
+            {error && (
+                <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
 
+            {/* Stats */}
+            <div className="grid gap-4 md:grid-cols-3">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">House Committees</CardTitle>
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {loading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{houseCounts}</div>}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Senate Committees</CardTitle>
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {loading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{senateCounts}</div>}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Joint Committees</CardTitle>
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {loading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{jointCounts}</div>}
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Filters */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Planned Features</CardTitle>
-                    <CardDescription>
-                        Committee data integration in progress
-                    </CardDescription>
+                    <CardTitle>Filter Committees</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <ul className="space-y-2 list-disc list-inside">
-                        <li>House and Senate committee directory</li>
-                        <li>Committee membership with member photos</li>
-                        <li>Bills referred to each committee</li>
-                        <li>Committee reports and publications</li>
-                        <li>Hearing schedules and transcripts</li>
-                        <li>Subcommittee structure</li>
-                        <li>Committee voting records</li>
-                        <li>Trading activity by committee members</li>
-                    </ul>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <Input
+                                placeholder="Search committees..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <Select value={chamberFilter} onValueChange={setChamberFilter}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Chambers</SelectItem>
+                                    <SelectItem value="House">House</SelectItem>
+                                    <SelectItem value="Senate">Senate</SelectItem>
+                                    <SelectItem value="Joint">Joint</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>API Integration Required</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
-                    <p>This page requires the following API endpoints to be implemented:</p>
-                    <ul className="mt-2 space-y-1 list-disc list-inside">
-                        <li><code>/v1/congress/committees</code> - List all committees</li>
-                        <li><code>/v1/congress/committees/[code]</code> - Committee details</li>
-                        <li><code>/v1/congress/committees/[code]/bills</code> - Bills referred</li>
-                        <li><code>/v1/congress/committees/[code]/members</code> - Committee roster</li>
-                    </ul>
-                    <p className="mt-4">These endpoints will proxy to Congress.gov API and cache results.</p>
-                </CardContent>
-            </Card>
+            {/* Committees List */}
+            {loading ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                    {[...Array(6)].map((_, i) => (
+                        <Card key={i}>
+                            <CardContent className="p-6">
+                                <Skeleton className="h-24 w-full" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                    {filteredCommittees.map((committee) => (
+                        <Link
+                            key={committee.systemCode}
+                            href={`/committees/${committee.chamber.toLowerCase()}/${committee.systemCode}`}
+                        >
+                            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+                                <CardHeader>
+                                    <div className="flex items-start justify-between">
+                                        <CardTitle className="text-lg line-clamp-2">{committee.name}</CardTitle>
+                                        <Badge variant={
+                                            committee.chamber === 'House' ? 'default' :
+                                            committee.chamber === 'Senate' ? 'secondary' : 'outline'
+                                        }>
+                                            {committee.chamber}
+                                        </Badge>
+                                    </div>
+                                    <CardDescription>{committee.type}</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex gap-4 text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-1">
+                                            <Users className="h-4 w-4" />
+                                            <span>{committee.subcommittees?.length || 0} subcommittees</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <FileText className="h-4 w-4" />
+                                            <span>View bills</span>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    ))}
+                </div>
+            )}
+
+            {!loading && filteredCommittees.length === 0 && (
+                <Card>
+                    <CardContent className="p-12 text-center text-muted-foreground">
+                        No committees found matching your filters.
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
+}
+
+// Mock data for development (until backend API is ready)
+function getMockCommittees(): Committee[] {
+    return [
+        {
+            systemCode: 'hsag00',
+            name: 'Committee on Agriculture',
+            chamber: 'House',
+            type: 'Standing',
+            subcommittees: Array(6).fill({}),
+        },
+        {
+            systemCode: 'hsap00',
+            name: 'Committee on Appropriations',
+            chamber: 'House',
+            type: 'Standing',
+            subcommittees: Array(12).fill({}),
+        },
+        {
+            systemCode: 'hsas00',
+            name: 'Committee on Armed Services',
+            chamber: 'House',
+            type: 'Standing',
+            subcommittees: Array(7).fill({}),
+        },
+        {
+            systemCode: 'hsba00',
+            name: 'Committee on Financial Services',
+            chamber: 'House',
+            type: 'Standing',
+            subcommittees: Array(6).fill({}),
+        },
+        {
+            systemCode: 'hswm00',
+            name: 'Committee on Ways and Means',
+            chamber: 'House',
+            type: 'Standing',
+            subcommittees: Array(6).fill({}),
+        },
+        {
+            systemCode: 'ssag00',
+            name: 'Committee on Agriculture, Nutrition, and Forestry',
+            chamber: 'Senate',
+            type: 'Standing',
+            subcommittees: Array(5).fill({}),
+        },
+        {
+            systemCode: 'ssap00',
+            name: 'Committee on Appropriations',
+            chamber: 'Senate',
+            type: 'Standing',
+            subcommittees: Array(12).fill({}),
+        },
+        {
+            systemCode: 'ssas00',
+            name: 'Committee on Armed Services',
+            chamber: 'Senate',
+            type: 'Standing',
+            subcommittees: Array(7).fill({}),
+        },
+        {
+            systemCode: 'ssbk00',
+            name: 'Committee on Banking, Housing, and Urban Affairs',
+            chamber: 'Senate',
+            type: 'Standing',
+            subcommittees: Array(5).fill({}),
+        },
+        {
+            systemCode: 'ssfi00',
+            name: 'Committee on Finance',
+            chamber: 'Senate',
+            type: 'Standing',
+            subcommittees: Array(3).fill({}),
+        },
+        {
+            systemCode: 'jec00',
+            name: 'Joint Economic Committee',
+            chamber: 'Joint',
+            type: 'Joint',
+            subcommittees: [],
+        },
+        {
+            systemCode: 'jct00',
+            name: 'Joint Committee on Taxation',
+            chamber: 'Joint',
+            type: 'Joint',
+            subcommittees: [],
+        },
+    ];
 }

@@ -250,11 +250,16 @@ interface BillLifecycleStage {
 2. ✅ **COMPLETED:** Add bill actions/cosponsors/subjects/summaries/titles tabs
 3. ✅ **COMPLETED:** Add bill lifecycle timeline visualization (BillTimeline component)
 4. ✅ **COMPLETED:** Add member sponsored/cosponsored legislation tabs
-5. 🚧 **IN PROGRESS:** Build committee explorer
-6. 🚧 **IN PROGRESS:** Advanced search filters (partial filtering implemented)
-7. ❌ **PENDING:** Full amendments/text versions tabs
-8. ❌ **PENDING:** Related bills visualization
-9. ❌ **PENDING:** Network analysis visualizations (member-asset trading network)
+5. ✅ **COMPLETED:** Amendments tab with sponsor details and descriptions
+6. ✅ **COMPLETED:** Related bills tab with relationship types
+7. ✅ **COMPLETED:** Text versions tab with PDF/HTML downloads
+8. ✅ **COMPLETED:** Network analysis visualizations
+   - Trading Network (member-asset connections with aggregation)
+   - Influence Tracker (bill-trade-lobbying correlations)
+   - Lobbying Network (basic relationships)
+9. 🚧 **IN PROGRESS:** Build committee explorer (placeholder page created)
+10. 🚧 **IN PROGRESS:** Advanced search filters (partial filtering implemented)
+11. ❌ **PENDING:** Committee detail pages with rosters and bills
 
 ---
 

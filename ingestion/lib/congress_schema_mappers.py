@@ -117,9 +117,13 @@ def map_bill_to_silver(bronze_json: Dict[str, Any]) -> Dict[str, Any]:
         primary = sponsors[0]
         record["sponsor_bioguide_id"] = primary.get("bioguideId")
         record["sponsor_name"] = primary.get("fullName")
+        record["sponsor_party"] = _normalize_party(primary.get("party"))
+        record["sponsor_state"] = primary.get("state")
     else:
         record["sponsor_bioguide_id"] = None
         record["sponsor_name"] = None
+        record["sponsor_party"] = None
+        record["sponsor_state"] = None
 
     # Policy area
     policy = bill.get("policyArea", {})

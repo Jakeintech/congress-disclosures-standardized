@@ -43,10 +43,11 @@ def handler(event, context):
         
         traders_df = qb.aggregate_parquet(
             'gold/house/financial/facts/fact_ptr_transactions',
-            group_by=['bioguide_id', 'first_name', 'last_name', 'party', 'state'],
+            group_by=['bioguide_id', 'first_name', 'last_name', 'party', 'state', 'chamber'],
             aggregations={
                 'total_trades': 'COUNT(*)',
                 'unique_stocks': 'COUNT(DISTINCT ticker)',
+                'total_volume': 'SUM(COALESCE(amount_low, 0))',
                 'purchase_count': 'SUM(CASE WHEN transaction_type = \'Purchase\' THEN 1 ELSE 0 END)',
                 'sale_count': 'SUM(CASE WHEN transaction_type = \'Sale\' THEN 1 ELSE 0 END)'
             },

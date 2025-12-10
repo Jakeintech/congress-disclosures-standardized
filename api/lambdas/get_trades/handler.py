@@ -5,6 +5,7 @@ List all trades with comprehensive filtering and pagination.
 """
 
 import os
+import json
 import logging
 from api.lib import (
     ParquetQueryBuilder,
@@ -98,9 +99,10 @@ def handler(event, context):
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Cache-Control': 'public, max-age=300'
             },
-            'body': str(response).replace("'", '"').replace('True', 'true').replace('False', 'false').replace('None', 'null')
+            'body': json.dumps(response, default=str)
         }
     
     except Exception as e:

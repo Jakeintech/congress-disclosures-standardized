@@ -350,6 +350,36 @@ export async function fetchBillText(billId: string) {
 }
 
 /**
+ * Fetch all congressional committees
+ */
+export async function fetchCommittees(congress = 119) {
+    try {
+        const raw = await fetchApi<{ data?: { committees: any[] } }>(
+            `${API_BASE}/v1/congress/committees?congress=${congress}`
+        );
+        return raw.data?.committees || raw || [];
+    } catch (e) {
+        console.warn("Failed to fetch committees", e);
+        return [];
+    }
+}
+
+/**
+ * Fetch committee details
+ */
+export async function fetchCommitteeDetail(chamber: string, committeeCode: string, congress = 119) {
+    try {
+        const raw = await fetchApi<{ data?: any }>(
+            `${API_BASE}/v1/congress/committees/${chamber}/${committeeCode}?congress=${congress}`
+        );
+        return raw.data || raw;
+    } catch (e) {
+        console.warn(`Failed to fetch committee ${chamber}/${committeeCode}`, e);
+        return null;
+    }
+}
+
+/**
  * Fetch bill committees
  */
 export async function fetchBillCommittees(billId: string) {

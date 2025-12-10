@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, FileText } from 'lucide-react';
 import { BillTimeline, TimelineEvent } from './bill-timeline';
+import { BillTextComparison } from './bill-text-comparison';
+import { AmendmentImpactAnalysis } from './amendment-impact-analysis';
 import {
     fetchBillText,
     fetchBillCommittees,
@@ -192,6 +194,8 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                 <TabsTrigger value="subjects">Subjects</TabsTrigger>
                 <TabsTrigger value="amendments">Amendments</TabsTrigger>
                 <TabsTrigger value="related">Related Bills</TabsTrigger>
+                <TabsTrigger value="comparison">Text Comparison</TabsTrigger>
+                <TabsTrigger value="impact">Amendment Impact</TabsTrigger>
             </TabsList>
 
             <div className="space-y-4">
@@ -487,6 +491,14 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                             ) : <div className="text-center py-4 text-muted-foreground">No related bills found</div>}
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                <TabsContent value="comparison">
+                    <BillTextComparison billId={billId} textVersions={textVersions || []} />
+                </TabsContent>
+
+                <TabsContent value="impact">
+                    <AmendmentImpactAnalysis billId={billId} amendments={amendments || []} />
                 </TabsContent>
             </div>
         </Tabs>

@@ -70,35 +70,40 @@ def handler(event, context):
         where_clauses: List[str] = []
 
         if ticker:
-            where_clauses.append(f"ticker = '{ticker.upper()}'")
+            where_clauses.append(f"t.ticker = '{ticker.upper()}'")
 
         if bioguide_id:
-            where_clauses.append(f"bioguide_id = '{bioguide_id}'")
+            where_clauses.append(f"m.bioguide_id = '{bioguide_id}'")
 
         if party:
-            where_clauses.append(f"party = '{party.upper()}'")
+            where_clauses.append(f"m.party = '{party.upper()}'")
 
         if transaction_type:
-            where_clauses.append(f"transaction_type = '{transaction_type}'")
+            where_clauses.append(f"t.transaction_type = '{transaction_type}'")
 
         if start_date:
-            where_clauses.append(f"transaction_date >= '{start_date}'")
+            where_clauses.append(f"t.transaction_date >= '{start_date}'")
 
         if end_date:
-            where_clauses.append(f"transaction_date <= '{end_date}'")
+            where_clauses.append(f"t.transaction_date <= '{end_date}'")
 
         if min_amount:
-            where_clauses.append(f"amount_low >= {min_amount}")
+            where_clauses.append(f"t.amount_low >= {min_amount}")
 
         if max_amount:
-            where_clauses.append(f"amount_high <= {max_amount}")
+            where_clauses.append(f"t.amount_high <= {max_amount}")
+
+        # Add is_current filter for member dimension
+        where_clauses.append("m.is_current = true")
 
         where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
         # Count total matching records
         count_query = f"""
             SELECT COUNT(*) AS total
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
+            FROM read_parquet('s3://{S3_BUCKET}/gold/facts/fact_ptr_transactions/*.parquet') t
+            JOIN read_parquet('s3://{S3_BUCKET}/gold/dimensions/dim_member/*.parquet') m
+                ON t.member_key = m.member_key
             WHERE {where_sql}
         """
 
@@ -108,27 +113,29 @@ def handler(event, context):
         # Query trades with member information
         query = f"""
             SELECT
-                transaction_key,
-                doc_id,
-                transaction_date,
-                filing_date AS disclosure_date,
-                ticker,
-                asset_description AS asset_name,
-                transaction_type,
-                amount_low,
-                amount_high,
-                (amount_low + amount_high) / 2.0 AS amount_midpoint,
-                comment,
-                bioguide_id,
-                filer_name AS full_name,
-                party,
-                state,
-                chamber,
-                -- Compliance metric (date diff in days)
-                CAST((CAST(filing_date AS DATE) - CAST(transaction_date AS DATE)) AS INTEGER) AS disclosure_delay_days
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
+                t.transaction_id,
+                t.doc_id,
+                t.transaction_date,
+                t.disclosure_date,
+                t.ticker,
+                t.asset_name,
+                t.transaction_type,
+                t.amount_low,
+                t.amount_high,
+                (t.amount_low + t.amount_high) / 2.0 AS amount_midpoint,
+                t.comment,
+                m.bioguide_id,
+                m.full_name,
+                m.party,
+                m.state,
+                m.chamber,
+                -- Compliance metric
+                t.disclosure_date - t.transaction_date AS disclosure_delay_days
+            FROM read_parquet('s3://{S3_BUCKET}/gold/facts/fact_ptr_transactions/*.parquet') t
+            JOIN read_parquet('s3://{S3_BUCKET}/gold/dimensions/dim_member/*.parquet') m
+                ON t.member_key = m.member_key
             WHERE {where_sql}
-            ORDER BY transaction_date DESC, filing_date DESC
+            ORDER BY t.transaction_date DESC, t.disclosure_date DESC
             LIMIT {limit} OFFSET {offset}
         """
 

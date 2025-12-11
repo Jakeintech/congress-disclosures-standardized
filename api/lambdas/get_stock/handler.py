@@ -29,12 +29,12 @@ def handler(event, context):
         
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
-        # Get recent trades for this stock
+        # Get recent trades for this stock (limit reduced for performance)
         trades_df = qb.query_parquet(
             'gold/house/financial/facts/fact_ptr_transactions',
             filters={'ticker': ticker},
             order_by='transaction_date DESC',
-            limit=100
+            limit=50
         )
         
         if len(trades_df) == 0:

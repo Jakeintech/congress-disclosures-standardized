@@ -31,11 +31,11 @@ def handler(event, context):
             )
             return success_response({'timeline': timeline_df.to_dict('records'), 'start_date': start_date, 'end_date': end_date})
         except:
-            # Fallback: aggregate from transactions
+            # Fallback: aggregate from transactions (limit reduced for performance)
             trades_df = qb.query_parquet(
                 'gold/house/financial/facts/fact_ptr_transactions',
                 filters={'transaction_date': {'gte': start_date, 'lte': end_date}},
-                limit=10000
+                limit=2000
             )
             daily = trades_df.groupby('transaction_date').size().reset_index(name='trade_count')
             return success_response({'timeline': daily.to_dict('records'), 'start_date': start_date, 'end_date': end_date, 'note': 'Calculated from transactions'})

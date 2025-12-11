@@ -56,7 +56,13 @@ def handler(event, context):
             limit=limit
         )
         
+        # Convert to list and add combined 'name' field
         traders_list = traders_df.to_dict('records')
+        for trader in traders_list:
+            # Combine first_name and last_name into 'name' field
+            first = trader.get('first_name', '')
+            last = trader.get('last_name', '')
+            trader['name'] = f"{first} {last}".strip() if first or last else trader.get('bioguide_id', 'Unknown')
         
         return success_response({
             'top_traders': traders_list,

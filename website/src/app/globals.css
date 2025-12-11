@@ -76,6 +76,22 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  
+  /* Conflict detection colors */
+  --conflict-high: oklch(0.55 0.22 27);  /* Red - Critical conflicts */
+  --conflict-medium: oklch(0.75 0.15 70);  /* Orange - Moderate conflicts */
+  --conflict-low: oklch(0.85 0.12 110);  /* Yellow - Minor conflicts */
+  
+  /* Analytics colors */
+  --alpha-positive: oklch(0.6 0.18 145);  /* Green - Outperformance */
+  --alpha-negative: oklch(0.55 0.22 27);  /* Red - Underperformance */
+  --alpha-neutral: oklch(0.65 0.05 245);  /* Blue - Neutral */
+  
+  /* Alert colors */
+  --alert-info: oklch(0.6 0.15 245);  /* Blue */
+  --alert-success: oklch(0.6 0.18 145);  /* Green */
+  --alert-warning: oklch(0.75 0.15 70);  /* Orange */
+  --alert-danger: oklch(0.55 0.22 27);  /* Red */
 }
 
 .dark {
@@ -110,6 +126,22 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  
+  /* Conflict detection colors (dark mode) */
+  --conflict-high: oklch(0.65 0.22 27);  /* Brighter red */
+  --conflict-medium: oklch(0.78 0.18 70);  /* Brighter orange */
+  --conflict-low: oklch(0.85 0.15 110);  /* Brighter yellow */
+  
+  /* Analytics colors (dark mode) */
+  --alpha-positive: oklch(0.7 0.18 145);  /* Brighter green */
+  --alpha-negative: oklch(0.65 0.22 27);  /* Brighter red */
+  --alpha-neutral: oklch(0.7 0.15 245);  /* Brighter blue */
+  
+  /* Alert colors (dark mode) */
+  --alert-info: oklch(0.7 0.15 245);
+  --alert-success: oklch(0.7 0.18 145);
+  --alert-warning: oklch(0.78 0.18 70);
+  --alert-danger: oklch(0.65 0.22 27);
 }
 
 @layer base {

@@ -75,28 +75,16 @@ const navigation = [
         title: 'Analysis & Networks',
         items: [
             {
-                title: 'Influence Tracker',
-                url: '/analysis/influence',
-                icon: Radar,
-                description: 'Bill-Trade-Lobbying Correlations',
-            },
-            {
-                title: 'Trading Network',
-                url: '/analysis/trading-network',
-                icon: GitBranch,
-                description: 'Member-Asset Connections',
-            },
-            {
-                title: 'Lobbying Network',
-                url: '/lobbying/network',
-                icon: Network,
-                description: 'Lobbying Relationships',
-            },
-            {
                 title: 'Analytics Dashboard',
                 url: '/analytics',
                 icon: BarChart3,
                 description: 'Comprehensive Metrics',
+            },
+            {
+                title: 'Network Analysis',
+                url: '/analysis/networks',
+                icon: Network,
+                description: 'Trading, Lobbying & Influence',
             },
         ],
     },

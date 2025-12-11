@@ -32,17 +32,18 @@ export default function CommitteesPage() {
             try {
                 const data = await fetchCommittees(119);
 
-                // If API returns empty, use mock data for development
+                // If API returns empty, display a message
                 if (!data || (Array.isArray(data) && data.length === 0)) {
-                    setCommittees(getMockCommittees());
-                    setError('Using mock data - API endpoint not yet implemented');
+                    setCommittees([]);
+                    setError('No committees found. Please check your connection or try again later.');
                 } else {
                     setCommittees(Array.isArray(data) ? data : []);
+                    setError(null);
                 }
             } catch (err) {
                 console.error('Failed to load committees:', err);
-                setCommittees(getMockCommittees());
-                setError('Using mock data - API endpoint not available');
+                setCommittees([]);
+                setError('Failed to load committees from Congress.gov. Please try again later.');
             } finally {
                 setLoading(false);
             }
@@ -162,7 +163,7 @@ export default function CommitteesPage() {
                                         <CardTitle className="text-lg line-clamp-2">{committee.name}</CardTitle>
                                         <Badge variant={
                                             committee.chamber === 'House' ? 'default' :
-                                            committee.chamber === 'Senate' ? 'secondary' : 'outline'
+                                                committee.chamber === 'Senate' ? 'secondary' : 'outline'
                                         }>
                                             {committee.chamber}
                                         </Badge>
@@ -196,94 +197,4 @@ export default function CommitteesPage() {
             )}
         </div>
     );
-}
-
-// Mock data for development (until backend API is ready)
-function getMockCommittees(): Committee[] {
-    return [
-        {
-            systemCode: 'hsag00',
-            name: 'Committee on Agriculture',
-            chamber: 'House',
-            type: 'Standing',
-            subcommittees: Array(6).fill({}),
-        },
-        {
-            systemCode: 'hsap00',
-            name: 'Committee on Appropriations',
-            chamber: 'House',
-            type: 'Standing',
-            subcommittees: Array(12).fill({}),
-        },
-        {
-            systemCode: 'hsas00',
-            name: 'Committee on Armed Services',
-            chamber: 'House',
-            type: 'Standing',
-            subcommittees: Array(7).fill({}),
-        },
-        {
-            systemCode: 'hsba00',
-            name: 'Committee on Financial Services',
-            chamber: 'House',
-            type: 'Standing',
-            subcommittees: Array(6).fill({}),
-        },
-        {
-            systemCode: 'hswm00',
-            name: 'Committee on Ways and Means',
-            chamber: 'House',
-            type: 'Standing',
-            subcommittees: Array(6).fill({}),
-        },
-        {
-            systemCode: 'ssag00',
-            name: 'Committee on Agriculture, Nutrition, and Forestry',
-            chamber: 'Senate',
-            type: 'Standing',
-            subcommittees: Array(5).fill({}),
-        },
-        {
-            systemCode: 'ssap00',
-            name: 'Committee on Appropriations',
-            chamber: 'Senate',
-            type: 'Standing',
-            subcommittees: Array(12).fill({}),
-        },
-        {
-            systemCode: 'ssas00',
-            name: 'Committee on Armed Services',
-            chamber: 'Senate',
-            type: 'Standing',
-            subcommittees: Array(7).fill({}),
-        },
-        {
-            systemCode: 'ssbk00',
-            name: 'Committee on Banking, Housing, and Urban Affairs',
-            chamber: 'Senate',
-            type: 'Standing',
-            subcommittees: Array(5).fill({}),
-        },
-        {
-            systemCode: 'ssfi00',
-            name: 'Committee on Finance',
-            chamber: 'Senate',
-            type: 'Standing',
-            subcommittees: Array(3).fill({}),
-        },
-        {
-            systemCode: 'jec00',
-            name: 'Joint Economic Committee',
-            chamber: 'Joint',
-            type: 'Joint',
-            subcommittees: [],
-        },
-        {
-            systemCode: 'jct00',
-            name: 'Joint Committee on Taxation',
-            chamber: 'Joint',
-            type: 'Joint',
-            subcommittees: [],
-        },
-    ];
 }

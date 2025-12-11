@@ -141,6 +141,17 @@ def compute_member_trading_stats(transactions_df: pd.DataFrame, members_df: pd.D
             on='member_key',
             how='left'
         )
+    
+    # Create a combined 'name' field for API consistency
+    # Priority: full_name > first_name + last_name > last_name only > member_key
+    if 'full_name' in stats_df.columns:
+        stats_df['name'] = stats_df['full_name']
+    elif 'first_name' in stats_df.columns and 'last_name' in stats_df.columns:
+        stats_df['name'] = stats_df['first_name'] + ' ' + stats_df['last_name']
+    elif 'last_name' in stats_df.columns:
+        stats_df['name'] = stats_df['last_name']
+    else:
+        stats_df['name'] = stats_df['member_key']
 
     # Sort by total volume descending
     stats_df = stats_df.sort_values('total_volume', ascending=False)

@@ -6,9 +6,9 @@ import type { NextConfig } from "next";
 const isVercel = process.env.VERCEL === '1';
 
 const nextConfig: NextConfig = {
-  // Only use static export for non-Vercel deployments (S3)
-  // Vercel works best with standard Next.js builds (enables ISR, API routes, etc.)
-  output: isVercel ? undefined : 'export',
+  // TODO Phase 8: Re-enable static export after adding generateStaticParams to all dynamic routes
+  // Currently disabled to allow dynamic routes: /bills/[congress]/[type]/[number], /committees/[chamber]/[code], /politician/[id]
+  // output: isVercel ? undefined : 'export',
 
   // Disable image optimization for static export
   images: {
@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
 
   // Base path: Only use '/website' for S3 deployments, not for Vercel
-  basePath: isVercel ? undefined : '/website',
+  // basePath: isVercel ? undefined : '/website',
 
   // Disable link prefetching for static hosting
   experimental: {

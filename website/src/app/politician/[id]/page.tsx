@@ -3,20 +3,9 @@ import { PoliticianDashboard } from '@/components/politicians/politician-dashboa
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { fetchMembers, type CongressMember } from '@/lib/api';
 
-// Generate static params for all members at build time
-export async function generateStaticParams() {
-    try {
-        const members = await fetchMembers({ limit: 1000 }); // Fetch all members
-        return members.map((member: CongressMember) => ({
-            id: member.bioguide_id,
-        }));
-    } catch (error) {
-        console.error("Failed to generate static params for politicians:", error);
-        return [];
-    }
-}
+// Use dynamic rendering - data loads client-side avoiding build-time API rate limits
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
     params: {

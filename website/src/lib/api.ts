@@ -178,8 +178,9 @@ export async function fetchMembers(params: MembersParams = {}): Promise<Congress
  * Fetch member profile
  */
 export async function fetchMemberProfile(bioguideId: string): Promise<MemberProfile> {
-    const raw = await fetchApi<ApiResponse<MemberProfile>>(`${API_BASE}/v1/members/${bioguideId}`);
-    return raw.data || (raw as unknown as MemberProfile);
+    // Use /v1/congress/members endpoint which has the member data
+    const raw = await fetchApi<{ member?: MemberProfile }>(`${API_BASE}/v1/congress/members/${bioguideId}`);
+    return raw.member || (raw as unknown as MemberProfile);
 }
 
 /**

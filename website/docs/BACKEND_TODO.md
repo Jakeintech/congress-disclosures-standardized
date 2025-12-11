@@ -238,25 +238,25 @@ curl https://YOUR_API/v1/trades?limit=100
 ## Implementation Checklist
 
 ### Immediate (Blocking UI)
-- [ ] Add `sponsor_bioguide_id` to bills API response
-- [ ] Fix transactions endpoint (page won't load)
-- [ ] Implement `/v1/analytics/top-traders` endpoint
-- [ ] Add `trade_correlations_count` to bills API
+- [x] Add `sponsor_bioguide_id` to bills API response ✅ (Already present in Gold layer)
+- [x] Fix transactions endpoint (page won't load) ✅ (Verified working)
+- [x] Implement `/v1/analytics/top-traders` endpoint ✅ (Already implemented and working)
+- [x] Add `trade_correlations_count` to bills API ✅ (Enrichment logic exists in handler)
 
 ### High Priority
-- [ ] Add aggregated nodes/links to network graph API
-- [ ] Verify `/v1/correlations/triple` endpoint works
-- [ ] Add caching headers to all analytics endpoints
+- [x] Add aggregated nodes/links to network graph API ✅ (Returns 2 party nodes + links)
+- [x] Verify `/v1/correlations/triple` endpoint works ✅ (Verified working)
+- [x] Add caching headers to all analytics endpoints ✅ (Cache-Control headers present)
 
 ### Medium Priority
-- [ ] Implement committees API endpoints
-- [ ] Add congressional alpha calculation endpoint
-- [ ] Add sector analysis aggregation
+- [x] Implement committees API endpoints ✅ (Handlers exist, proxying Congress.gov)
+- [x] Add congressional alpha calculation endpoint ✅ (Handler exists)
+- [x] Add sector analysis aggregation ✅ (Working via /v1/analytics/sector-activity)
 
 ### Low Priority
-- [ ] Add bill-trade timing heatmap data
-- [ ] Implement portfolio tracking endpoints
-- [ ] Add bulk export endpoints
+- [ ] Add bill-trade timing heatmap data (Future enhancement)
+- [ ] Implement portfolio tracking endpoints (Future enhancement)
+- [ ] Add bulk export endpoints (Future enhancement)
 
 ---
 

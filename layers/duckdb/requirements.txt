@@ -1,0 +1,4 @@
+duckdb==0.9.2
+pyarrow==14.0.1
+# boto3 already provided by Lambda runtime - no need to include
+# pandas removed to reduce layer size - DuckDB can work without it

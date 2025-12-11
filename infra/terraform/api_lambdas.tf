@@ -68,6 +68,12 @@ locals {
     "get_summary"           = { route = "GET /v1/analytics/summary" }
     "get_network_graph"     = { route = "GET /v1/analytics/network-graph" }
 
+    # Advanced Analytics (God Mode) endpoints
+    "get_congressional_alpha"      = { route = "GET /v1/analytics/alpha" }
+    "get_conflict_detection"       = { route = "GET /v1/analytics/conflicts" }
+    "get_portfolio_reconstruction" = { route = "GET /v1/analytics/portfolio" }
+    "get_pattern_insights"         = { route = "GET /v1/analytics/insights" }
+
     # Search & Filing endpoints
     "search"      = { route = "GET /v1/search" }
     "get_filings" = { route = "GET /v1/filings" }

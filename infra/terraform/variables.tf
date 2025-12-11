@@ -217,3 +217,15 @@ variable "tesseract_layer_arn" {
   type        = string
   default     = "arn:aws:lambda:us-east-1:464813693153:layer:tesseract-ocr:2"
 }
+
+variable "alert_phone_number" {
+  description = "Phone number for critical SMS alerts (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "enable_custom_alert_handler" {
+  description = "Enable custom Lambda handler for alerts"
+  type        = bool
+  default     = false
+}

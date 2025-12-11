@@ -1,0 +1,50 @@
+checks for silver_filings:
+  # Schema validation
+  - schema:
+      fail when required column missing:
+        - doc_id
+        - filing_year
+        - filing_type
+        - bioguide_id
+        - last_name
+        - first_name
+        - filing_date
+      fail when wrong type:
+        doc_id: string
+        filing_year: integer
+        filing_date: date
+
+  # Uniqueness
+  - duplicate_count(doc_id) = 0:
+      name: Doc IDs must be unique
+
+  # Referential integrity
+  - invalid_count(filing_type) = 0:
+      valid values: ['P', 'A', 'T', 'X', 'D', 'W']
+      name: Filing type must be valid code
+
+  # Data validity
+  - invalid_count(filing_year) = 0:
+      valid min: 2008
+      valid max: 2026
+      name: Filing year in valid range
+
+  - invalid_count(filing_date) = 0:
+      valid min: 2008-01-01
+      valid max: 2026-12-31
+      name: Filing date in valid range
+
+  # Missing values
+  - missing_count(bioguide_id) < 100:
+      name: Most filings have bioguide IDs
+
+  - missing_count(filing_date) = 0:
+      name: All filings must have date
+
+  # Freshness
+  - freshness(silver_ingest_ts) < 24h:
+      name: Silver layer updated daily
+
+  # Anomaly detection
+  - anomaly score for row_count < 3:
+      name: Row count within expected range

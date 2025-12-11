@@ -1,0 +1,80 @@
+# Week 2: DuckDB Gold Transformations Makefile targets
+# Append these to the main Makefile or include them
+
+##@ Week 2: DuckDB Gold Transformations
+
+build-duckdb-layer: ## Build DuckDB Lambda layer
+	@echo "Building DuckDB Lambda layer..."
+	@cd layers/duckdb && ./build.sh
+	@echo "✓ DuckDB layer built: layers/duckdb/congress-duckdb.zip"
+
+publish-duckdb-layer: build-duckdb-layer ## Build and publish DuckDB layer to AWS Lambda
+	@echo "Publishing DuckDB layer to AWS Lambda..."
+	@cd layers/duckdb && ./build.sh --publish
+	@echo "✓ DuckDB layer published"
+
+package-gold-transformations: ## Package Gold transformation Lambda functions
+	@echo "Packaging Gold transformation functions..."
+	@rm -rf build/gold_transformations build/gold_transformations.zip
+	@mkdir -p build/gold_transformations
+	@cp api/lambdas/gold_transformations/*.py build/gold_transformations/
+	@cd build/gold_transformations && zip -r ../gold_transformations.zip . > /dev/null
+	@echo "✓ Gold transformations packaged: build/gold_transformations.zip"
+
+deploy-gold-transformations: package-gold-transformations build-duckdb-layer ## Deploy Gold transformation Lambdas
+	@echo "Deploying Gold transformation functions..."
+	@cd infra/terraform && terraform apply -target=aws_lambda_layer_version.duckdb \
+		-target=aws_lambda_function.build_fact_transactions_duckdb \
+		-target=aws_lambda_function.build_dim_members_duckdb \
+		-target=aws_lambda_function.compute_trending_stocks_duckdb \
+		-auto-approve
+	@echo "✓ Gold transformation functions deployed"
+
+test-gold-transformations: ## Test Gold transformation functions locally
+	@echo "Testing build_fact_transactions_duckdb..."
+	@cd api/lambdas/gold_transformations && $(PYTHON) build_fact_transactions_duckdb.py
+	@echo "Testing build_dim_members_duckdb..."
+	@cd api/lambdas/gold_transformations && $(PYTHON) build_dim_members_duckdb.py
+	@echo "Testing compute_trending_stocks_duckdb..."
+	@cd api/lambdas/gold_transformations && $(PYTHON) compute_trending_stocks_duckdb.py
+	@echo "✓ All Gold transformation tests completed"
+
+invoke-build-fact-transactions: ## Manually invoke build_fact_transactions Lambda
+	@aws lambda invoke \
+		--function-name congress-disclosures-build-fact-transactions-duckdb \
+		--payload '{"force_full_rebuild": false}' \
+		--cli-binary-format raw-in-base64-out \
+		response.json
+	@cat response.json | jq '.'
+	@rm response.json
+
+invoke-build-dim-members: ## Manually invoke build_dim_members Lambda
+	@aws lambda invoke \
+		--function-name congress-disclosures-build-dim-members-duckdb \
+		--payload '{"force_full_rebuild": false}' \
+		--cli-binary-format raw-in-base64-out \
+		response.json
+	@cat response.json | jq '.'
+	@rm response.json
+
+invoke-compute-trending-stocks: ## Manually invoke compute_trending_stocks Lambda
+	@aws lambda invoke \
+		--function-name congress-disclosures-compute-trending-stocks-duckdb \
+		--payload '{}' \
+		--cli-binary-format raw-in-base64-out \
+		response.json
+	@cat response.json | jq '.'
+	@rm response.json
+
+logs-gold-transformations: ## Tail CloudWatch logs for Gold transformations
+	@echo "Tailing logs for all Gold transformation functions..."
+	@aws logs tail /aws/lambda/congress-disclosures-build-fact-transactions-duckdb --follow &
+	@aws logs tail /aws/lambda/congress-disclosures-build-dim-members-duckdb --follow &
+	@aws logs tail /aws/lambda/congress-disclosures-compute-trending-stocks-duckdb --follow
+
+week2-full-deploy: build-duckdb-layer package-gold-transformations deploy-gold-transformations ## Complete Week 2 deployment
+	@echo "✓ Week 2 deployment complete!"
+	@echo "Next steps:"
+	@echo "  1. Run 'make test-gold-transformations' to test locally"
+	@echo "  2. Run 'make invoke-build-fact-transactions' to test in AWS"
+	@echo "  3. Check 'make logs-gold-transformations' for execution logs"

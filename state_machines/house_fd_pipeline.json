@@ -1,0 +1,469 @@
+{
+  "Comment": "House Financial Disclosures Pipeline - Automated ingestion, extraction, and transformation",
+  "StartAt": "CheckForNewFilings",
+  "States": {
+    "CheckForNewFilings": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-check-house-fd-updates",
+      "Comment": "Check House Clerk website for new filings",
+      "ResultPath": "$.filings_check",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "HasNewFilings"
+    },
+
+    "HasNewFilings": {
+      "Type": "Choice",
+      "Comment": "Check if new filings were found",
+      "Choices": [
+        {
+          "Variable": "$.filings_check.has_new_filings",
+          "BooleanEquals": true,
+          "Next": "IngestZip"
+        }
+      ],
+      "Default": "NoNewFilings"
+    },
+
+    "NoNewFilings": {
+      "Type": "Succeed",
+      "Comment": "No new filings to process"
+    },
+
+    "IngestZip": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-house-fd-ingest-zip",
+      "Comment": "Download YEARFD.zip and upload to Bronze S3",
+      "ResultPath": "$.ingest_result",
+      "TimeoutSeconds": 600,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "IndexToSilver"
+    },
+
+    "IndexToSilver": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-house-fd-index-to-silver",
+      "Comment": "Parse XML index and write Silver filings/documents tables",
+      "ResultPath": "$.silver_index_result",
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "ExtractDocumentsMap"
+    },
+
+    "ExtractDocumentsMap": {
+      "Type": "Map",
+      "Comment": "Extract text from PDFs in parallel (10 concurrent)",
+      "ItemsPath": "$.silver_index_result.documents_to_extract",
+      "MaxConcurrency": 10,
+      "ResultPath": "$.extraction_results",
+      "Iterator": {
+        "StartAt": "ExtractDocument",
+        "States": {
+          "ExtractDocument": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-house-fd-extract-document",
+            "Comment": "Extract text via pypdf or OCR",
+            "TimeoutSeconds": 300,
+            "Retry": [
+              {
+                "ErrorEquals": ["Lambda.ServiceException"],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 2,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error",
+                "Next": "ExtractFailed"
+              }
+            ],
+            "Next": "ExtractStructured"
+          },
+          "ExtractStructured": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-house-fd-extract-structured-code",
+            "Comment": "Code-based extraction by filing type",
+            "TimeoutSeconds": 180,
+            "Retry": [
+              {
+                "ErrorEquals": ["Lambda.ServiceException"],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 2,
+                "BackoffRate": 2.0
+              }
+            ],
+            "End": true
+          },
+          "ExtractFailed": {
+            "Type": "Pass",
+            "Comment": "Mark extraction as failed, continue pipeline",
+            "Result": {
+              "status": "failed"
+            },
+            "End": true
+          }
+        }
+      },
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "WaitForExtractionComplete"
+    },
+
+    "WaitForExtractionComplete": {
+      "Type": "Wait",
+      "Comment": "Brief wait to ensure all S3 writes complete",
+      "Seconds": 10,
+      "Next": "ValidateSilverQuality"
+    },
+
+    "ValidateSilverQuality": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
+      "Comment": "Run data quality checks on Silver layer",
+      "Parameters": {
+        "checks_path": "soda/checks/silver_transactions.yml"
+      },
+      "ResultPath": "$.silver_quality_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["DataQualityFailure", "States.TaskFailed"],
+          "ResultPath": "$.error",
+          "Next": "NotifyQualityFailure"
+        }
+      ],
+      "Next": "TransformToGoldParallel"
+    },
+
+    "TransformToGoldParallel": {
+      "Type": "Parallel",
+      "Comment": "Build Gold dimensions and facts in parallel",
+      "ResultPath": "$.gold_results",
+      "Branches": [
+        {
+          "StartAt": "BuildDimMembers",
+          "States": {
+            "BuildDimMembers": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-dim-members-duckdb",
+              "Comment": "Build member dimension (SCD Type 2)",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "BuildDimAssets",
+          "States": {
+            "BuildDimAssets": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-dim-assets-duckdb",
+              "Comment": "Build asset dimension",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "BuildFactTransactions",
+          "States": {
+            "BuildFactTransactions": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-fact-transactions-duckdb",
+              "Comment": "Build transactions fact table (incremental)",
+              "TimeoutSeconds": 600,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "BuildFactFilings",
+          "States": {
+            "BuildFactFilings": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-fact-filings-duckdb",
+              "Comment": "Build filings fact table",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "ValidateGoldQuality"
+    },
+
+    "ValidateGoldQuality": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
+      "Comment": "Run data quality checks on Gold layer",
+      "Parameters": {
+        "checks_path": "soda/checks/gold_fact_transactions.yml"
+      },
+      "ResultPath": "$.gold_quality_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["DataQualityFailure", "States.TaskFailed"],
+          "ResultPath": "$.error",
+          "Next": "NotifyQualityFailure"
+        }
+      ],
+      "Next": "ComputeAggregatesParallel"
+    },
+
+    "ComputeAggregatesParallel": {
+      "Type": "Parallel",
+      "Comment": "Compute aggregates in parallel",
+      "ResultPath": "$.aggregate_results",
+      "Branches": [
+        {
+          "StartAt": "ComputeTrendingStocks",
+          "States": {
+            "ComputeTrendingStocks": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-compute-trending-stocks-duckdb",
+              "Comment": "Compute trending stocks (7d, 30d, 90d windows)",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "ComputeMemberStats",
+          "States": {
+            "ComputeMemberStats": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-compute-member-stats-duckdb",
+              "Comment": "Compute member trading stats",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "ComputeDocumentQuality",
+          "States": {
+            "ComputeDocumentQuality": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-compute-document-quality-duckdb",
+              "Comment": "Compute document quality scores",
+              "TimeoutSeconds": 180,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "ComputeNetworkGraph",
+          "States": {
+            "ComputeNetworkGraph": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-compute-network-graph-duckdb",
+              "Comment": "Build member-asset network graph (JSON)",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "UpdateAPICache"
+    },
+
+    "UpdateAPICache": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-update-api-cache",
+      "Comment": "Pre-compute JSON API responses",
+      "ResultPath": "$.cache_result",
+      "TimeoutSeconds": 180,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "TriggerCorrelationPipeline"
+    },
+
+    "TriggerCorrelationPipeline": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Comment": "Trigger cross-dataset correlation pipeline",
+      "Parameters": {
+        "StateMachineArn": "arn:aws:states:${AWS_REGION}:${AWS_ACCOUNT_ID}:stateMachine:${PROJECT_NAME}-cross-dataset-correlation",
+        "Input": {
+          "trigger_source": "house_fd_pipeline",
+          "execution_id.$": "$$.Execution.Id"
+        }
+      },
+      "ResultPath": "$.correlation_result",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineWarning"
+        }
+      ],
+      "Next": "PublishMetrics"
+    },
+
+    "PublishMetrics": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::cloudwatch:putMetricData",
+      "Comment": "Publish pipeline metrics to CloudWatch",
+      "Parameters": {
+        "Namespace": "CongressDisclosures/Pipeline",
+        "MetricData": [
+          {
+            "MetricName": "PipelineSuccess",
+            "Value": 1,
+            "Unit": "Count"
+          },
+          {
+            "MetricName": "DocumentsProcessed",
+            "Value.$": "$.silver_index_result.num_documents",
+            "Unit": "Count"
+          },
+          {
+            "MetricName": "TransactionsExtracted",
+            "Value.$": "$.gold_results[2].rows_processed",
+            "Unit": "Count"
+          }
+        ]
+      },
+      "ResultPath": null,
+      "Next": "PipelineSuccess"
+    },
+
+    "PipelineSuccess": {
+      "Type": "Succeed",
+      "Comment": "Pipeline completed successfully"
+    },
+
+    "NotifyQualityFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for quality check failure",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "Subject": "Data Quality Check Failed - House FD Pipeline",
+        "Message.$": "States.Format('Data quality check failed at {}.\n\nError: {}\n\nExecution ID: {}', $.error.step, $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "QualityCheckFailed"
+    },
+
+    "NotifyPipelineFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for pipeline failure",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "Subject": "Pipeline Failure - House FD Pipeline",
+        "Message.$": "States.Format('Pipeline failed at step: {}\n\nError: {}\n\nExecution ID: {}', $.error.step, $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "PipelineFailed"
+    },
+
+    "NotifyPipelineWarning": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for non-critical warning",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "Subject": "Pipeline Warning - House FD Pipeline",
+        "Message.$": "States.Format('Pipeline completed with warnings.\n\nWarning: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "PublishMetrics"
+    },
+
+    "QualityCheckFailed": {
+      "Type": "Fail",
+      "Comment": "Pipeline stopped due to quality check failure",
+      "Cause": "Data quality checks did not pass",
+      "Error": "DataQualityFailure"
+    },
+
+    "PipelineFailed": {
+      "Type": "Fail",
+      "Comment": "Pipeline failed",
+      "Cause": "Pipeline execution encountered an error",
+      "Error": "PipelineExecutionFailure"
+    }
+  }
+}

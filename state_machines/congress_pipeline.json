@@ -1,0 +1,360 @@
+{
+  "Comment": "Congress.gov API Pipeline - Daily ingestion of bills, members, and legislative data",
+  "StartAt": "FetchNewBills",
+  "States": {
+    "FetchNewBills": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-fetch-congress-bills",
+      "Comment": "Fetch new bills from Congress.gov API",
+      "ResultPath": "$.bills_result",
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "HasNewBills"
+    },
+
+    "HasNewBills": {
+      "Type": "Choice",
+      "Comment": "Check if new bills were found",
+      "Choices": [
+        {
+          "Variable": "$.bills_result.has_new_bills",
+          "BooleanEquals": true,
+          "Next": "FetchBillDetailsMap"
+        }
+      ],
+      "Default": "FetchMembers"
+    },
+
+    "FetchBillDetailsMap": {
+      "Type": "Map",
+      "Comment": "Fetch bill details in parallel (rate limited to 5K/hour)",
+      "ItemsPath": "$.bills_result.bills_to_fetch",
+      "MaxConcurrency": 5,
+      "ResultPath": "$.bill_details_results",
+      "Iterator": {
+        "StartAt": "FetchBillDetails",
+        "States": {
+          "FetchBillDetails": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-fetch-bill-details",
+            "Comment": "Fetch full bill details from Congress.gov API",
+            "TimeoutSeconds": 60,
+            "Retry": [
+              {
+                "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+                "IntervalSeconds": 5,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error",
+                "Next": "FetchFailed"
+              }
+            ],
+            "Next": "FetchCosponsors"
+          },
+          "FetchCosponsors": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-fetch-bill-cosponsors",
+            "Comment": "Fetch bill cosponsors",
+            "TimeoutSeconds": 60,
+            "Retry": [
+              {
+                "ErrorEquals": ["Lambda.ServiceException"],
+                "IntervalSeconds": 3,
+                "MaxAttempts": 2,
+                "BackoffRate": 2.0
+              }
+            ],
+            "End": true
+          },
+          "FetchFailed": {
+            "Type": "Pass",
+            "Comment": "Mark fetch as failed, continue with other bills",
+            "Result": {
+              "status": "failed"
+            },
+            "End": true
+          }
+        }
+      },
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "WriteBillsToSilver"
+    },
+
+    "WriteBillsToSilver": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-write-bills-to-silver",
+      "Comment": "Write bill data to Silver Parquet tables",
+      "InputPath": "$.bill_details_results",
+      "ResultPath": "$.silver_bills_result",
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "FetchMembers"
+    },
+
+    "FetchMembers": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-fetch-congress-members",
+      "Comment": "Fetch member biographical data and committee assignments",
+      "ResultPath": "$.members_result",
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineWarning"
+        }
+      ],
+      "Next": "WriteMembersToSilver"
+    },
+
+    "WriteMembersToSilver": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-write-members-to-silver",
+      "Comment": "Write member data to Silver Parquet tables",
+      "InputPath": "$.members_result",
+      "ResultPath": "$.silver_members_result",
+      "TimeoutSeconds": 180,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "ValidateSilverQuality"
+    },
+
+    "ValidateSilverQuality": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
+      "Comment": "Run data quality checks on Silver bills and members",
+      "Parameters": {
+        "checks_path": "soda/checks/silver_bills.yml"
+      },
+      "ResultPath": "$.silver_quality_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["DataQualityFailure", "States.TaskFailed"],
+          "ResultPath": "$.error",
+          "Next": "NotifyQualityFailure"
+        }
+      ],
+      "Next": "BuildGoldDimensions"
+    },
+
+    "BuildGoldDimensions": {
+      "Type": "Parallel",
+      "Comment": "Build Gold dimensions for bills and members",
+      "ResultPath": "$.gold_dim_results",
+      "Branches": [
+        {
+          "StartAt": "BuildDimBill",
+          "States": {
+            "BuildDimBill": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-dim-bill-duckdb",
+              "Comment": "Build bill dimension table",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "UpdateDimMember",
+          "States": {
+            "UpdateDimMember": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-dim-members-duckdb",
+              "Comment": "Update member dimension with Congress.gov data (SCD Type 2)",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "BuildFactCosponsors"
+    },
+
+    "BuildFactCosponsors": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-fact-cosponsors-duckdb",
+      "Comment": "Build bill cosponsors fact table",
+      "ResultPath": "$.fact_cosponsors_result",
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "ValidateGoldQuality"
+    },
+
+    "ValidateGoldQuality": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
+      "Comment": "Run data quality checks on Gold layer",
+      "Parameters": {
+        "checks_path": "soda/checks/gold_dim_bill.yml"
+      },
+      "ResultPath": "$.gold_quality_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["DataQualityFailure", "States.TaskFailed"],
+          "ResultPath": "$.error",
+          "Next": "NotifyQualityFailure"
+        }
+      ],
+      "Next": "PublishMetrics"
+    },
+
+    "PublishMetrics": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::cloudwatch:putMetricData",
+      "Comment": "Publish pipeline metrics to CloudWatch",
+      "Parameters": {
+        "Namespace": "CongressDisclosures/Pipeline",
+        "MetricData": [
+          {
+            "MetricName": "CongressPipelineSuccess",
+            "Value": 1,
+            "Unit": "Count"
+          },
+          {
+            "MetricName": "BillsProcessed",
+            "Value.$": "$.bills_result.num_bills",
+            "Unit": "Count"
+          },
+          {
+            "MetricName": "MembersUpdated",
+            "Value.$": "$.members_result.num_members",
+            "Unit": "Count"
+          }
+        ]
+      },
+      "ResultPath": null,
+      "Next": "PipelineSuccess"
+    },
+
+    "PipelineSuccess": {
+      "Type": "Succeed",
+      "Comment": "Congress.gov pipeline completed successfully"
+    },
+
+    "NotifyQualityFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for quality check failure",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "Subject": "Data Quality Check Failed - Congress.gov Pipeline",
+        "Message.$": "States.Format('Data quality check failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "QualityCheckFailed"
+    },
+
+    "NotifyPipelineFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for pipeline failure",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "Subject": "Pipeline Failure - Congress.gov Pipeline",
+        "Message.$": "States.Format('Pipeline failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "PipelineFailed"
+    },
+
+    "NotifyPipelineWarning": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for non-critical warning",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "Subject": "Pipeline Warning - Congress.gov Pipeline",
+        "Message.$": "States.Format('Pipeline completed with warnings.\n\nWarning: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "ValidateSilverQuality"
+    },
+
+    "QualityCheckFailed": {
+      "Type": "Fail",
+      "Comment": "Pipeline stopped due to quality check failure",
+      "Cause": "Data quality checks did not pass",
+      "Error": "DataQualityFailure"
+    },
+
+    "PipelineFailed": {
+      "Type": "Fail",
+      "Comment": "Pipeline failed",
+      "Cause": "Pipeline execution encountered an error",
+      "Error": "PipelineExecutionFailure"
+    }
+  }
+}

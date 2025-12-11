@@ -1,12 +1,14 @@
-import { Metadata } from "next";
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, TrendingUp, AlertTriangle, Network } from "lucide-react";
-
-export const metadata: Metadata = {
-    title: "Analytics Dashboard | Congress Transparency",
-    description: "Comprehensive analytics on congressional trading patterns, conflicts of interest, and market correlations",
-};
+import { Activity, TrendingUp, AlertTriangle, Network, Wallet, Sparkles } from "lucide-react";
+import {
+    CongressionalAlphaCard,
+    ConflictDetectionCard,
+    PortfolioReconstructionCard,
+    PatternInsightsCard
+} from "@/components/analytics";
 
 export default function AnalyticsPage() {
     return (
@@ -69,138 +71,91 @@ export default function AnalyticsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
-                            Trading Clusters
+                            Portfolios Tracked
                         </CardTitle>
-                        <Network className="h-4 w-4 text-muted-foreground" />
+                        <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">12</div>
+                        <div className="text-2xl font-bold">535</div>
                         <p className="text-xs text-muted-foreground">
-                            Coordinated trading patterns
+                            Full Congress coverage
                         </p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Main Analytics Tabs */}
-            <Tabs defaultValue="leaderboard" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="leaderboard">Performance Leaderboard</TabsTrigger>
-                    <TabsTrigger value="sectors">Sector Analysis</TabsTrigger>
-                    <TabsTrigger value="conflicts">Conflicts</TabsTrigger>
-                    <TabsTrigger value="patterns">Trading Patterns</TabsTrigger>
+            <Tabs defaultValue="alpha" className="space-y-4">
+                <TabsList className="flex-wrap">
+                    <TabsTrigger value="alpha">
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                        Alpha
+                    </TabsTrigger>
+                    <TabsTrigger value="conflicts">
+                        <AlertTriangle className="h-4 w-4 mr-2" />
+                        Conflicts
+                    </TabsTrigger>
+                    <TabsTrigger value="portfolios">
+                        <Wallet className="h-4 w-4 mr-2" />
+                        Portfolios
+                    </TabsTrigger>
+                    <TabsTrigger value="insights">
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Insights
+                    </TabsTrigger>
+                    <TabsTrigger value="sectors">
+                        <Activity className="h-4 w-4 mr-2" />
+                        Sectors
+                    </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="leaderboard" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Congressional Alpha Leaderboard</CardTitle>
-                            <CardDescription>
-                                Top performing members vs S&P 500 benchmark (last 12 months)
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="rounded-md border">
-                                <div className="p-8 text-center text-sm text-muted-foreground">
-                                    <TrendingUp className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                                    <p className="font-medium">Performance data coming soon</p>
-                                    <p className="mt-2 text-xs">
-                                        This feature requires Gold layer aggregation script: <code className="text-xs bg-muted px-1 py-0.5 rounded">compute_agg_congressional_alpha.py</code>
-                                    </p>
-                                    <p className="mt-2 text-xs">
-                                        Will show: Individual member alpha, Sharpe ratios, win rates, and benchmark comparisons
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                {/* Alpha Tab */}
+                <TabsContent value="alpha" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <CongressionalAlphaCard type="member" limit={10} />
+                        <CongressionalAlphaCard type="party" limit={5} />
+                    </div>
+                    <CongressionalAlphaCard type="sector_rotation" limit={10} />
                 </TabsContent>
 
-                <TabsContent value="sectors" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Sector Trading Heatmap</CardTitle>
-                            <CardDescription>
-                                Which sectors are seeing the most congressional activity
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="rounded-md border">
-                                <div className="p-8 text-center text-sm text-muted-foreground">
-                                    <Activity className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                                    <p className="font-medium">Sector analysis coming soon</p>
-                                    <p className="mt-2 text-xs">
-                                        This feature requires Gold layer aggregation: <code className="text-xs bg-muted px-1 py-0.5 rounded">compute_agg_sector_analysis.py</code>
-                                    </p>
-                                    <p className="mt-2 text-xs">
-                                        Will show: Sector rotation patterns, party-specific trends, and timing analysis
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
+                {/* Conflicts Tab */}
                 <TabsContent value="conflicts" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Potential Conflicts of Interest</CardTitle>
-                            <CardDescription>
-                                Automated detection of bill-trade-lobbying correlations
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="rounded-md border">
-                                <div className="p-8 text-center text-sm text-muted-foreground">
-                                    <AlertTriangle className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                                    <p className="font-medium">Conflict detection engine coming soon</p>
-                                    <p className="mt-2 text-xs">
-                                        Phase 3 feature: Automated pattern recognition with conflict scoring (0-100)
-                                    </p>
-                                    <p className="mt-2 text-xs">
-                                        Will show: Committee membership + bill votes + trade timing + lobbying connections
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <ConflictDetectionCard severity="all" limit={15} showSummary={true} />
                 </TabsContent>
 
-                <TabsContent value="patterns" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Unusual Trading Patterns</CardTitle>
-                            <CardDescription>
-                                Anomaly detection and coordinated trading activity
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="rounded-md border">
-                                <div className="p-8 text-center text-sm text-muted-foreground">
-                                    <Network className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                                    <p className="font-medium">Pattern detection coming soon</p>
-                                    <p className="mt-2 text-xs">
-                                        Phase 3 feature: Anomaly detection and trading clique identification
-                                    </p>
-                                    <p className="mt-2 text-xs">
-                                        Will show: Volume spikes, coordinated trades, first-time purchases, and unusual timing
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                {/* Portfolios Tab */}
+                <TabsContent value="portfolios" className="space-y-4">
+                    <PortfolioReconstructionCard limit={10} />
+                </TabsContent>
+
+                {/* Insights Tab */}
+                <TabsContent value="insights" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <PatternInsightsCard type="trending" />
+                        <PatternInsightsCard type="timing" />
+                    </div>
+                </TabsContent>
+
+                {/* Sectors Tab */}
+                <TabsContent value="sectors" className="space-y-4">
+                    <PatternInsightsCard type="sector" />
                 </TabsContent>
             </Tabs>
 
-            {/* Coming Soon Notice */}
+            {/* Feature Legend */}
             <Card className="border-dashed">
                 <CardHeader>
-                    <CardTitle className="text-base">🚀 More Analytics Coming Soon</CardTitle>
+                    <CardTitle className="text-base">🚀 God Mode Analytics</CardTitle>
                     <CardDescription>
-                        Phase 2-3 will add: Trading volume timeseries • Bill-trade correlations • Portfolio reconstruction • Timing heatmaps • Predictive indicators
+                        <span className="text-green-600">✓ Congressional Alpha</span> •{" "}
+                        <span className="text-green-600">✓ Conflict Detection</span> •{" "}
+                        <span className="text-green-600">✓ Portfolio Reconstruction</span> •{" "}
+                        <span className="text-green-600">✓ Pattern Insights</span> •{" "}
+                        <span className="text-green-600">✓ Sector Analysis</span>
                     </CardDescription>
                 </CardHeader>
             </Card>
         </div>
     );
 }
+

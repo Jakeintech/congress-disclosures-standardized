@@ -34,11 +34,7 @@ export default function TradingNetworkPage() {
                 setError(null);
             } catch (err: any) {
                 console.error('Error loading network:', err);
-
-                // Use mock data for development
-                console.log('Loading mock network data for development');
-                setData(getMockNetworkData());
-                setError('Using mock data - API endpoint not yet available. See docs/BACKEND_TODO.md for implementation details.');
+                setError(`Failed to load network data: ${err.message}`);
             } finally {
                 setLoading(false);
             }
@@ -150,7 +146,7 @@ function getMockNetworkData() {
         ...assets.map(a => ({ ...a, group: 'asset' }))
     ];
 
-    const links = [];
+    const links: any[] = [];
     members.forEach(member => {
         assets.slice(0, 2 + Math.floor(Math.random() * 3)).forEach(asset => {
             links.push({

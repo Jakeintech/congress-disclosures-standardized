@@ -33,11 +33,11 @@ export default function CommitteesPage() {
                 const data = await fetchCommittees(119);
 
                 // If API returns empty, use mock data for development
-                if (!data || data.length === 0) {
+                if (!data || (Array.isArray(data) && data.length === 0)) {
                     setCommittees(getMockCommittees());
                     setError('Using mock data - API endpoint not yet implemented');
                 } else {
-                    setCommittees(data);
+                    setCommittees(Array.isArray(data) ? data : []);
                 }
             } catch (err) {
                 console.error('Failed to load committees:', err);

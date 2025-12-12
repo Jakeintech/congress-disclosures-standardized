@@ -167,7 +167,7 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying ## Package all Lambda functions
 
 package-api: ## Package and upload ALL API Lambda functions to S3
 	@echo "Packaging API Lambda functions..."
@@ -311,7 +311,28 @@ package-pipeline-metrics: ## Package publish_pipeline_metrics Lambda
 	@rm -rf $(LAMBDA_DIR)/publish_pipeline_metrics/package
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/publish_pipeline_metrics/function.zip"
 
+package-check-house-fd: ## Package check_house_fd_updates Lambda
+	@echo "Packaging check_house_fd_updates..."
+	@rm -rf $(LAMBDA_DIR)/check_house_fd_updates/package $(LAMBDA_DIR)/check_house_fd_updates/function.zip
+	@mkdir -p $(LAMBDA_DIR)/check_house_fd_updates/package
+	@cp $(LAMBDA_DIR)/check_house_fd_updates/handler.py $(LAMBDA_DIR)/check_house_fd_updates/package/
+	@cd $(LAMBDA_DIR)/check_house_fd_updates/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/check_house_fd_updates/package
+	@aws s3 cp $(LAMBDA_DIR)/check_house_fd_updates/function.zip s3://$(S3_BUCKET)/lambda-deployments/check_house_fd_updates/function.zip
+	@echo "✓ Lambda package created and uploaded"
+
+package-check-lobbying: ## Package check_lobbying_updates Lambda
+	@echo "Packaging check_lobbying_updates..."
+	@rm -rf $(LAMBDA_DIR)/check_lobbying_updates/package $(LAMBDA_DIR)/check_lobbying_updates/function.zip
+	@mkdir -p $(LAMBDA_DIR)/check_lobbying_updates/package
+	@cp $(LAMBDA_DIR)/check_lobbying_updates/handler.py $(LAMBDA_DIR)/check_lobbying_updates/package/
+	@cd $(LAMBDA_DIR)/check_lobbying_updates/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/check_lobbying_updates/package
+	@aws s3 cp $(LAMBDA_DIR)/check_lobbying_updates/function.zip s3://$(S3_BUCKET)/lambda-deployments/check_lobbying_updates/function.zip
+	@echo "✓ Lambda package created and uploaded"
+
 ##@ Testing
+
 
 
 test: ## Run all tests

@@ -46,7 +46,7 @@ variable "s3_lifecycle_glacier_days" {
 variable "lambda_timeout_seconds" {
   description = "Lambda function timeout in seconds"
   type        = number
-  default     = 300 # 5 minutes
+  default     = 900 # 15 minutes - required for large ZIP downloads
 
   validation {
     condition     = var.lambda_timeout_seconds >= 30 && var.lambda_timeout_seconds <= 900

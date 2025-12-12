@@ -4,7 +4,7 @@
   "States": {
     "CheckForNewFilings": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-check-lobbying-updates",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CHECK_LOBBYING_UPDATES}",
       "Comment": "Check Senate LDA database for new quarterly filings",
       "ResultPath": "$.filings_check",
       "TimeoutSeconds": 180,
@@ -28,46 +28,31 @@
           "Next": "NotifyPipelineFailure"
         }
       ],
-      "Next": "HasNewFilings"
-    },
-    "HasNewFilings": {
-      "Type": "Choice",
-      "Comment": "Check if new lobbying filings were found",
-      "Choices": [
-        {
-          "Variable": "$.filings_check.has_new_filings",
-          "BooleanEquals": true,
-          "Next": "DownloadXMLFilesMap"
-        }
-      ],
-      "Default": "NoNewFilings"
-    },
-    "NoNewFilings": {
-      "Type": "Succeed",
-      "Comment": "No new lobbying filings to process"
+      "Next": "DownloadXMLFilesMap"
     },
     "DownloadXMLFilesMap": {
       "Type": "Map",
       "Comment": "Download lobbying XML files in parallel",
-      "ItemsPath": "$.filings_check.filings_to_download",
-      "MaxConcurrency": 10,
+      "ItemsPath": "$.filings_check.xml_sources",
+      "MaxConcurrency": 1,
       "ResultPath": "$.download_results",
       "Iterator": {
         "StartAt": "DownloadXML",
         "States": {
           "DownloadXML": {
             "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-download-lobbying-xml",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_DOWNLOAD_LOBBYING_XML}",
             "Comment": "Download XML file and upload to Bronze S3",
             "TimeoutSeconds": 120,
             "Retry": [
               {
                 "ErrorEquals": [
-                  "Lambda.ServiceException"
+                  "Lambda.ServiceException",
+                  "Lambda.TooManyRequestsException"
                 ],
-                "IntervalSeconds": 3,
-                "MaxAttempts": 3,
-                "BackoffRate": 2.0
+                "IntervalSeconds": 5,
+                "MaxAttempts": 5,
+                "BackoffRate": 3.0
               }
             ],
             "Catch": [
@@ -104,11 +89,21 @@
     },
     "ParseXMLToSilver": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-parse-lobbying-xml-to-silver",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PARSE_LOBBYING_XML_SILVER}",
       "Comment": "Parse XML files and write to Silver Parquet tables",
       "ResultPath": "$.silver_result",
       "TimeoutSeconds": 600,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -131,13 +126,23 @@
     },
     "ValidateSilverQuality": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_RUN_SODA_CHECKS}",
       "Comment": "Run data quality checks on Silver lobbying tables",
       "Parameters": {
         "checks_path": "soda/checks/silver_lobbying.yml"
       },
       "ResultPath": "$.silver_quality_result",
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -161,11 +166,21 @@
     },
     "TransformToGold": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-fact-lobbying-duckdb",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_FACT_LOBBYING}",
       "Comment": "Build lobbying fact table in Gold layer",
       "ResultPath": "$.gold_result",
       "TimeoutSeconds": 600,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -188,13 +203,23 @@
     },
     "ValidateGoldQuality": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_RUN_SODA_CHECKS}",
       "Comment": "Run data quality checks on Gold lobbying tables",
       "Parameters": {
         "checks_path": "soda/checks/gold_fact_lobbying.yml"
       },
       "ResultPath": "$.gold_quality_result",
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -218,11 +243,21 @@
     },
     "ComputeLobbyingAggregates": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-compute-lobbying-aggregates-duckdb",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_COMPUTE_LOBBYING_AGGREGATES}",
       "Comment": "Compute lobbying activity aggregates",
       "ResultPath": "$.aggregate_result",
       "TimeoutSeconds": 300,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -236,7 +271,7 @@
     },
     "PublishMetrics": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-publish-pipeline-metrics",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
       "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
       "Parameters": {
         "pipeline": "lobbying",
@@ -279,22 +314,46 @@
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for quality check failure",
       "Parameters": {
-        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
         "Subject": "Data Quality Check Failed - Lobbying Pipeline",
         "Message.$": "States.Format('Data quality check failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
-      "Next": "QualityCheckFailed"
+      "Next": "QualityCheckFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
     },
     "NotifyPipelineFailure": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for pipeline failure",
       "Parameters": {
-        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
         "Subject": "Pipeline Failure - Lobbying Pipeline",
         "Message.$": "States.Format('Pipeline failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
-      "Next": "PipelineFailed"
+      "Next": "PipelineFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
     },
     "QualityCheckFailed": {
       "Type": "Fail",

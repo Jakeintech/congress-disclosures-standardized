@@ -97,8 +97,77 @@ locals {
     AWS_REGION     = var.aws_region
     AWS_ACCOUNT_ID = data.aws_caller_identity.current.account_id
     PROJECT_NAME   = var.project_name
+    NAME_PREFIX    = local.name_prefix  # congress-disclosures-development
+    
+    # ============================================================
+    # HOUSE FD PIPELINE LAMBDAS
+    # ============================================================
+    LAMBDA_CHECK_HOUSE_FD_UPDATES     = "${local.name_prefix}-check-house-fd-updates"  # Stub - returns has_new_filings: true
+    LAMBDA_HOUSE_FD_INGEST_ZIP        = aws_lambda_function.ingest_zip.function_name
+    LAMBDA_HOUSE_FD_INDEX_TO_SILVER   = aws_lambda_function.index_to_silver.function_name
+    LAMBDA_HOUSE_FD_EXTRACT_DOCUMENT  = aws_lambda_function.extract_document.function_name
+    LAMBDA_HOUSE_FD_EXTRACT_STRUCTURED = "${local.name_prefix}-extract-structured-code"
+    
+    # ============================================================
+    # CONGRESS PIPELINE LAMBDAS
+    # ============================================================
+    LAMBDA_FETCH_CONGRESS_BILLS    = "${local.name_prefix}-congress-fetch-entity"
+    LAMBDA_FETCH_CONGRESS_MEMBERS  = "${local.name_prefix}-congress-fetch-entity"
+    LAMBDA_FETCH_BILL_DETAILS      = "${local.name_prefix}-congress-fetch-entity"
+    LAMBDA_FETCH_BILL_COSPONSORS   = "${local.name_prefix}-congress-fetch-entity"
+    LAMBDA_WRITE_BILLS_TO_SILVER   = "${local.name_prefix}-congress-bronze-to-silver"
+    LAMBDA_WRITE_MEMBERS_TO_SILVER = "${local.name_prefix}-congress-bronze-to-silver"
+    
+    # ============================================================
+    # LOBBYING PIPELINE LAMBDAS
+    # ============================================================
+    LAMBDA_CHECK_LOBBYING_UPDATES     = "${local.name_prefix}-check-lobbying-updates"  # Stub
+    LAMBDA_DOWNLOAD_LOBBYING_XML      = "${local.name_prefix}-lda-ingest-filings"
+    LAMBDA_PARSE_LOBBYING_XML_SILVER  = "${local.name_prefix}-lda-ingest-filings"
+    
+    # ============================================================
+    # DUCKDB BUILD LAMBDAS (Gold Layer)
+    # ============================================================
+    LAMBDA_BUILD_DIM_MEMBERS     = "congress-disclosures-build-dim-members-duckdb"
+    LAMBDA_BUILD_DIM_ASSETS      = "congress-disclosures-build-dim-members-duckdb"
+    LAMBDA_BUILD_DIM_BILL        = "congress-disclosures-build-dim-members-duckdb"
+    LAMBDA_BUILD_FACT_TRANSACTIONS = "congress-disclosures-build-fact-transactions-duckdb"
+    LAMBDA_BUILD_FACT_FILINGS    = "congress-disclosures-build-fact-transactions-duckdb"
+    LAMBDA_BUILD_FACT_LOBBYING   = "congress-disclosures-build-fact-transactions-duckdb"
+    LAMBDA_BUILD_FACT_COSPONSORS = "congress-disclosures-build-fact-transactions-duckdb"
+    
+    # ============================================================
+    # DUCKDB COMPUTE LAMBDAS (Analytics)
+    # ============================================================
+    LAMBDA_COMPUTE_TRENDING_STOCKS   = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_COMPUTE_DOCUMENT_QUALITY  = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_COMPUTE_MEMBER_STATS      = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_COMPUTE_NETWORK_GRAPH     = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_COMPUTE_LOBBYING_AGGREGATES = "congress-disclosures-compute-trending-stocks-duckdb"
+    
+    # ============================================================
+    # CROSS-DATASET CORRELATION LAMBDAS
+    # ============================================================
+    LAMBDA_BUILD_BILL_TRADE_CORRELATIONS    = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_BUILD_LOBBYING_BILL_CORRELATIONS = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_BUILD_MEMBER_ASSET_NETWORK       = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_COMPUTE_BILL_IMPACT_SCORES       = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_COMPUTE_INDUSTRY_CORRELATIONS    = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_COMPUTE_MEMBER_INFLUENCE         = "congress-disclosures-compute-trending-stocks-duckdb"
+    
+    # ============================================================
+    # UTILITIES
+    # ============================================================
+    LAMBDA_RUN_SODA_CHECKS        = "congress-disclosures-run-soda-checks"
+    LAMBDA_PUBLISH_METRICS        = "congress-disclosures-publish-pipeline-metrics"
+    LAMBDA_UPDATE_API_CACHE       = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_UPDATE_CORRELATION_CACHE = "congress-disclosures-compute-trending-stocks-duckdb"
+    
+    # SNS Topic ARN
+    SNS_PIPELINE_ALERTS_ARN = aws_sns_topic.pipeline_alerts.arn
   }
 }
+
 
 # House FD Pipeline State Machine
 resource "aws_sfn_state_machine" "house_fd_pipeline" {
@@ -274,6 +343,67 @@ resource "aws_lambda_function" "publish_pipeline_metrics" {
 
 
 # Outputs
+# ==============================================================================
+# CHECK LAMBDAS - For pipeline update detection
+# ==============================================================================
+
+# Check House FD Updates Lambda
+resource "aws_lambda_function" "check_house_fd_updates" {
+  function_name = "${local.name_prefix}-check-house-fd-updates"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+  timeout       = 30
+  memory_size   = 128
+
+  s3_bucket = var.s3_bucket_name
+  s3_key    = "lambda-deployments/check_house_fd_updates/function.zip"
+
+  environment {
+    variables = {
+      LOG_LEVEL   = "INFO"
+      ENVIRONMENT = var.environment
+    }
+  }
+
+  tags = local.standard_tags
+}
+
+# Check Lobbying Updates Lambda
+resource "aws_lambda_function" "check_lobbying_updates" {
+  function_name = "${local.name_prefix}-check-lobbying-updates"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+  timeout       = 30
+  memory_size   = 128
+
+  s3_bucket = var.s3_bucket_name
+  s3_key    = "lambda-deployments/check_lobbying_updates/function.zip"
+
+  environment {
+    variables = {
+      LOG_LEVEL   = "INFO"
+      ENVIRONMENT = var.environment
+    }
+  }
+
+  tags = local.standard_tags
+}
+
+# CloudWatch Log Groups for check lambdas
+resource "aws_cloudwatch_log_group" "check_house_fd_updates_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.check_house_fd_updates.function_name}"
+  retention_in_days = var.cloudwatch_log_retention_days
+  tags              = local.standard_tags
+}
+
+resource "aws_cloudwatch_log_group" "check_lobbying_updates_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.check_lobbying_updates.function_name}"
+  retention_in_days = var.cloudwatch_log_retention_days
+  tags              = local.standard_tags
+}
+
 output "house_fd_pipeline_arn" {
   description = "ARN of House FD Pipeline state machine"
   value       = aws_sfn_state_machine.house_fd_pipeline.arn
@@ -298,3 +428,14 @@ output "step_functions_role_arn" {
   description = "ARN of Step Functions execution role"
   value       = aws_iam_role.step_functions_role.arn
 }
+
+output "check_house_fd_updates_function_name" {
+  description = "Name of Check House FD Updates Lambda"
+  value       = aws_lambda_function.check_house_fd_updates.function_name
+}
+
+output "check_lobbying_updates_function_name" {
+  description = "Name of Check Lobbying Updates Lambda"
+  value       = aws_lambda_function.check_lobbying_updates.function_name
+}
+

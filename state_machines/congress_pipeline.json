@@ -4,7 +4,7 @@
   "States": {
     "FetchNewBills": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-fetch-congress-bills",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_CONGRESS_BILLS}",
       "Comment": "Fetch new bills from Congress.gov API",
       "ResultPath": "$.bills_result",
       "TimeoutSeconds": 300,
@@ -28,102 +28,26 @@
           "Next": "NotifyPipelineFailure"
         }
       ],
-      "Next": "HasNewBills"
-    },
-    "HasNewBills": {
-      "Type": "Choice",
-      "Comment": "Check if new bills were found",
-      "Choices": [
-        {
-          "Variable": "$.bills_result.has_new_bills",
-          "BooleanEquals": true,
-          "Next": "FetchBillDetailsMap"
-        }
-      ],
-      "Default": "FetchMembers"
-    },
-    "FetchBillDetailsMap": {
-      "Type": "Map",
-      "Comment": "Fetch bill details in parallel (rate limited to 5K/hour)",
-      "ItemsPath": "$.bills_result.bills_to_fetch",
-      "MaxConcurrency": 5,
-      "ResultPath": "$.bill_details_results",
-      "Iterator": {
-        "StartAt": "FetchBillDetails",
-        "States": {
-          "FetchBillDetails": {
-            "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-fetch-bill-details",
-            "Comment": "Fetch full bill details from Congress.gov API",
-            "TimeoutSeconds": 60,
-            "Retry": [
-              {
-                "ErrorEquals": [
-                  "Lambda.ServiceException",
-                  "Lambda.TooManyRequestsException"
-                ],
-                "IntervalSeconds": 5,
-                "MaxAttempts": 3,
-                "BackoffRate": 2.0
-              }
-            ],
-            "Catch": [
-              {
-                "ErrorEquals": [
-                  "States.ALL"
-                ],
-                "ResultPath": "$.error",
-                "Next": "FetchFailed"
-              }
-            ],
-            "Next": "FetchCosponsors"
-          },
-          "FetchCosponsors": {
-            "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-fetch-bill-cosponsors",
-            "Comment": "Fetch bill cosponsors",
-            "TimeoutSeconds": 60,
-            "Retry": [
-              {
-                "ErrorEquals": [
-                  "Lambda.ServiceException"
-                ],
-                "IntervalSeconds": 3,
-                "MaxAttempts": 2,
-                "BackoffRate": 2.0
-              }
-            ],
-            "End": true
-          },
-          "FetchFailed": {
-            "Type": "Pass",
-            "Comment": "Mark fetch as failed, continue with other bills",
-            "Result": {
-              "status": "failed"
-            },
-            "End": true
-          }
-        }
-      },
-      "Catch": [
-        {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
-          "ResultPath": "$.error",
-          "Next": "NotifyPipelineFailure"
-        }
-      ],
       "Next": "WriteBillsToSilver"
     },
     "WriteBillsToSilver": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-write-bills-to-silver",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_WRITE_BILLS_TO_SILVER}",
       "Comment": "Write bill data to Silver Parquet tables",
-      "InputPath": "$.bill_details_results",
+      "InputPath": "$",
       "ResultPath": "$.silver_bills_result",
       "TimeoutSeconds": 300,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -137,11 +61,21 @@
     },
     "FetchMembers": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-fetch-congress-members",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_CONGRESS_MEMBERS}",
       "Comment": "Fetch member biographical data and committee assignments",
       "ResultPath": "$.members_result",
       "TimeoutSeconds": 300,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -164,12 +98,22 @@
     },
     "WriteMembersToSilver": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-write-members-to-silver",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_WRITE_MEMBERS_TO_SILVER}",
       "Comment": "Write member data to Silver Parquet tables",
       "InputPath": "$.members_result",
       "ResultPath": "$.silver_members_result",
       "TimeoutSeconds": 180,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -183,13 +127,23 @@
     },
     "ValidateSilverQuality": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_RUN_SODA_CHECKS}",
       "Comment": "Run data quality checks on Silver bills and members",
       "Parameters": {
         "checks_path": "soda/checks/silver_bills.yml"
       },
       "ResultPath": "$.silver_quality_result",
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -221,7 +175,7 @@
           "States": {
             "BuildDimBill": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-dim-bill-duckdb",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_DIM_BILL}",
               "Comment": "Build bill dimension table",
               "TimeoutSeconds": 300,
               "End": true
@@ -233,7 +187,7 @@
           "States": {
             "UpdateDimMember": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-dim-members-duckdb",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_DIM_MEMBERS}",
               "Comment": "Update member dimension with Congress.gov data (SCD Type 2)",
               "TimeoutSeconds": 300,
               "End": true
@@ -254,11 +208,21 @@
     },
     "BuildFactCosponsors": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-fact-cosponsors-duckdb",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_FACT_COSPONSORS}",
       "Comment": "Build bill cosponsors fact table",
       "ResultPath": "$.fact_cosponsors_result",
       "TimeoutSeconds": 300,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -272,13 +236,23 @@
     },
     "ValidateGoldQuality": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_RUN_SODA_CHECKS}",
       "Comment": "Run data quality checks on Gold layer",
       "Parameters": {
         "checks_path": "soda/checks/gold_dim_bill.yml"
       },
       "ResultPath": "$.gold_quality_result",
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -302,7 +276,7 @@
     },
     "PublishMetrics": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-publish-pipeline-metrics",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
       "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
       "Parameters": {
         "pipeline": "congress",
@@ -345,33 +319,69 @@
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for quality check failure",
       "Parameters": {
-        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
         "Subject": "Data Quality Check Failed - Congress.gov Pipeline",
         "Message.$": "States.Format('Data quality check failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
-      "Next": "QualityCheckFailed"
+      "Next": "QualityCheckFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
     },
     "NotifyPipelineFailure": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for pipeline failure",
       "Parameters": {
-        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
         "Subject": "Pipeline Failure - Congress.gov Pipeline",
         "Message.$": "States.Format('Pipeline failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
-      "Next": "PipelineFailed"
+      "Next": "PipelineFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
     },
     "NotifyPipelineWarning": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for non-critical warning",
       "Parameters": {
-        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
         "Subject": "Pipeline Warning - Congress.gov Pipeline",
         "Message.$": "States.Format('Pipeline completed with warnings.\n\nWarning: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
-      "Next": "ValidateSilverQuality"
+      "Next": "ValidateSilverQuality",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
     },
     "QualityCheckFailed": {
       "Type": "Fail",

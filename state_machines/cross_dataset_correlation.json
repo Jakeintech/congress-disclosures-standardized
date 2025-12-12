@@ -4,11 +4,21 @@
   "States": {
     "BuildBillTradingCorrelations": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-bill-trade-correlations-duckdb",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_BILL_TRADE_CORRELATIONS}",
       "Comment": "Correlate bill activity with member trading patterns",
       "ResultPath": "$.bill_trade_result",
       "TimeoutSeconds": 600,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -31,11 +41,21 @@
     },
     "BuildMemberAssetNetwork": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-member-asset-network-duckdb",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_MEMBER_ASSET_NETWORK}",
       "Comment": "Build member-asset trading network graph",
       "ResultPath": "$.network_result",
       "TimeoutSeconds": 600,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -58,11 +78,21 @@
     },
     "BuildLobbyingBillCorrelations": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-lobbying-bill-correlations-duckdb",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_LOBBYING_BILL_CORRELATIONS}",
       "Comment": "Correlate lobbying activity with bill lifecycle",
       "ResultPath": "$.lobbying_bill_result",
       "TimeoutSeconds": 600,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -93,7 +123,7 @@
           "States": {
             "ComputeMemberInfluence": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-compute-member-influence-duckdb",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_COMPUTE_MEMBER_INFLUENCE}",
               "Comment": "Compute member influence scores based on trading, sponsorship, committee roles",
               "TimeoutSeconds": 300,
               "End": true
@@ -105,7 +135,7 @@
           "States": {
             "ComputeBillImpactScores": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-compute-bill-impact-scores-duckdb",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_COMPUTE_BILL_IMPACT_SCORES}",
               "Comment": "Compute bill impact scores based on trading activity",
               "TimeoutSeconds": 300,
               "End": true
@@ -117,7 +147,7 @@
           "States": {
             "ComputeIndustryCorrelations": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-compute-industry-correlations-duckdb",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_COMPUTE_INDUSTRY_CORRELATIONS}",
               "Comment": "Correlate industry sectors with bill activity and trading",
               "TimeoutSeconds": 300,
               "End": true
@@ -138,13 +168,23 @@
     },
     "ValidateCorrelationQuality": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_RUN_SODA_CHECKS}",
       "Comment": "Run data quality checks on correlation tables",
       "Parameters": {
         "checks_path": "soda/checks/gold_correlations.yml"
       },
       "ResultPath": "$.quality_result",
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -168,11 +208,21 @@
     },
     "UpdateCorrelationCache": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-update-correlation-cache",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_UPDATE_CORRELATION_CACHE}",
       "Comment": "Pre-compute JSON responses for correlation APIs",
       "ResultPath": "$.cache_result",
       "TimeoutSeconds": 300,
       "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
         {
           "ErrorEquals": [
             "Lambda.ServiceException"
@@ -186,7 +236,7 @@
     },
     "PublishMetrics": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-publish-pipeline-metrics",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
       "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
       "Parameters": {
         "pipeline": "cross_dataset_correlation",
@@ -229,33 +279,69 @@
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for quality check failure",
       "Parameters": {
-        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
         "Subject": "Data Quality Check Failed - Correlation Pipeline",
         "Message.$": "States.Format('Data quality check failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
-      "Next": "QualityCheckFailed"
+      "Next": "QualityCheckFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
     },
     "NotifyPipelineFailure": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for pipeline failure",
       "Parameters": {
-        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
         "Subject": "Pipeline Failure - Correlation Pipeline",
         "Message.$": "States.Format('Pipeline failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
-      "Next": "PipelineFailed"
+      "Next": "PipelineFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
     },
     "NotifyPipelineWarning": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for non-critical warning",
       "Parameters": {
-        "TopicArn": "arn:aws:sns:${AWS_REGION}:${AWS_ACCOUNT_ID}:${PROJECT_NAME}-pipeline-alerts",
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
         "Subject": "Pipeline Warning - Correlation Pipeline",
         "Message.$": "States.Format('Pipeline completed with warnings.\n\nWarning: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
-      "Next": "ComputeInfluenceScores"
+      "Next": "ComputeInfluenceScores",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
     },
     "QualityCheckFailed": {
       "Type": "Fail",

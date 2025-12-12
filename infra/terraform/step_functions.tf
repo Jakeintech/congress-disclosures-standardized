@@ -68,6 +68,22 @@ resource "aws_iam_role_policy" "step_functions_policy" {
           "events:DescribeRule"
         ]
         Resource = "arn:aws:events:${var.aws_region}:${data.aws_caller_identity.current.account_id}:rule/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogDelivery",
+          "logs:GetLogDelivery",
+          "logs:UpdateLogDelivery",
+          "logs:DeleteLogDelivery",
+          "logs:ListLogDeliveries",
+          "logs:PutResourcePolicy",
+          "logs:DescribeResourcePolicies",
+          "logs:DescribeLogGroups",
+          "logs:PutLogEvents",
+          "logs:CreateLogStream"
+        ]
+        Resource = "*"
       }
     ]
   })
@@ -194,6 +210,68 @@ resource "aws_cloudwatch_log_group" "step_functions_logs" {
     Environment = var.environment
   }
 }
+
+# CloudWatch Log Group for Pipeline Metrics Lambda
+resource "aws_cloudwatch_log_group" "publish_pipeline_metrics" {
+  name              = "/aws/lambda/${var.project_name}-publish-pipeline-metrics"
+  retention_in_days = 30
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+  }
+}
+
+# Lambda function: publish_pipeline_metrics
+resource "aws_lambda_function" "publish_pipeline_metrics" {
+  function_name = "${var.project_name}-publish-pipeline-metrics"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+
+  s3_bucket        = aws_s3_bucket.data_lake.id
+  s3_key           = "lambda-deployments/publish_pipeline_metrics/function.zip"
+  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/publish_pipeline_metrics/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/publish_pipeline_metrics/function.zip") : null
+
+  timeout     = 30
+  memory_size = 128
+
+  environment {
+    variables = {
+      CLOUDWATCH_NAMESPACE = "CongressDisclosures/Pipeline"
+      ENVIRONMENT          = var.environment
+      LOG_LEVEL            = "INFO"
+    }
+  }
+
+  tracing_config {
+    mode = var.enable_xray_tracing ? "Active" : "PassThrough"
+  }
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${var.project_name}-publish-pipeline-metrics"
+      Component = "lambda"
+      Purpose   = "metrics"
+    }
+  )
+
+  lifecycle {
+    ignore_changes = [
+      source_code_hash,
+      filename
+    ]
+  }
+
+  depends_on = [
+    null_resource.package_lambdas,
+    aws_cloudwatch_log_group.publish_pipeline_metrics,
+    aws_iam_role_policy.lambda_logging
+  ]
+}
+
+
 
 # Outputs
 output "house_fd_pipeline_arn" {

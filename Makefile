@@ -167,7 +167,7 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics ## Package all Lambda functions
 
 package-api: ## Package and upload ALL API Lambda functions to S3
 	@echo "Packaging API Lambda functions..."
@@ -301,6 +301,15 @@ package-congress-silver: ## Package congress_bronze_to_silver Lambda
 	@rm -rf $(LAMBDA_DIR)/congress_bronze_to_silver/package
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/congress_bronze_to_silver/function.zip"
 	@ls -lh $(LAMBDA_DIR)/congress_bronze_to_silver/function.zip | awk '{print "  Package size:", $$5}'
+
+package-pipeline-metrics: ## Package publish_pipeline_metrics Lambda
+	@echo "Packaging publish_pipeline_metrics..."
+	@rm -rf $(LAMBDA_DIR)/publish_pipeline_metrics/package $(LAMBDA_DIR)/publish_pipeline_metrics/function.zip
+	@mkdir -p $(LAMBDA_DIR)/publish_pipeline_metrics/package
+	@cp $(LAMBDA_DIR)/publish_pipeline_metrics/handler.py $(LAMBDA_DIR)/publish_pipeline_metrics/package/
+	@cd $(LAMBDA_DIR)/publish_pipeline_metrics/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/publish_pipeline_metrics/package
+	@echo "✓ Lambda package created: $(LAMBDA_DIR)/publish_pipeline_metrics/function.zip"
 
 ##@ Testing
 

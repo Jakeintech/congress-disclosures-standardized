@@ -1,0 +1,2 @@
+# Lambda runtime includes boto3, but specify version for local testing
+boto3>=1.28.0

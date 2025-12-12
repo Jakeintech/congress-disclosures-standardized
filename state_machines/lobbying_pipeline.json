@@ -10,7 +10,10 @@
       "TimeoutSeconds": 180,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
           "IntervalSeconds": 3,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
@@ -18,14 +21,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "HasNewFilings"
     },
-
     "HasNewFilings": {
       "Type": "Choice",
       "Comment": "Check if new lobbying filings were found",
@@ -38,12 +42,10 @@
       ],
       "Default": "NoNewFilings"
     },
-
     "NoNewFilings": {
       "Type": "Succeed",
       "Comment": "No new lobbying filings to process"
     },
-
     "DownloadXMLFilesMap": {
       "Type": "Map",
       "Comment": "Download lobbying XML files in parallel",
@@ -60,7 +62,9 @@
             "TimeoutSeconds": 120,
             "Retry": [
               {
-                "ErrorEquals": ["Lambda.ServiceException"],
+                "ErrorEquals": [
+                  "Lambda.ServiceException"
+                ],
                 "IntervalSeconds": 3,
                 "MaxAttempts": 3,
                 "BackoffRate": 2.0
@@ -68,7 +72,9 @@
             ],
             "Catch": [
               {
-                "ErrorEquals": ["States.ALL"],
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
                 "ResultPath": "$.error",
                 "Next": "DownloadFailed"
               }
@@ -87,14 +93,15 @@
       },
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "ParseXMLToSilver"
     },
-
     "ParseXMLToSilver": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-parse-lobbying-xml-to-silver",
@@ -103,7 +110,9 @@
       "TimeoutSeconds": 600,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 5,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
@@ -111,14 +120,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "ValidateSilverQuality"
     },
-
     "ValidateSilverQuality": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
@@ -129,7 +139,9 @@
       "ResultPath": "$.silver_quality_result",
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 2,
           "MaxAttempts": 2,
           "BackoffRate": 2.0
@@ -137,14 +149,16 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["DataQualityFailure", "States.TaskFailed"],
+          "ErrorEquals": [
+            "DataQualityFailure",
+            "States.TaskFailed"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyQualityFailure"
         }
       ],
       "Next": "TransformToGold"
     },
-
     "TransformToGold": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-fact-lobbying-duckdb",
@@ -153,7 +167,9 @@
       "TimeoutSeconds": 600,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 5,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
@@ -161,14 +177,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "ValidateGoldQuality"
     },
-
     "ValidateGoldQuality": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
@@ -179,7 +196,9 @@
       "ResultPath": "$.gold_quality_result",
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 2,
           "MaxAttempts": 2,
           "BackoffRate": 2.0
@@ -187,14 +206,16 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["DataQualityFailure", "States.TaskFailed"],
+          "ErrorEquals": [
+            "DataQualityFailure",
+            "States.TaskFailed"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyQualityFailure"
         }
       ],
       "Next": "ComputeLobbyingAggregates"
     },
-
     "ComputeLobbyingAggregates": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-compute-lobbying-aggregates-duckdb",
@@ -203,7 +224,9 @@
       "TimeoutSeconds": 300,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 3,
           "MaxAttempts": 2,
           "BackoffRate": 2.0
@@ -211,40 +234,46 @@
       ],
       "Next": "PublishMetrics"
     },
-
     "PublishMetrics": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::cloudwatch:putMetricData",
-      "Comment": "Publish pipeline metrics to CloudWatch",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-publish-pipeline-metrics",
+      "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
       "Parameters": {
-        "Namespace": "CongressDisclosures/Pipeline",
-        "MetricData": [
-          {
-            "MetricName": "LobbyingPipelineSuccess",
-            "Value": 1,
-            "Unit": "Count"
-          },
-          {
-            "MetricName": "LobbyingFilingsProcessed",
-            "Value.$": "$.silver_result.num_filings",
-            "Unit": "Count"
-          },
-          {
-            "MetricName": "LobbyistsProcessed",
-            "Value.$": "$.silver_result.num_lobbyists",
-            "Unit": "Count"
-          }
-        ]
+        "pipeline": "lobbying",
+        "status": "success",
+        "execution_id.$": "$$.Execution.Id",
+        "metrics": {
+          "lobbying_filings_processed.$": "$.silver_result.num_filings",
+          "lobbyists_processed.$": "$.silver_result.num_lobbyists"
+        }
       },
-      "ResultPath": null,
+      "ResultPath": "$.metrics_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.metrics_error",
+          "Next": "PipelineSuccess"
+        }
+      ],
       "Next": "PipelineSuccess"
     },
-
     "PipelineSuccess": {
       "Type": "Succeed",
       "Comment": "Lobbying pipeline completed successfully"
     },
-
     "NotifyQualityFailure": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
@@ -256,7 +285,6 @@
       },
       "Next": "QualityCheckFailed"
     },
-
     "NotifyPipelineFailure": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
@@ -268,14 +296,12 @@
       },
       "Next": "PipelineFailed"
     },
-
     "QualityCheckFailed": {
       "Type": "Fail",
       "Comment": "Pipeline stopped due to quality check failure",
       "Cause": "Data quality checks did not pass",
       "Error": "DataQualityFailure"
     },
-
     "PipelineFailed": {
       "Type": "Fail",
       "Comment": "Pipeline failed",

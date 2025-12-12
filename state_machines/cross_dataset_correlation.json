@@ -10,7 +10,9 @@
       "TimeoutSeconds": 600,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 5,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
@@ -18,14 +20,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "BuildMemberAssetNetwork"
     },
-
     "BuildMemberAssetNetwork": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-member-asset-network-duckdb",
@@ -34,7 +37,9 @@
       "TimeoutSeconds": 600,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 5,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
@@ -42,14 +47,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "BuildLobbyingBillCorrelations"
     },
-
     "BuildLobbyingBillCorrelations": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-build-lobbying-bill-correlations-duckdb",
@@ -58,7 +64,9 @@
       "TimeoutSeconds": 600,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 5,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
@@ -66,14 +74,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineWarning"
         }
       ],
       "Next": "ComputeInfluenceScores"
     },
-
     "ComputeInfluenceScores": {
       "Type": "Parallel",
       "Comment": "Compute various influence and correlation metrics in parallel",
@@ -118,14 +127,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineWarning"
         }
       ],
       "Next": "ValidateCorrelationQuality"
     },
-
     "ValidateCorrelationQuality": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
@@ -136,7 +146,9 @@
       "ResultPath": "$.quality_result",
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 2,
           "MaxAttempts": 2,
           "BackoffRate": 2.0
@@ -144,14 +156,16 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["DataQualityFailure", "States.TaskFailed"],
+          "ErrorEquals": [
+            "DataQualityFailure",
+            "States.TaskFailed"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyQualityFailure"
         }
       ],
       "Next": "UpdateCorrelationCache"
     },
-
     "UpdateCorrelationCache": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-update-correlation-cache",
@@ -160,7 +174,9 @@
       "TimeoutSeconds": 300,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 3,
           "MaxAttempts": 2,
           "BackoffRate": 2.0
@@ -168,40 +184,46 @@
       ],
       "Next": "PublishMetrics"
     },
-
     "PublishMetrics": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::cloudwatch:putMetricData",
-      "Comment": "Publish correlation pipeline metrics to CloudWatch",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-publish-pipeline-metrics",
+      "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
       "Parameters": {
-        "Namespace": "CongressDisclosures/Pipeline",
-        "MetricData": [
-          {
-            "MetricName": "CorrelationPipelineSuccess",
-            "Value": 1,
-            "Unit": "Count"
-          },
-          {
-            "MetricName": "BillTradeCorrelationsComputed",
-            "Value.$": "$.bill_trade_result.num_correlations",
-            "Unit": "Count"
-          },
-          {
-            "MetricName": "NetworkNodesComputed",
-            "Value.$": "$.network_result.num_nodes",
-            "Unit": "Count"
-          }
-        ]
+        "pipeline": "cross_dataset_correlation",
+        "status": "success",
+        "execution_id.$": "$$.Execution.Id",
+        "metrics": {
+          "bill_trade_correlations_computed.$": "$.bill_trade_result.num_correlations",
+          "network_nodes_computed.$": "$.network_result.num_nodes"
+        }
       },
-      "ResultPath": null,
+      "ResultPath": "$.metrics_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.metrics_error",
+          "Next": "PipelineSuccess"
+        }
+      ],
       "Next": "PipelineSuccess"
     },
-
     "PipelineSuccess": {
       "Type": "Succeed",
       "Comment": "Cross-dataset correlation pipeline completed successfully"
     },
-
     "NotifyQualityFailure": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
@@ -213,7 +235,6 @@
       },
       "Next": "QualityCheckFailed"
     },
-
     "NotifyPipelineFailure": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
@@ -225,7 +246,6 @@
       },
       "Next": "PipelineFailed"
     },
-
     "NotifyPipelineWarning": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
@@ -237,14 +257,12 @@
       },
       "Next": "ComputeInfluenceScores"
     },
-
     "QualityCheckFailed": {
       "Type": "Fail",
       "Comment": "Pipeline stopped due to quality check failure",
       "Cause": "Data quality checks did not pass",
       "Error": "DataQualityFailure"
     },
-
     "PipelineFailed": {
       "Type": "Fail",
       "Comment": "Pipeline failed",

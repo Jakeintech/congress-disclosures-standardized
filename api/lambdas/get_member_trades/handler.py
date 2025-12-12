@@ -20,6 +20,7 @@ def get_duckdb_connection():
     """Get or create DuckDB connection with S3 support (connection pooling)."""
     global _conn
     if _conn is None:
+        import boto3
         logger.info("Creating new DuckDB connection (cold start)")
         _conn = duckdb.connect(':memory:')
         # Set home_directory for Lambda environment (required for extension installs)
@@ -27,6 +28,18 @@ def get_duckdb_connection():
         _conn.execute("INSTALL httpfs; LOAD httpfs;")
         _conn.execute("SET enable_http_metadata_cache=true;")
         _conn.execute("SET s3_region='us-east-1';")
+        
+        # Get AWS credentials from boto3 session (for Lambda IAM role)
+        session = boto3.Session()
+        credentials = session.get_credentials()
+        if credentials:
+            frozen_creds = credentials.get_frozen_credentials()
+            _conn.execute(f"SET s3_access_key_id='{frozen_creds.access_key}';")
+            _conn.execute(f"SET s3_secret_access_key='{frozen_creds.secret_key}';")
+            if frozen_creds.token:
+                _conn.execute(f"SET s3_session_token='{frozen_creds.token}';")
+        
+        _conn.execute("SET s3_use_ssl=true;")
     return _conn
 
 
@@ -56,8 +69,8 @@ def handler(event, context):
 
         conn = get_duckdb_connection()
 
-        # Build WHERE clause
-        where_clauses = [f"m.bioguide_id = '{bioguide_id}'"]
+        # Build WHERE clause - filter on transactions table directly
+        where_clauses = [f"t.bioguide_id = '{bioguide_id}'"]
 
         if ticker:
             where_clauses.append(f"t.ticker = '{ticker}'")
@@ -73,22 +86,22 @@ def handler(event, context):
 
         where_sql = " AND ".join(where_clauses)
 
-        # Query with JOIN (DuckDB pushes predicates to S3 scan)
+        # Simplified query - no join needed since bioguide_id is in transactions
         query = f"""
             SELECT
                 t.transaction_date,
-                t.ticker,
+                COALESCE(t.ticker, '') as ticker,
+                t.asset_description,
                 t.asset_name,
                 t.transaction_type,
-                t.amount_low,
-                t.amount_high,
-                (t.amount_low + t.amount_high) / 2.0 AS amount_midpoint,
-                m.full_name,
-                m.party,
-                m.state
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/*.parquet') t
-            JOIN read_parquet('s3://{S3_BUCKET}/gold/congress/dim_member/*/**.parquet') m
-                ON t.bioguide_id = m.bioguide_id
+                COALESCE(t.amount_low, 0) as amount_low,
+                COALESCE(t.amount_high, 0) as amount_high,
+                (COALESCE(t.amount_low, 0) + COALESCE(t.amount_high, 0)) / 2.0 AS amount_midpoint,
+                t.bioguide_id,
+                t.full_name,
+                t.party,
+                t.state
+            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet') t
             WHERE {where_sql}
             ORDER BY t.transaction_date DESC
             LIMIT {limit} OFFSET {offset}
@@ -100,9 +113,7 @@ def handler(event, context):
         # Get total count (for pagination)
         count_query = f"""
             SELECT COUNT(*) as total
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/*.parquet') t
-            JOIN read_parquet('s3://{S3_BUCKET}/gold/congress/dim_member/*/**.parquet') m
-                ON t.bioguide_id = m.bioguide_id
+            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet') t
             WHERE {where_sql}
         """
 

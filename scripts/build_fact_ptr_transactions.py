@@ -117,6 +117,55 @@ def get_transaction_type(tx):
         return 'Exchange'
     return tt
 
+
+def extract_ticker_from_description(asset_desc: str) -> str:
+    """
+    Extract stock ticker from asset description.
+    
+    Common patterns:
+    - "AAPL - Apple Inc Common Stock"
+    - "Apple Inc (AAPL)"
+    - "Stock: MSFT"
+    - "NVIDIA Corp Common Stock [NVDA]"
+    """
+    import re
+    
+    if not asset_desc:
+        return None
+    
+    desc = str(asset_desc).strip()
+    
+    # Pattern 1: Ticker at start followed by dash (e.g., "AAPL - Apple Inc")
+    match = re.match(r'^([A-Z]{1,5})\s*[-–—]', desc)
+    if match:
+        return match.group(1)
+    
+    # Pattern 2: Ticker in parentheses (e.g., "Apple Inc (AAPL)")
+    match = re.search(r'\(([A-Z]{1,5})\)', desc)
+    if match:
+        return match.group(1)
+    
+    # Pattern 3: Ticker in brackets (e.g., "[AAPL]")
+    match = re.search(r'\[([A-Z]{1,5})\]', desc)
+    if match:
+        return match.group(1)
+    
+    # Pattern 4: "Stock: TICKER" or "Ticker: TICKER"
+    match = re.search(r'(?:Stock|Ticker):\s*([A-Z]{1,5})', desc, re.IGNORECASE)
+    if match:
+        return match.group(1).upper()
+    
+    # Pattern 5: Standalone ticker at start (all caps 1-5 letters followed by space)
+    match = re.match(r'^([A-Z]{1,5})\s+(?:[A-Z][a-z])', desc)
+    if match:
+        # Verify it's not a common word
+        potential = match.group(1)
+        common_words = {'NEW', 'THE', 'INC', 'LLC', 'LTD', 'CO', 'CORP', 'ETF', 'FUND', 'STOCK'}
+        if potential not in common_words:
+            return potential
+    
+    return None
+
 def process_year(year):
     """Process all Type P filings for a specific year."""
     logger.info(f"Processing year {year}...")
@@ -229,7 +278,7 @@ def process_year(year):
                             'transaction_date': tx_date,
                             'transaction_date_key': get_date_key(tx_date),
                             'owner': tx.get('owner') or tx.get('owner_code'),
-                            'ticker': tx.get('ticker'),
+                            'ticker': tx.get('ticker') or extract_ticker_from_description(tx.get('asset_name') or tx.get('asset_description')),
                             'asset_description': tx.get('asset_name') or tx.get('asset_description'),
                             'asset_type': tx.get('asset_type') or tx.get('type_code'),
                             'transaction_type': get_transaction_type(tx),

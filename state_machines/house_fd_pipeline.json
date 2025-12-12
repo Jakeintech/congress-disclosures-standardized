@@ -9,7 +9,10 @@
       "ResultPath": "$.filings_check",
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
           "IntervalSeconds": 2,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
@@ -17,14 +20,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "HasNewFilings"
     },
-
     "HasNewFilings": {
       "Type": "Choice",
       "Comment": "Check if new filings were found",
@@ -37,12 +41,10 @@
       ],
       "Default": "NoNewFilings"
     },
-
     "NoNewFilings": {
       "Type": "Succeed",
       "Comment": "No new filings to process"
     },
-
     "IngestZip": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-house-fd-ingest-zip",
@@ -51,7 +53,9 @@
       "TimeoutSeconds": 600,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 5,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
@@ -59,14 +63,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "IndexToSilver"
     },
-
     "IndexToSilver": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-house-fd-index-to-silver",
@@ -75,7 +80,9 @@
       "TimeoutSeconds": 300,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 3,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
@@ -83,14 +90,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "ExtractDocumentsMap"
     },
-
     "ExtractDocumentsMap": {
       "Type": "Map",
       "Comment": "Extract text from PDFs in parallel (10 concurrent)",
@@ -107,7 +115,9 @@
             "TimeoutSeconds": 300,
             "Retry": [
               {
-                "ErrorEquals": ["Lambda.ServiceException"],
+                "ErrorEquals": [
+                  "Lambda.ServiceException"
+                ],
                 "IntervalSeconds": 2,
                 "MaxAttempts": 2,
                 "BackoffRate": 2.0
@@ -115,7 +125,9 @@
             ],
             "Catch": [
               {
-                "ErrorEquals": ["States.ALL"],
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
                 "ResultPath": "$.error",
                 "Next": "ExtractFailed"
               }
@@ -129,7 +141,9 @@
             "TimeoutSeconds": 180,
             "Retry": [
               {
-                "ErrorEquals": ["Lambda.ServiceException"],
+                "ErrorEquals": [
+                  "Lambda.ServiceException"
+                ],
                 "IntervalSeconds": 2,
                 "MaxAttempts": 2,
                 "BackoffRate": 2.0
@@ -149,21 +163,21 @@
       },
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "WaitForExtractionComplete"
     },
-
     "WaitForExtractionComplete": {
       "Type": "Wait",
       "Comment": "Brief wait to ensure all S3 writes complete",
       "Seconds": 10,
       "Next": "ValidateSilverQuality"
     },
-
     "ValidateSilverQuality": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
@@ -174,7 +188,9 @@
       "ResultPath": "$.silver_quality_result",
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 2,
           "MaxAttempts": 2,
           "BackoffRate": 2.0
@@ -182,14 +198,16 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["DataQualityFailure", "States.TaskFailed"],
+          "ErrorEquals": [
+            "DataQualityFailure",
+            "States.TaskFailed"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyQualityFailure"
         }
       ],
       "Next": "TransformToGoldParallel"
     },
-
     "TransformToGoldParallel": {
       "Type": "Parallel",
       "Comment": "Build Gold dimensions and facts in parallel",
@@ -246,14 +264,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "ValidateGoldQuality"
     },
-
     "ValidateGoldQuality": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-run-soda-checks",
@@ -264,7 +283,9 @@
       "ResultPath": "$.gold_quality_result",
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 2,
           "MaxAttempts": 2,
           "BackoffRate": 2.0
@@ -272,14 +293,16 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["DataQualityFailure", "States.TaskFailed"],
+          "ErrorEquals": [
+            "DataQualityFailure",
+            "States.TaskFailed"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyQualityFailure"
         }
       ],
       "Next": "ComputeAggregatesParallel"
     },
-
     "ComputeAggregatesParallel": {
       "Type": "Parallel",
       "Comment": "Compute aggregates in parallel",
@@ -336,14 +359,15 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineFailure"
         }
       ],
       "Next": "UpdateAPICache"
     },
-
     "UpdateAPICache": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-update-api-cache",
@@ -352,7 +376,9 @@
       "TimeoutSeconds": 180,
       "Retry": [
         {
-          "ErrorEquals": ["Lambda.ServiceException"],
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
           "IntervalSeconds": 2,
           "MaxAttempts": 2,
           "BackoffRate": 2.0
@@ -360,7 +386,6 @@
       ],
       "Next": "TriggerCorrelationPipeline"
     },
-
     "TriggerCorrelationPipeline": {
       "Type": "Task",
       "Resource": "arn:aws:states:::states:startExecution.sync:2",
@@ -375,47 +400,55 @@
       "ResultPath": "$.correlation_result",
       "Catch": [
         {
-          "ErrorEquals": ["States.ALL"],
+          "ErrorEquals": [
+            "States.ALL"
+          ],
           "ResultPath": "$.error",
           "Next": "NotifyPipelineWarning"
         }
       ],
       "Next": "PublishMetrics"
     },
-
     "PublishMetrics": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::cloudwatch:putMetricData",
-      "Comment": "Publish pipeline metrics to CloudWatch",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${PROJECT_NAME}-publish-pipeline-metrics",
+      "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
       "Parameters": {
-        "Namespace": "CongressDisclosures/Pipeline",
-        "MetricData": [
-          {
-            "MetricName": "PipelineSuccess",
-            "Value": 1,
-            "Unit": "Count"
-          },
-          {
-            "MetricName": "DocumentsProcessed",
-            "Value.$": "$.silver_index_result.num_documents",
-            "Unit": "Count"
-          },
-          {
-            "MetricName": "TransactionsExtracted",
-            "Value.$": "$.gold_results[2].rows_processed",
-            "Unit": "Count"
-          }
-        ]
+        "pipeline": "house_fd",
+        "status": "success",
+        "execution_id.$": "$$.Execution.Id",
+        "metrics": {
+          "documents_processed.$": "$.silver_index_result.num_documents",
+          "transactions_extracted.$": "$.gold_results[2].rows_processed"
+        }
       },
-      "ResultPath": null,
+      "ResultPath": "$.metrics_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.metrics_error",
+          "Next": "PipelineSuccess"
+        }
+      ],
       "Next": "PipelineSuccess"
     },
-
     "PipelineSuccess": {
       "Type": "Succeed",
       "Comment": "Pipeline completed successfully"
     },
-
     "NotifyQualityFailure": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
@@ -427,7 +460,6 @@
       },
       "Next": "QualityCheckFailed"
     },
-
     "NotifyPipelineFailure": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
@@ -439,7 +471,6 @@
       },
       "Next": "PipelineFailed"
     },
-
     "NotifyPipelineWarning": {
       "Type": "Task",
       "Resource": "arn:aws:states:::sns:publish",
@@ -451,14 +482,12 @@
       },
       "Next": "PublishMetrics"
     },
-
     "QualityCheckFailed": {
       "Type": "Fail",
       "Comment": "Pipeline stopped due to quality check failure",
       "Cause": "Data quality checks did not pass",
       "Error": "DataQualityFailure"
     },
-
     "PipelineFailed": {
       "Type": "Fail",
       "Comment": "Pipeline failed",

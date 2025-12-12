@@ -149,8 +149,19 @@ def compute_member_alpha(transactions_df: pd.DataFrame, members_df: pd.DataFrame
     transactions_df['trade_alpha'] = transactions_df['estimated_return'] - transactions_df['benchmark_return']
     transactions_df['weighted_alpha'] = transactions_df['trade_alpha'] * transactions_df['amount_midpoint']
     
+    # Find member column
+    member_col = None
+    for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+        if col in transactions_df.columns:
+            member_col = col
+            break
+    
+    if not member_col:
+        logger.warning("No member identifier column found")
+        return pd.DataFrame()
+    
     # Aggregate by member
-    member_stats = transactions_df.groupby('member_key').agg({
+    member_stats = transactions_df.groupby(member_col).agg({
         'amount_midpoint': ['sum', 'mean', 'count'],
         'transaction_type': lambda x: (x == 'Purchase').sum(),
         'estimated_return': 'mean',
@@ -161,7 +172,7 @@ def compute_member_alpha(transactions_df: pd.DataFrame, members_df: pd.DataFrame
     
     # Flatten columns
     member_stats.columns = [
-        'member_key', 'total_volume', 'avg_trade_size', 'total_trades',
+        member_col, 'total_volume', 'avg_trade_size', 'total_trades',
         'buy_count', 'avg_return', 'avg_benchmark', 'avg_alpha', 'weighted_alpha_total'
     ]
     
@@ -178,12 +189,13 @@ def compute_member_alpha(transactions_df: pd.DataFrame, members_df: pd.DataFrame
     
     # Merge with member info
     if not members_df.empty:
-        name_cols = ['member_key']
+        name_cols = [member_col] if member_col in members_df.columns else []
         for col in ['full_name', 'first_name', 'last_name', 'party', 'state', 'state_district']:
             if col in members_df.columns:
                 name_cols.append(col)
         
-        member_stats = member_stats.merge(members_df[name_cols], on='member_key', how='left')
+        if member_col in members_df.columns:
+            member_stats = member_stats.merge(members_df[name_cols], on=member_col, how='left')
     
     # Create name field
     if 'full_name' in member_stats.columns:
@@ -213,11 +225,19 @@ def compute_party_alpha(transactions_df: pd.DataFrame, members_df: pd.DataFrame)
     
     # Merge with party info
     if 'party' not in transactions_df.columns:
-        if 'party' in members_df.columns:
+        # Find member column to merge on
+        member_col = None
+        for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+            if col in transactions_df.columns and col in members_df.columns:
+                member_col = col
+                break
+        
+        if member_col and 'party' in members_df.columns:
             transactions_df = transactions_df.merge(
-                members_df[['member_key', 'party']], on='member_key', how='left'
+                members_df[[member_col, 'party']], on=member_col, how='left'
             )
         else:
+            logger.warning("Could not merge party info")
             return pd.DataFrame()
     
     # Prepare data
@@ -233,19 +253,36 @@ def compute_party_alpha(transactions_df: pd.DataFrame, members_df: pd.DataFrame)
     transactions_df['trade_alpha'] = transactions_df['estimated_return'] - SP500_MONTHLY_RETURN
     transactions_df['weighted_alpha'] = transactions_df['trade_alpha'] * transactions_df['amount_midpoint']
     
+    # Find member column for trader count
+    trader_col = None
+    for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+        if col in transactions_df.columns:
+            trader_col = col
+            break
+    
     # Aggregate by party
-    party_stats = transactions_df.groupby('party').agg({
+    agg_dict = {
         'amount_midpoint': ['sum', 'mean', 'count'],
         'transaction_type': lambda x: (x == 'Purchase').sum(),
         'estimated_return': 'mean',
         'weighted_alpha': 'sum',
-        'member_key': 'nunique'
-    }).reset_index()
+    }
+    if trader_col:
+        agg_dict[trader_col] = 'nunique'
     
-    party_stats.columns = [
-        'party', 'total_volume', 'avg_trade_size', 'total_trades',
-        'buy_count', 'avg_return', 'weighted_alpha_total', 'unique_members'
-    ]
+    party_stats = transactions_df.groupby('party').agg(agg_dict).reset_index()
+    
+    if trader_col:
+        party_stats.columns = [
+            'party', 'total_volume', 'avg_trade_size', 'total_trades',
+            'buy_count', 'avg_return', 'weighted_alpha_total', 'unique_members'
+        ]
+    else:
+        party_stats.columns = [
+            'party', 'total_volume', 'avg_trade_size', 'total_trades',
+            'buy_count', 'avg_return', 'weighted_alpha_total'
+        ]
+        party_stats['unique_members'] = 0
     
     party_stats['sell_count'] = party_stats['total_trades'] - party_stats['buy_count']
     party_stats['alpha'] = party_stats.apply(
@@ -319,17 +356,39 @@ def compute_sector_rotation(transactions_df: pd.DataFrame) -> pd.DataFrame:
             transactions_df['transaction_date'] = pd.to_datetime(
                 transactions_df['transaction_date_key'].astype(str), format='%Y%m%d', errors='coerce'
             )
+    else:
+        transactions_df['transaction_date'] = pd.to_datetime(
+            transactions_df['transaction_date'], errors='coerce'
+        )
+    
+    transactions_df = transactions_df.dropna(subset=['transaction_date'])
+    if transactions_df.empty:
+        return pd.DataFrame()
     
     transactions_df['period'] = transactions_df['transaction_date'].dt.to_period('M')
     
-    sector_rotation = transactions_df.groupby(['sector', 'period']).agg({
+    # Find trader column
+    trader_col = None
+    for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+        if col in transactions_df.columns:
+            trader_col = col
+            break
+    
+    agg_dict = {
         'buy_volume': 'sum',
         'sell_volume': 'sum',
         'amount_midpoint': 'count',
-        'member_key': 'nunique'
-    }).reset_index()
+    }
+    if trader_col:
+        agg_dict[trader_col] = 'nunique'
     
-    sector_rotation.columns = ['sector', 'period', 'buy_volume', 'sell_volume', 'trade_count', 'unique_traders']
+    sector_rotation = transactions_df.groupby(['sector', 'period']).agg(agg_dict).reset_index()
+    
+    if trader_col:
+        sector_rotation.columns = ['sector', 'period', 'buy_volume', 'sell_volume', 'trade_count', 'unique_traders']
+    else:
+        sector_rotation.columns = ['sector', 'period', 'buy_volume', 'sell_volume', 'trade_count']
+        sector_rotation['unique_traders'] = 0
     
     sector_rotation['net_flow'] = sector_rotation['buy_volume'] - sector_rotation['sell_volume']
     sector_rotation['flow_ratio'] = sector_rotation.apply(
@@ -397,7 +456,7 @@ def main():
     else:
         s3 = boto3.client('s3')
         transactions_df = read_parquet_from_s3(s3, 'gold/house/financial/facts/fact_ptr_transactions/')
-        members_df = read_parquet_from_s3(s3, 'gold/dimensions/dim_members/')
+        members_df = read_parquet_from_s3(s3, 'gold/congress/dim_member/')
     
     if transactions_df.empty:
         logger.error("No transaction data available")
@@ -412,7 +471,7 @@ def main():
         logger.info(f"  Top 5 Alpha Generators:")
         top5 = member_alpha.head(5)
         for _, row in top5.iterrows():
-            logger.info(f"    {row.get('name', row['member_key'])}: {row['alpha']*100:.2f}% alpha")
+            logger.info(f\"    {row.get('name', 'Unknown')}: {row['alpha']*100:.2f}% alpha\")
         
         if not args.dry_run:
             if args.local:

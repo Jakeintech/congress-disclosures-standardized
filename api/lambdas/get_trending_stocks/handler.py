@@ -58,7 +58,7 @@ def handler(event, context):
                 dem_transactions,
                 rep_transactions,
                 unique_members
-            FROM read_parquet('s3://{S3_BUCKET}/gold/aggregates/trending_stocks/*.parquet')
+            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet')
             WHERE time_window = '{time_window}'
             ORDER BY {sort_by} DESC
             LIMIT {limit}
@@ -71,12 +71,12 @@ def handler(event, context):
         movers_query = f"""
             WITH current AS (
                 SELECT ticker, sentiment_score
-                FROM read_parquet('s3://{S3_BUCKET}/gold/aggregates/trending_stocks/*.parquet')
+                FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet')
                 WHERE time_window = '{time_window}'
             ),
             previous AS (
                 SELECT ticker, sentiment_score AS prev_score
-                FROM read_parquet('s3://{S3_BUCKET}/gold/aggregates/trending_stocks/*.parquet')
+                FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet')
                 WHERE time_window = '{time_window}_prev'
             )
             SELECT

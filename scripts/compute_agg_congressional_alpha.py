@@ -471,7 +471,7 @@ def main():
         logger.info(f"  Top 5 Alpha Generators:")
         top5 = member_alpha.head(5)
         for _, row in top5.iterrows():
-            logger.info(f\"    {row.get('name', 'Unknown')}: {row['alpha']*100:.2f}% alpha\")
+            logger.info(f"    {row.get('name', 'Unknown')}: {row['alpha']*100:.2f}% alpha")
         
         if not args.dry_run:
             if args.local:

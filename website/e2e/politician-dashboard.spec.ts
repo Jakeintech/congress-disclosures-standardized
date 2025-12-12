@@ -25,20 +25,13 @@ test.describe('Politician Dashboard', () => {
         // Wait for data to load
         await page.waitForLoadState('networkidle');
 
-        // Wait for either the header to appear or error state
-        const hasContent = await page.locator('text=/Alma|Adams|Failed to load/i').first().waitFor({
-            state: 'visible',
-            timeout: 30000
-        }).then(() => true).catch(() => false);
+        // Page should load without error
+        const pageText = await page.textContent('body');
+        expect(pageText).toBeTruthy();
 
-        if (hasContent) {
-            // Check for any meaningful content
-            const bodyText = await page.textContent('body');
-            console.log('Page content preview:', bodyText?.slice(0, 500));
-        }
-
-        // Take screenshot for debugging
-        await page.screenshot({ path: 'e2e/screenshots/politician-page.png', fullPage: true });
+        // Check that we don't have "Invalid politician ID" error
+        const hasInvalidError = pageText?.includes('Invalid politician ID');
+        expect(hasInvalidError).toBe(false);
     });
 
     test('should fetch member profile from API', async ({ page }) => {
@@ -100,8 +93,11 @@ test.describe('Politician Dashboard', () => {
             const href = await memberLink.getAttribute('href');
             console.log('Found member link:', href);
 
-            await memberLink.click();
-            await page.waitForLoadState('networkidle');
+            // Wait for navigation to complete after click
+            await Promise.all([
+                page.waitForURL('**/politician/**'),
+                memberLink.click()
+            ]);
 
             // Verify we're on a politician page
             expect(page.url()).toContain('/politician/');

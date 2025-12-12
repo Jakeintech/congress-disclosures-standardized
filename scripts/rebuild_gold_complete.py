@@ -26,7 +26,7 @@ SCRIPTS_DIR = BASE_DIR / "scripts"
 DATA_DIR = BASE_DIR / "data"
 GOLD_DIR = DATA_DIR / "gold"
 
-def run_script(script_name, description):
+def run_script(script_name, description, args=None):
     """Run a python script and check for errors."""
     logger.info(f"STARTING: {description} ({script_name})...")
     start_time = time.time()
@@ -35,10 +35,15 @@ def run_script(script_name, description):
     if not script_path.exists():
         logger.error(f"Script not found: {script_path}")
         return False
+    
+    # Build command with optional args
+    cmd = [sys.executable, str(script_path)]
+    if args:
+        cmd.extend(args)
         
     try:
         result = subprocess.run(
-            [sys.executable, str(script_path)],
+            cmd,
             check=True,
             capture_output=True,
             text=True
@@ -174,32 +179,61 @@ def main():
     success = True
     
     # 1. Fact Tables (Independent of each other)
+    # Most fact tables now auto-detect year or don't require it
     facts = [
-        ("build_fact_ptr_transactions.py", "Fact PTR Transactions"),
-        ("build_fact_asset_holdings.py", "Fact Asset Holdings"),
-        ("build_fact_liabilities.py", "Fact Liabilities"),
-        ("build_fact_positions.py", "Fact Positions"),
-        ("build_fact_gifts_travel.py", "Fact Gifts & Travel"),
-        ("build_fact_filings.py", "Fact Filings"),
+        ("build_fact_ptr_transactions.py", "Fact PTR Transactions", None),
+        ("build_fact_asset_holdings.py", "Fact Asset Holdings", ["--year", "2025"]),
+        ("build_fact_liabilities.py", "Fact Liabilities", ["--year", "2025"]),
+        ("build_fact_positions.py", "Fact Positions", ["--year", "2025"]),
+        ("build_fact_gifts_travel.py", "Fact Gifts & Travel", ["--year", "2025"]),
+        ("build_fact_filings.py", "Fact Filings", None),
     ]
     
-    for script, desc in facts:
-        if not run_script(script, desc):
+    for script, desc, args in facts:
+        if not run_script(script, desc, args):
             success = False
-            logger.error("Stopping execution due to Fact Table failure.")
-            sys.exit(1)
+            logger.warning(f"Fact {desc} failed, continuing...")
             
     # 2. Aggregate Tables (Depend on Facts)
-    aggregates = [
-        ("compute_agg_member_trading_stats.py", "Agg Member Trading Stats"),
-        ("compute_agg_stock_activity.py", "Agg Stock Activity"),
-        ("compute_agg_sector_activity.py", "Agg Sector Activity"),
-        ("compute_agg_compliance_metrics.py", "Agg Compliance Metrics"),
-        ("compute_agg_portfolio_snapshots.py", "Agg Portfolio Snapshots"),
-        ("compute_agg_trading_timeline_daily.py", "Agg Trading Timeline Daily"),
+    # Tier 1: Core Analytics (no dependencies on other aggregates)
+    core_aggregates = [
+        ("compute_agg_member_trading_stats.py", "Member Trading Stats"),
+        ("compute_agg_stock_activity.py", "Stock Activity"),
+        ("compute_agg_sector_activity.py", "Sector Activity"),
+        ("compute_agg_trending_stocks.py", "Trending Stocks"),
+        ("compute_agg_trading_timeline_daily.py", "Trading Timeline Daily"),
+        ("compute_agg_compliance_metrics.py", "Compliance Metrics"),
+        ("compute_agg_document_quality.py", "Document Quality"),
     ]
     
-    for script, desc in aggregates:
+    # Tier 2: Advanced Analytics ("God Mode")
+    advanced_aggregates = [
+        ("compute_agg_congressional_alpha.py", "Congressional Alpha"),
+        ("compute_agg_conflict_detection.py", "Conflict Detection"),
+        ("compute_agg_portfolio_reconstruction.py", "Portfolio Reconstruction"),
+        ("compute_agg_timing_heatmap.py", "Timing Heatmap"),
+        ("compute_agg_sector_analysis.py", "Sector Analysis"),
+        ("compute_agg_trading_volume_timeseries.py", "Volume Timeseries"),
+        ("compute_agg_portfolio_snapshots.py", "Portfolio Snapshots"),
+    ]
+    
+    # Tier 3: Correlation Analytics (depend on bills + trades)
+    correlation_aggregates = [
+        ("compute_agg_bill_trade_correlation.py", "Bill-Trade Correlation"),
+        ("compute_agg_bill_lobbying_correlation.py", "Bill-Lobbying Correlation"),
+        ("compute_agg_triple_correlation.py", "Triple Correlation"),
+    ]
+    
+    # Tier 4: Network Analytics
+    network_aggregates = [
+        ("compute_agg_network_graph.py", "Network Graph"),
+        ("compute_agg_member_lobbyist_network.py", "Member-Lobbyist Network"),
+    ]
+    
+    # Run all tiers
+    all_aggregates = core_aggregates + advanced_aggregates + correlation_aggregates + network_aggregates
+    
+    for script, desc in all_aggregates:
         if not run_script(script, desc):
             success = False
             logger.warning(f"Aggregate {desc} failed, continuing...")

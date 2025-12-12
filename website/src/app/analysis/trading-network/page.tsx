@@ -79,40 +79,46 @@ export default function TradingNetworkPage() {
                         ) : data ? (
                             <TradingNetworkGraph data={data} />
                         ) : (
-                            <div className="text-center text-muted-foreground py-12">
-                                No network data available.
+                            <div className="flex items-center justify-center h-[700px]">
+                                <div className="text-center">
+                                    <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                    <p className="text-muted-foreground">No network data available</p>
+                                </div>
                             </div>
                         )}
                     </CardContent>
                 </Card>
             )}
 
-            {/* Feature explanation cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Help/Instructions Card */}
+            <div className="grid gap-6 md:grid-cols-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Aggregation Modes</CardTitle>
+                        <CardTitle className="text-base">Understanding the Network</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li><strong>Party:</strong> Group members by political party (Democrat/Republican)</li>
-                            <li><strong>Chamber:</strong> Group by House or Senate</li>
-                            <li><strong>State:</strong> Aggregate trading activity by state</li>
-                            <li><strong>Volume:</strong> Group by trading volume tiers (High/Medium/Low)</li>
-                            <li><strong>None:</strong> Show all individual members</li>
+                    <CardContent className="text-sm space-y-2">
+                        <p><strong>Nodes:</strong></p>
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            <li><strong>Individual Members:</strong> Circles colored by party (blue = Democrat, red = Republican)</li>
+                            <li><strong>Assets/Stocks:</strong> Diamond shapes, sized by trading volume</li>
+                            <li><strong>Aggregate Nodes:</strong> Larger nodes representing groups (Party, Chamber, State)</li>
+                        </ul>
+                        <p className="mt-3"><strong>Links:</strong></p>
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            <li>Width represents transaction volume</li>
+                            <li>Color indicates net direction (green = buy, red = sell)</li>
                         </ul>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Interaction Guide</CardTitle>
+                        <CardTitle className="text-base">Interaction Guide</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li><strong>Click</strong> aggregated nodes (outlined circles) to expand</li>
-                            <li><strong>Click</strong> individual nodes to see detailed stats</li>
-                            <li><strong>Drag</strong> nodes to manually position them</li>
+                    <CardContent className="text-sm">
+                        <ul className="space-y-1 text-muted-foreground list-disc list-inside">
+                            <li><strong>Click</strong> aggregate nodes to expand/collapse</li>
+                            <li><strong>Drag</strong> nodes to rearrange the layout</li>
                             <li><strong>Scroll</strong> to zoom in/out</li>
                             <li><strong>Hover</strong> to highlight connections</li>
                             <li><strong>Double-click</strong> background to reset all expansions</li>
@@ -122,87 +128,4 @@ export default function TradingNetworkPage() {
             </div>
         </div>
     );
-}
-
-// Mock data for development
-function getMockNetworkData() {
-    // Generate mock members
-    const members = [
-        { id: 'P000197', party: 'Democrat', chamber: 'House', state: 'CA', value: 5000000, transaction_count: 45 },
-        { id: 'M001143', party: 'Republican', chamber: 'House', state: 'MN', value: 3000000, transaction_count: 32 },
-        { id: 'S000510', party: 'Democrat', chamber: 'House', state: 'WA', value: 2500000, transaction_count: 28 },
-        { id: 'T000193', party: 'Republican', chamber: 'Senate', state: 'TX', value: 4500000, transaction_count: 38 },
-    ];
-
-    const assets = [
-        { id: 'AAPL', value: 8000000, transaction_count: 85, degree: 12 },
-        { id: 'MSFT', value: 6500000, transaction_count: 72, degree: 10 },
-        { id: 'NVDA', value: 5500000, transaction_count: 65, degree: 9 },
-        { id: 'TSLA', value: 4000000, transaction_count: 48, degree: 8 },
-    ];
-
-    const nodes = [
-        ...members.map(m => ({ ...m, group: 'member' })),
-        ...assets.map(a => ({ ...a, group: 'asset' }))
-    ];
-
-    const links: any[] = [];
-    members.forEach(member => {
-        assets.slice(0, 2 + Math.floor(Math.random() * 3)).forEach(asset => {
-            links.push({
-                source: member.id,
-                target: asset.id,
-                value: Math.floor(Math.random() * 500000) + 100000,
-                count: Math.floor(Math.random() * 10) + 1,
-                type: Math.random() > 0.5 ? 'purchase' : 'sale'
-            });
-        });
-    });
-
-    // Add aggregated nodes
-    const aggregated_nodes = [
-        {
-            id: 'Democrat',
-            group: 'party_agg',
-            value: 7500000,
-            transaction_count: 73,
-            party: 'Democrat'
-        },
-        {
-            id: 'Republican',
-            group: 'party_agg',
-            value: 7500000,
-            transaction_count: 70,
-            party: 'Republican'
-        }
-    ];
-
-    // Add aggregated links
-    const aggregated_links = assets.map(asset => ([
-        {
-            source: 'Democrat',
-            target: asset.id,
-            value: Math.floor(Math.random() * 2000000) + 500000,
-            count: Math.floor(Math.random() * 30) + 10,
-            is_aggregated: true
-        },
-        {
-            source: 'Republican',
-            target: asset.id,
-            value: Math.floor(Math.random() * 2000000) + 500000,
-            count: Math.floor(Math.random() * 30) + 10,
-            is_aggregated: true
-        }
-    ])).flat();
-
-    return {
-        nodes,
-        links,
-        aggregated_nodes,
-        aggregated_links,
-        summary_stats: {
-            total_transactions: 145,
-            total_volume: 24500000
-        }
-    };
 }

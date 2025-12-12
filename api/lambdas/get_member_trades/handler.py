@@ -22,6 +22,8 @@ def get_duckdb_connection():
     if _conn is None:
         logger.info("Creating new DuckDB connection (cold start)")
         _conn = duckdb.connect(':memory:')
+        # Set home_directory for Lambda environment (required for extension installs)
+        _conn.execute("SET home_directory='/tmp';")
         _conn.execute("INSTALL httpfs; LOAD httpfs;")
         _conn.execute("SET enable_http_metadata_cache=true;")
         _conn.execute("SET s3_region='us-east-1';")
@@ -84,11 +86,10 @@ def handler(event, context):
                 m.full_name,
                 m.party,
                 m.state
-            FROM read_parquet('s3://{S3_BUCKET}/gold/facts/fact_ptr_transactions/*.parquet') t
-            JOIN read_parquet('s3://{S3_BUCKET}/gold/dimensions/dim_member/*.parquet') m
-                ON t.member_key = m.member_key
+            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/*.parquet') t
+            JOIN read_parquet('s3://{S3_BUCKET}/gold/congress/dim_member/*/**.parquet') m
+                ON t.bioguide_id = m.bioguide_id
             WHERE {where_sql}
-                AND m.is_current = true
             ORDER BY t.transaction_date DESC
             LIMIT {limit} OFFSET {offset}
         """
@@ -99,11 +100,10 @@ def handler(event, context):
         # Get total count (for pagination)
         count_query = f"""
             SELECT COUNT(*) as total
-            FROM read_parquet('s3://{S3_BUCKET}/gold/facts/fact_ptr_transactions/*.parquet') t
-            JOIN read_parquet('s3://{S3_BUCKET}/gold/dimensions/dim_member/*.parquet') m
-                ON t.member_key = m.member_key
+            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/*.parquet') t
+            JOIN read_parquet('s3://{S3_BUCKET}/gold/congress/dim_member/*/**.parquet') m
+                ON t.bioguide_id = m.bioguide_id
             WHERE {where_sql}
-                AND m.is_current = true
         """
 
         total_count = conn.execute(count_query).fetchone()[0]

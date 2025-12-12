@@ -33,16 +33,13 @@ export default function CommitteeDetailPage(props: PageProps) {
             try {
                 const data = await fetchCommitteeDetail(chamber, code);
                 if (!data) {
-                    // Use mock data
-                    setCommittee(getMockCommitteeDetail(code));
-                    setError('Using mock data - API endpoint not yet implemented');
+                    setError('Committee data not available - API endpoint implementation in progress');
                 } else {
                     setCommittee(data);
                 }
             } catch (err) {
                 console.error('Failed to load committee:', err);
-                setCommittee(getMockCommitteeDetail(code));
-                setError('Using mock data - API endpoint not available');
+                setError('Failed to load committee data - API endpoint implementation in progress');
             } finally {
                 setLoading(false);
             }
@@ -245,35 +242,4 @@ export default function CommitteeDetailPage(props: PageProps) {
             </Tabs>
         </div>
     );
-}
-
-function getMockCommitteeDetail(code: string) {
-    return {
-        systemCode: code,
-        name: 'Committee on Ways and Means',
-        chamber: 'House',
-        type: 'Standing',
-        members: [
-            {
-                bioguideId: 'S000510',
-                name: 'Adam Smith',
-                party: 'Democrat',
-                state: 'WA',
-                role: 'Chairman'
-            },
-            {
-                bioguideId: 'R000395',
-                name: 'Mike Rogers',
-                party: 'Republican',
-                state: 'AL',
-                role: 'Ranking Member'
-            },
-        ],
-        subcommittees: [
-            { name: 'Subcommittee on Health', systemCode: `${code}01` },
-            { name: 'Subcommittee on Tax', systemCode: `${code}02` },
-        ],
-        billsReferred: 156,
-        reports: 23,
-    };
 }

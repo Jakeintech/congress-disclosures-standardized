@@ -14,23 +14,7 @@ interface TradingVolumeChartProps {
 }
 
 export function TradingVolumeChart({ data, loading }: TradingVolumeChartProps) {
-  // Mock data for now - will be replaced with real API data
-  const mockData = [
-    { date: 'Jan', volume: 45000, count: 234 },
-    { date: 'Feb', volume: 52000, count: 289 },
-    { date: 'Mar', volume: 48000, count: 256 },
-    { date: 'Apr', volume: 61000, count: 312 },
-    { date: 'May', volume: 55000, count: 278 },
-    { date: 'Jun', volume: 67000, count: 345 },
-    { date: 'Jul', volume: 58000, count: 298 },
-    { date: 'Aug', volume: 71000, count: 367 },
-    { date: 'Sep', volume: 64000, count: 321 },
-    { date: 'Oct', volume: 78000, count: 389 },
-    { date: 'Nov', volume: 69000, count: 354 },
-    { date: 'Dec', volume: 82000, count: 412 },
-  ];
-
-  const chartData = data || mockData;
+  const chartData = data || [];
 
   return (
     <Card>
@@ -43,6 +27,13 @@ export function TradingVolumeChart({ data, loading }: TradingVolumeChartProps) {
       <CardContent>
         {loading ? (
           <Skeleton className="h-[300px] w-full" />
+        ) : chartData.length === 0 ? (
+          <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+            <div className="text-center">
+              <p>No trading volume data available</p>
+              <p className="text-xs mt-2">Data will appear once aggregation is complete</p>
+            </div>
+          </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData}>

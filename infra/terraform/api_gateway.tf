@@ -307,6 +307,65 @@ resource "aws_apigatewayv2_integration" "get_network_graph" {
   payload_format_version = "2.0"
 }
 
+# Advanced Analytics (God Mode) Endpoints
+# ----------------------------------------------------------------------------
+
+# GET /v1/analytics/alpha
+resource "aws_apigatewayv2_route" "get_congressional_alpha" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/analytics/alpha"
+  target    = "integrations/${aws_apigatewayv2_integration.get_congressional_alpha.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_congressional_alpha" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_congressional_alpha"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/analytics/conflicts
+resource "aws_apigatewayv2_route" "get_conflict_detection" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/analytics/conflicts"
+  target    = "integrations/${aws_apigatewayv2_integration.get_conflict_detection.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_conflict_detection" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_conflict_detection"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/analytics/portfolio
+resource "aws_apigatewayv2_route" "get_portfolio_recon" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/analytics/portfolio"
+  target    = "integrations/${aws_apigatewayv2_integration.get_portfolio_recon.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_portfolio_recon" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_portfolio_recon"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/analytics/insights
+resource "aws_apigatewayv2_route" "get_pattern_insights" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/analytics/insights"
+  target    = "integrations/${aws_apigatewayv2_integration.get_pattern_insights.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_pattern_insights" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_pattern_insights"].invoke_arn
+  payload_format_version = "2.0"
+}
+
 # Search & Filing Endpoints
 # ----------------------------------------------------------------------------
 

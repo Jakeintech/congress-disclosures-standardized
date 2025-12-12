@@ -57,11 +57,14 @@ export function MainNav() {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center px-4">
                 {/* Logo */}
-                <Link href="/" className="mr-6 flex items-center space-x-2">
+                <Link href="/" className="mr-6 flex items-center space-x-3">
                     <Building2 className="h-6 w-6" />
-                    <span className="hidden font-bold sm:inline-block">
-                        Congress Transparency
-                    </span>
+                    <div className="hidden sm:block">
+                        <div className="font-bold text-base">Congress Transparency</div>
+                        <div className="text-[10px] text-muted-foreground leading-tight">
+                            Surfacing the Hidden Connections Between Politics and Markets
+                        </div>
+                    </div>
                 </Link>
 
                 {/* Desktop Navigation */}

@@ -26,14 +26,14 @@ export default function AnalyticsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
-                            Total Volume (90d)
+                            Analytics Status
                         </CardTitle>
                         <Activity className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$2.4B</div>
+                        <div className="text-2xl font-bold">Infrastructure Ready</div>
                         <p className="text-xs text-muted-foreground">
-                            +20.1% from previous period
+                            Data aggregation in progress
                         </p>
                     </CardContent>
                 </Card>
@@ -46,9 +46,9 @@ export default function AnalyticsPage() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">+12.4%</div>
+                        <div className="text-2xl font-bold">--</div>
                         <p className="text-xs text-muted-foreground">
-                            vs S&P 500 benchmark
+                            Data aggregation required
                         </p>
                     </CardContent>
                 </Card>
@@ -56,14 +56,14 @@ export default function AnalyticsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
-                            Active Conflicts
+                            Conflict Detection
                         </CardTitle>
                         <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">47</div>
+                        <div className="text-2xl font-bold">--</div>
                         <p className="text-xs text-muted-foreground">
-                            23 high-severity detected
+                            Data aggregation required
                         </p>
                     </CardContent>
                 </Card>
@@ -71,14 +71,14 @@ export default function AnalyticsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
-                            Portfolios Tracked
+                            Portfolio Analysis
                         </CardTitle>
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">535</div>
+                        <div className="text-2xl font-bold">--</div>
                         <p className="text-xs text-muted-foreground">
-                            Full Congress coverage
+                            Data aggregation required
                         </p>
                     </CardContent>
                 </Card>

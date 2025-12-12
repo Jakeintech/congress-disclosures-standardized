@@ -412,6 +412,23 @@ resource "aws_apigatewayv2_integration" "get_filing" {
 }
 
 # ============================================================================
+# Lambda Permissions for API Gateway
+# ============================================================================
+
+# Allow API Gateway to invoke all API Lambda functions
+resource "aws_lambda_permission" "api_invoke" {
+  for_each = aws_lambda_function.api
+
+  statement_id  = "AllowAPIGatewayInvoke-${each.key}"
+  action        = "lambda:InvokeFunction"
+  function_name = each.value.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # Allow invocation from any route in this API
+  source_arn = "${aws_apigatewayv2_api.congress_api.execution_arn}/*/*"
+}
+
+# ============================================================================
 # Outputs
 # ============================================================================
 

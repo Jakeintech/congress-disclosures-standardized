@@ -75,11 +75,23 @@ def compute_day_of_week_heatmap(transactions_df: pd.DataFrame) -> pd.DataFrame:
     """Compute trading activity by day of week."""
     logger.info("Computing day of week heatmap...")
     
+    # Ensure transaction_date is datetime
     if 'transaction_date' not in transactions_df.columns:
         if 'transaction_date_key' in transactions_df.columns:
             transactions_df['transaction_date'] = pd.to_datetime(
                 transactions_df['transaction_date_key'].astype(str), format='%Y%m%d', errors='coerce'
             )
+    else:
+        # Convert string dates to datetime
+        transactions_df['transaction_date'] = pd.to_datetime(
+            transactions_df['transaction_date'], errors='coerce'
+        )
+    
+    # Drop rows with invalid dates
+    transactions_df = transactions_df.dropna(subset=['transaction_date'])
+    if transactions_df.empty:
+        logger.warning("No valid transaction dates found")
+        return pd.DataFrame()
     
     transactions_df['day_of_week'] = transactions_df['transaction_date'].dt.dayofweek
     transactions_df['day_name'] = transactions_df['day_of_week'].map(lambda x: DAY_NAMES[x] if 0 <= x <= 6 else 'Unknown')
@@ -90,12 +102,26 @@ def compute_day_of_week_heatmap(transactions_df: pd.DataFrame) -> pd.DataFrame:
             transactions_df.get('amount_high', 0).fillna(0)
         ) / 2
     
-    day_stats = transactions_df.groupby(['day_of_week', 'day_name']).agg({
-        'amount_midpoint': ['sum', 'count', 'mean'],
-        'member_key': 'nunique' if 'member_key' in transactions_df.columns else lambda x: 0
-    }).reset_index()
+    # Use bioguide_id instead of member_key
+    trader_col = None
+    for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+        if col in transactions_df.columns:
+            trader_col = col
+            break
     
-    day_stats.columns = ['day_of_week', 'day_name', 'total_volume', 'trade_count', 'avg_trade_size', 'unique_traders']
+    if trader_col:
+        day_stats = transactions_df.groupby(['day_of_week', 'day_name']).agg({
+            'amount_midpoint': ['sum', 'count', 'mean'],
+            trader_col: 'nunique'
+        }).reset_index()
+        day_stats.columns = ['day_of_week', 'day_name', 'total_volume', 'trade_count', 'avg_trade_size', 'unique_traders']
+    else:
+        day_stats = transactions_df.groupby(['day_of_week', 'day_name']).agg({
+            'amount_midpoint': ['sum', 'count', 'mean']
+        }).reset_index()
+        day_stats.columns = ['day_of_week', 'day_name', 'total_volume', 'trade_count', 'avg_trade_size']
+        day_stats['unique_traders'] = 0
+    
     
     # Calculate percentage of weekly volume
     total_volume = day_stats['total_volume'].sum()
@@ -120,11 +146,20 @@ def compute_month_of_year_heatmap(transactions_df: pd.DataFrame) -> pd.DataFrame
     """Compute trading activity by month."""
     logger.info("Computing month of year heatmap...")
     
+    # Ensure transaction_date is datetime
     if 'transaction_date' not in transactions_df.columns:
         if 'transaction_date_key' in transactions_df.columns:
             transactions_df['transaction_date'] = pd.to_datetime(
                 transactions_df['transaction_date_key'].astype(str), format='%Y%m%d', errors='coerce'
             )
+    else:
+        transactions_df['transaction_date'] = pd.to_datetime(
+            transactions_df['transaction_date'], errors='coerce'
+        )
+    
+    transactions_df = transactions_df.dropna(subset=['transaction_date'])
+    if transactions_df.empty:
+        return pd.DataFrame()
     
     transactions_df['month'] = transactions_df['transaction_date'].dt.month
     transactions_df['month_name'] = transactions_df['month'].map(lambda x: MONTH_NAMES[x-1] if 1 <= x <= 12 else 'Unknown')
@@ -135,12 +170,25 @@ def compute_month_of_year_heatmap(transactions_df: pd.DataFrame) -> pd.DataFrame
             transactions_df.get('amount_high', 0).fillna(0)
         ) / 2
     
-    month_stats = transactions_df.groupby(['month', 'month_name']).agg({
-        'amount_midpoint': ['sum', 'count', 'mean'],
-        'member_key': 'nunique' if 'member_key' in transactions_df.columns else lambda x: 0
-    }).reset_index()
+    # Use bioguide_id instead of member_key
+    trader_col = None
+    for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+        if col in transactions_df.columns:
+            trader_col = col
+            break
     
-    month_stats.columns = ['month', 'month_name', 'total_volume', 'trade_count', 'avg_trade_size', 'unique_traders']
+    if trader_col:
+        month_stats = transactions_df.groupby(['month', 'month_name']).agg({
+            'amount_midpoint': ['sum', 'count', 'mean'],
+            trader_col: 'nunique'
+        }).reset_index()
+        month_stats.columns = ['month', 'month_name', 'total_volume', 'trade_count', 'avg_trade_size', 'unique_traders']
+    else:
+        month_stats = transactions_df.groupby(['month', 'month_name']).agg({
+            'amount_midpoint': ['sum', 'count', 'mean']
+        }).reset_index()
+        month_stats.columns = ['month', 'month_name', 'total_volume', 'trade_count', 'avg_trade_size']
+        month_stats['unique_traders'] = 0
     
     total_volume = month_stats['total_volume'].sum()
     month_stats['pct_of_volume'] = (month_stats['total_volume'] / total_volume * 100).round(2)
@@ -170,12 +218,18 @@ def compute_bill_proximity_heatmap(
         logger.warning("Missing data for bill proximity analysis")
         return pd.DataFrame()
     
-    # Prepare dates
+    # Prepare transaction dates - ensure datetime
     if 'transaction_date' not in transactions_df.columns:
         if 'transaction_date_key' in transactions_df.columns:
             transactions_df['transaction_date'] = pd.to_datetime(
                 transactions_df['transaction_date_key'].astype(str), format='%Y%m%d', errors='coerce'
             )
+    else:
+        transactions_df['transaction_date'] = pd.to_datetime(
+            transactions_df['transaction_date'], errors='coerce'
+        )
+    
+    transactions_df = transactions_df.dropna(subset=['transaction_date'])
     
     # Get bill action dates
     date_col = 'latest_action_date' if 'latest_action_date' in bill_actions_df.columns else 'action_date'
@@ -300,11 +354,20 @@ def compute_year_over_year(transactions_df: pd.DataFrame) -> pd.DataFrame:
     """Compute year-over-year trading patterns."""
     logger.info("Computing year-over-year patterns...")
     
+    # Ensure transaction_date is datetime
     if 'transaction_date' not in transactions_df.columns:
         if 'transaction_date_key' in transactions_df.columns:
             transactions_df['transaction_date'] = pd.to_datetime(
                 transactions_df['transaction_date_key'].astype(str), format='%Y%m%d', errors='coerce'
             )
+    else:
+        transactions_df['transaction_date'] = pd.to_datetime(
+            transactions_df['transaction_date'], errors='coerce'
+        )
+    
+    transactions_df = transactions_df.dropna(subset=['transaction_date'])
+    if transactions_df.empty:
+        return pd.DataFrame()
     
     transactions_df['year'] = transactions_df['transaction_date'].dt.year
     
@@ -314,12 +377,25 @@ def compute_year_over_year(transactions_df: pd.DataFrame) -> pd.DataFrame:
             transactions_df.get('amount_high', 0).fillna(0)
         ) / 2
     
-    year_stats = transactions_df.groupby('year').agg({
-        'amount_midpoint': ['sum', 'count', 'mean'],
-        'member_key': 'nunique' if 'member_key' in transactions_df.columns else lambda x: 0
-    }).reset_index()
+    # Use bioguide_id instead of member_key
+    trader_col = None
+    for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+        if col in transactions_df.columns:
+            trader_col = col
+            break
     
-    year_stats.columns = ['year', 'total_volume', 'trade_count', 'avg_trade_size', 'unique_traders']
+    if trader_col:
+        year_stats = transactions_df.groupby('year').agg({
+            'amount_midpoint': ['sum', 'count', 'mean'],
+            trader_col: 'nunique'
+        }).reset_index()
+        year_stats.columns = ['year', 'total_volume', 'trade_count', 'avg_trade_size', 'unique_traders']
+    else:
+        year_stats = transactions_df.groupby('year').agg({
+            'amount_midpoint': ['sum', 'count', 'mean']
+        }).reset_index()
+        year_stats.columns = ['year', 'total_volume', 'trade_count', 'avg_trade_size']
+        year_stats['unique_traders'] = 0
     
     # Calculate YoY growth
     year_stats = year_stats.sort_values('year')

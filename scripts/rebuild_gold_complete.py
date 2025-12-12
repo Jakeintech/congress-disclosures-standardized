@@ -197,44 +197,45 @@ def main():
     # 2. Aggregate Tables (Depend on Facts)
     # Tier 1: Core Analytics (no dependencies on other aggregates)
     core_aggregates = [
-        ("compute_agg_member_trading_stats.py", "Member Trading Stats"),
-        ("compute_agg_stock_activity.py", "Stock Activity"),
-        ("compute_agg_sector_activity.py", "Sector Activity"),
-        ("compute_agg_trending_stocks.py", "Trending Stocks"),
-        ("compute_agg_trading_timeline_daily.py", "Trading Timeline Daily"),
-        ("compute_agg_compliance_metrics.py", "Compliance Metrics"),
-        ("compute_agg_document_quality.py", "Document Quality"),
+        ("compute_agg_member_trading_stats.py", "Member Trading Stats", None),
+        ("compute_agg_stock_activity.py", "Stock Activity", None),
+        ("compute_agg_sector_activity.py", "Sector Activity", None),
+        ("compute_agg_trending_stocks.py", "Trending Stocks", None),
+        ("compute_agg_trading_timeline_daily.py", "Trading Timeline Daily", None),
+        ("compute_agg_compliance_metrics.py", "Compliance Metrics", None),
+        ("compute_agg_document_quality.py", "Document Quality", None),
     ]
     
     # Tier 2: Advanced Analytics ("God Mode")
     advanced_aggregates = [
-        ("compute_agg_congressional_alpha.py", "Congressional Alpha"),
-        ("compute_agg_conflict_detection.py", "Conflict Detection"),
-        ("compute_agg_portfolio_reconstruction.py", "Portfolio Reconstruction"),
-        ("compute_agg_timing_heatmap.py", "Timing Heatmap"),
-        ("compute_agg_sector_analysis.py", "Sector Analysis"),
-        ("compute_agg_trading_volume_timeseries.py", "Volume Timeseries"),
-        ("compute_agg_portfolio_snapshots.py", "Portfolio Snapshots"),
+        ("compute_agg_congressional_alpha.py", "Congressional Alpha", None),
+        ("compute_agg_conflict_detection.py", "Conflict Detection", None),
+        ("compute_agg_portfolio_reconstruction.py", "Portfolio Reconstruction", None),
+        ("compute_agg_timing_heatmap.py", "Timing Heatmap", None),
+        ("compute_agg_sector_analysis.py", "Sector Analysis", None),
+        # Skip volume_timeseries - still has member_key issue
+        # ("compute_agg_trading_volume_timeseries.py", "Volume Timeseries", None),
+        ("compute_agg_portfolio_snapshots.py", "Portfolio Snapshots", None),
     ]
     
     # Tier 3: Correlation Analytics (depend on bills + trades)
     correlation_aggregates = [
-        ("compute_agg_bill_trade_correlation.py", "Bill-Trade Correlation"),
-        ("compute_agg_bill_lobbying_correlation.py", "Bill-Lobbying Correlation"),
-        ("compute_agg_triple_correlation.py", "Triple Correlation"),
+        ("compute_agg_bill_trade_correlation.py", "Bill-Trade Correlation", None),
+        ("compute_agg_bill_lobbying_correlation.py", "Bill-Lobbying Correlation", ["--year", "2025"]),
+        ("compute_agg_triple_correlation.py", "Triple Correlation", ["--year", "2025", "--congress", "119"]),
     ]
     
     # Tier 4: Network Analytics
     network_aggregates = [
-        ("compute_agg_network_graph.py", "Network Graph"),
-        ("compute_agg_member_lobbyist_network.py", "Member-Lobbyist Network"),
+        ("compute_agg_network_graph.py", "Network Graph", None),
+        ("compute_agg_member_lobbyist_network.py", "Member-Lobbyist Network", ["--year", "2025", "--congress", "119"]),
     ]
     
     # Run all tiers
     all_aggregates = core_aggregates + advanced_aggregates + correlation_aggregates + network_aggregates
     
-    for script, desc in all_aggregates:
-        if not run_script(script, desc):
+    for script, desc, args in all_aggregates:
+        if not run_script(script, desc, args):
             success = False
             logger.warning(f"Aggregate {desc} failed, continuing...")
     

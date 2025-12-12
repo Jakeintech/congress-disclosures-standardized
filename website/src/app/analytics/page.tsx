@@ -141,20 +141,6 @@ export default function AnalyticsPage() {
                     <PatternInsightsCard type="sector" />
                 </TabsContent>
             </Tabs>
-
-            {/* Feature Legend */}
-            <Card className="border-dashed">
-                <CardHeader>
-                    <CardTitle className="text-base">🚀 God Mode Analytics</CardTitle>
-                    <CardDescription>
-                        <span className="text-green-600">✓ Congressional Alpha</span> •{" "}
-                        <span className="text-green-600">✓ Conflict Detection</span> •{" "}
-                        <span className="text-green-600">✓ Portfolio Reconstruction</span> •{" "}
-                        <span className="text-green-600">✓ Pattern Insights</span> •{" "}
-                        <span className="text-green-600">✓ Sector Analysis</span>
-                    </CardDescription>
-                </CardHeader>
-            </Card>
         </div>
     );
 }

@@ -106,12 +106,16 @@ def compute_sector_summary(transactions_df: pd.DataFrame, members_df: pd.DataFra
     if transactions_df.empty:
         return pd.DataFrame()
     
-    # Prepare data
+    # Prepare data - ensure datetime
     if 'transaction_date' not in transactions_df.columns:
         if 'transaction_date_key' in transactions_df.columns:
             transactions_df['transaction_date'] = pd.to_datetime(
                 transactions_df['transaction_date_key'].astype(str), format='%Y%m%d', errors='coerce'
             )
+    else:
+        transactions_df['transaction_date'] = pd.to_datetime(
+            transactions_df['transaction_date'], errors='coerce'
+        )
     
     if 'amount_midpoint' not in transactions_df.columns:
         transactions_df['amount_midpoint'] = (
@@ -131,19 +135,40 @@ def compute_sector_summary(transactions_df: pd.DataFrame, members_df: pd.DataFra
         axis=1
     )
     
-    # Aggregate by sector
-    sector_stats = transactions_df.groupby('sector').agg({
+    # Find trader column
+    trader_col = None
+    for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+        if col in transactions_df.columns:
+            trader_col = col
+            break
+    
+    ticker_col = 'ticker' if 'ticker' in transactions_df.columns else None
+    
+    # Build aggregation based on available columns
+    agg_dict = {
         'amount_midpoint': ['sum', 'count', 'mean', 'std'],
         'buy_volume': 'sum',
         'sell_volume': 'sum',
-        'member_key': 'nunique' if 'member_key' in transactions_df.columns else lambda x: 0,
-        'ticker': 'nunique' if 'ticker' in transactions_df.columns else lambda x: 0,
-    }).reset_index()
+    }
+    if trader_col:
+        agg_dict[trader_col] = 'nunique'
+    if ticker_col:
+        agg_dict[ticker_col] = 'nunique'
     
-    sector_stats.columns = [
-        'sector', 'total_volume', 'trade_count', 'avg_trade_size', 'std_trade_size',
-        'buy_volume', 'sell_volume', 'unique_traders', 'unique_tickers'
-    ]
+    sector_stats = transactions_df.groupby('sector').agg(agg_dict).reset_index()
+    
+    # Handle column names based on what was aggregated
+    base_cols = ['sector', 'total_volume', 'trade_count', 'avg_trade_size', 'std_trade_size', 'buy_volume', 'sell_volume']
+    if trader_col:
+        base_cols.append('unique_traders')
+    else:
+        sector_stats['unique_traders'] = 0
+    if ticker_col:
+        base_cols.append('unique_tickers')
+    else:
+        sector_stats['unique_tickers'] = 0
+    
+    sector_stats.columns = base_cols
     
     # Calculate derived metrics
     total_volume = sector_stats['total_volume'].sum()
@@ -209,13 +234,24 @@ def compute_sector_by_party(transactions_df: pd.DataFrame, members_df: pd.DataFr
     
     transactions_df['sector'] = transactions_df.get('asset_description', '').apply(classify_sector)
     
-    # Aggregate by sector and party
-    party_sector = transactions_df.groupby(['sector', 'party']).agg({
-        'amount_midpoint': ['sum', 'count'],
-        'member_key': 'nunique' if 'member_key' in transactions_df.columns else lambda x: 0
-    }).reset_index()
+    # Find trader column
+    trader_col = None
+    for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+        if col in transactions_df.columns:
+            trader_col = col
+            break
     
-    party_sector.columns = ['sector', 'party', 'total_volume', 'trade_count', 'unique_traders']
+    agg_dict = {'amount_midpoint': ['sum', 'count']}
+    if trader_col:
+        agg_dict[trader_col] = 'nunique'
+    
+    party_sector = transactions_df.groupby(['sector', 'party']).agg(agg_dict).reset_index()
+    
+    if trader_col:
+        party_sector.columns = ['sector', 'party', 'total_volume', 'trade_count', 'unique_traders']
+    else:
+        party_sector.columns = ['sector', 'party', 'total_volume', 'trade_count']
+        party_sector['unique_traders'] = 0
     
     # Calculate party preference index
     # Positive = D preference, Negative = R preference
@@ -249,12 +285,20 @@ def compute_sector_timeseries(transactions_df: pd.DataFrame) -> pd.DataFrame:
     if transactions_df.empty:
         return pd.DataFrame()
     
-    # Prepare data
+    # Prepare data - ensure datetime
     if 'transaction_date' not in transactions_df.columns:
         if 'transaction_date_key' in transactions_df.columns:
             transactions_df['transaction_date'] = pd.to_datetime(
                 transactions_df['transaction_date_key'].astype(str), format='%Y%m%d', errors='coerce'
             )
+    else:
+        transactions_df['transaction_date'] = pd.to_datetime(
+            transactions_df['transaction_date'], errors='coerce'
+        )
+    
+    transactions_df = transactions_df.dropna(subset=['transaction_date'])
+    if transactions_df.empty:
+        return pd.DataFrame()
     
     if 'amount_midpoint' not in transactions_df.columns:
         transactions_df['amount_midpoint'] = (
@@ -309,13 +353,24 @@ def compute_top_stocks_by_sector(transactions_df: pd.DataFrame) -> pd.DataFrame:
     # Get ticker if available
     ticker_col = 'ticker' if 'ticker' in transactions_df.columns else 'asset_description'
     
-    # Aggregate by sector and ticker
-    stock_stats = transactions_df.groupby(['sector', ticker_col]).agg({
-        'amount_midpoint': ['sum', 'count'],
-        'member_key': 'nunique' if 'member_key' in transactions_df.columns else lambda x: 0
-    }).reset_index()
+    # Find trader column
+    trader_col = None
+    for col in ['bioguide_id', 'member_bioguide_id', 'member_key']:
+        if col in transactions_df.columns:
+            trader_col = col
+            break
     
-    stock_stats.columns = ['sector', 'ticker', 'total_volume', 'trade_count', 'unique_traders']
+    agg_dict = {'amount_midpoint': ['sum', 'count']}
+    if trader_col:
+        agg_dict[trader_col] = 'nunique'
+    
+    stock_stats = transactions_df.groupby(['sector', ticker_col]).agg(agg_dict).reset_index()
+    
+    if trader_col:
+        stock_stats.columns = ['sector', 'ticker', 'total_volume', 'trade_count', 'unique_traders']
+    else:
+        stock_stats.columns = ['sector', 'ticker', 'total_volume', 'trade_count']
+        stock_stats['unique_traders'] = 0
     
     # Rank within sector
     stock_stats['sector_rank'] = stock_stats.groupby('sector')['total_volume'].rank(ascending=False)
@@ -375,7 +430,7 @@ def main():
     else:
         s3 = boto3.client('s3')
         transactions_df = read_parquet_from_s3(s3, 'gold/house/financial/facts/fact_ptr_transactions/')
-        members_df = read_parquet_from_s3(s3, 'gold/dimensions/dim_members/')
+        members_df = read_parquet_from_s3(s3, 'gold/congress/dim_member/')
     
     if transactions_df.empty:
         logger.error("No transaction data available")

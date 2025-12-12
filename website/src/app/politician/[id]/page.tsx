@@ -8,9 +8,9 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 function PoliticianContent({ id }: { id: string }) {
@@ -32,10 +32,13 @@ function PoliticianContent({ id }: { id: string }) {
     return <PoliticianDashboard bioguideId={bioguideId} />;
 }
 
-export default function PoliticianPage({ params }: PageProps) {
+export default async function PoliticianPage({ params }: PageProps) {
+    // Next.js 16: params is now a Promise, must await before accessing
+    const { id } = await params;
+
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <PoliticianContent id={params.id} />
+            <PoliticianContent id={id} />
         </Suspense>
     );
 }

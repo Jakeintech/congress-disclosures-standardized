@@ -1,0 +1,153 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - link "Congress Transparency" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e12]: Congress Transparency
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: Overview
+          - list [ref=e17]:
+            - listitem [ref=e18]:
+              - link "Dashboard" [ref=e19] [cursor=pointer]:
+                - /url: /
+                - img [ref=e20]
+                - generic [ref=e23]: Dashboard
+        - generic [ref=e24]:
+          - generic [ref=e25]: Congress
+          - list [ref=e27]:
+            - listitem [ref=e28]:
+              - link "Members" [ref=e29] [cursor=pointer]:
+                - /url: /members/
+                - img [ref=e30]
+                - generic [ref=e35]: Members
+            - listitem [ref=e36]:
+              - link "Bills & Legislation" [ref=e37] [cursor=pointer]:
+                - /url: /bills/
+                - img [ref=e38]
+                - generic [ref=e41]: Bills & Legislation
+            - listitem [ref=e42]:
+              - link "Committees" [ref=e43] [cursor=pointer]:
+                - /url: /committees/
+                - img [ref=e44]
+                - generic [ref=e48]: Committees
+        - generic [ref=e49]:
+          - generic [ref=e50]: Financial Activity
+          - list [ref=e52]:
+            - listitem [ref=e53]:
+              - link "Trading Activity" [ref=e54] [cursor=pointer]:
+                - /url: /transactions/
+                - img [ref=e55]
+                - generic [ref=e58]: Trading Activity
+        - generic [ref=e59]:
+          - generic [ref=e60]: Analysis & Networks
+          - list [ref=e62]:
+            - listitem [ref=e63]:
+              - link "Analytics Dashboard" [ref=e64] [cursor=pointer]:
+                - /url: /analytics/
+                - img [ref=e65]
+                - generic [ref=e67]: Analytics Dashboard
+            - listitem [ref=e68]:
+              - link "Network Analysis" [ref=e69] [cursor=pointer]:
+                - /url: /analysis/networks/
+                - img [ref=e70]
+                - generic [ref=e75]: Network Analysis
+      - generic [ref=e76]:
+        - list [ref=e77]:
+          - listitem [ref=e78]:
+            - link "Settings" [ref=e79] [cursor=pointer]:
+              - /url: /settings/
+              - img [ref=e80]
+              - generic [ref=e83]: Settings
+        - generic [ref=e84]:
+          - paragraph [ref=e85]: Open Source Project
+          - paragraph [ref=e86]: Data from Congress.gov
+    - main [ref=e87]:
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - button "Toggle Sidebar" [ref=e90]:
+            - img
+            - generic [ref=e91]: Toggle Sidebar
+          - generic [ref=e92]:
+            - generic [ref=e93]: Congress Transparency
+            - generic [ref=e94]: Surfacing the Hidden Connections Between Politics and Markets
+        - button "Toggle theme" [ref=e95]:
+          - img
+          - generic [ref=e96]: Toggle theme
+      - main [ref=e97]:
+        - generic [ref=e98]:
+          - generic [ref=e101]:
+            - generic [ref=e102]:
+              - img [ref=e104]
+              - heading [level=1]
+              - paragraph [ref=e105]: Democrat / North Carolina / District 12
+              - generic [ref=e106]:
+                - generic [ref=e107]:
+                  - paragraph [ref=e108]: N/A
+                  - paragraph [ref=e109]: Net Worth Est.
+                - generic [ref=e110]:
+                  - paragraph [ref=e111]: N/A
+                  - paragraph [ref=e112]: Trade Volume
+                - generic [ref=e113]:
+                  - paragraph [ref=e114]: "0"
+                  - paragraph [ref=e115]: Total Trades
+                - generic [ref=e116]:
+                  - paragraph [ref=e117]: N/A
+                  - paragraph [ref=e118]: Last Traded
+              - generic [ref=e119]:
+                - generic [ref=e120]:
+                  - generic [ref=e121]: Current Member
+                  - generic [ref=e122]: "Yes"
+                - generic [ref=e123]:
+                  - generic [ref=e124]: Years Active
+                  - generic [ref=e125]: "-"
+            - generic [ref=e126]:
+              - generic [ref=e127]:
+                - link "Trades" [ref=e128] [cursor=pointer]:
+                  - /url: "#"
+                - link "Live Stock Portfolio" [ref=e129] [cursor=pointer]:
+                  - /url: "#"
+                - link "Net Worth" [ref=e130] [cursor=pointer]:
+                  - /url: "#"
+              - generic [ref=e131]: Politician Analytics Dashboard
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]:
+                - generic [ref=e136]:
+                  - generic [ref=e137]: Trade Volume by Year
+                  - generic [ref=e138]:
+                    - generic [ref=e139]: Buy
+                    - generic [ref=e141]: Sell
+                - generic [ref=e144]: No trading data available
+              - generic [ref=e145]:
+                - generic [ref=e147]:
+                  - generic [ref=e148]: Trades
+                  - generic [ref=e149]: Click on a trade for details
+                - generic [ref=e151]: No recent trades found
+            - generic [ref=e153]:
+              - generic [ref=e155]: Top Traded Sectors
+              - generic [ref=e157]: No sector data
+      - generic [ref=e159]:
+        - paragraph [ref=e160]: Built for transparency. Data sourced from public congressional records.
+        - paragraph [ref=e161]:
+          - link "Open Source" [ref=e162] [cursor=pointer]:
+            - /url: https://github.com/Jakeintech/congress-disclosures-standardized
+  - generic [ref=e167] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e168]:
+      - img [ref=e169]
+    - generic [ref=e172]:
+      - button "Open issues overlay" [ref=e173]:
+        - generic [ref=e174]:
+          - generic [ref=e175]: "4"
+          - generic [ref=e176]: "5"
+        - generic [ref=e177]:
+          - text: Issue
+          - generic [ref=e178]: s
+      - button "Collapse issues badge" [ref=e179]:
+        - img [ref=e180]
+  - alert [ref=e182]
+```

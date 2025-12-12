@@ -71,7 +71,7 @@ locals {
     # Advanced Analytics (God Mode) endpoints
     "get_congressional_alpha"      = { route = "GET /v1/analytics/alpha" }
     "get_conflict_detection"       = { route = "GET /v1/analytics/conflicts" }
-    "get_portfolio_reconstruction" = { route = "GET /v1/analytics/portfolio" }
+    "get_portfolio_recon"          = { route = "GET /v1/analytics/portfolio" }  # Shortened: 58 chars
     "get_pattern_insights"         = { route = "GET /v1/analytics/insights" }
 
     # Search & Filing endpoints

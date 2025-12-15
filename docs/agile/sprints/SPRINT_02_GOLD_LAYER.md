@@ -3,7 +3,7 @@
 **Sprint Goal**: Create all Gold layer Lambda function wrappers for dimensions, facts, and aggregates
 
 **Duration**: Week 2 (Dec 23-27, 2025)
-**Story Points**: 40
+**Story Points**: 48
 **Status**: 🔴 Not Started
 
 ---
@@ -17,8 +17,10 @@ Wrap all existing Python scripts as Lambda functions to enable Step Functions or
 1. ✅ 3 dimension builder Lambdas created (dim_members, dim_assets, dim_bills)
 2. ✅ 3 fact builder Lambdas created (fact_transactions, fact_filings, fact_lobbying)
 3. ✅ 2 aggregate builder Lambdas created (trending_stocks, member_stats)
-4. ✅ All Lambdas tested individually
-5. ✅ Terraform deployed successfully
+4. ✅ Extraction versioning infrastructure deployed (enables iterative quality improvements)
+5. ✅ 20 unit tests passing (80%+ coverage for Gold wrappers)
+6. ✅ All Lambdas tested individually
+7. ✅ Terraform deployed successfully
 
 **Deferred to Sprint 3**:
 - dim_lobbyists, dim_dates (dimensions)
@@ -40,7 +42,8 @@ Wrap all existing Python scripts as Lambda functions to enable Step Functions or
 | STORY-026 | Create compute_trending_stocks Lambda wrapper | 3 | P1 |
 | STORY-027 | Create compute_member_stats Lambda wrapper | 3 | P1 |
 | STORY-052 | Write unit tests - Sprint 2 Gold layer wrappers | 4 | P0 |
-| **Total** | **9 stories** | **43** | |
+| STORY-054 | Extraction versioning infrastructure | 5 | P0 |
+| **Total** | **10 stories** | **48** | |
 
 **Changes from Original Plan**:
 - ❌ Deferred STORY-019: dim_lobbyists (3 points) → Sprint 3
@@ -48,6 +51,7 @@ Wrap all existing Python scripts as Lambda functions to enable Step Functions or
 - ❌ Deferred STORY-024: fact_cosponsors (3 points) → Sprint 3
 - ❌ Deferred STORY-025: fact_amendments (3 points) → Sprint 3
 - ✅ Added STORY-052: Unit tests for Gold wrappers (4 points)
+- ✅ Added STORY-054: Extraction versioning infrastructure (5 points)
 
 ---
 
@@ -62,11 +66,20 @@ Wrap all existing Python scripts as Lambda functions to enable Step Functions or
 
 ---
 
-### Day 3 (Wed, Dec 25): Fact Builders - Critical (13 points)
+### Day 3 (Wed, Dec 25): Fact Builders + Extraction Versioning (18 points)
 - STORY-021: fact_transactions (P0) - 8 hours
 - STORY-022: fact_filings (P0) - 5 hours
+- **STORY-054: Extraction versioning infrastructure (P0) - 5 hours** ⭐ **CRITICAL FOR DATA QUALITY**
+  - Add `__version__` to all 6 extractors (type_p, type_a, type_t, type_x, type_d, type_w)
+  - Update extraction metadata to include version fields (`extractor_version`, `extractor_class`, `baseline_version`)
+  - Create DynamoDB `extraction_versions` table (tracks quality metrics per version)
+  - Implement multi-version Silver storage (`silver/objects/filing_type=type_p/extractor_version=1.0.0/`)
+  - Add S3 lifecycle policy (expire old versions after 90 days)
+  - Update Gold layer scripts to be version-aware (read from specific extractor versions)
 
-**Goal**: Core fact tables (transactions + filings) operational
+**Goal**: Core fact tables operational + extraction versioning foundation established
+
+**Why This Matters**: Enables iterative extraction quality improvements without massive reprocessing. When we improve Type P extraction from 87% → 94% accuracy, we can reprocess just 2024-2025 (1,200 PDFs) instead of ALL years (50,000 PDFs). See `docs/agile/DATA_QUALITY_AND_VERSIONING_STRATEGY.md` for full strategy.
 
 ---
 

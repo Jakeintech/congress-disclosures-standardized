@@ -3,7 +3,7 @@
 **Sprint Goal**: Build unified state machine and comprehensive test suite
 
 **Duration**: Week 3 (Dec 30-Jan 3, 2026)
-**Story Points**: 52
+**Story Points**: 60
 **Status**: 🔴 Not Started
 
 ---
@@ -18,7 +18,8 @@ Create the unified `congress_data_platform` state machine and achieve 80%+ test 
 2. ✅ Soda quality checks Lambda created + 15+ YAML check definitions
 3. ✅ Dimension validation step implemented
 4. ✅ 4 deferred Gold layer Lambdas completed (dim_lobbyists, dim_dates, fact_cosponsors, fact_amendments)
-5. ✅ 35 unit + integration tests (80%+ coverage for Sprint 3 modules)
+5. ✅ Selective reprocessing Lambda deployed (enables iterative extraction quality improvements)
+6. ✅ 35 unit + integration tests (80%+ coverage for Sprint 3 modules)
 
 ---
 
@@ -49,7 +50,12 @@ Create the unified `congress_data_platform` state machine and achieve 80%+ test 
 | STORY-024 | Create build_fact_cosponsors Lambda wrapper | 3 | P2 |
 | STORY-025 | Create build_fact_amendments Lambda wrapper | 3 | P2 |
 
-| **Total** | **16 stories** | **52** | |
+### Extraction Quality & Reprocessing (8 points)
+| ID | Story | Points | Priority |
+|----|-------|--------|----------|
+| STORY-055 | Selective reprocessing Lambda | 8 | P1 |
+
+| **Total** | **17 stories** | **60** | |
 
 **Changes from Original Plan**:
 - ❌ Removed STORY-034: Unrealistic 70+ test target (8 points)
@@ -59,6 +65,7 @@ Create the unified `congress_data_platform` state machine and achieve 80%+ test 
 - ✅ Added STORY-048: Soda YAML definitions (5 points)
 - ✅ Added STORY-049: Dimension validation (3 points)
 - ✅ Added STORY-053: Sprint 3 distributed testing (6 points)
+- ✅ Added STORY-055: Selective reprocessing Lambda (8 points)
 - ✅ Added 4 deferred stories from Sprint 2 (12 points)
 
 ---
@@ -87,27 +94,74 @@ Create the unified `congress_data_platform` state machine and achieve 80%+ test 
 ---
 
 ### Day 3 (Wed, Jan 1): Quality Infrastructure + Deferred Lambdas (19 points)
-- STORY-033: Create run_soda_checks Lambda (5 hours)
-- STORY-048: Create Soda YAML definitions (5 hours)
-  - 15+ quality checks across Bronze/Silver/Gold
-  - Critical vs warning severity levels
-- STORY-049: Add dimension validation step (3 hours)
+
+**Quality Infrastructure (builds on STORY-054 versioning)**:
+- **STORY-033: Create run_soda_checks Lambda (5 hours)** ⭐
+  - Lambda wrapper for Soda Core quality framework
+  - Severity-based failure logic (critical vs warning)
+  - SNS notifications for quality failures
+  - Fails state machine if critical checks don't pass
+
+- **STORY-048: Create Soda YAML definitions (5 hours)** ⭐ **DATA QUALITY CONTROLS**
+  - **Bronze checks**: completeness, uniqueness, metadata validation
+  - **Silver checks**: extraction quality (confidence ≥85%), field extraction rates, **regression detection** (fail if quality drops >10%)
+  - **Gold checks**: referential integrity (FK validation), business logic, **SCD Type 2 integrity** (no duplicate current members)
+  - 15+ checks total across all layers
+
+- **STORY-049: Add dimension validation step (3 hours)** ⭐ **SCD TYPE 2 IMPLEMENTATION**
+  - Implement SCD Type 2 for `dim_members` (track party/district changes over time)
+  - Add `effective_from`, `effective_to`, `is_current`, `version` fields
+  - Change detection logic (close old record, insert new version)
+  - Update fact builders to use SCD Type 2 lookups (point-in-time joins)
+
+**Deferred Lambdas from Sprint 2**:
 - STORY-019: dim_lobbyists Lambda (3 hours)
 - STORY-020: dim_dates Lambda (3 hours)
 
-**Goal**: Quality checks operational, 2 deferred dimensions complete
+**Goal**: Quality checks operational, SCD Type 2 implemented, 2 deferred dimensions complete
+
+**Why This Matters**: Quality gates prevent bad data from reaching Gold layer. SCD Type 2 ensures historical accuracy (e.g., member switched from D→R, district changed due to redistricting). See `docs/agile/DATA_QUALITY_AND_VERSIONING_STRATEGY.md` for full strategy.
 
 ---
 
-### Day 4 (Thu, Jan 2): Finish Deferred Lambdas + Testing Start (12 points)
+### Day 4 (Thu, Jan 2): Deferred Lambdas + Reprocessing + Testing (20 points)
+
+**Deferred Lambdas**:
 - STORY-024: fact_cosponsors Lambda (3 hours)
 - STORY-025: fact_amendments Lambda (3 hours)
+
+**Selective Reprocessing (enables iterative extraction improvements)**:
+- **STORY-055: Selective reprocessing Lambda (8 hours)** ⭐ **CRITICAL FOR CONTINUOUS IMPROVEMENT**
+  - **Lambda**: `reprocess_filings` - reprocess specific filing types/year ranges
+  - **Comparison Report**: Before/after quality metrics (confidence scores, field extraction rates)
+  - **Version Promotion**: Update DynamoDB `is_production` flag to switch Gold to new version
+  - **Rollback Capability**: Revert to previous version if new extractor is worse
+  - **State Machine Integration**: Optional reprocessing branch (evaluate comparison → promote or rollback)
+
+  **Example Workflow**:
+  ```bash
+  # Improve Type P extractor (v1.0.0 → v1.1.0)
+  # Reprocess just 2024-2025 (1,200 PDFs, 15 minutes)
+  aws lambda invoke --function-name reprocess-filings --payload '{
+    "filing_type": "type_p",
+    "year_range": [2024, 2025],
+    "extractor_version": "1.1.0",
+    "comparison_mode": true
+  }'
+
+  # Review comparison: amount_low extraction improved 87% → 94%
+  # Promote to production (Gold layer reads new version)
+  # Gradually reprocess older years as capacity allows
+  ```
+
 - STORY-053: Write unit tests - Sprint 3 (start, 3 hours)
   - 15 tests for state machine logic
   - 10 tests for Soda checks Lambda
   - 10 tests for deferred Lambdas
 
-**Goal**: All 4 deferred Lambdas deployed, testing infrastructure in place
+**Goal**: All 4 deferred Lambdas + reprocessing capability deployed, testing started
+
+**Why This Matters**: Without selective reprocessing, every extraction improvement requires reprocessing ALL 50,000 PDFs (8+ hours, expensive). With this Lambda, we can iteratively improve quality by reprocessing samples first, validating improvements, then gradually migrating. See `docs/agile/DATA_QUALITY_AND_VERSIONING_STRATEGY.md` for complete workflow.
 
 ---
 

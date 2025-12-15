@@ -241,11 +241,7 @@
       "Parameters": {
         "pipeline": "cross_dataset_correlation",
         "status": "success",
-        "execution_id.$": "$$.Execution.Id",
-        "metrics": {
-          "bill_trade_correlations_computed.$": "$.bill_trade_result.num_correlations",
-          "network_nodes_computed.$": "$.network_result.num_nodes"
-        }
+        "execution_id.$": "$$.Execution.Id"
       },
       "ResultPath": "$.metrics_result",
       "Retry": [
@@ -355,5 +351,6 @@
       "Cause": "Pipeline execution encountered an error",
       "Error": "PipelineExecutionFailure"
     }
-  }
+  },
+  "TimeoutSeconds": 1800
 }

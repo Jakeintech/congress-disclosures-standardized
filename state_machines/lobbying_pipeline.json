@@ -276,11 +276,7 @@
       "Parameters": {
         "pipeline": "lobbying",
         "status": "success",
-        "execution_id.$": "$$.Execution.Id",
-        "metrics": {
-          "lobbying_filings_processed.$": "$.silver_result.num_filings",
-          "lobbyists_processed.$": "$.silver_result.num_lobbyists"
-        }
+        "execution_id.$": "$$.Execution.Id"
       },
       "ResultPath": "$.metrics_result",
       "Retry": [
@@ -367,5 +363,6 @@
       "Cause": "Pipeline execution encountered an error",
       "Error": "PipelineExecutionFailure"
     }
-  }
+  },
+  "TimeoutSeconds": 1800
 }

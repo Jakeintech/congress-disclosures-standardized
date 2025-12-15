@@ -281,11 +281,7 @@
       "Parameters": {
         "pipeline": "congress",
         "status": "success",
-        "execution_id.$": "$$.Execution.Id",
-        "metrics": {
-          "bills_processed.$": "$.bills_result.num_bills",
-          "members_updated.$": "$.members_result.num_members"
-        }
+        "execution_id.$": "$$.Execution.Id"
       },
       "ResultPath": "$.metrics_result",
       "Retry": [
@@ -395,5 +391,6 @@
       "Cause": "Pipeline execution encountered an error",
       "Error": "PipelineExecutionFailure"
     }
-  }
+  },
+  "TimeoutSeconds": 1800
 }

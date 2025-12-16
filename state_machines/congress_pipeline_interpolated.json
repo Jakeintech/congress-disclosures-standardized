@@ -38,7 +38,7 @@
     },
     "FetchNewBills": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_CONGRESS_BILLS}",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-congress-orchestrator",
       "Comment": "Generate bill fetch jobs Manifest",
       "Parameters": {
         "entity_type": "bill",
@@ -92,7 +92,7 @@
         "States": {
           "FetchBill": {
             "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_BILL_DETAILS}",
+            "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-congress-fetch-entity",
             "Parameters": {
               "entity_type.$": "$.entity_type",
               "entity_id.$": "$.entity_id",
@@ -125,7 +125,7 @@
           },
           "WriteBillSilver": {
             "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_WRITE_BILLS_TO_SILVER}",
+            "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-congress-bronze-to-silver",
             "Parameters": {
               "entity_type.$": "$.entity_type",
               "bronze_s3_key.$": "$.bronze_s3_key"
@@ -150,7 +150,7 @@
     },
     "FetchMembers": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_CONGRESS_MEMBERS}",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-congress-orchestrator",
       "Comment": "Generate member fetch jobs Manifest",
       "Parameters": {
         "entity_type": "member",
@@ -200,7 +200,7 @@
         "States": {
           "FetchMember": {
             "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_BILL_DETAILS}",
+            "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-congress-fetch-entity",
             "Comment": "Reusing fetch entity lambda for members",
             "Parameters": {
               "entity_type.$": "$.entity_type",
@@ -224,7 +224,7 @@
           },
           "WriteMemberSilver": {
             "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_WRITE_BILLS_TO_SILVER}",
+            "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-congress-bronze-to-silver",
             "Comment": "Using generic silver writer",
             "Parameters": {
               "entity_type.$": "$.entity_type",
@@ -241,7 +241,7 @@
     },
     "ValidateSilverQuality": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_RUN_SODA_CHECKS}",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-data-quality-validator",
       "Comment": "Run data quality checks on Silver bills and members",
       "Parameters": {
         "checks_path": "soda/checks/silver_bills.yml"
@@ -281,7 +281,7 @@
           "States": {
             "BuildDimBill": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_DIM_BILL}",
+              "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-build-dim-bills",
               "Comment": "Build bill dimension table",
               "TimeoutSeconds": 300,
               "Retry": [
@@ -305,7 +305,7 @@
           "States": {
             "UpdateDimMember": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_DIM_MEMBERS}",
+              "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-build-dim-members",
               "Comment": "Update member dimension with Congress.gov data (SCD Type 2)",
               "TimeoutSeconds": 300,
               "Retry": [
@@ -338,7 +338,7 @@
     },
     "BuildFactCosponsors": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_FACT_COSPONSORS}",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-build-fact-cosponsors",
       "Comment": "Build bill cosponsors fact table",
       "ResultPath": "$.fact_cosponsors_result",
       "TimeoutSeconds": 300,
@@ -358,7 +358,7 @@
     },
     "ValidateGoldQuality": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_RUN_SODA_CHECKS}",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-data-quality-validator",
       "Comment": "Run data quality checks on Gold layer",
       "Parameters": {
         "checks_path": "soda/checks/gold_dim_bill.yml"
@@ -390,7 +390,7 @@
     },
     "PublishMetrics": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-publish-pipeline-metrics",
       "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
       "Parameters": {
         "pipeline": "congress",
@@ -429,7 +429,7 @@
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for quality check failure",
       "Parameters": {
-        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "TopicArn": "arn:aws:sns:us-east-1:464813693153:congress-disclosures-pipeline-alerts",
         "Subject": "Data Quality Check Failed - Congress.gov Pipeline",
         "Message.$": "States.Format('Data quality check failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
@@ -452,7 +452,7 @@
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for pipeline failure",
       "Parameters": {
-        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "TopicArn": "arn:aws:sns:us-east-1:464813693153:congress-disclosures-pipeline-alerts",
         "Subject": "Pipeline Failure - Congress.gov Pipeline",
         "Message.$": "States.Format('Pipeline failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
@@ -475,7 +475,7 @@
       "Resource": "arn:aws:states:::sns:publish",
       "Comment": "Send SNS alert for non-critical warning",
       "Parameters": {
-        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "TopicArn": "arn:aws:sns:us-east-1:464813693153:congress-disclosures-pipeline-alerts",
         "Subject": "Pipeline Warning - Congress.gov Pipeline",
         "Message.$": "States.Format('Pipeline completed with warnings.\n\nWarning: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },

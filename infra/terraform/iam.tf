@@ -128,7 +128,7 @@ resource "aws_iam_role_policy" "lambda_ssm_congress_api" {
         Action = [
           "ssm:GetParameter"
         ],
-        Resource = "arn:aws:ssm:${local.region}:${local.account_id}:parameter${local.ssm_congress_api_key_param}"
+        Resource = "arn:aws:ssm:${local.region}:${local.account_id}:parameter${local.ssm_congress_api_key_param}*"
       }
     ]
   })

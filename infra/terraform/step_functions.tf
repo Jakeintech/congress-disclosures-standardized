@@ -56,7 +56,8 @@ resource "aws_iam_role_policy" "step_functions_policy" {
       {
         Effect = "Allow"
         Action = [
-          "states:StartExecution"
+          "states:StartExecution",
+          "states:RedriveExecution"
         ]
         Resource = "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:${var.project_name}-*"
       },

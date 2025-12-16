@@ -13,8 +13,8 @@ resource "aws_lambda_function" "ingest_zip" {
   s3_key           = "lambda-deployments/house_fd_ingest_zip/function.zip"
   source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") : null
 
-  timeout     = var.lambda_timeout_seconds
-  memory_size = var.lambda_ingest_memory_mb
+  timeout     = 900
+  memory_size = 2048
 
   # Environment variables
   environment {
@@ -75,7 +75,7 @@ resource "aws_lambda_function" "index_to_silver" {
   # Deploy from S3 (packages >50 MB must use S3)
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/house_fd_index_to_silver/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_index_to_silver/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_index_to_silver/function.zip") : null
+  # source_code_hash removed to prevent race condition with package_lambdas
 
   timeout     = 120 # 2 minutes (lighter processing)
   memory_size = var.lambda_index_memory_mb
@@ -144,7 +144,7 @@ resource "aws_lambda_function" "extract_document" {
   # Deploy from S3 (packages >50 MB must use S3)
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/house_fd_extract_document/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_extract_document/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_extract_document/function.zip") : null
+  # source_code_hash removed to prevent race condition with package_lambdas
 
   timeout     = var.lambda_timeout_seconds
   memory_size = var.lambda_extract_memory_mb

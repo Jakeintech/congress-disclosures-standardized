@@ -39,6 +39,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install boto3 requests pandas pyarrow
 
-    - name: Run Full Pipeline
+    - name: Trigger House FD Pipeline (Step Functions)
       run: |
-        python scripts/run_smart_pipeline.py --mode full --year ${{ inputs.year }}
+        aws stepfunctions start-execution \
+          --state-machine-arn ${{ secrets.HOUSE_FD_STATE_MACHINE_ARN }} \
+          --name "initial-load-${{ inputs.year }}-$(date +%Y%m%d-%H%M%S)" \
+          --input "{\"execution_type\":\"manual\",\"year\":${{ inputs.year }}}"
+

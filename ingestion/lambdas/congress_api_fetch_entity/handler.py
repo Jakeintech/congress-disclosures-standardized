@@ -435,13 +435,24 @@ def process_fetch_job(message_body: Dict[str, Any]) -> None:
     )
 
     # Queue subresource jobs if this is a bill
-    if entity_type == "bill":
+    if entity_type == "bill" and message_body.get("skip_subresources") != True:
         queue_subresource_jobs(entity_type, entity_id, congress, bill_type, bill_number)
 
-    # Queue Silver transform
-    queue_silver_transform(entity_type, bronze_s3_key, **partition_keys)
+    # Queue Silver transform (unless skipped)
+    skip_silver_queue = message_body.get("skip_silver_queue", False)
+    if not skip_silver_queue:
+        queue_silver_transform(entity_type, bronze_s3_key, **partition_keys)
 
     logger.info(f"Successfully processed {entity_type}: {entity_id}")
+    
+    # Return result for Map state
+    return {
+        "status": "success",
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+        "bronze_s3_key": bronze_s3_key,
+        **partition_keys
+    }
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -472,88 +483,57 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     batch_item_failures = []
     MAX_RETRIES = 5  # Max attempts before sending to DLQ
 
-    for record in event.get("Records", []):
-        try:
-            # Parse SQS message
-            message_body = json.loads(record["body"])
+    # Check if this is an SQS event or direct invocation
+    if "Records" in event:
+        # SQS Batch Mode
+        for record in event.get("Records", []):
+            try:
+                # Parse SQS message
+                message_body = json.loads(record["body"])
 
-            # Get retry count from SQS attributes
-            retry_count = int(record.get("attributes", {}).get("ApproximateReceiveCount", "1"))
+                # Get retry count from SQS attributes
+                retry_count = int(record.get("attributes", {}).get("ApproximateReceiveCount", "1"))
 
-            # Check if we've exceeded max retries
-            if retry_count > MAX_RETRIES:
-                logger.error(
-                    f"Max retries ({MAX_RETRIES}) exceeded for {message_body.get('entity_type')}/{message_body.get('entity_id')}, "
-                    f"allowing message to go to DLQ"
-                )
-                # Don't add to batch_item_failures - let it go to DLQ
-                continue
+                # Check if we've exceeded max retries
+                if retry_count > MAX_RETRIES:
+                    logger.error(
+                        f"Max retries ({MAX_RETRIES}) exceeded for {message_body.get('entity_type')}/{message_body.get('entity_id')}, "
+                        f"allowing message to go to DLQ"
+                    )
+                    continue
 
-            # Log retry attempt
-            if retry_count > 1:
-                logger.info(f"Retry attempt {retry_count}/{MAX_RETRIES} for {message_body.get('entity_type')}/{message_body.get('entity_id')}")
+                if retry_count > 1:
+                    logger.info(f"Retry attempt {retry_count}/{MAX_RETRIES} for {message_body.get('entity_type')}/{message_body.get('entity_id')}")
 
-            # Process fetch job
-            process_fetch_job(message_body)
+                # Process fetch job
+                process_fetch_job(message_body)
 
-            # Success - message will be deleted from queue
-            logger.info(f"Successfully processed {message_body.get('entity_type')}/{message_body.get('entity_id')}")
+                # Success
+                logger.info(f"Successfully processed {message_body.get('entity_type')}/{message_body.get('entity_id')}")
 
-        except CongressAPINotFoundError as e:
-            # 404 errors shouldn't retry - entity doesn't exist
-            logger.warning(
-                f"Entity not found (404): {message_body.get('entity_type')}/{message_body.get('entity_id')}. "
-                f"Not retrying."
-            )
-            # Don't add to batch_item_failures - let message be deleted
-            continue
+            except CongressAPINotFoundError:
+                 # 404 errors shouldn't retry
+                 continue
+            except Exception as e:
+                # Log and append to failures
+                logger.error(f"Error processing record: {e}", exc_info=True)
+                batch_item_failures.append({"itemIdentifier": record["messageId"]})
 
-        except CongressAPIRateLimitError as e:
-            # Rate limit hit - calculate backoff and retry
-            backoff_seconds = min(2 ** (retry_count - 1), 60)  # Max 60s: 1s, 2s, 4s, 8s, 16s, 32s, 60s
-            jitter = random.uniform(0, backoff_seconds * 0.2)  # 20% jitter
-            total_backoff = backoff_seconds + jitter
-
-            logger.warning(
-                f"Rate limit hit for {message_body.get('entity_type')}/{message_body.get('entity_id')} "
-                f"(retry {retry_count}/{MAX_RETRIES}). "
-                f"Calculated backoff: {total_backoff:.1f}s"
-            )
-
-            # Sleep briefly to give API time to recover (within Lambda execution)
-            # Note: SQS visibility timeout will also provide additional backoff
-            if total_backoff < 5:  # Only sleep if backoff is reasonable
-                time.sleep(min(total_backoff, 3))  # Max 3s sleep in Lambda
-
-            # Add to batch failures to trigger SQS retry with visibility timeout
-            batch_item_failures.append({"itemIdentifier": record["messageId"]})
-
-        except CongressAPIError as e:
-            # General API error - retry with backoff
-            logger.error(
-                f"API error for {message_body.get('entity_type')}/{message_body.get('entity_id')} "
-                f"(retry {retry_count}/{MAX_RETRIES}): {str(e)}"
-            )
-
-            # Add to batch failures for retry
-            batch_item_failures.append({"itemIdentifier": record["messageId"]})
-
-        except Exception as e:
-            # Unexpected error - log and retry
-            logger.error(
-                f"Unexpected error processing {message_body.get('entity_type')}/{message_body.get('entity_id')} "
-                f"(retry {retry_count}/{MAX_RETRIES}): {str(e)}",
-                exc_info=True
-            )
-
-            # Add to batch failures for retry
-            batch_item_failures.append({"itemIdentifier": record["messageId"]})
-
-    # Log summary
-    if batch_item_failures:
-        logger.info(f"Batch failures: {len(batch_item_failures)}/{len(event.get('Records', []))} messages will retry")
+        # Return batch failures for SQS
+        if batch_item_failures:
+            logger.info(f"Batch failures: {len(batch_item_failures)}")
+        return {"batchItemFailures": batch_item_failures}
+        
     else:
-        logger.info(f"All {len(event.get('Records', []))} messages processed successfully")
+        # Direct Invocation Mode (Step Functions Map)
+        # Event IS the job
+        try:
+            return process_fetch_job(event)
+        except Exception as e:
+            logger.error(f"Direct invocation failed: {e}", exc_info=True)
+            raise # Raise to let Step Functions handle retry/catch
+
+    # (Code moved inside if/else block above)
 
     # Return batch failures for SQS partial batch response
     return {"batchItemFailures": batch_item_failures}

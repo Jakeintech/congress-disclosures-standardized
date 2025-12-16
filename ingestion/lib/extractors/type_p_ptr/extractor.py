@@ -10,9 +10,18 @@ from ..base_extractor import BaseExtractor
 
 logger = logging.getLogger(__name__)
 
+__version__ = "1.0.0"
+
 
 class PTRExtractor(BaseExtractor):
-    """Extract structured data from Periodic Transaction Reports."""
+    """Extract structured data from Periodic Transaction Reports.
+
+    Version: 1.0.0
+    """
+
+    # Extractor version for tracking extraction quality over time
+    EXTRACTOR_VERSION = "1.0.0"
+    EXTRACTOR_CLASS = "PTRExtractor"
 
     def extract_from_text(self, text: str, pdf_properties: Dict[str, Any] = None) -> Dict[str, Any]:
         """Extract PTR data from text.
@@ -56,12 +65,17 @@ class PTRExtractor(BaseExtractor):
             "filing_metadata": {
                 "transaction_count": len(transactions)
             },
-            "extraction_metadata": self.create_extraction_metadata(
-                confidence=overall_confidence,
-                method="regex",
-                field_confidence=field_confidence,
-                data_completeness=data_completeness
-            )
+            "extraction_metadata": {
+                **self.create_extraction_metadata(
+                    confidence=overall_confidence,
+                    method="regex",
+                    field_confidence=field_confidence,
+                    data_completeness=data_completeness
+                ),
+                "extractor_version": self.EXTRACTOR_VERSION,
+                "extractor_class": self.EXTRACTOR_CLASS,
+                "baseline_version": "1.0.0"  # Tracks major extraction logic changes
+            }
         }
 
         return result

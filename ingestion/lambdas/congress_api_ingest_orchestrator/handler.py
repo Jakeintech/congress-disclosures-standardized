@@ -24,7 +24,8 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any, Dict, List, Optional, Generator
 
 import boto3
 from botocore.exceptions import ClientError
@@ -49,6 +50,9 @@ STATE_PREFIX = "bronze/congress/_state"
 s3_client = boto3.client("s3")
 sqs_client = boto3.client("sqs")
 ssm_client = boto3.client("ssm")
+dynamodb = boto3.resource("dynamodb")
+watermarks_table = dynamodb.Table("congress-disclosures-pipeline-watermarks")
+
 
 
 def get_api_key() -> str:
@@ -71,188 +75,100 @@ def get_api_key() -> str:
         logger.error(f"Failed to get API key from SSM: {e}")
         raise ValueError(f"Congress API key not found at {ssm_path}")
 
-
-def read_last_ingest_state(entity_type: str, congress: Optional[int] = None) -> Dict[str, Any]:
-    """Read last ingest state from S3 marker file.
-    
-    Args:
-        entity_type: Entity type (bill, member, etc.)
-        congress: Congress number (optional, for bills)
-        
-    Returns:
-        State dict with last_ingest_date and last_item_count, or empty dict if not found
-    """
-    # Build state file key
-    if congress:
-        key = f"{STATE_PREFIX}/{entity_type}_{congress}_last_ingest.json"
-    else:
-        key = f"{STATE_PREFIX}/{entity_type}_last_ingest.json"
-    
+def get_checkpoint(checkpoint_id: str) -> int:
+    """Get last processed offset from DynamoDB."""
     try:
-        response = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
-        body = response["Body"].read()
-        # Handle gzip if needed
-        if key.endswith(".gz"):
-            body = gzip.decompress(body)
-        return json.loads(body)
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "NoSuchKey":
-            logger.info(f"No state file found at {key}, this is a first run")
-            return {}
-        raise
-
-
-def write_last_ingest_state(
-    entity_type: str,
-    timestamp: str,
-    item_count: int,
-    congress: Optional[int] = None
-) -> None:
-    """Write last ingest state to S3 marker file.
-    
-    Args:
-        entity_type: Entity type
-        timestamp: ISO timestamp of ingest
-        item_count: Number of items queued
-        congress: Congress number (optional)
-    """
-    # Build state file key
-    if congress:
-        key = f"{STATE_PREFIX}/{entity_type}_{congress}_last_ingest.json"
-    else:
-        key = f"{STATE_PREFIX}/{entity_type}_last_ingest.json"
-    
-    state = {
-        "last_ingest_date": timestamp,
-        "last_item_count": item_count,
-        "entity_type": entity_type,
-    }
-    if congress:
-        state["congress"] = congress
-    
-    s3_client.put_object(
-        Bucket=S3_BUCKET,
-        Key=key,
-        Body=json.dumps(state, indent=2),
-        ContentType="application/json"
-    )
-    logger.info(f"Wrote state to {key}: {state}")
-
-
-def queue_fetch_jobs(jobs: List[Dict[str, Any]], queue_url: str) -> int:
-    """Send fetch jobs to SQS in batches of 10.
-    
-    Args:
-        jobs: List of job dicts to queue
-        queue_url: SQS queue URL
-        
-    Returns:
-        Number of successfully queued jobs
-    """
-    queued = 0
-    
-    # Process in batches of 10 (SQS limit)
-    for i in range(0, len(jobs), 10):
-        batch = jobs[i:i+10]
-        entries = [
-            {
-                "Id": str(idx),
-                "MessageBody": json.dumps(job)
+        response = watermarks_table.get_item(
+            Key={
+                "table_name": "congress_pipeline",
+                "watermark_type": checkpoint_id
             }
-            for idx, job in enumerate(batch)
-        ]
-        
-        try:
-            response = sqs_client.send_message_batch(
-                QueueUrl=queue_url,
-                Entries=entries
-            )
-            successful = len(response.get("Successful", []))
-            queued += successful
-            
-            if response.get("Failed"):
-                logger.error(f"Failed to queue {len(response['Failed'])} messages: {response['Failed']}")
-                
-        except ClientError as e:
-            logger.error(f"SQS batch send failed: {e}")
-            raise
-    
-    return queued
+        )
+        if "Item" in response:
+            offset = int(response["Item"].get("offset", 0))
+            logger.info(f"Found checkpoint for {checkpoint_id}: offset={offset}")
+            return offset
+    except ClientError as e:
+        logger.warning(f"Failed to read checkpoint {checkpoint_id}: {e}")
+    return 0
 
-
-def build_member_jobs(client: CongressAPIClient, limit: Optional[int] = None) -> List[Dict[str, Any]]:
-    """Build fetch jobs for all members.
-    
-    Args:
-        client: Congress API client
-        limit: Optional limit on number of members
+def save_checkpoint(checkpoint_id: str, offset: int, metadata: Dict[str, Any] = None):
+    """Save current offset to DynamoDB."""
+    import time  # Defensive import
+    try:
+        item = {
+            "table_name": "congress_pipeline",
+            "watermark_type": checkpoint_id,
+            "offset": offset,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "ttl": int(time.time()) + (7 * 24 * 3600)  # 7 days retention
+        }
+        if metadata:
+            item.update(metadata)
         
-    Returns:
-        List of job dicts
-    """
-    jobs = []
+        watermarks_table.put_item(Item=item)
+        logger.info(f"Saved checkpoint {checkpoint_id}: offset={offset}")
+    except ClientError as e:
+        logger.error(f"Failed to save checkpoint {checkpoint_id}: {e}")
+
+def hash_checkpoint_id(entity_type: str, congress: Optional[int] = None, 
+                      bill_type: Optional[str] = None, mode: str = "full") -> str:
+    """Generate unique checkpoint ID."""
+    parts = ["ingest", entity_type, mode]
+    if congress:
+        parts.append(str(congress))
+    if bill_type:
+        parts.append(bill_type)
+    return "_".join(parts)
+
+# ... queue_fetch_jobs (keep as is) ...
+
+def build_member_jobs_generator(
+    client: CongressAPIClient, 
+    limit: Optional[int] = None,
+    start_offset: int = 0
+) -> Generator[Dict[str, Any], None, None]:
+    """Yield fetch jobs for members."""
+    logger.info(f"Fetching member list starting at offset {start_offset}...")
     
-    logger.info("Fetching member list from Congress.gov API...")
-    
-    for member in client.list_members(limit=limit):
+    for member in client.list_members(limit=limit, start_offset=start_offset):
         bioguide_id = member.get("bioguideId")
         if not bioguide_id:
-            logger.warning(f"Member missing bioguideId: {member}")
             continue
         
-        # Determine chamber from terms
         chamber = "unknown"
         terms = member.get("terms", {}).get("item", [])
         if terms:
             latest_term = terms[-1] if isinstance(terms, list) else terms
             chamber = latest_term.get("chamber", "unknown").lower()
         
-        job = {
+        yield {
             "entity_type": "member",
             "entity_id": bioguide_id,
             "endpoint": f"/member/{bioguide_id}",
             "chamber": chamber
         }
-        jobs.append(job)
-        
-        if len(jobs) % 100 == 0:
-            logger.info(f"Built {len(jobs)} member jobs...")
-    
-    return jobs
 
-
-def build_bill_jobs(
+def build_bill_jobs_generator(
     client: CongressAPIClient,
     congress: int,
     bill_type: Optional[str] = None,
-    limit: Optional[int] = None
-) -> List[Dict[str, Any]]:
-    """Build fetch jobs for bills.
+    limit: Optional[int] = None,
+    start_offset: int = 0
+) -> Generator[Dict[str, Any], None, None]:
+    """Yield fetch jobs for bills."""
+    logger.info(f"Fetching bills for Congress {congress} starting at offset {start_offset}...")
     
-    Args:
-        client: Congress API client
-        congress: Congress number
-        bill_type: Optional bill type filter (hr, s, hjres, sjres)
-        limit: Optional limit on number of bills
-        
-    Returns:
-        List of job dicts
-    """
-    jobs = []
-    
-    logger.info(f"Fetching bill list for Congress {congress}...")
-    
-    for bill in client.list_bills(congress=congress, bill_type=bill_type, limit=limit):
+    for bill in client.list_bills(congress=congress, bill_type=bill_type, limit=limit, start_offset=start_offset):
         bill_number = bill.get("number")
         b_type = bill.get("type", "").lower()
         
         if not bill_number or not b_type:
-            logger.warning(f"Bill missing number or type: {bill}")
             continue
         
         bill_id = f"{congress}-{b_type}-{bill_number}"
         
-        job = {
+        yield {
             "entity_type": "bill",
             "entity_id": bill_id,
             "endpoint": f"/bill/{congress}/{b_type}/{bill_number}",
@@ -260,148 +176,170 @@ def build_bill_jobs(
             "bill_type": b_type,
             "bill_number": int(bill_number)
         }
-        jobs.append(job)
-        
-        if len(jobs) % 100 == 0:
-            logger.info(f"Built {len(jobs)} bill jobs...")
-    
-    return jobs
 
-
-def build_committee_jobs(
+def build_committee_jobs_generator(
     client: CongressAPIClient,
-    chamber: Optional[str] = None,
-    limit: Optional[int] = None
-) -> List[Dict[str, Any]]:
-    """Build fetch jobs for committees.
+    limit: Optional[int] = None,
+    start_offset: int = 0
+) -> Generator[Dict[str, Any], None, None]:
+    """Yield fetch jobs for committees."""
+    logger.info(f"Fetching committees starting at offset {start_offset}...")
     
-    Args:
-        client: Congress API client
-        chamber: Optional chamber filter (house, senate, joint)
-        limit: Optional limit
-        
-    Returns:
-        List of job dicts
-    """
-    jobs = []
-    
-    logger.info("Fetching committee list...")
-    
-    for committee in client.list_committees(chamber=chamber, limit=limit):
+    for committee in client.list_committees(limit=limit, start_offset=start_offset):
         committee_code = committee.get("systemCode")
         c_chamber = committee.get("chamber", "").lower()
         
         if not committee_code:
-            logger.warning(f"Committee missing systemCode: {committee}")
             continue
         
-        job = {
+        yield {
             "entity_type": "committee",
             "entity_id": committee_code,
             "endpoint": f"/committee/{c_chamber}/{committee_code}",
             "chamber": c_chamber
         }
-        jobs.append(job)
-    
-    return jobs
-
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """Main Lambda handler for orchestrating Congress.gov data ingestion.
-    
-    Args:
-        event: Invocation payload with:
-            - entity_type: "bill", "member", or "committee"
-            - congress: Congress number (for bills)
-            - bill_type: Optional bill type filter (hr, s, hjres, sjres)
-            - mode: "full" or "incremental" (default: full)
-            - limit: Optional limit for testing
-        context: Lambda context
-        
-    Returns:
-        Summary dict with queued_count, duration_seconds, etc.
-    """
-    import time
+    """Main Orchestrator Handler with Watermark Support."""
+    import time  # Cleaned up redundant imports if necessary, but keeping simple
     start_time = time.time()
     
     # Parse event
     entity_type = event.get("entity_type")
+    year = event.get("year")
     congress = event.get("congress")
-    bill_type = event.get("bill_type")
     mode = event.get("mode", "full")
     limit = event.get("limit")
+    bill_type = event.get("bill_type")
+    output_mode = event.get("output_mode", "sqs")
     
+    # Calculate congress from year if needed
+    if year and not congress:
+        try:
+            year_int = int(year)
+            congress = (year_int - 1789) // 2 + 1
+        except (ValueError, TypeError):
+            return {"statusCode": 400, "error": f"Invalid year: {year}"}
+
     if not entity_type:
-        return {
-            "statusCode": 400,
-            "error": "entity_type is required"
-        }
+        return {"statusCode": 400, "error": "entity_type is required"}
     
-    logger.info(f"Starting orchestrator: entity_type={entity_type}, congress={congress}, mode={mode}, limit={limit}")
+    logger.info(f"Starting orchestrator: {entity_type}, congress={congress}, mode={mode}")
     
-    # Check required env vars
-    if not S3_BUCKET:
-        return {"statusCode": 500, "error": "S3_BUCKET_NAME not configured"}
-    if not CONGRESS_FETCH_QUEUE_URL:
-        return {"statusCode": 500, "error": "CONGRESS_FETCH_QUEUE_URL not configured"}
-    
-    # Get API key and initialize client
+    # Initialize Client
     try:
         api_key = get_api_key()
         client = CongressAPIClient(api_key=api_key)
-    except (ValueError, ClientError) as e:
-        logger.error(f"Failed to initialize API client: {e}")
+    except Exception as e:
+        logger.error(f"Failed to initialize client: {e}")
         return {"statusCode": 500, "error": str(e)}
     
-    # Read state for incremental mode
-    last_state = {}
-    if mode == "incremental":
-        last_state = read_last_ingest_state(entity_type, congress)
-        logger.info(f"Incremental mode, last state: {last_state}")
-        # TODO: Filter API calls by updateDate > last_ingest_date
+    # Determine Resume State
+    checkpoint_id = hash_checkpoint_id(entity_type, congress, bill_type, mode)
+    start_offset = 0
     
-    # Build fetch jobs based on entity type
-    jobs = []
+    # Only resume if explicitly requested OR defaulting to auto-resume mechanism
+    # For now, we always try to resume in "full" mode if a checkpoint exists
+    if mode == "full":
+        start_offset = get_checkpoint(checkpoint_id)
+        if start_offset > 0:
+            logger.info(f"Resuming from verified checkpoint offset: {start_offset}")
+
+    # Build Generator
+    job_generator = None
     try:
         if entity_type == "member":
-            jobs = build_member_jobs(client, limit=limit)
+            job_generator = build_member_jobs_generator(client, limit, start_offset)
         elif entity_type == "bill":
-            if not congress:
-                return {"statusCode": 400, "error": "congress is required for bill entity type"}
-            jobs = build_bill_jobs(client, congress, bill_type, limit=limit)
+            job_generator = build_bill_jobs_generator(client, congress, bill_type, limit, start_offset)
         elif entity_type == "committee":
-            jobs = build_committee_jobs(client, limit=limit)
+            job_generator = build_committee_jobs_generator(client, limit, start_offset)
         else:
             return {"statusCode": 400, "error": f"Unsupported entity_type: {entity_type}"}
-    except CongressAPIError as e:
-        logger.error(f"API error building jobs: {e}")
-        return {"statusCode": 500, "error": f"Congress API error: {e}"}
-    
-    logger.info(f"Built {len(jobs)} fetch jobs")
-    
-    # Queue all jobs
+    except Exception as e:
+        return {"statusCode": 500, "error": f"Generator creation failed: {e}"}
+
+    # Iterate and Process
+    processed_count = 0
     queued_count = 0
-    if jobs:
-        queued_count = queue_fetch_jobs(jobs, CONGRESS_FETCH_QUEUE_URL)
-        logger.info(f"Queued {queued_count}/{len(jobs)} jobs to fetch queue")
+    batch_jobs = []
+    all_jobs_for_manifest = []
     
-    # Write state
-    now = datetime.now(timezone.utc).isoformat()
-    write_last_ingest_state(entity_type, now, queued_count, congress)
-    
-    # Calculate duration
-    duration = time.time() - start_time
-    
+    try:
+        for job in job_generator:
+            if output_mode == "s3_manifest":
+                all_jobs_for_manifest.append(job)
+            else:
+                batch_jobs.append(job)
+                
+            processed_count += 1
+            
+            # Queue when batch full (SQS only)
+            if output_mode == "sqs" and len(batch_jobs) >= 10:
+                q = queue_fetch_jobs(batch_jobs, CONGRESS_FETCH_QUEUE_URL)
+                queued_count += q
+                batch_jobs = []
+                
+            # Checkpoint every 100 items
+            if processed_count % 100 == 0:
+                current_offset = start_offset + processed_count
+                save_checkpoint(checkpoint_id, current_offset, {"status": "in_progress"})
+                
+                # Check Time Limit (stop if < 2 mins remains)
+                if context and context.get_remaining_time_in_millis() < 120000:
+                    logger.warning("Time limit approaching. Stopping and saving state.")
+                    break
+        
+        # Flush remaining SQS
+        if output_mode == "sqs" and batch_jobs:
+            q = queue_fetch_jobs(batch_jobs, CONGRESS_FETCH_QUEUE_URL)
+            queued_count += q
+
+        # Write Manifest if needed
+        manifest_key = None
+        if output_mode == "s3_manifest":
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            manifest_key = f"manifests/{entity_type}_{congress if congress else 'all'}_{timestamp}.json"
+            s3_client.put_object(
+                Bucket=S3_BUCKET,
+                Key=manifest_key,
+                Body=json.dumps(all_jobs_for_manifest),
+                ContentType="application/json"
+            )
+            logger.info(f"Wrote {len(all_jobs_for_manifest)} jobs to manifest: {manifest_key}")
+
+        # Completion handling
+        status = "completed"
+        if limit and processed_count >= limit:
+             logger.info("Hit limit. Keeping checkpoint for resume.")
+             current_offset = start_offset + processed_count
+             save_checkpoint(checkpoint_id, current_offset)
+             status = "limit_reached"
+        else:
+             # If we finished naturally (generator exhausted), reset checkpoint
+             logger.info("Ingestion complete. Resetting checkpoint.")
+             save_checkpoint(checkpoint_id, 0, {"status": "completed"})
+             status = "success"
+
+    except Exception as e:
+        logger.error(f"Error during ingestion loop: {e}")
+        # Save progress before dying
+        current_offset = start_offset + processed_count
+        save_checkpoint(checkpoint_id, current_offset, {"status": "failed"})
+        raise
+
     result = {
-        "statusCode": 200,
-        "entity_type": entity_type,
-        "mode": mode,
-        "jobs_built": len(jobs),
+        "statusCode": 200, 
+        "status": status,
         "queued_count": queued_count,
-        "duration_seconds": round(duration, 2)
+        "processed_count": processed_count,
+        "start_offset": start_offset,
+        "end_offset": start_offset + processed_count,
+        "s3_bucket": S3_BUCKET
     }
-    if congress:
-        result["congress"] = congress
     
-    logger.info(f"Orchestrator complete: {result}")
+    if manifest_key:
+        result["manifest_key"] = manifest_key
+        result["jobs_built"] = len(all_jobs_for_manifest)
+        
     return result

@@ -4,10 +4,7 @@
 resource "null_resource" "package_lambdas" {
   # Trigger on any code change by checking timestamps
   triggers = {
-    # Force rebuild on every apply to ensure latest code
-    always_run = timestamp()
-
-    # Also trigger if Makefile changes
+    # Only trigger on Makefile changes (not every apply)
     makefile_hash = filemd5("${path.module}/../../Makefile")
   }
 

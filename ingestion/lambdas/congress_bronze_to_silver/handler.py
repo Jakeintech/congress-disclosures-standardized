@@ -59,48 +59,71 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     processed_count = 0
     error_count = 0
 
-    records = event.get("Records", [])
-    logger.info(f"Processing {len(records)} SQS messages")
+    if "Records" in event:
+        # SQS Batch Mode
+        records = event.get("Records", [])
+        logger.info(f"Processing {len(records)} SQS messages")
 
-    for record in records:
-        message_id = record.get("messageId", "unknown")
+        for record in records:
+            message_id = record.get("messageId", "unknown")
+
+            try:
+                body = json.loads(record.get("body", "{}"))
+                entity_type = body.get("entity_type")
+                bronze_s3_key = body.get("bronze_s3_key")
+
+                if not entity_type or not bronze_s3_key:
+                    logger.error(f"Message {message_id}: Missing entity_type or bronze_s3_key")
+                    batch_item_failures.append({"itemIdentifier": message_id})
+                    error_count += 1
+                    continue
+
+                logger.info(f"Processing {entity_type}: {bronze_s3_key}")
+
+                # Process based on entity type
+                result = process_entity(entity_type, bronze_s3_key)
+
+                if result.get("error"):
+                    logger.error(f"Message {message_id}: {result['error']}")
+                    batch_item_failures.append({"itemIdentifier": message_id})
+                    error_count += 1
+                else:
+                    processed_count += 1
+                    logger.info(f"Message {message_id}: Processed {result.get('records_written', 0)} records")
+
+            except Exception as e:
+                logger.error(f"Message {message_id}: Unexpected error: {e}", exc_info=True)
+                batch_item_failures.append({"itemIdentifier": message_id})
+                error_count += 1
+
+        duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+        logger.info(
+            f"Batch complete: {processed_count} processed, {error_count} errors, "
+            f"{duration:.2f}s"
+        )
+
+        return {"batchItemFailures": batch_item_failures}
+        
+    else:
+        # Direct Invocation Mode (Step Functions Map)
+        logger.info(f"Direct invocation for {event.get('entity_type')}")
+        entity_type = event.get("entity_type")
+        bronze_s3_key = event.get("bronze_s3_key")
+        
+        if not entity_type or not bronze_s3_key:
+             # Look for "Payload" if Map wraps output, though standard is pass-through
+             # Or if using ResultSelector, check inputs.
+             # Assume standard input for now.
+             raise ValueError("Missing entity_type or bronze_s3_key in input")
 
         try:
-            body = json.loads(record.get("body", "{}"))
-            entity_type = body.get("entity_type")
-            bronze_s3_key = body.get("bronze_s3_key")
-
-            if not entity_type or not bronze_s3_key:
-                logger.error(f"Message {message_id}: Missing entity_type or bronze_s3_key")
-                batch_item_failures.append({"itemIdentifier": message_id})
-                error_count += 1
-                continue
-
-            logger.info(f"Processing {entity_type}: {bronze_s3_key}")
-
-            # Process based on entity type
             result = process_entity(entity_type, bronze_s3_key)
-
             if result.get("error"):
-                logger.error(f"Message {message_id}: {result['error']}")
-                batch_item_failures.append({"itemIdentifier": message_id})
-                error_count += 1
-            else:
-                processed_count += 1
-                logger.info(f"Message {message_id}: Processed {result.get('records_written', 0)} records")
-
+                raise ValueError(result["error"])
+            return result
         except Exception as e:
-            logger.error(f"Message {message_id}: Unexpected error: {e}", exc_info=True)
-            batch_item_failures.append({"itemIdentifier": message_id})
-            error_count += 1
-
-    duration = (datetime.now(timezone.utc) - start_time).total_seconds()
-    logger.info(
-        f"Batch complete: {processed_count} processed, {error_count} errors, "
-        f"{duration:.2f}s"
-    )
-
-    return {"batchItemFailures": batch_item_failures}
+            logger.error(f"Direct invocation failed: {e}", exc_info=True)
+            raise
 
 
 def process_entity(entity_type: str, bronze_s3_key: str) -> Dict[str, Any]:

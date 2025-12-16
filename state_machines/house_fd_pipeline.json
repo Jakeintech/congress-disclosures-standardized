@@ -1,7 +1,41 @@
 {
   "Comment": "House Financial Disclosures Pipeline - Automated ingestion, extraction, and transformation",
-  "StartAt": "CheckForNewFilings",
+  "StartAt": "CheckExecutionType",
   "States": {
+    "CheckExecutionType": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.execution_type",
+          "StringEquals": "initial_load",
+          "Next": "MultiYearIterator"
+        }
+      ],
+      "Default": "CheckForNewFilings"
+    },
+    "MultiYearIterator": {
+      "Type": "Map",
+      "ItemsPath": "$.years",
+      "MaxConcurrency": 2,
+      "Iterator": {
+        "StartAt": "StartChildExecution",
+        "States": {
+          "StartChildExecution": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+            "Parameters": {
+              "StateMachineArn.$": "$$.StateMachine.Id",
+              "Input": {
+                "execution_type": "manual",
+                "year.$": "$"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "End": true
+    },
     "CheckForNewFilings": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CHECK_HOUSE_FD_UPDATES}",
@@ -10,8 +44,18 @@
       "Retry": [
         {
           "ErrorEquals": [
-            "Lambda.ServiceException",
+            "CongressAPIRateLimitError",
             "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 60,
+          "MaxAttempts": 10,
+          "BackoffRate": 1.5
+        },
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
           ],
           "IntervalSeconds": 2,
           "MaxAttempts": 3,
@@ -33,6 +77,10 @@
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_HOUSE_FD_INGEST_ZIP}",
       "Comment": "Download YEARFD.zip and upload to Bronze S3",
+      "Parameters": {
+        "year.$": "$.year",
+        "skip_existing": true
+      },
       "ResultPath": "$.ingest_result",
       "TimeoutSeconds": 600,
       "Retry": [
@@ -105,11 +153,24 @@
     },
     "ExtractDocumentsMap": {
       "Type": "Map",
-      "Comment": "Extract text from PDFs in parallel (10 concurrent)",
-      "ItemsPath": "$.silver_index_result.documents_to_extract",
-      "MaxConcurrency": 1,
+      "Comment": "Extract text from PDFs in parallel using S3 distributed map",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "ReaderConfig": {
+          "InputType": "JSON"
+        },
+        "Parameters": {
+          "Bucket": "congress-disclosures-standardized",
+          "Key.$": "$.silver_index_result.documents_to_extract_s3_key"
+        }
+      },
+      "MaxConcurrency": 2,
       "ResultPath": "$.extraction_results",
-      "Iterator": {
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
         "StartAt": "ExtractDocument",
         "States": {
           "ExtractDocument": {

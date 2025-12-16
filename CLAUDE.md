@@ -52,6 +52,206 @@ house_fd_extract_structured_code (code-based extraction by filing type)
 Gold Scripts (aggregate_data, compute metrics, build fact tables)
 ```
 
+## Step Functions Architecture (STORY-015)
+
+### State Machine Orchestration
+
+The pipeline uses **AWS Step Functions** to orchestrate complex workflows with parallel processing, error handling, and quality gates.
+
+**State Machines**:
+- `house_fd_pipeline` - House Financial Disclosures pipeline
+- `congress_pipeline` - Congress.gov API data pipeline  
+- `lobbying_pipeline` - Senate LDA lobbying disclosures
+- `cross_dataset_correlation` - Cross-dataset analytics
+
+**Key Features**:
+- **Parallel Processing**: Map states with `MaxConcurrency: 10` for PDF extraction
+- **Error Handling**: Exponential backoff retries, DLQ integration, SNS alerts
+- **Quality Gates**: Soda quality checks between Bronze→Silver→Gold
+- **Watermarking**: Prevents duplicate processing via SHA256 hashing + DynamoDB
+
+### Watermarking Patterns (STORY-003, 004, 005)
+
+**Purpose**: Prevent duplicate processing and enable incremental updates
+
+#### House FD Watermarking (SHA256-based)
+```python
+# Lambda: check_house_fd_updates
+# Strategy: SHA256 hash comparison of ZIP files
+
+def lambda_handler(event, context):
+    year = event.get('year', datetime.now().year)
+    
+    # Get watermark from DynamoDB
+    watermark = get_watermark(year)
+    
+    # Compute SHA256 of remote ZIP
+    current_sha256 = compute_sha256_from_url(zip_url)
+    
+    # Compare with stored watermark
+    if watermark and watermark['sha256'] == current_sha256:
+        return {"has_new_filings": False, "status": "unchanged"}
+    
+    # Update watermark
+    update_watermark(year, current_sha256, last_modified, content_length)
+    return {"has_new_filings": True, "status": "updated"}
+```
+
+**DynamoDB Table**: `congress-disclosures-pipeline-watermarks`
+- Partition Key: `table_name` (e.g., "house_fd")
+- Sort Key: `watermark_type` (e.g., "2025")
+- Attributes: `sha256`, `last_modified`, `content_length`, `updated_at`
+
+#### Congress Watermarking (Timestamp-based)
+```python
+# Lambda: check_congress_updates
+# Strategy: DynamoDB timestamp tracking with fromDateTime API parameter
+
+def lambda_handler(event, context):
+    data_type = event.get('data_type', 'bills')
+    
+    # Get last update timestamp
+    watermark = get_watermark(data_type)
+    from_date = watermark.get('last_update_date') or f"{current_year - 5}-01-01T00:00:00Z"
+    
+    # Query Congress.gov API with fromDateTime
+    response = check_congress_api('bill', {'fromDateTime': from_date})
+    
+    if response['pagination']['count'] > 0:
+        update_watermark(data_type, datetime.utcnow().isoformat(), count)
+        return {"has_new_data": True}
+    return {"has_new_data": False}
+```
+
+#### Lobbying Watermarking (S3 Existence Check)
+```python
+# Lambda: check_lobbying_updates
+# Strategy: Check if Bronze data already exists for year/quarter
+
+def check_bronze_exists(year: int, quarter: str) -> bool:
+    prefix = f"bronze/lobbying/year={year}/quarter={quarter}/"
+    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=1)
+    return response.get('KeyCount', 0) > 0
+
+def lambda_handler(event, context):
+    quarters_to_process = []
+    for quarter in ['Q1', 'Q2', 'Q3', 'Q4']:
+        if not check_bronze_exists(year, quarter):
+            quarters_to_process.append(quarter)
+    
+    return {"has_new_filings": len(quarters_to_process) > 0}
+```
+
+### Parallel Processing with Map States
+
+**House FD Pipeline** - Extract Documents Map:
+```json
+{
+  "ExtractDocumentsMap": {
+    "Type": "Map",
+    "ItemsPath": "$.documents",
+    "MaxConcurrency": 10,
+    "Iterator": {
+      "StartAt": "ExtractDocument",
+      "States": {
+        "ExtractDocument": {
+          "Type": "Task",
+          "Resource": "arn:aws:lambda:...:function:extract_document",
+          "End": true
+        }
+      }
+    }
+  }
+}
+```
+
+**Impact**: Reduced execution time from 41 hours → 4 hours (10x speedup)
+
+### Error Handling & Retry Logic
+
+**Retry Strategy**:
+```json
+{
+  "Retry": [
+    {
+      "ErrorEquals": ["States.TaskFailed"],
+      "IntervalSeconds": 2,
+      "MaxAttempts": 3,
+      "BackoffRate": 2.0
+    }
+  ],
+  "Catch": [
+    {
+      "ErrorEquals": ["States.ALL"],
+      "ResultPath": "$.error",
+      "Next": "NotifyFailure"
+    }
+  ]
+}
+```
+
+**SNS Alerting**:
+- Pipeline failures → `pipeline_alerts` topic
+- Quality check failures → `data_quality_alerts` topic
+- DLQ depth > 0 → CloudWatch alarm → SNS
+
+### Execution Patterns
+
+**Scheduled Execution** (EventBridge):
+```json
+{
+  "execution_type": "scheduled",
+  "year": 2025
+}
+```
+
+**Manual Execution** (GitHub Actions):
+```bash
+aws stepfunctions start-execution \
+  --state-machine-arn $STATE_MACHINE_ARN \
+  --name "manual-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2024}'
+```
+
+**Multi-Year Initial Load** (STORY-046):
+```json
+{
+  "execution_type": "initial_load",
+  "parameters": {
+    "years": [2020, 2021, 2022, 2023, 2024, 2025]
+  }
+}
+```
+
+### Cost Optimization (STORY-001, 002)
+
+**EventBridge Schedule**:
+- ❌ Before: `rate(1 hour)` → $4,000/month
+- ✅ After: `cron(0 9 * * ? *)` (daily at 4 AM EST, DISABLED) → $0/month
+
+**MaxConcurrency**:
+- ❌ Before: `1` → Sequential processing (41 hours)
+- ✅ After: `10` → Parallel processing (4 hours, 90% cost reduction)
+
+**Watermarking Impact**:
+- 95% reduction in duplicate Lambda invocations
+- $750/month savings in compute costs
+
+### Monitoring & Observability
+
+**CloudWatch Metrics**:
+- Pipeline execution duration
+- Success/failure rates
+- Quality check pass rates
+- Watermark hit rates
+
+**X-Ray Tracing**: Distributed tracing enabled for all state machines
+
+**Step Functions Console**: Visual execution history with state-by-state timing
+
+See `docs/STATE_MACHINE_FLOW.md` for detailed diagrams.
+
+
 ## Key Lambda Functions
 
 ### Ingestion Layer

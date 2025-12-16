@@ -32,12 +32,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install boto3 requests pandas pyarrow
 
-    - name: Run Congress Incremental Pipeline
-      env:
-        S3_BUCKET_NAME: congress-disclosures-standardized
-        AWS_REGION: us-east-1
+    - name: Trigger Congress Pipeline (Step Functions)
       run: |
-        python scripts/run_congress_pipeline.py --mode incremental
+        aws stepfunctions start-execution \
+          --state-machine-arn ${{ secrets.CONGRESS_STATE_MACHINE_ARN }} \
+          --name "congress-daily-$(date +%Y%m%d-%H%M%S)" \
+          --input "{\"execution_type\":\"scheduled\",\"data_type\":\"bills\"}"
 
     - name: Upload Logs to S3
       if: always()
@@ -51,3 +51,4 @@ jobs:
       run: |
         echo "Congress pipeline failed! Check GitHub Actions logs."
         # Optional: Add Slack notification here
+

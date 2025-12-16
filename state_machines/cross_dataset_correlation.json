@@ -11,6 +11,15 @@
       "Retry": [
         {
           "ErrorEquals": [
+            "CongressAPIRateLimitError",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 60,
+          "MaxAttempts": 10,
+          "BackoffRate": 1.5
+        },
+        {
+          "ErrorEquals": [
             "Lambda.ServiceException",
             "Lambda.TooManyRequestsException",
             "Lambda.AWSLambdaException"

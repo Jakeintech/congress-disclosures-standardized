@@ -229,9 +229,9 @@ class TypeABAnnualExtractor(BaseExtractor):
         
         assets = []
         
-        # Find Schedule A section - handle "S A: A 'U' I" and other variations
+        # Find Schedule A section - anchor to newline/start
         section_match = re.search(
-            r'(?:Schedule\s+A|S\s*A).*?(?:Assets|A\s*"U"\s*I).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[BCDEFGHI]|\n\s*Part\s+[IVX]{1,4}|\Z)',
+            r'(?:^|\n)\s*(?:Schedule\s+A|S\s*A).*?(?:Assets|A\s*"U"\s*I).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[BCDEFGHI]|\n\s*Part\s+[IVX]{1,4}|\Z)',
             text,
             re.DOTALL | re.IGNORECASE
         )
@@ -355,7 +355,7 @@ class TypeABAnnualExtractor(BaseExtractor):
     def _extract_earned_income(self, text: str) -> List[Dict[str, Any]]:
         """Extract Schedule C: Earned Income."""
         income = []
-        section_match = re.search(r'(?:Schedule\s+C|S\s*C).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[DEFGHI]|\n\s*Part|\Z)', 
+        section_match = re.search(r'(?:^|\n)\s*(?:Schedule\s+C|S\s*C).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[DEFGHI]|\n\s*Part|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)
@@ -384,8 +384,10 @@ class TypeABAnnualExtractor(BaseExtractor):
 
     def _extract_liabilities(self, text: str) -> List[Dict[str, Any]]:
         """Extract Schedule D: Liabilities."""
+        from .field_extractors import parse_owner_code
+
         liabilities = []
-        section_match = re.search(r'(?:Schedule\s+D|S\s*D).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[EFGHI]|\n\s*Part|\Z)', 
+        section_match = re.search(r'(?:^|\n)\s*(?:Schedule\s+D|S\s*D).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[EFGHI]|\n\s*Part|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)
@@ -397,16 +399,31 @@ class TypeABAnnualExtractor(BaseExtractor):
                 
                 has_value_range = re.search(r'(\$[\d,]+\s*[-–]\s*\$[\d,]+|Over\s+\$[\d,]+)', line)
                 if has_value_range:
+                    # Clean up left side (Name/Owner/Date/Type)
+                    left_part = line[:has_value_range.start()].strip()
+                    
+                    # Remove Owner code if present at start
+                    owner_match = re.match(r'^(?:SP|DC|JT|Self|Joint|Spouse|Child)\s+', left_part, re.IGNORECASE)
+                    if owner_match:
+                        left_part = left_part[owner_match.end():].strip()
+                        
+                    # Remove Date (e.g. Jan 2024, 01/2024)
+                    # Regex for Month Year or MM/YYYY
+                    left_part = re.sub(r'(?:\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|\d{1,2}/\d{4}|\d{4})', '', left_part, flags=re.IGNORECASE)
+                    
+                    # Remove obvious Type words (Mortgage, Loan, Note, etc.)
+                    left_part = re.sub(r'\b(?:Mortgage|Loan|Promissory Note|Line of Credit|Credit Card)\b', '', left_part, flags=re.IGNORECASE).strip()
+                    
                     liabilities.append({
-                        "creditor_name": line[:has_value_range.start()].strip(),
-                        "owner_code": self.extract_owner_code(line)
+                        "creditor_name": left_part.strip(),
+                        "owner_code": parse_owner_code(line)
                     })
         return liabilities
 
     def _extract_positions(self, text: str) -> List[Dict[str, Any]]:
         """Extract Schedule E: Positions."""
         positions = []
-        section_match = re.search(r'(?:Schedule\s+E|S\s*E).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[FGHI]|\n\s*Part|\Z)', 
+        section_match = re.search(r'(?:^|\n)\s*(?:Schedule\s+E|S\s*E).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[FGHI]|\n\s*Part|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)
@@ -425,7 +442,7 @@ class TypeABAnnualExtractor(BaseExtractor):
     def _extract_agreements(self, text: str) -> List[Dict[str, Any]]:
         """Extract Schedule F: Agreements."""
         agreements = []
-        section_match = re.search(r'(?:Schedule\s+F|S\s*F).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[GHI]|\n\s*Part|\Z)', 
+        section_match = re.search(r'(?:^|\n)\s*(?:Schedule\s+F|S\s*F).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[GHI]|\n\s*Part|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)
@@ -444,7 +461,7 @@ class TypeABAnnualExtractor(BaseExtractor):
     def _extract_gifts(self, text: str) -> List[Dict[str, Any]]:
         """Extract Schedule G: Gifts."""
         gifts = []
-        section_match = re.search(r'(?:Schedule\s+G|S\s*G).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[HI]|\n\s*Part|\Z)', 
+        section_match = re.search(r'(?:^|\n)\s*(?:Schedule\s+G|S\s*G).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[HI]|\n\s*Part|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)
@@ -463,7 +480,7 @@ class TypeABAnnualExtractor(BaseExtractor):
     def _extract_travel(self, text: str) -> List[Dict[str, Any]]:
         """Extract Schedule H: Travel."""
         travel = []
-        section_match = re.search(r'(?:Schedule\s+H|S\s*H).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[I]|\n\s*Part|\Z)', 
+        section_match = re.search(r'(?:^|\n)\s*(?:Schedule\s+H|S\s*H).*?\n(.*?)(?=\n\s*(?:Schedule|S)\s+[I]|\n\s*Part|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)
@@ -482,7 +499,7 @@ class TypeABAnnualExtractor(BaseExtractor):
     def _extract_charity(self, text: str) -> List[Dict[str, Any]]:
         """Extract Schedule I: Charity."""
         charity = []
-        section_match = re.search(r'(?:Schedule\s+I|S\s*I).*?\n(.*?)(?=\n\s*(?:Schedule|S)|\Z)', 
+        section_match = re.search(r'(?:^|\n)\s*(?:Schedule\s+I|S\s*I).*?\n(.*?)(?=\n\s*(?:Schedule|S)|\Z)', 
                                  text, re.DOTALL | re.IGNORECASE)
         if section_match:
             section_text = section_match.group(1)

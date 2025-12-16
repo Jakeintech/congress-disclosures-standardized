@@ -1,22 +1,62 @@
 {
-  "Comment": "Congress.gov API Pipeline - Daily ingestion of bills, members, and legislative data",
-  "StartAt": "FetchNewBills",
+  "Comment": "Congress.gov API Pipeline - Daily ingestion of bills, members, and legislative data using Distributed Map",
+  "StartAt": "CheckExecutionType",
   "States": {
+    "CheckExecutionType": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.execution_type",
+          "StringEquals": "initial_load",
+          "Next": "MultiYearIterator"
+        }
+      ],
+      "Default": "FetchNewBills"
+    },
+    "MultiYearIterator": {
+      "Type": "Map",
+      "ItemsPath": "$.years",
+      "MaxConcurrency": 2,
+      "Iterator": {
+        "StartAt": "StartChildExecution",
+        "States": {
+          "StartChildExecution": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+            "Parameters": {
+              "StateMachineArn.$": "$$.StateMachine.Id",
+              "Input": {
+                "execution_type": "manual",
+                "year.$": "$"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "End": true
+    },
     "FetchNewBills": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_CONGRESS_BILLS}",
-      "Comment": "Fetch new bills from Congress.gov API",
-      "ResultPath": "$.bills_result",
-      "TimeoutSeconds": 300,
+      "Comment": "Generate bill fetch jobs Manifest",
+      "Parameters": {
+        "entity_type": "bill",
+        "output_mode": "s3_manifest",
+        "year.$": "$.year"
+      },
+      "ResultPath": "$.bills_manifest",
+      "TimeoutSeconds": 900,
       "Retry": [
         {
           "ErrorEquals": [
             "Lambda.ServiceException",
-            "Lambda.TooManyRequestsException"
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "CongressAPIError"
           ],
           "IntervalSeconds": 5,
-          "MaxAttempts": 3,
-          "BackoffRate": 2.0
+          "MaxAttempts": 3
         }
       ],
       "Catch": [
@@ -28,61 +68,104 @@
           "Next": "NotifyPipelineFailure"
         }
       ],
-      "Next": "WriteBillsToSilver"
+      "Next": "ProcessBillsMap"
     },
-    "WriteBillsToSilver": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_WRITE_BILLS_TO_SILVER}",
-      "Comment": "Write bill data to Silver Parquet tables",
-      "InputPath": "$",
-      "ResultPath": "$.silver_bills_result",
-      "TimeoutSeconds": 300,
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.TooManyRequestsException",
-            "Lambda.AWSLambdaException"
-          ],
-          "IntervalSeconds": 10,
-          "MaxAttempts": 6,
-          "BackoffRate": 2.0
+    "ProcessBillsMap": {
+      "Type": "Map",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "ReaderConfig": {
+          "InputType": "JSON"
         },
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException"
-          ],
-          "IntervalSeconds": 3,
-          "MaxAttempts": 3,
-          "BackoffRate": 2.0
+        "Parameters": {
+          "Bucket.$": "$.bills_manifest.s3_bucket",
+          "Key.$": "$.bills_manifest.manifest_key"
         }
-      ],
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "FetchBill",
+        "States": {
+          "FetchBill": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_BILL_DETAILS}",
+            "Parameters": {
+              "entity_type.$": "$.entity_type",
+              "entity_id.$": "$.entity_id",
+              "congress.$": "$.congress",
+              "bill_type.$": "$.bill_type",
+              "bill_number.$": "$.bill_number",
+              "endpoint.$": "$.endpoint",
+              "skip_silver_queue": true
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "CongressAPIRateLimitError"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              },
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 3
+              }
+            ],
+            "Next": "WriteBillSilver"
+          },
+          "WriteBillSilver": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_WRITE_BILLS_TO_SILVER}",
+            "Parameters": {
+              "entity_type.$": "$.entity_type",
+              "bronze_s3_key.$": "$.bronze_s3_key"
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 3
+              }
+            ],
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrency": 20,
+      "Label": "ProcessBills",
+      "ResultPath": "$.bills_processed",
       "Next": "FetchMembers"
     },
     "FetchMembers": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_CONGRESS_MEMBERS}",
-      "Comment": "Fetch member biographical data and committee assignments",
-      "ResultPath": "$.members_result",
-      "TimeoutSeconds": 300,
+      "Comment": "Generate member fetch jobs Manifest",
+      "Parameters": {
+        "entity_type": "member",
+        "output_mode": "s3_manifest"
+      },
+      "ResultPath": "$.members_manifest",
+      "TimeoutSeconds": 900,
       "Retry": [
         {
           "ErrorEquals": [
             "Lambda.ServiceException",
-            "Lambda.TooManyRequestsException",
             "Lambda.AWSLambdaException"
           ],
-          "IntervalSeconds": 10,
-          "MaxAttempts": 6,
-          "BackoffRate": 2.0
-        },
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException"
-          ],
           "IntervalSeconds": 5,
-          "MaxAttempts": 3,
-          "BackoffRate": 2.0
+          "MaxAttempts": 3
         }
       ],
       "Catch": [
@@ -94,35 +177,66 @@
           "Next": "NotifyPipelineWarning"
         }
       ],
-      "Next": "WriteMembersToSilver"
+      "Next": "ProcessMembersMap"
     },
-    "WriteMembersToSilver": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_WRITE_MEMBERS_TO_SILVER}",
-      "Comment": "Write member data to Silver Parquet tables",
-      "InputPath": "$.members_result",
-      "ResultPath": "$.silver_members_result",
-      "TimeoutSeconds": 180,
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.TooManyRequestsException",
-            "Lambda.AWSLambdaException"
-          ],
-          "IntervalSeconds": 10,
-          "MaxAttempts": 6,
-          "BackoffRate": 2.0
+    "ProcessMembersMap": {
+      "Type": "Map",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "ReaderConfig": {
+          "InputType": "JSON"
         },
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException"
-          ],
-          "IntervalSeconds": 3,
-          "MaxAttempts": 2,
-          "BackoffRate": 2.0
+        "Parameters": {
+          "Bucket.$": "$.members_manifest.s3_bucket",
+          "Key.$": "$.members_manifest.manifest_key"
         }
-      ],
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "FetchMember",
+        "States": {
+          "FetchMember": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_BILL_DETAILS}",
+            "Comment": "Reusing fetch entity lambda for members",
+            "Parameters": {
+              "entity_type.$": "$.entity_type",
+              "entity_id.$": "$.entity_id",
+              "chamber.$": "$.chamber",
+              "endpoint.$": "$.endpoint",
+              "skip_silver_queue": true
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "CongressAPIRateLimitError"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Next": "WriteMemberSilver"
+          },
+          "WriteMemberSilver": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_WRITE_BILLS_TO_SILVER}",
+            "Comment": "Using generic silver writer",
+            "Parameters": {
+              "entity_type.$": "$.entity_type",
+              "bronze_s3_key.$": "$.bronze_s3_key"
+            },
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrency": 20,
+      "Label": "ProcessMembers",
+      "ResultPath": "$.members_processed",
       "Next": "ValidateSilverQuality"
     },
     "ValidateSilverQuality": {
@@ -142,14 +256,6 @@
           ],
           "IntervalSeconds": 10,
           "MaxAttempts": 6,
-          "BackoffRate": 2.0
-        },
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException"
-          ],
-          "IntervalSeconds": 2,
-          "MaxAttempts": 2,
           "BackoffRate": 2.0
         }
       ],
@@ -178,6 +284,18 @@
               "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_DIM_BILL}",
               "Comment": "Build bill dimension table",
               "TimeoutSeconds": 300,
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 10,
+                  "BackoffRate": 2.0
+                }
+              ],
               "End": true
             }
           }
@@ -190,6 +308,18 @@
               "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_DIM_MEMBERS}",
               "Comment": "Update member dimension with Congress.gov data (SCD Type 2)",
               "TimeoutSeconds": 300,
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 10,
+                  "BackoffRate": 2.0
+                }
+              ],
               "End": true
             }
           }
@@ -222,14 +352,6 @@
           "IntervalSeconds": 10,
           "MaxAttempts": 6,
           "BackoffRate": 2.0
-        },
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException"
-          ],
-          "IntervalSeconds": 3,
-          "MaxAttempts": 2,
-          "BackoffRate": 2.0
         }
       ],
       "Next": "ValidateGoldQuality"
@@ -251,14 +373,6 @@
           ],
           "IntervalSeconds": 10,
           "MaxAttempts": 6,
-          "BackoffRate": 2.0
-        },
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException"
-          ],
-          "IntervalSeconds": 2,
-          "MaxAttempts": 2,
           "BackoffRate": 2.0
         }
       ],
@@ -392,5 +506,5 @@
       "Error": "PipelineExecutionFailure"
     }
   },
-  "TimeoutSeconds": 1800
+  "TimeoutSeconds": 10800
 }

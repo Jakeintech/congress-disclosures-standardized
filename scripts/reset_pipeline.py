@@ -17,9 +17,11 @@ import os
 # Configure AWS clients
 s3 = boto3.client('s3')
 sqs = boto3.client('sqs')
+dynamodb = boto3.resource('dynamodb')
 
 # Configuration
 BUCKET_NAME = "congress-disclosures-standardized"
+WATERMARK_TABLE = "congress-disclosures-pipeline-watermarks"
 PREFIXES_TO_CLEAR = [
     "silver/",
     "gold/"
@@ -78,6 +80,29 @@ def purge_queues():
             except Exception as e:
                 print(f"   ❌ Failed to purge {queue_name}: {e}")
 
+def clear_watermarks():
+    print(f"🗑️  Clearing DynamoDB watermarks from {WATERMARK_TABLE}...")
+    table = dynamodb.Table(WATERMARK_TABLE)
+    
+    try:
+        # Scan and delete all items (for small tables like this, it's fine)
+        # ideally we would recreate the table, but that takes time.
+        scan = table.scan()
+        with table.batch_writer() as batch:
+            count = 0
+            for each in scan['Items']:
+                batch.delete_item(
+                    Key={
+                        'table_name': each['table_name'],
+                        'watermark_type': each['watermark_type']
+                    }
+                )
+                count += 1
+            print(f"   ✅ Deleted {count} watermark records")
+            
+    except Exception as e:
+        print(f"   ⚠️  Failed to clear watermarks (Table might not exist): {e}")
+
 def main():
     parser = argparse.ArgumentParser(description="Reset pipeline data")
     parser.add_argument("--force", action="store_true", help="Skip confirmation prompt")
@@ -104,6 +129,7 @@ def main():
     try:
         clear_s3_prefixes()
         purge_queues()
+        clear_watermarks()
         print("\n✨ Pipeline reset complete! You can now run 'make run-pipeline' to re-process data.")
     except Exception as e:
         print(f"\n❌ Error during reset: {e}")

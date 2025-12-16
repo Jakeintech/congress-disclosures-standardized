@@ -165,25 +165,42 @@ def download_pdf_from_house_website(doc_id: str, year: int, s3_pdf_key: str, pdf
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """Main Lambda handler (triggered by SQS).
+    """Main Lambda handler (triggered by SQS or direct invocation).
 
     Args:
-        event: SQS event with batch of messages
+        event: SQS event with batch of messages OR direct dict with doc_id
         context: Lambda context
 
     Returns:
-        Dict with batch item failures for SQS
-
-    Example event:
-        {
-            "Records": [
-                {
-                    "messageId": "...",
-                    "body": "{\"doc_id\": \"8221216\", \"year\": 2025, \"s3_pdf_key\": \"...\"}"
-                }
-            ]
-        }
+        Dict with batch item failures for SQS, or simple success dict for direct
     """
+    # Case 1: Direct invocation from Step Functions (Map state)
+    if "doc_id" in event:
+        try:
+            logger.info(f"Processing direct invocation for doc_id={event['doc_id']}")
+            doc_id = event["doc_id"]
+            year = event["year"]
+            s3_pdf_key = event["s3_pdf_key"]
+            filing_type = event.get("filing_type")
+            filer_name = event.get("filer_name")
+            filing_date = event.get("filing_date")
+            state_district = event.get("state_district")
+
+            process_document(
+                doc_id, 
+                year, 
+                s3_pdf_key, 
+                filing_type,
+                filer_name,
+                filing_date,
+                state_district
+            )
+            return {"status": "success", "doc_id": doc_id}
+        except Exception as e:
+            logger.error(f"Failed to process direct invocation: {str(e)}", exc_info=True)
+            raise  # Raise so Step Functions knows it failed
+
+    # Case 2: SQS Trigger
     batch_item_failures = []
 
     for record in event.get("Records", []):

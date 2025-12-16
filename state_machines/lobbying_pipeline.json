@@ -1,20 +1,67 @@
 {
   "Comment": "Lobbying Disclosures Pipeline - Weekly ingestion of Senate LDA database",
-  "StartAt": "CheckForNewFilings",
+  "StartAt": "CheckExecutionType",
   "States": {
+    "CheckExecutionType": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.execution_type",
+          "StringEquals": "initial_load",
+          "Next": "MultiYearIterator"
+        }
+      ],
+      "Default": "CheckForNewFilings"
+    },
+    "MultiYearIterator": {
+      "Type": "Map",
+      "ItemsPath": "$.years",
+      "MaxConcurrency": 2,
+      "Iterator": {
+        "StartAt": "StartChildExecution",
+        "States": {
+          "StartChildExecution": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+            "Parameters": {
+              "StateMachineArn.$": "$$.StateMachine.Id",
+              "Input": {
+                "execution_type": "manual",
+                "year.$": "$"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "End": true
+    },
     "CheckForNewFilings": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CHECK_LOBBYING_UPDATES}",
       "Comment": "Check Senate LDA database for new quarterly filings",
+      "Parameters": {
+        "year.$": "$.year",
+        "quarter": "all"
+      },
       "ResultPath": "$.filings_check",
       "TimeoutSeconds": 180,
       "Retry": [
         {
           "ErrorEquals": [
-            "Lambda.ServiceException",
+            "CongressAPIRateLimitError",
             "Lambda.TooManyRequestsException"
           ],
-          "IntervalSeconds": 3,
+          "IntervalSeconds": 60,
+          "MaxAttempts": 10,
+          "BackoffRate": 1.5
+        },
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "CongressAPIError"
+          ],
+          "IntervalSeconds": 5,
           "MaxAttempts": 3,
           "BackoffRate": 2.0
         }
@@ -33,8 +80,14 @@
     "DownloadXMLFilesMap": {
       "Type": "Map",
       "Comment": "Download lobbying XML files in parallel",
-      "ItemsPath": "$.filings_check.xml_sources",
-      "MaxConcurrency": 1,
+      "ItemsPath": "$.filings_check.ingest_tasks",
+      "ItemSelector": {
+        "filing_year.$": "$$.Map.Item.Value.filing_year",
+        "filing_type.$": "$$.Map.Item.Value.filing_type",
+        "entity_type.$": "$$.Map.Item.Value.entity_type",
+        "skip_existing": true
+      },
+      "MaxConcurrency": 2,
       "ResultPath": "$.download_results",
       "Iterator": {
         "StartAt": "DownloadXML",
@@ -43,6 +96,12 @@
             "Type": "Task",
             "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_DOWNLOAD_LOBBYING_XML}",
             "Comment": "Download XML file and upload to Bronze S3",
+            "Parameters": {
+              "filing_year.$": "$.filing_year",
+              "filing_type.$": "$.filing_type",
+              "entity_type.$": "$.entity_type",
+              "skip_existing.$": "$.skip_existing"
+            },
             "TimeoutSeconds": 120,
             "Retry": [
               {

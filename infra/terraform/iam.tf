@@ -202,6 +202,29 @@ resource "aws_iam_role_policy" "lambda_s3_list" {
   })
 }
 
+# DynamoDB policy for watermarking (STORY-003)
+resource "aws_iam_role_policy" "lambda_dynamodb_access" {
+  name = "${local.name_prefix}-lambda-dynamodb"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:Query",
+          "dynamodb:Scan"
+        ]
+        Resource = aws_dynamodb_table.pipeline_watermarks.arn
+      }
+    ]
+  })
+}
+
 # VPC access policy (if Lambdas need VPC access in the future)
 # Commented out by default as VPC access increases costs and cold start times
 # resource "aws_iam_role_policy_attachment" "lambda_vpc_execution" {

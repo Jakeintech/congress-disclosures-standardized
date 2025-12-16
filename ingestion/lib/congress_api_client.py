@@ -208,6 +208,7 @@ class CongressAPIClient:
         endpoint: str,
         params: Optional[Dict[str, Any]] = None,
         limit: Optional[int] = None,
+        start_offset: int = 0,
     ) -> Generator[Dict[str, Any], None, None]:
         """Paginate through a list endpoint.
 
@@ -218,16 +219,17 @@ class CongressAPIClient:
             endpoint: API endpoint path (e.g., "/bill/118/hr")
             params: Optional query parameters
             limit: Max items to yield (None = all)
+            start_offset: Offset to start pagination from
 
         Yields:
             Individual items from the API response
 
         Example:
-            >>> for bill in client._paginate("/bill/118/hr", limit=100):
+            >>> for bill in client._paginate("/bill/118/hr", limit=100, start_offset=50):
             ...     print(bill["title"])
         """
         params = params or {}
-        offset = 0
+        offset = start_offset
         limit_per_page = 250  # Congress.gov API max
         total_yielded = 0
 
@@ -289,7 +291,10 @@ class CongressAPIClient:
         return self._make_request(endpoint)
 
     def list_members(
-        self, chamber: Optional[str] = None, limit: Optional[int] = None
+        self, 
+        chamber: Optional[str] = None, 
+        limit: Optional[int] = None,
+        start_offset: int = 0
     ) -> Generator[Dict[str, Any], None, None]:
         """List all members.
 
@@ -309,7 +314,10 @@ class CongressAPIClient:
         if chamber:
             params["currentMember"] = "true"  # Only current members have chamber
 
-        yield from self._paginate(endpoint, params, limit)
+        if chamber:
+            params["currentMember"] = "true"  # Only current members have chamber
+
+        yield from self._paginate(endpoint, params, limit, start_offset=start_offset)
 
     # ==========================================================================
     # Bill Endpoints
@@ -338,6 +346,7 @@ class CongressAPIClient:
         congress: int,
         bill_type: Optional[str] = None,
         limit: Optional[int] = None,
+        start_offset: int = 0,
     ) -> Generator[Dict[str, Any], None, None]:
         """List bills for a Congress.
 
@@ -358,7 +367,12 @@ class CongressAPIClient:
         else:
             endpoint = f"/bill/{congress}"
 
-        yield from self._paginate(endpoint, limit=limit)
+        if bill_type:
+            endpoint = f"/bill/{congress}/{bill_type}"
+        else:
+            endpoint = f"/bill/{congress}"
+
+        yield from self._paginate(endpoint, limit=limit, start_offset=start_offset)
 
     def get_bill_actions(
         self, congress: int, bill_type: str, bill_number: int
@@ -507,7 +521,10 @@ class CongressAPIClient:
         return self._make_request(endpoint)
 
     def list_committees(
-        self, chamber: Optional[str] = None, limit: Optional[int] = None
+        self, 
+        chamber: Optional[str] = None, 
+        limit: Optional[int] = None,
+        start_offset: int = 0
     ) -> Generator[Dict[str, Any], None, None]:
         """List committees.
 
@@ -523,4 +540,4 @@ class CongressAPIClient:
         else:
             endpoint = "/committee"
 
-        yield from self._paginate(endpoint, limit=limit)
+        yield from self._paginate(endpoint, limit=limit, start_offset=start_offset)

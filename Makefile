@@ -167,7 +167,7 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations ## Package all Lambda functions
 
 package-api: ## Package and upload ALL API Lambda functions to S3
 	@echo "Packaging API Lambda functions..."
@@ -307,7 +307,7 @@ package-pipeline-metrics: ## Package publish_pipeline_metrics Lambda
 	@rm -rf $(LAMBDA_DIR)/publish_pipeline_metrics/package $(LAMBDA_DIR)/publish_pipeline_metrics/function.zip
 	@mkdir -p $(LAMBDA_DIR)/publish_pipeline_metrics/package
 	@cp $(LAMBDA_DIR)/publish_pipeline_metrics/handler.py $(LAMBDA_DIR)/publish_pipeline_metrics/package/
-	@cd $(LAMBDA_DIR)/publish_pipeline_metrics/package && zip -r ../function.zip . > /dev/null
+	@cd $(LAMBDA_DIR)/publish_pipeline_metrics/package && $(PYTHON) ../../../../scripts/deterministic_zip.py . ../function.zip > /dev/null
 	@rm -rf $(LAMBDA_DIR)/publish_pipeline_metrics/package
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/publish_pipeline_metrics/function.zip"
 
@@ -329,6 +329,26 @@ package-check-lobbying: ## Package check_lobbying_updates Lambda
 	@cd $(LAMBDA_DIR)/check_lobbying_updates/package && zip -r ../function.zip . > /dev/null
 	@rm -rf $(LAMBDA_DIR)/check_lobbying_updates/package
 	@aws s3 cp $(LAMBDA_DIR)/check_lobbying_updates/function.zip s3://$(S3_BUCKET)/lambda-deployments/check_lobbying_updates/function.zip
+	@echo "✓ Lambda package created and uploaded"
+
+package-compute-member-stats: ## Package compute_member_stats Lambda
+	@echo "Packaging compute_member_stats..."
+	@rm -rf $(LAMBDA_DIR)/compute_member_stats/package $(LAMBDA_DIR)/compute_member_stats/function.zip
+	@mkdir -p $(LAMBDA_DIR)/compute_member_stats/package
+	@cp $(LAMBDA_DIR)/compute_member_stats/handler.py $(LAMBDA_DIR)/compute_member_stats/package/
+	@cd $(LAMBDA_DIR)/compute_member_stats/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/compute_member_stats/package
+	@aws s3 cp $(LAMBDA_DIR)/compute_member_stats/function.zip s3://$(S3_BUCKET)/lambda-deployments/compute_member_stats/function.zip
+	@echo "✓ Lambda package created and uploaded"
+
+package-compute-bill-trade-correlations: ## Package compute_bill_trade_correlations Lambda
+	@echo "Packaging compute_bill_trade_correlations..."
+	@rm -rf $(LAMBDA_DIR)/compute_bill_trade_correlations/package $(LAMBDA_DIR)/compute_bill_trade_correlations/function.zip
+	@mkdir -p $(LAMBDA_DIR)/compute_bill_trade_correlations/package
+	@cp $(LAMBDA_DIR)/compute_bill_trade_correlations/handler.py $(LAMBDA_DIR)/compute_bill_trade_correlations/package/
+	@cd $(LAMBDA_DIR)/compute_bill_trade_correlations/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/compute_bill_trade_correlations/package
+	@aws s3 cp $(LAMBDA_DIR)/compute_bill_trade_correlations/function.zip s3://$(S3_BUCKET)/lambda-deployments/compute_bill_trade_correlations/function.zip
 	@echo "✓ Lambda package created and uploaded"
 
 ##@ Testing

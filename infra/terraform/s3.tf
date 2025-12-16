@@ -127,6 +127,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "data_lake" {
     }
   }
 
+  # Silver versioned extractions: Expire old versions after 90 days
+  # Enables iterative quality improvements without massive reprocessing
+  rule {
+    id     = "silver-versioned-extractions-cleanup"
+    status = "Enabled"
+
+    filter {
+      prefix = "silver/house/financial/objects/"
+    }
+
+    # Delete objects from old extractor versions after 90 days
+    # This allows time to validate new extractor versions before cleanup
+    expiration {
+      days = 90
+    }
+  }
+
   # Abort incomplete multipart uploads after 7 days (saves costs)
   rule {
     id     = "abort-incomplete-multipart"

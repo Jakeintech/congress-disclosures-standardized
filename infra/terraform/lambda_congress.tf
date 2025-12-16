@@ -228,6 +228,7 @@ resource "aws_lambda_function" "congress_bronze_to_silver" {
       LOG_LEVEL        = "INFO"
       PYTHONUNBUFFERED = "1"
       TZ               = "UTC"
+      HOME             = "/tmp"
     }
   }
 

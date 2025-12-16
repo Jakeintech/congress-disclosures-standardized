@@ -148,72 +148,58 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             documents_json_result = {"error": str(e)}
 
         logger.info("--> ENTERING STEP 7 <--")
-        # Step 7: Queue extraction jobs for each document (skip already extracted)
-        logger.info(f"Step 7: Checking {len(document_records)} documents for extraction...")
-        queued_count = 0
+        # Step 7: Identify documents for extraction (skip already extracted)
+        logger.info(f"Step 7: Identifying documents for extraction (total {len(document_records)})...")
+        documents_to_extract = []
         skipped_count = 0
-        failed_count = 0
-
-        if EXTRACTION_QUEUE_URL:
-            batch = []
-            for filing in filing_records:
+        
+        for filing in filing_records:
+            try:
+                # Check if PDF already extracted by checking Bronze metadata
+                pdf_key = filing['pdf_s3_key']
                 try:
-                    # Check if PDF already extracted by checking Bronze metadata
-                    pdf_key = filing['pdf_s3_key']
-                    try:
-                        response = s3_client.head_object(Bucket=S3_BUCKET, Key=pdf_key)
-                        if response.get('Metadata', {}).get('extraction-processed') == 'true':
-                            skipped_count += 1
-                            continue  # Skip - already extracted
-                    except Exception:
-                        pass  # PDF doesn't exist or no metadata - queue it
+                    response = s3_client.head_object(Bucket=S3_BUCKET, Key=pdf_key)
+                    if response.get('Metadata', {}).get('extraction-processed') == 'true':
+                        skipped_count += 1
+                        continue  # Skip - already extracted
+                except Exception:
+                    pass  # PDF doesn't exist or no metadata - include it
 
-                    # Construct filer name
-                    filer_name = f"{filing.get('first_name', '')} {filing.get('last_name', '')}".strip()
+                # Construct filer name
+                filer_name = f"{filing.get('first_name', '')} {filing.get('last_name', '')}".strip()
 
-                    message = {
-                        'doc_id': filing['doc_id'],
-                        'year': filing['year'],
-                        's3_pdf_key': pdf_key,
-                        'filing_type': filing.get('filing_type'),
-                        'filer_name': filer_name,
-                        'filing_date': filing.get('filing_date'),
-                        'state_district': filing.get('state_district')
-                    }
+                task = {
+                    'doc_id': filing['doc_id'],
+                    'year': filing['year'],
+                    's3_pdf_key': pdf_key,
+                    'filing_type': filing.get('filing_type'),
+                    'filer_name': filer_name,
+                    'filing_date': filing.get('filing_date'),
+                    'state_district': filing.get('state_district')
+                }
+                
+                documents_to_extract.append(task)
 
-                    batch.append({
-                        'Id': filing['doc_id'],
-                        'MessageBody': json.dumps(message)
-                    })
+            except Exception as e:
+                logger.error(f"Failed to process doc {filing.get('doc_id')}: {e}")
+        
+        logger.info(f"✅ Identified {len(documents_to_extract)} documents for extraction ({skipped_count} already extracted)")
 
-                    if len(batch) >= 10:
-                        sqs_client.send_message_batch(
-                            QueueUrl=EXTRACTION_QUEUE_URL,
-                            Entries=batch
-                        )
-                        queued_count += len(batch)
-                        batch = []
-
-                except Exception as e:
-                    logger.error(f"Failed to process doc {filing.get('doc_id')}: {e}")
-                    failed_count += 1
-            
-            # Send remaining messages
-            if batch:
-                try:
-                    sqs_client.send_message_batch(
-                        QueueUrl=EXTRACTION_QUEUE_URL,
-                        Entries=batch
-                    )
-                    queued_count += len(batch)
-                except Exception as e:
-                    logger.error(f"Failed to send final batch: {e}")
-                    failed_count += len(batch)
-
-            logger.info(f"✅ Queued {queued_count} extraction jobs ({skipped_count} already extracted, {failed_count} failed)")
-        else:
-            logger.warning("EXTRACTION_QUEUE_URL not set - skipping extraction job queuing")
-
+        # Step 8: Write documents_to_extract to S3 to avoid Step Functions data limit (256KB)
+        # The ExtractDocumentsMap will read from S3 instead
+        extract_list_key = f"{S3_SILVER_PREFIX}/house/financial/extraction_queue/year={year}/documents_to_extract.json"
+        
+        if documents_to_extract:
+            import gzip
+            extract_json = json.dumps(documents_to_extract).encode('utf-8')
+            s3_utils.upload_bytes_to_s3(
+                bucket=S3_BUCKET,
+                s3_key=extract_list_key,
+                data=extract_json,
+                content_type="application/json"
+            )
+            logger.info(f"✅ Wrote {len(documents_to_extract)} extraction tasks to s3://{S3_BUCKET}/{extract_list_key}")
+        
         result = {
             "status": "success",
             "year": year,
@@ -223,10 +209,13 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "documents_s3_key": documents_s3_key,
             "manifest": manifest_result,
             "silver_documents_json": documents_json_result,
+            # Return S3 reference instead of full list to avoid 256KB limit
+            "documents_to_extract_s3_key": extract_list_key if documents_to_extract else None,
+            "documents_to_extract_count": len(documents_to_extract),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        logger.info(f"Index-to-silver complete: {json.dumps(result)}")
+        logger.info(f"Index-to-silver complete: {json.dumps(result, default=str)}")
 
         return result
 

@@ -84,6 +84,19 @@ resource "aws_iam_role_policy" "step_functions_policy" {
           "logs:CreateLogStream"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:ListBucket",
+          "s3:AbortMultipartUpload"
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.s3_bucket_name}",
+          "arn:aws:s3:::${var.s3_bucket_name}/*"
+        ]
       }
     ]
   })
@@ -111,8 +124,8 @@ locals {
     # ============================================================
     # CONGRESS PIPELINE LAMBDAS
     # ============================================================
-    LAMBDA_FETCH_CONGRESS_BILLS    = "${local.name_prefix}-congress-fetch-entity"
-    LAMBDA_FETCH_CONGRESS_MEMBERS  = "${local.name_prefix}-congress-fetch-entity"
+    LAMBDA_FETCH_CONGRESS_BILLS    = local.congress_orchestrator_lambda_name
+    LAMBDA_FETCH_CONGRESS_MEMBERS  = local.congress_orchestrator_lambda_name
     LAMBDA_FETCH_BILL_DETAILS      = "${local.name_prefix}-congress-fetch-entity"
     LAMBDA_FETCH_BILL_COSPONSORS   = "${local.name_prefix}-congress-fetch-entity"
     LAMBDA_WRITE_BILLS_TO_SILVER   = "${local.name_prefix}-congress-bronze-to-silver"
@@ -128,32 +141,40 @@ locals {
     # ============================================================
     # DUCKDB BUILD LAMBDAS (Gold Layer)
     # ============================================================
-    LAMBDA_BUILD_DIM_MEMBERS     = "congress-disclosures-build-dim-members-duckdb"
-    LAMBDA_BUILD_DIM_ASSETS      = "congress-disclosures-build-dim-members-duckdb"
-    LAMBDA_BUILD_DIM_BILL        = "congress-disclosures-build-dim-members-duckdb"
-    LAMBDA_BUILD_FACT_TRANSACTIONS = "congress-disclosures-build-fact-transactions-duckdb"
-    LAMBDA_BUILD_FACT_FILINGS    = "congress-disclosures-build-fact-transactions-duckdb"
-    LAMBDA_BUILD_FACT_LOBBYING   = "congress-disclosures-build-fact-transactions-duckdb"
-    LAMBDA_BUILD_FACT_COSPONSORS = "congress-disclosures-build-fact-transactions-duckdb"
+    LAMBDA_BUILD_DIM_MEMBERS     = aws_lambda_function.build_dim_members.function_name
+    LAMBDA_BUILD_DIM_ASSETS      = aws_lambda_function.build_dim_assets.function_name
+    LAMBDA_BUILD_DIM_BILL        = aws_lambda_function.build_dim_bills.function_name
+    LAMBDA_BUILD_FACT_TRANSACTIONS = aws_lambda_function.build_fact_transactions.function_name
+    LAMBDA_BUILD_FACT_FILINGS    = aws_lambda_function.build_fact_filings.function_name
+    LAMBDA_BUILD_FACT_LOBBYING   = aws_lambda_function.build_fact_lobbying.function_name
+    # Fact Cosponsors uses build_fact_transactions logic or separate? Assuming specific lambda if exists, else generic.
+    # Checking lambdas_gold_transformations.tf didn't show build_fact_cosponsors? 
+    # Wait, checking list of resources in logic...
+    # I verified lambdas_gold_transformations.tf has: build_fact_transactions, build_fact_filings, build_fact_lobbying.
+    # It DOES NOT have build_fact_cosponsors. 
+    # congress_pipeline calls LAMBDA_BUILD_FACT_COSPONSORS.
+    # I will map it to build_fact_transactions for now as a placeholder/fallback or build_dim_bills.
+    LAMBDA_BUILD_FACT_COSPONSORS = aws_lambda_function.build_fact_transactions.function_name 
     
     # ============================================================
     # DUCKDB COMPUTE LAMBDAS (Analytics)
     # ============================================================
-    LAMBDA_COMPUTE_TRENDING_STOCKS   = "congress-disclosures-compute-trending-stocks-duckdb"
-    LAMBDA_COMPUTE_DOCUMENT_QUALITY  = "congress-disclosures-compute-trending-stocks-duckdb"
-    LAMBDA_COMPUTE_MEMBER_STATS      = "congress-disclosures-compute-trending-stocks-duckdb"
-    LAMBDA_COMPUTE_NETWORK_GRAPH     = "congress-disclosures-compute-trending-stocks-duckdb"
-    LAMBDA_COMPUTE_LOBBYING_AGGREGATES = "congress-disclosures-compute-trending-stocks-duckdb"
+    LAMBDA_COMPUTE_TRENDING_STOCKS   = aws_lambda_function.compute_trending_stocks.function_name
+    LAMBDA_COMPUTE_DOCUMENT_QUALITY  = aws_lambda_function.compute_trending_stocks.function_name # Placeholder
+    LAMBDA_COMPUTE_MEMBER_STATS      = aws_lambda_function.compute_member_stats.function_name
+    LAMBDA_COMPUTE_NETWORK_GRAPH     = aws_lambda_function.compute_trending_stocks.function_name # Placeholder
+    LAMBDA_COMPUTE_LOBBYING_AGGREGATES = aws_lambda_function.compute_trending_stocks.function_name # Placeholder
     
     # ============================================================
     # CROSS-DATASET CORRELATION LAMBDAS
     # ============================================================
-    LAMBDA_BUILD_BILL_TRADE_CORRELATIONS    = "congress-disclosures-compute-trending-stocks-duckdb"
-    LAMBDA_BUILD_LOBBYING_BILL_CORRELATIONS = "congress-disclosures-compute-trending-stocks-duckdb"
-    LAMBDA_BUILD_MEMBER_ASSET_NETWORK       = "congress-disclosures-compute-trending-stocks-duckdb"
-    LAMBDA_COMPUTE_BILL_IMPACT_SCORES       = "congress-disclosures-compute-trending-stocks-duckdb"
-    LAMBDA_COMPUTE_INDUSTRY_CORRELATIONS    = "congress-disclosures-compute-trending-stocks-duckdb"
-    LAMBDA_COMPUTE_MEMBER_INFLUENCE         = "congress-disclosures-compute-trending-stocks-duckdb"
+    # Mapped to Stub Handler as placeholders for pending implementation
+    LAMBDA_BUILD_BILL_TRADE_CORRELATIONS    = aws_lambda_function.compute_bill_trade_correlations.function_name
+    LAMBDA_BUILD_LOBBYING_BILL_CORRELATIONS = aws_lambda_function.compute_bill_trade_correlations.function_name # Shared placeholder
+    LAMBDA_BUILD_MEMBER_ASSET_NETWORK       = aws_lambda_function.compute_member_stats.function_name # Shared
+    LAMBDA_COMPUTE_BILL_IMPACT_SCORES       = aws_lambda_function.compute_bill_trade_correlations.function_name # Shared
+    LAMBDA_COMPUTE_INDUSTRY_CORRELATIONS    = aws_lambda_function.compute_trending_stocks_duckdb.function_name # Use existing trending/sector logic
+    LAMBDA_COMPUTE_MEMBER_INFLUENCE         = aws_lambda_function.compute_member_stats.function_name # Shared
     
     # ============================================================
     # UTILITIES
@@ -298,8 +319,7 @@ resource "aws_lambda_function" "publish_pipeline_metrics" {
   handler       = "handler.lambda_handler"
   runtime       = "python3.11"
 
-  s3_bucket        = aws_s3_bucket.data_lake.id
-  s3_key           = "lambda-deployments/publish_pipeline_metrics/function.zip"
+  filename         = "${path.module}/../../ingestion/lambdas/publish_pipeline_metrics/function.zip"
   source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/publish_pipeline_metrics/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/publish_pipeline_metrics/function.zip") : null
 
   timeout     = 30
@@ -361,8 +381,10 @@ resource "aws_lambda_function" "check_house_fd_updates" {
 
   environment {
     variables = {
-      LOG_LEVEL   = "INFO"
-      ENVIRONMENT = var.environment
+      LOG_LEVEL            = "INFO"
+      ENVIRONMENT          = var.environment
+      WATERMARK_TABLE_NAME = aws_dynamodb_table.pipeline_watermarks.name
+      LOOKBACK_YEARS       = "5"
     }
   }
 
@@ -383,8 +405,35 @@ resource "aws_lambda_function" "check_lobbying_updates" {
 
   environment {
     variables = {
-      LOG_LEVEL   = "INFO"
-      ENVIRONMENT = var.environment
+      LOG_LEVEL        = "INFO"
+      ENVIRONMENT      = var.environment
+      S3_BUCKET_NAME   = var.s3_bucket_name
+      LOOKBACK_YEARS   = "5"
+    }
+  }
+
+  tags = local.standard_tags
+}
+
+# Check Congress Updates Lambda (STORY-047)
+resource "aws_lambda_function" "check_congress_updates" {
+  function_name = "${local.name_prefix}-check-congress-updates"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+  timeout       = 30
+  memory_size   = 128
+
+  s3_bucket = var.s3_bucket_name
+  s3_key    = "lambda-deployments/check_congress_updates/function.zip"
+
+  environment {
+    variables = {
+      LOG_LEVEL            = "INFO"
+      ENVIRONMENT          = var.environment
+      WATERMARK_TABLE_NAME = aws_dynamodb_table.pipeline_watermarks.name
+      LOOKBACK_YEARS       = "5"
+      CONGRESS_API_KEY     = var.congress_gov_api_key
     }
   }
 
@@ -400,6 +449,12 @@ resource "aws_cloudwatch_log_group" "check_house_fd_updates_logs" {
 
 resource "aws_cloudwatch_log_group" "check_lobbying_updates_logs" {
   name              = "/aws/lambda/${aws_lambda_function.check_lobbying_updates.function_name}"
+  retention_in_days = var.cloudwatch_log_retention_days
+  tags              = local.standard_tags
+}
+
+resource "aws_cloudwatch_log_group" "check_congress_updates_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.check_congress_updates.function_name}"
   retention_in_days = var.cloudwatch_log_retention_days
   tags              = local.standard_tags
 }
@@ -439,3 +494,7 @@ output "check_lobbying_updates_function_name" {
   value       = aws_lambda_function.check_lobbying_updates.function_name
 }
 
+output "check_congress_updates_function_name" {
+  description = "Name of Check Congress Updates Lambda"
+  value       = aws_lambda_function.check_congress_updates.function_name
+}

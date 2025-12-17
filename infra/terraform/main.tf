@@ -62,5 +62,5 @@ locals {
   )
 
   # SSM parameter name for Congress.gov API key
-  ssm_congress_api_key_param = var.ssm_congress_api_key_param != "" ? var.ssm_congress_api_key_param : "/congress-disclosures/${var.environment}/congress-api-key"
+  ssm_congress_api_key_param = var.ssm_congress_api_key_param != "" ? var.ssm_congress_api_key_param : "/congress-disclosures-standardized/${var.environment}/congress-api-key"
 }

@@ -25,6 +25,7 @@ resource "aws_lambda_function" "congress_fetch_entity" {
     variables = {
       S3_BUCKET_NAME             = aws_s3_bucket.data_lake.id
       CONGRESS_API_KEY           = "" # Placeholder - will be overridden by SSM parameter at runtime
+      CONGRESS_API_KEY_SSM_PATH  = local.congress_api_key_ssm_path
       CONGRESS_API_BASE_URL      = var.congress_api_base_url
       EXTRACTION_VERSION         = var.extraction_version
       LOG_LEVEL                  = "INFO"

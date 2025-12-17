@@ -79,6 +79,7 @@ resource "aws_cloudwatch_event_rule" "congress_daily" {
   name                = "${var.project_name}-congress-daily"
   description         = "Trigger Congress.gov pipeline daily at 3 AM EST"
   schedule_expression = "cron(0 8 * * ? *)" # 8 AM UTC = 3 AM EST
+  state               = "DISABLED"
 
   tags = {
     Project     = var.project_name
@@ -104,6 +105,7 @@ resource "aws_cloudwatch_event_rule" "lobbying_weekly" {
   name                = "${var.project_name}-lobbying-weekly"
   description         = "Trigger Lobbying pipeline weekly on Mondays at 6 AM EST"
   schedule_expression = "cron(0 11 ? * MON *)" # 11 AM UTC = 6 AM EST on Mondays
+  state               = "DISABLED"
 
   tags = {
     Project     = var.project_name

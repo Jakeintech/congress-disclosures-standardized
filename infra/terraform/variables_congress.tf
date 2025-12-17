@@ -195,7 +195,7 @@ variable "congress_common_tags" {
 
 locals {
   # Compute SSM parameter path for Congress API key
-  congress_api_key_ssm_path = var.congress_api_key_ssm_path != "" ? var.congress_api_key_ssm_path : "/${var.project_name}/${var.environment}/congress-api-key"
+  congress_api_key_ssm_path = var.congress_api_key_ssm_path != "" ? var.congress_api_key_ssm_path : "/${var.project_name}-standardized/${var.environment}/congress-api-key"
 
   # Merge common tags with Congress-specific tags
   congress_tags = merge(var.common_tags, var.congress_common_tags)

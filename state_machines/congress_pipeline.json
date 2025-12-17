@@ -11,7 +11,28 @@
           "Next": "MultiYearIterator"
         }
       ],
-      "Default": "FetchNewBills"
+      "Default": "InitializeDefaults"
+    },
+    "InitializeDefaults": {
+      "Type": "Pass",
+      "Result": {
+        "execution_type": "manual",
+        "mode": "full",
+        "limit": null,
+        "bill_type": null,
+        "congress": null,
+        "year": 2025
+      },
+      "ResultPath": "$.defaults",
+      "Next": "MergeInputs"
+    },
+    "MergeInputs": {
+      "Type": "Pass",
+      "Parameters": {
+        "merged.$": "States.JsonMerge($.defaults, $, false)"
+      },
+      "OutputPath": "$.merged",
+      "Next": "FetchNewBills"
     },
     "MultiYearIterator": {
       "Type": "Map",
@@ -43,7 +64,11 @@
       "Parameters": {
         "entity_type": "bill",
         "output_mode": "s3_manifest",
-        "year.$": "$.year"
+        "year.$": "$.year",
+        "limit.$": "$.limit",
+        "mode.$": "$.mode",
+        "bill_type.$": "$.bill_type",
+        "congress.$": "$.congress"
       },
       "ResultPath": "$.bills_manifest",
       "TimeoutSeconds": 900,
@@ -121,25 +146,6 @@
                 "MaxAttempts": 3
               }
             ],
-            "Next": "WriteBillSilver"
-          },
-          "WriteBillSilver": {
-            "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_WRITE_BILLS_TO_SILVER}",
-            "Parameters": {
-              "entity_type.$": "$.entity_type",
-              "bronze_s3_key.$": "$.bronze_s3_key"
-            },
-            "Retry": [
-              {
-                "ErrorEquals": [
-                  "Lambda.ServiceException",
-                  "Lambda.AWSLambdaException"
-                ],
-                "IntervalSeconds": 2,
-                "MaxAttempts": 3
-              }
-            ],
             "End": true
           }
         }
@@ -154,7 +160,9 @@
       "Comment": "Generate member fetch jobs Manifest",
       "Parameters": {
         "entity_type": "member",
-        "output_mode": "s3_manifest"
+        "output_mode": "s3_manifest",
+        "limit.$": "$.limit",
+        "mode.$": "$.mode"
       },
       "ResultPath": "$.members_manifest",
       "TimeoutSeconds": 900,

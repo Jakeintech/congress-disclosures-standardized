@@ -67,17 +67,17 @@ resource "aws_lambda_function" "run_soda_checks" {
   role          = aws_iam_role.lambda_execution.arn
   handler       = "handler.lambda_handler"
   runtime       = "python3.11"
-  timeout       = 300  # 5 minutes
-  memory_size   = 1024
 
-  filename         = "${path.module}/../../build/run_soda_checks.zip"
-  source_code_hash = fileexists("${path.module}/../../build/run_soda_checks.zip") ? filebase64sha256("${path.module}/../../build/run_soda_checks.zip") : null
+  s3_bucket = aws_s3_bucket.data_lake.id
+  s3_key    = "lambda-deployments/run_soda_checks/function.zip"
+
+  timeout     = 300
+  memory_size = 1024
 
   layers = [aws_lambda_layer_version.soda_core.arn]
 
   environment {
     variables = {
-      S3_BUCKET_NAME                = var.s3_bucket_name
       DATA_QUALITY_ALERTS_TOPIC_ARN = aws_sns_topic.data_quality_alerts.arn
       LOG_LEVEL                     = "INFO"
     }

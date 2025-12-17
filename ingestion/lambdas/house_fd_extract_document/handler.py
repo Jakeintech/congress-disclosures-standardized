@@ -10,6 +10,7 @@ This Lambda (triggered by SQS):
 import json
 import logging
 import os
+os.environ["HOME"] = "/tmp"
 import sys
 import tempfile
 import requests

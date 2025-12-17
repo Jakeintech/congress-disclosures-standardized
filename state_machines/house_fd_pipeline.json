@@ -164,7 +164,7 @@
           "Key.$": "$.silver_index_result.documents_to_extract_s3_key"
         }
       },
-      "MaxConcurrency": 2,
+      "MaxConcurrency": 40,
       "ResultPath": "$.extraction_results",
       "ItemProcessor": {
         "ProcessorConfig": {
@@ -654,5 +654,5 @@
       "Error": "PipelineExecutionFailure"
     }
   },
-  "TimeoutSeconds": 1800
+  "TimeoutSeconds": 7200
 }

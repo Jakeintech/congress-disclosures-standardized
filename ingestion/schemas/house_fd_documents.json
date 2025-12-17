@@ -66,6 +66,7 @@
         "none",
         "pending",
         "pypdf",
+        "pypdf-no-text-layer",
         "direct_text",
         "ocr_text",
         "failed"

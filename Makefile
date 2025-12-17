@@ -211,7 +211,7 @@ package-extract: ## Package house_fd_extract_document Lambda
 	@rm -rf $(LAMBDA_DIR)/house_fd_extract_document/dist $(LAMBDA_DIR)/house_fd_extract_document/function.zip
 	@mkdir -p $(LAMBDA_DIR)/house_fd_extract_document/dist/
 	$(PIP) install --platform manylinux2014_x86_64 --implementation cp --python-version 3.11 --only-binary=:all: --upgrade -r $(LAMBDA_DIR)/house_fd_extract_document/requirements.txt -t $(LAMBDA_DIR)/house_fd_extract_document/dist
-	@cp $(LAMBDA_DIR)/house_fd_extract_document/handler.py $(LAMBDA_DIR)/house_fd_extract_document/dist/
+	@cp $(LAMBDA_DIR)/house_fd_extract_document/package/handler.py $(LAMBDA_DIR)/house_fd_extract_document/dist/
 	# Copy entire shared schemas directory to ensure all files are included
 	@cp -r ingestion/schemas $(LAMBDA_DIR)/house_fd_extract_document/dist/
 	@cp -r ingestion/lib $(LAMBDA_DIR)/house_fd_extract_document/dist/lib

@@ -225,6 +225,25 @@ resource "aws_iam_role_policy" "lambda_dynamodb_access" {
   })
 }
 
+# CloudWatch Metrics policy for custom metrics
+resource "aws_iam_role_policy" "lambda_cloudwatch_metrics_access" {
+  name = "${local.name_prefix}-lambda-cloudwatch-metrics"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "cloudwatch:PutMetricData"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # VPC access policy (if Lambdas need VPC access in the future)
 # Commented out by default as VPC access increases costs and cold start times
 # resource "aws_iam_role_policy_attachment" "lambda_vpc_execution" {

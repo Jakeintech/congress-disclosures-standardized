@@ -245,7 +245,7 @@ aws stepfunctions start-execution \
 - Quality check pass rates
 - Watermark hit rates
 
-**X-Ray Tracing**: Distributed tracing enabled for all state machines
+- **X-Ray Tracing**: Distributed tracing enabled for all state machines
 
 **Step Functions Console**: Visual execution history with state-by-state timing
 

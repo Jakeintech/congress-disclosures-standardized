@@ -185,9 +185,9 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                 .style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 10) + 'px');
         })
-        .on('mouseout', () => {
-            tooltip.style('display', 'none');
-        });
+            .on('mouseout', () => {
+                tooltip.style('display', 'none');
+            });
 
         simulation.on('tick', () => {
             link
@@ -258,8 +258,55 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                     }
                 }
             });
+        } else if (aggregationMode === 'chamber') {
+            ['House', 'Senate'].forEach(chamber => {
+                if (chamberFilter !== 'all' && chamberFilter !== chamber) return;
+                if (expandedGroups.has(chamber)) {
+                    const chamberMembers = nodes.filter((n: any) => n.chamber === chamber && n.group === 'member');
+                    visibleNodes.push(...chamberMembers);
+                    chamberMembers.forEach((n: any) => visibleNodeIds.add(n.id));
+                } else {
+                    // Create chamber agg node if not in data (client-side backup)
+                    let aggNode = aggNodes.find((n: any) => n.id === chamber);
+                    if (!aggNode) {
+                        const chamberNodes = nodes.filter((n: any) => n.chamber === chamber && n.group === 'member');
+                        if (chamberNodes.length > 0) {
+                            aggNode = {
+                                id: chamber,
+                                group: 'chamber_agg',
+                                chamber: chamber,
+                                value: chamberNodes.reduce((acc: number, curr: any) => acc + (curr.value || 0), 0),
+                                transaction_count: chamberNodes.reduce((acc: number, curr: any) => acc + (curr.transaction_count || 0), 0)
+                            };
+                        }
+                    }
+                    if (aggNode) {
+                        visibleNodes.push(aggNode);
+                        visibleNodeIds.add(aggNode.id);
+                    }
+                }
+            });
+        } else if (aggregationMode === 'state') {
+            const states = Array.from(new Set(nodes.map((n: any) => n.state))).filter(s => s && s !== 'N/A');
+            states.forEach(state => {
+                if (expandedGroups.has(state)) {
+                    const stateMembers = nodes.filter((n: any) => n.state === state && n.group === 'member');
+                    visibleNodes.push(...stateMembers);
+                    stateMembers.forEach((n: any) => visibleNodeIds.add(n.id));
+                } else {
+                    const stateNodes = nodes.filter((n: any) => n.state === state && n.group === 'member');
+                    const aggNode = {
+                        id: state,
+                        group: 'state_agg',
+                        state: state,
+                        value: stateNodes.reduce((acc: number, curr: any) => acc + (curr.value || 0), 0),
+                        transaction_count: stateNodes.reduce((acc: number, curr: any) => acc + (curr.transaction_count || 0), 0)
+                    };
+                    visibleNodes.push(aggNode);
+                    visibleNodeIds.add(aggNode.id);
+                }
+            });
         }
-        // Add other aggregation modes (chamber, state, volume) as needed
 
         // Filter links
         let visibleLinks = links.filter((l: any) => {
@@ -268,14 +315,39 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             return visibleNodeIds.has(sourceId) && visibleNodeIds.has(targetId);
         });
 
-        // Add aggregated links for party mode
+        // Add aggregated links for modes
         if (aggregationMode === 'party') {
             ['Democrat', 'Republican'].forEach(party => {
                 if (!expandedGroups.has(party) && visibleNodeIds.has(party)) {
                     const partyAggLinks = aggLinks.filter((l: any) => l.source === party);
                     partyAggLinks.forEach((l: any) => {
-                        if (visibleNodeIds.has(l.target)) {
-                            visibleLinks.push(l);
+                        if (visibleNodeIds.has(l.target)) visibleLinks.push(l);
+                    });
+                }
+            });
+        } else if (aggregationMode === 'chamber') {
+            ['House', 'Senate'].forEach(chamber => {
+                if (!expandedGroups.has(chamber) && visibleNodeIds.has(chamber)) {
+                    // Group links by chamber
+                    const chamberMembers = new Set(nodes.filter((n: any) => n.chamber === chamber).map((n: any) => n.id));
+                    const chamberLinks = links.filter((l: any) => chamberMembers.has(l.source));
+
+                    const stockMap = new Map();
+                    chamberLinks.forEach(l => {
+                        if (!stockMap.has(l.target)) stockMap.set(l.target, { value: 0, count: 0 });
+                        stockMap.get(l.target).value += (l.value || 0);
+                        stockMap.get(l.target).count += (l.count || 1);
+                    });
+
+                    stockMap.forEach((stats, stockId) => {
+                        if (visibleNodeIds.has(stockId)) {
+                            visibleLinks.push({
+                                source: chamber,
+                                target: stockId,
+                                value: stats.value,
+                                count: stats.count,
+                                is_aggregated: true
+                            });
                         }
                     });
                 }
@@ -302,19 +374,23 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
     };
 
     const calculateNodeSize = (d: any) => {
-        const baseSize = d.group === 'member' ? 6 : d.group === 'asset' ? 8 : 10;
-        if (d.group?.includes('_agg')) return 40;
+        const baseSize = d.group === 'member' ? 8 : d.group === 'asset' ? 10 : 12;
+        if (d.group?.includes('_agg')) {
+            // Aggregated nodes should be quite large, representing the total volume
+            return Math.max(40, Math.min(80, 40 + Math.sqrt(d.value || 0) / 1000));
+        }
 
         let scale = 0;
         if (nodeSizeBy === 'volume') {
-            scale = Math.log((d.value || 0) + 1000) / 2;
+            // More dramatic scale for volume
+            scale = Math.sqrt(d.value || 0) / 200;
         } else if (nodeSizeBy === 'count') {
-            scale = Math.log((d.transaction_count || 0) + 1) * 2;
+            scale = (d.transaction_count || 0) * 1.5;
         } else {
-            scale = Math.log((d.degree || 0) + 1) * 2;
+            scale = (d.degree || 0) * 2;
         }
 
-        return Math.max(3, Math.min(50, baseSize + scale));
+        return Math.max(5, Math.min(60, baseSize + scale));
     };
 
     const getNodeColor = (d: any) => {

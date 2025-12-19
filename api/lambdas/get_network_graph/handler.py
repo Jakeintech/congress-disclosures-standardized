@@ -30,10 +30,10 @@ def handler(event, context):
         # Aggregate member-stock trading relationships
         trades_df = qb.aggregate_parquet(
             'gold/house/financial/facts/fact_ptr_transactions',
-            group_by=['bioguide_id', 'first_name', 'last_name', 'party', 'state', 'ticker'],
+            group_by=['bioguide_id', 'first_name', 'last_name', 'party', 'state', 'chamber', 'ticker'],
             aggregations={
                 'trade_count': 'COUNT(*)',
-                'total_value': 'SUM(COALESCE(amount_low, 0))',
+                'total_value': 'SUM((COALESCE(amount_low, 0) + COALESCE(amount_high, 0)) / 2.0)',
                 'last_trade': 'MAX(transaction_date)',
                 'buy_count': "SUM(CASE WHEN transaction_type = 'Purchase' THEN 1 ELSE 0 END)",
                 'sell_count': "SUM(CASE WHEN transaction_type = 'Sale' THEN 1 ELSE 0 END)"
@@ -56,7 +56,6 @@ def handler(event, context):
             if pd.isna(bioguide_id) or pd.isna(ticker):
                 continue
                 
-            party = row['party'] or 'Unknown'
             # Add member node if not exists
             if bioguide_id not in member_map:
                 member_name = f"{row.get('first_name', '')} {row.get('last_name', '')}".strip() or bioguide_id
@@ -67,7 +66,7 @@ def handler(event, context):
                     'group': 'member',
                     'party': row.get('party', 'Unknown'),
                     'state': row.get('state', 'N/A'),
-                    'chamber': 'House',  # Default to House (data source)
+                    'chamber': row.get('chamber', 'House'),  # Use real chamber value
                     'value': 0,
                     'transaction_count': 0,
                     'degree': 0

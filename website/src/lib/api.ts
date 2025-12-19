@@ -217,22 +217,32 @@ export async function fetchTransactions(params: TransactionsParams = {}): Promis
  * Fetch trending stocks
  */
 export async function fetchTrendingStocks(limit = 10): Promise<TrendingStock[]> {
-    const data = await fetchApi<ApiResponse<{ trending_stocks: TrendingStock[] }>>(
-        `${API_BASE}/v1/analytics/trending-stocks?limit=${limit}`
-    );
-    const result = data.data || (data as unknown as { trending_stocks: TrendingStock[] });
-    return result.trending_stocks || [];
+    try {
+        const raw = await fetchApi<{ stocks?: TrendingStock[], trending_stocks?: TrendingStock[] }>(
+            `${API_BASE}/v1/analytics/trending-stocks?limit=${limit}`
+        );
+        // Handle both legacy (trending_stocks) and standardized (stocks) formats
+        return raw.stocks || raw.trending_stocks || [];
+    } catch (e) {
+        console.warn("Failed to fetch trending stocks", e);
+        return [];
+    }
 }
 
 /**
  * Fetch top traders
  */
 export async function fetchTopTraders(limit = 10): Promise<TopTrader[]> {
-    const data = await fetchApi<ApiResponse<{ top_traders: TopTrader[] }>>(
-        `${API_BASE}/v1/analytics/top-traders?limit=${limit}`
-    );
-    const result = data.data || (data as unknown as { top_traders: TopTrader[] });
-    return result.top_traders || [];
+    try {
+        const raw = await fetchApi<{ traders?: TopTrader[], top_traders?: TopTrader[] }>(
+            `${API_BASE}/v1/analytics/top-traders?limit=${limit}`
+        );
+        // Handle both legacy (top_traders) and standardized (traders) formats
+        return raw.traders || raw.top_traders || [];
+    } catch (e) {
+        console.warn("Failed to fetch top traders", e);
+        return [];
+    }
 }
 
 /**

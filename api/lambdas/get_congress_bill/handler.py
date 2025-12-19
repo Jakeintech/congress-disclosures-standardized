@@ -39,13 +39,15 @@ def clean_nan(obj):
 def get_cosponsors(qb, bill_id, congress):
     """Get cosponsors for a bill with member details."""
     try:
-        # Get cosponsor relationships from fact table
-        filters = {'bill_id': bill_id, 'is_cosponsor': True}
-        cosponsors_df = qb.query_parquet(
-            'gold/congress/fact_member_bill_role',
-            filters=filters,
-            limit=500  # Max 500 cosponsors
-        )
+        try:
+            cosponsors_df = qb.query_parquet(
+                'gold/congress/fact_member_bill_role',
+                filters=filters,
+                limit=500  # Max 500 cosponsors
+            )
+        except Exception as e:
+            logger.warning(f"Cosponsors table not found or query failed: {e}")
+            return []
 
         if cosponsors_df.empty:
             return []
@@ -99,14 +101,16 @@ def get_recent_actions(qb, bill_id, limit=10, include_all=False):
             return []
         congress = int(parts[0])
 
-        # Query bill actions
-        filters = {'bill_id': bill_id}
-        actions_df = qb.query_parquet(
-            'silver/congress/bill_actions',
-            filters=filters,
-            order_by='action_date DESC',
-            limit=500 if include_all else limit
-        )
+        try:
+            actions_df = qb.query_parquet(
+                'silver/congress/bill_actions',
+                filters=filters,
+                order_by='action_date DESC',
+                limit=500 if include_all else limit
+            )
+        except Exception as e:
+            logger.warning(f"Actions table not found or query failed: {e}")
+            return []
 
         if actions_df.empty:
             return []
@@ -132,12 +136,16 @@ def get_industry_tags(qb, bill_id):
     """Get industry tags for a bill."""
     try:
         filters = {'bill_id': bill_id}
-        tags_df = qb.query_parquet(
-            'gold/congress/bill_industry_tags',
-            filters=filters,
-            order_by='confidence_score DESC',
-            limit=10
-        )
+        try:
+            tags_df = qb.query_parquet(
+                'gold/congress/bill_industry_tags',
+                filters=filters,
+                order_by='confidence_score DESC',
+                limit=10
+            )
+        except Exception as e:
+            logger.warning(f"Industry tags table not found or query failed: {e}")
+            return []
 
         if tags_df.empty:
             return []
@@ -178,12 +186,16 @@ def get_trade_correlations(qb, bill_id, limit=20):
     """Get trade correlations for a bill."""
     try:
         filters = {'bill_id': bill_id}
-        corr_df = qb.query_parquet(
-            'gold/congress/agg_bill_trade_correlation',
-            filters=filters,
-            order_by='correlation_score DESC',
-            limit=limit
-        )
+        try:
+            corr_df = qb.query_parquet(
+                'gold/congress/agg_bill_trade_correlation',
+                filters=filters,
+                order_by='correlation_score DESC',
+                limit=limit
+            )
+        except Exception as e:
+            logger.warning(f"Trade correlation table not found or query failed: {e}")
+            return []
 
         if corr_df.empty:
             return []
@@ -245,11 +257,15 @@ def get_committees(qb, bill_id):
                 'gold/congress/fact_bill_committees',
                 filters=filters
             )
-        except:
-             committees_df = qb.query_parquet(
-                'silver/congress/bill_committees',
-                filters=filters
-            )
+        except Exception:
+            try:
+                committees_df = qb.query_parquet(
+                    'silver/congress/bill_committees',
+                    filters=filters
+                )
+            except Exception as e:
+                logger.warning(f"Committees tables not found: {e}")
+                return []
 
         if committees_df.empty:
             return []
@@ -271,10 +287,14 @@ def get_related_bills(qb, bill_id):
     """Get related bills."""
     try:
         filters = {'bill_id': bill_id}
-        related_df = qb.query_parquet(
-            'silver/congress/related_bills', # Assuming Silver for now
-            filters=filters
-        )
+        try:
+            related_df = qb.query_parquet(
+                'silver/congress/related_bills', # Assuming Silver for now
+                filters=filters
+            )
+        except Exception as e:
+            logger.warning(f"Related bills table not found: {e}")
+            return []
         
         if related_df.empty:
             return []
@@ -296,10 +316,14 @@ def get_titles(qb, bill_id):
     """Get all titles for a bill."""
     try:
         filters = {'bill_id': bill_id}
-        titles_df = qb.query_parquet(
-            'silver/congress/bill_titles',
-            filters=filters
-        )
+        try:
+            titles_df = qb.query_parquet(
+                'silver/congress/bill_titles',
+                filters=filters
+            )
+        except Exception as e:
+            logger.warning(f"Titles table not found: {e}")
+            return []
         
         if titles_df.empty:
             return []
@@ -402,11 +426,15 @@ def handler(event, context):
 
         if sponsor_bioguide:
             try:
-                sponsor_df = qb.query_parquet(
-                    'silver/congress/dim_member',
-                    filters=None,
-                    limit=1000
-                )
+                try:
+                    sponsor_df = qb.query_parquet(
+                        'silver/congress/dim_member',
+                        filters=None,
+                        limit=1000
+                    )
+                except Exception as e:
+                    logger.warning(f"Sponsor member table not found: {e}")
+                    sponsor_df = pd.DataFrame()
                 if not sponsor_df.empty and 'bioguide_id' in sponsor_df.columns:
                     sponsor_row = sponsor_df[sponsor_df['bioguide_id'] == sponsor_bioguide]
                     if not sponsor_row.empty:

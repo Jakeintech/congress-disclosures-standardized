@@ -179,9 +179,19 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             .style('pointer-events', 'none');
 
         node.on('mouseover', (event: any, d: any) => {
+            let html = `<strong>${d.name || d.id}</strong><br>`;
+            if (d.group === 'bill') {
+                html += `<div class="max-w-xs text-xs mt-1 text-gray-300 italic">${d.title || ''}</div>`;
+            } else if (d.group === 'person' && d.subgroup === 'family') {
+                html += `<div class="text-xs mt-1 text-orange-300">Relationship: ${d.owner_code === 'SP' ? 'Spouse' : 'Dependent'}</div>`;
+            } else {
+                html += `Volume: ${formatMoney(d.value || 0)}<br>`;
+            }
+            html += `Connections: ${d.degree || 0}`;
+
             tooltip
                 .style('display', 'block')
-                .html(`<strong>${d.id}</strong><br>Volume: ${formatMoney(d.value || 0)}<br>Connections: ${d.degree || 0}`)
+                .html(html)
                 .style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 10) + 'px');
         })
@@ -374,37 +384,42 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
     };
 
     const calculateNodeSize = (d: any) => {
-        const baseSize = d.group === 'member' ? 8 : d.group === 'asset' ? 10 : 12;
+        const baseSize = d.group === 'member' ? 12 : d.group === 'asset' ? 10 : d.group === 'bill' ? 8 : 10;
+
+        if (d.is_primary) return 24; // Primary member is prominent
+
         if (d.group?.includes('_agg')) {
-            // Aggregated nodes should be quite large, representing the total volume
             return Math.max(40, Math.min(80, 40 + Math.sqrt(d.value || 0) / 1000));
         }
 
         let scale = 0;
         if (nodeSizeBy === 'volume') {
-            // More dramatic scale for volume
             scale = Math.sqrt(d.value || 0) / 200;
         } else if (nodeSizeBy === 'count') {
-            scale = (d.transaction_count || 0) * 1.5;
+            scale = (d.transaction_count || d.count || 0) * 1.5;
         } else {
             scale = (d.degree || 0) * 2;
         }
 
-        return Math.max(5, Math.min(60, baseSize + scale));
+        return Math.max(8, Math.min(60, baseSize + scale));
     };
 
     const getNodeColor = (d: any) => {
         if (d.group === 'party_agg') {
-            return d.id === 'Democrat' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+            return d.id === 'Democrat' ? 'rgba(59, 130, 246, 0.4)' : 'rgba(239, 68, 68, 0.4)';
         }
-        if (d.group === 'asset') return '#10b981';
-        if (d.party === 'Republican') return '#ef4444';
-        if (d.party === 'Democrat') return '#3b82f6';
-        return '#9ca3af';
+        if (d.group === 'asset') return '#10b981'; // Emerald
+        if (d.group === 'bill') return '#a855f7'; // Purple
+        if (d.group === 'person' && d.subgroup === 'family') return '#f97316'; // Orange
+
+        if (d.party === 'Republican' || d.party === 'R') return '#ef4444'; // Red
+        if (d.party === 'Democrat' || d.party === 'D') return '#3b82f6'; // Blue
+        return '#9ca3af'; // Gray
     };
 
     const getNodeStroke = (d: any) => {
-        if (d.group === 'party_agg') {
+        if (d.is_primary) return '#000';
+        if (d.group?.includes('_agg')) {
             return d.id === 'Democrat' ? '#3b82f6' : '#ef4444';
         }
         return '#fff';
@@ -524,20 +539,24 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                     <div className="font-semibold mb-2">Legend</div>
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-red-500" />
-                            <span>Republican</span>
+                            <div className="w-3 h-3 rounded-full bg-blue-500" />
+                            <span>Member</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-blue-500" />
-                            <span>Democrat</span>
+                            <div className="w-3 h-3 rounded-full bg-orange-500" />
+                            <span>Family (Spouse/Child)</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-green-500" />
-                            <span>Asset</span>
+                            <span>Stock / Asset</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded-full border-2 border-blue-500 bg-blue-100" />
-                            <span>Aggregated</span>
+                            <div className="w-3 h-3 rounded-full bg-purple-500" />
+                            <span>Sponsored Bill</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded-full border border-blue-500 bg-blue-100" />
+                            <span>Aggregated Group</span>
                         </div>
                     </div>
                 </div>
@@ -573,14 +592,23 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                                 <div className="font-semibold">{selectedNode.chamber}</div>
                             </div>
                         )}
-                        <div>
-                            <div className="text-sm text-muted-foreground">Total Volume</div>
-                            <div className="font-semibold">{formatMoney(selectedNode.value || 0)}</div>
-                        </div>
-                        <div>
-                            <div className="text-sm text-muted-foreground">Transactions</div>
-                            <div className="font-semibold">{selectedNode.transaction_count || 0}</div>
-                        </div>
+                        {selectedNode.group === 'bill' ? (
+                            <div className="col-span-2">
+                                <div className="text-sm text-muted-foreground">Title</div>
+                                <div className="text-sm line-clamp-2">{selectedNode.title}</div>
+                            </div>
+                        ) : (
+                            <>
+                                <div>
+                                    <div className="text-sm text-muted-foreground">Total Volume</div>
+                                    <div className="font-semibold">{formatMoney(selectedNode.value || 0)}</div>
+                                </div>
+                                <div>
+                                    <div className="text-sm text-muted-foreground">Transactions</div>
+                                    <div className="font-semibold">{selectedNode.transaction_count || 0}</div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </Card>
             )}

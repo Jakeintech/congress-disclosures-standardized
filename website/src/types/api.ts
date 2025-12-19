@@ -353,14 +353,18 @@ export interface TripleCorrelationsParams extends PaginationParams {
 
 export interface NetworkGraphNode {
   id: string;
-  type: 'member' | 'bill' | 'client' | 'lobbyist';
   name?: string;
+  group: 'member' | 'asset' | 'person' | 'bill' | 'party_agg';
+  subgroup?: 'family';
   party?: string;
   state?: string;
   chamber?: string;
-  spend?: number;
-  connections?: number;
-  icon?: string;
+  value?: number;
+  transaction_count?: number;
+  degree?: number;
+  is_primary?: boolean;
+  owner_code?: string;
+  title?: string; // For bills
   // D3 simulation properties
   x?: number;
   y?: number;
@@ -371,8 +375,10 @@ export interface NetworkGraphNode {
 export interface NetworkGraphLink {
   source: string | NetworkGraphNode;
   target: string | NetworkGraphNode;
-  value: number;
-  link_type?: 'sponsored' | 'lobbied' | 'related';
+  value?: number;
+  count?: number;
+  type?: 'trade' | 'relationship' | 'sponsorship' | 'mixed' | 'purchase' | 'sale';
+  is_aggregated?: boolean;
 }
 
 export interface NetworkGraphData {

@@ -299,22 +299,38 @@ export async function fetchDashboardSummary(): Promise<{
 /**
  * Fetch Network Graph
  */
-export async function fetchNetworkGraph(year: number = 2025): Promise<NetworkGraphData> {
+export async function fetchNetworkGraph(params: {
+    year?: number;
+    view_mode?: 'aggregate' | 'member_detail';
+    bioguide_id?: string;
+    congress?: number;
+    limit?: number;
+} = {}): Promise<NetworkGraphData> {
+    const searchParams = new URLSearchParams();
+    if (params.year) searchParams.set('year', params.year.toString());
+    if (params.view_mode) searchParams.set('view_mode', params.view_mode);
+    if (params.bioguide_id) searchParams.set('bioguide_id', params.bioguide_id);
+    if (params.congress) searchParams.set('congress', params.congress.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+
     try {
-        const res = await fetch(`${API_BASE}/v1/lobbying/network-graph?year=${year}`);
+        const res = await fetch(`${API_BASE}/v1/analytics/network-graph?${searchParams.toString()}`);
         if (!res.ok) {
             console.warn(`Network graph API error: ${res.status}`);
             return { nodes: [], links: [] };
         }
         const json = await res.json();
         const apiData = json.data || json;
-        // Legacy API returns { graph: { nodes, links }, metadata: ... }
-        // or sometimes flattened. Let's handle both.
+
+        // Handle both nested and flat responses for backward compatibility
         const graphData = apiData.graph || apiData;
 
         return {
             nodes: graphData.nodes || [],
             links: graphData.links || [],
+            aggregated_nodes: apiData.aggregated_nodes,
+            aggregated_links: apiData.aggregated_links,
+            summary_stats: apiData.summary_stats,
             metadata: apiData.metadata
         };
     } catch (e) {

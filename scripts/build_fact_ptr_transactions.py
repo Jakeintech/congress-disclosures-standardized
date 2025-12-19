@@ -182,11 +182,13 @@ def process_year(year):
         filings_dict = {}
 
     # Scan all filing types that may contain transactions
-    # Type P = PTR, Unknown = miscategorized, Type T = Termination (may have transactions)
+    # We check multiple possible S3 prefixes due to path evolution
     filing_type_prefixes = [
         f"silver/house/financial/objects/year={year}/filing_type=type_p/",
         f"silver/house/financial/objects/year={year}/filing_type=unknown/",
         f"silver/house/financial/objects/year={year}/filing_type=type_t/",
+        f"silver/house/financial/structured_code/year={year}/filing_type=P/",
+        f"silver/house/financial/structured_code/year={year}/filing_type=unknown/",
     ]
 
     paginator = s3.get_paginator('list_objects_v2')
@@ -219,12 +221,28 @@ def process_year(year):
             
             for obj in page['Contents']:
                 key = obj['Key']
-                if key.endswith("extraction.json"):
+                # Support both doc_id/extraction.json and doc_id.json
+                if key.endswith(".json"):
                     try:
+                        # Extract doc_id from key as fallback
+                        # key could be .../doc_id.json or .../doc_id/extraction.json
+                        key_parts = key.split('/')
+                        filename = key_parts[-1]
+                        
+                        potential_doc_id = None
+                        if filename == "extraction.json" and len(key_parts) >= 2:
+                             # Legacy path: silver/house/financial/objects/year=2024/filing_type=type_p/doc_id=20000788/extraction.json
+                             folder = key_parts[-2]
+                             if 'doc_id=' in folder:
+                                 potential_doc_id = folder.replace('doc_id=', '')
+                        elif filename.endswith(".json"):
+                             # Structured path: silver/house/financial/structured_code/year=2025/filing_type=P/doc_id=10063230.json
+                             potential_doc_id = filename.replace('.json', '').replace('doc_id=', '')
+
                         response = s3.get_object(Bucket=S3_BUCKET, Key=key)
                         data = json.loads(response['Body'].read())
                         
-                        doc_id = data.get('doc_id')
+                        doc_id = data.get('doc_id') or potential_doc_id
                         filing_date = data.get('filing_date')
 
                         # Get member info from filings table
@@ -265,9 +283,19 @@ def process_year(year):
                         for tx in doc_transactions:
                             # Extract fields with defaults
                             tx_date = tx.get('transaction_date') or tx.get('trans_date')
+                            notif_date = tx.get('notification_date') or tx.get('notif_date')
                             
                             # Parse amount
                             amt_low, amt_high = parse_amount_string(tx.get('amount'))
+                            
+                            # Lookup asset_key (using simple hashing for now if not available)
+                            asset_name = tx.get('asset_name') or tx.get('asset_description')
+                            asset_key = abs(hash(str(asset_name))) % 1000000 + 1 if asset_name else None
+
+                            # Owner code logic
+                            owner_code = tx.get('owner') or tx.get('owner_code')
+                            is_spouse = (owner_code == 'SP')
+                            is_dependent = (owner_code == 'DC')
 
                             record = {
                                 'doc_id': doc_id,
@@ -279,15 +307,22 @@ def process_year(year):
                                 'last_name': last,
                                 'state_district': state_district,
                                 'bioguide_id': bioguide_id,
+                                'parent_bioguide_id': bioguide_id, # Absolute lineage to primary member
+                                'member_key': bioguide_id, # Fallback to bioguide_id for key
+                                'asset_key': asset_key,
                                 'party': party,
                                 'state': state,
                                 'chamber': chamber,
                                 
                                 'transaction_date': tx_date,
                                 'transaction_date_key': get_date_key(tx_date),
-                                'owner': tx.get('owner') or tx.get('owner_code'),
-                                'ticker': tx.get('ticker') or extract_ticker_from_description(tx.get('asset_name') or tx.get('asset_description')),
-                                'asset_description': tx.get('asset_name') or tx.get('asset_description'),
+                                'notification_date': notif_date,
+                                'notification_date_key': get_date_key(notif_date),
+                                'owner_code': owner_code,
+                                'is_spouse_transaction': is_spouse,
+                                'is_dependent_child_transaction': is_dependent,
+                                'ticker': tx.get('ticker') or extract_ticker_from_description(asset_name),
+                                'asset_description': asset_name,
                                 'asset_type': tx.get('asset_type') or tx.get('type_code'),
                                 'transaction_type': get_transaction_type(tx),
                                 'amount': tx.get('amount'),

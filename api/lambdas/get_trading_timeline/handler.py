@@ -15,9 +15,9 @@ def handler(event, context):
     try:
         query_params = event.get('queryStringParameters') or {}
         
-        # Default to last 90 days
+        # Default to last 365 days
         end_date = query_params.get('end_date', datetime.now().strftime('%Y-%m-%d'))
-        start_date = query_params.get('start_date', (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d'))
+        start_date = query_params.get('start_date', (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d'))
         
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         

@@ -99,6 +99,10 @@ export interface CongressMember {
   bills_sponsored_count?: number;
   gold_created_at?: string;
   gold_version?: number;
+  total_trades?: number;
+  total_volume?: number;
+  unique_stocks?: number;
+  last_trade_date?: string;
 }
 
 export interface MemberProfile extends CongressMember {
@@ -127,6 +131,8 @@ export interface MembersParams extends PaginationParams {
   party?: 'D' | 'R' | 'I';
   state?: string;
   is_current?: boolean;
+  sortBy?: 'total_trades' | 'total_volume' | 'name' | 'last_name';
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface Committee {

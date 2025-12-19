@@ -165,6 +165,8 @@ export async function fetchMembers(params: MembersParams = {}): Promise<Congress
     if (params.chamber) searchParams.set('chamber', params.chamber);
     if (params.party) searchParams.set('party', params.party);
     if (params.state) searchParams.set('state', params.state);
+    if (params.sortBy) searchParams.set('sort_by', params.sortBy);
+    if (params.sortOrder) searchParams.set('sort_order', params.sortOrder);
     if (params.limit) searchParams.set('limit', params.limit.toString());
     if (params.offset) searchParams.set('offset', params.offset.toString());
 

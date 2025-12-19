@@ -63,15 +63,19 @@ const STATES = [
 ];
 
 function MembersPage() {
-    const [members, setMembers] = useState<Member[]>([]);
+    const [members, setMembers] = useState<CongressMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [totalCount, setTotalCount] = useState(0);
 
-    // Filters
+    // Filters & Pagination
     const [search, setSearch] = useState('');
     const [party, setParty] = useState('');
     const [chamber, setChamber] = useState('');
     const [state, setState] = useState('');
+    const [sortBy, setSortBy] = useState<'total_volume' | 'total_trades' | 'name'>('total_volume');
+    const [page, setPage] = useState(1);
+    const limit = 50;
 
     useEffect(() => {
         async function loadMembers() {
@@ -79,18 +83,23 @@ function MembersPage() {
             setError(null);
 
             try {
-                const params: MembersParams = { limit: 100 };
+                const params: MembersParams = {
+                    limit,
+                    offset: (page - 1) * limit,
+                    sortBy,
+                    sortOrder: 'desc'
+                };
                 if (party) params.party = party as 'D' | 'R' | 'I';
                 if (chamber) params.chamber = chamber as 'house' | 'senate';
                 if (state) params.state = state;
 
-                const data = await fetchMembers(params);
-                // Add computed name field
-                const membersWithName = data.map(m => ({
-                    ...m,
-                    name: m.direct_order_name || `${m.first_name} ${m.last_name}`
-                }));
-                setMembers(Array.isArray(membersWithName) ? membersWithName : []);
+                const response: any = await fetchMembers(params);
+                // Handle both raw array and paginated response
+                const memberData = Array.isArray(response) ? response : response.data || [];
+                const pagination = response.pagination || {};
+
+                setMembers(memberData);
+                setTotalCount(pagination.total || memberData.length);
             } catch (err) {
                 setError('Failed to load members');
                 console.error(err);
@@ -100,46 +109,54 @@ function MembersPage() {
         }
 
         loadMembers();
-    }, [party, chamber, state]);
+    }, [party, chamber, state, sortBy, page]);
 
+    // Client-side search for the current page
     const filteredMembers = members.filter(member => {
         if (!search) return true;
         const searchLower = search.toLowerCase();
+        const fullName = `${member.first_name} ${member.last_name}`.toLowerCase();
         return (
-            member.name?.toLowerCase().includes(searchLower) ||
+            fullName.includes(searchLower) ||
             member.state?.toLowerCase().includes(searchLower)
         );
     });
 
-    function getPartyColor(party?: string): string {
-        switch (party) {
-            case 'D': return 'bg-blue-500 text-white';
-            case 'R': return 'bg-red-500 text-white';
-            default: return 'bg-gray-500 text-white';
-        }
+    const totalPages = Math.ceil(totalCount / limit);
+
+    function formatVolume(val?: number) {
+        if (!val) return '$0';
+        if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
+        if (val >= 1000) return `$${(val / 1000).toFixed(0)}K`;
+        return `$${val.toFixed(0)}`;
     }
 
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Members of Congress</h1>
-                <p className="text-muted-foreground">
-                    Browse congressional members and their financial disclosure activity
-                </p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Members of Congress</h1>
+                    <p className="text-muted-foreground">
+                        Browse congressional members and their financial disclosure activity
+                    </p>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Badge variant="outline">{totalCount} Members</Badge>
+                </div>
             </div>
 
             {/* Filters */}
             <Card>
                 <CardContent className="pt-6">
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                         <Input
-                            placeholder="Search by name..."
+                            placeholder="Search page..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
 
-                        <Select value={party || "all"} onValueChange={(val) => setParty(val === "all" ? "" : val)}>
+                        <Select value={party || "all"} onValueChange={(val) => { setParty(val === "all" ? "" : val); setPage(1); }}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Party" />
                             </SelectTrigger>
@@ -151,7 +168,7 @@ function MembersPage() {
                             </SelectContent>
                         </Select>
 
-                        <Select value={chamber || "all"} onValueChange={(val) => setChamber(val === "all" ? "" : val)}>
+                        <Select value={chamber || "all"} onValueChange={(val) => { setChamber(val === "all" ? "" : val); setPage(1); }}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Chamber" />
                             </SelectTrigger>
@@ -162,7 +179,7 @@ function MembersPage() {
                             </SelectContent>
                         </Select>
 
-                        <Select value={state || "all"} onValueChange={(val) => setState(val === "all" ? "" : val)}>
+                        <Select value={state || "all"} onValueChange={(val) => { setState(val === "all" ? "" : val); setPage(1); }}>
                             <SelectTrigger>
                                 <SelectValue placeholder="State" />
                             </SelectTrigger>
@@ -171,6 +188,17 @@ function MembersPage() {
                                 {STATES.map(s => (
                                     <SelectItem key={s} value={s}>{s}</SelectItem>
                                 ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select value={sortBy} onValueChange={(val: any) => { setSortBy(val); setPage(1); }}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sort By" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="total_volume">Most Active (Volume)</SelectItem>
+                                <SelectItem value="total_trades">Most Active (Trades)</SelectItem>
+                                <SelectItem value="name">Name (A-Z)</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -203,31 +231,47 @@ function MembersPage() {
                         </CardContent>
                     </Card>
                 ) : (
-                    filteredMembers.filter(m => m.bioguide_id && m.name).map((member) => (
-                        <Link key={member.bioguide_id} href={`/politician/${member.bioguide_id}`}>
-                            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+                    filteredMembers.map((member) => (
+                        <Link key={member.bioguide_id || `${member.first_name}-${member.last_name}`} href={`/politician/${member.bioguide_id}`}>
+                            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-t-4 data-[party=D]:border-t-blue-500 data-[party=R]:border-t-red-500" data-party={member.party}>
                                 <CardContent className="pt-6">
                                     <div className="flex items-start gap-4">
                                         <MemberPhotoSmall
-                                            bioguideId={member.bioguide_id!}
-                                            name={member.name}
+                                            bioguideId={member.bioguide_id || 'UNKNOWN'}
+                                            name={`${member.first_name} ${member.last_name}`}
                                             party={member.party}
                                         />
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold truncate">{member.name}</h3>
+                                            <h3 className="font-semibold truncate">
+                                                {member.first_name} {member.last_name}
+                                            </h3>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <Badge variant="outline" className="text-xs">
+                                                <Badge variant="outline" className="text-[10px] px-1 h-4">
                                                     {member.party}-{member.state}
                                                 </Badge>
-                                                {member.chamber && (
-                                                    <span className="text-xs text-muted-foreground capitalize">
-                                                        {member.chamber}
-                                                    </span>
-                                                )}
+                                                <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                                                    {member.chamber}
+                                                </span>
                                             </div>
-                                            {member.trade_count !== undefined && member.trade_count > 0 && (
-                                                <p className="text-sm text-muted-foreground mt-2">
-                                                    {member.trade_count} trades
+
+                                            <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-muted">
+                                                <div>
+                                                    <p className="text-[10px] text-muted-foreground uppercase">Volume (Est)</p>
+                                                    <p className="text-sm font-bold text-primary">
+                                                        {formatVolume(member.total_volume)}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] text-muted-foreground uppercase">Trades</p>
+                                                    <p className="text-sm font-bold text-primary">
+                                                        {member.total_trades || 0}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {member.last_trade_date && (
+                                                <p className="text-[10px] text-muted-foreground mt-2 italic">
+                                                    Last trade: {member.last_trade_date}
                                                 </p>
                                             )}
                                         </div>
@@ -238,6 +282,29 @@ function MembersPage() {
                     ))
                 )}
             </div>
+
+            {/* Pagination */}
+            {!loading && totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-8">
+                    <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="px-4 py-2 text-sm font-medium border rounded-md hover:bg-muted disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+                    <span className="text-sm text-muted-foreground">
+                        Page {page} of {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                        className="px-4 py-2 text-sm font-medium border rounded-md hover:bg-muted disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

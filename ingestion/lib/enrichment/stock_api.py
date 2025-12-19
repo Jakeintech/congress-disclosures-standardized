@@ -12,10 +12,11 @@ Enriches asset records with:
 import os
 import re
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 import yfinance as yf
 
 from .cache import EnrichmentCache
+from .company_lookup import CompanyTickerLookup
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,8 @@ class StockAPIEnricher:
         r'\(([A-Z]{1,5})\)',  # "Company Name (TICKER)" - most reliable
         r'ticker:\s*([A-Z]{1,5})',  # "ticker: TICKER"
         r'symbol:\s*([A-Z]{1,5})',  # "symbol: TICKER"
+        r'\[([A-Z]{1,5})\]',  # "[TICKER] Company Name"
+        r'^([A-Z]{1,5})\s*[-:]',  # "AAPL - Apple Inc" or "MSFT: Microsoft"
         r'\b([A-Z]{3,5})\b(?=\s+(?:stock|shares|common|ordinary|class))',  # "AAPL Stock", "MSFT Shares"
     ]
 
@@ -67,14 +70,16 @@ class StockAPIEnricher:
         r'D:\s+',  # D: (inline)
     ]
 
-    def __init__(self, use_cache: bool = True):
+    def __init__(self, use_cache: bool = True, use_company_lookup: bool = True):
         """
         Initialize stock API enricher.
 
         Args:
             use_cache: Whether to use caching (default True)
+            use_company_lookup: Whether to use company name lookup fallback (default True)
         """
         self.cache = EnrichmentCache() if use_cache else None
+        self.company_lookup = CompanyTickerLookup() if use_company_lookup else None
 
     def clean_asset_name(self, asset_name: str) -> tuple[str, Optional[str]]:
         """
@@ -123,20 +128,71 @@ class StockAPIEnricher:
 
         return cleaned, ownership_indicator
 
-    def extract_ticker_from_name(self, asset_name: str) -> Optional[str]:
+    def preprocess_arrow_notation(self, asset_name: str) -> str:
         """
-        Extract ticker symbol from asset name using regex patterns.
+        Preprocess arrow notation (⇒, →) to extract final asset.
+
+        Arrow notation typically represents account transitions:
+        "Old Account ⇒ Final Asset (TICKER)"
+
+        Args:
+            asset_name: Asset name potentially containing arrows
+
+        Returns:
+            Processed asset name (text after last arrow, or original if no arrows)
+        """
+        if not asset_name:
+            return asset_name
+
+        # Check for arrow symbols
+        if '⇒' in asset_name:
+            # Take text after LAST arrow
+            parts = asset_name.split('⇒')
+            return parts[-1].strip()
+        elif '→' in asset_name:
+            parts = asset_name.split('→')
+            return parts[-1].strip()
+        elif '->' in asset_name:
+            parts = asset_name.split('->')
+            return parts[-1].strip()
+
+        return asset_name
+
+    def extract_ticker_from_name(self, asset_name: str) -> Optional[Tuple[str, str]]:
+        """
+        Extract ticker symbol from asset name using regex patterns and company lookup.
+
+        Extraction strategy:
+        1. Preprocess arrow notation (⇒, →) to extract final asset
+        2. Clean metadata (SP, JT, DC prefixes)
+        3. Try regex pattern matching
+        4. Fall back to company name fuzzy matching
 
         Args:
             asset_name: Full asset name from PTR
 
         Returns:
-            Ticker symbol or None
+            Tuple of (ticker, extraction_method) or None
+            extraction_method values:
+            - 'regex_parentheses'
+            - 'regex_brackets'
+            - 'regex_prefix'
+            - 'regex_suffix'
+            - 'arrow_then_regex'
+            - 'company_fuzzy_match'
         """
-        # First, clean the asset name to remove metadata
-        cleaned_name, _ = self.clean_asset_name(asset_name)
+        if not asset_name:
+            return None
 
-        for pattern in self.TICKER_PATTERNS:
+        # Step 1: Preprocess arrow notation
+        has_arrow = '⇒' in asset_name or '→' in asset_name or '->' in asset_name
+        preprocessed = self.preprocess_arrow_notation(asset_name)
+
+        # Step 2: Clean metadata
+        cleaned_name, _ = self.clean_asset_name(preprocessed)
+
+        # Step 3: Try regex pattern matching
+        for i, pattern in enumerate(self.TICKER_PATTERNS):
             match = re.search(pattern, cleaned_name, re.IGNORECASE)
             if match:
                 ticker = match.group(1).upper()
@@ -150,7 +206,24 @@ class StockAPIEnricher:
                     logger.debug(f"Skipping blacklisted ticker: {ticker}")
                     continue
 
-                return ticker
+                # Determine extraction method based on pattern index
+                if i == 0:  # parentheses
+                    method = 'arrow_then_regex_paren' if has_arrow else 'regex_parentheses'
+                elif i == 3:  # brackets
+                    method = 'regex_brackets'
+                elif i == 4:  # prefix
+                    method = 'regex_prefix'
+                else:
+                    method = 'arrow_then_regex' if has_arrow else 'regex_other'
+
+                return (ticker, method)
+
+        # Step 4: Fall back to company name lookup
+        if self.company_lookup:
+            result = self.company_lookup.lookup_ticker(cleaned_name, threshold=85.0)
+            if result:
+                ticker, confidence = result
+                return (ticker, f'company_fuzzy_match_{confidence:.0f}')
 
         return None
 
@@ -256,15 +329,15 @@ class StockAPIEnricher:
         # Clean asset name and extract ownership indicator
         cleaned_name, ownership_indicator = self.clean_asset_name(asset_name)
 
-        # Extract ticker from cleaned name
-        ticker = self.extract_ticker_from_name(asset_name)
+        # Extract ticker from cleaned name (returns tuple of (ticker, method) or None)
+        ticker_result = self.extract_ticker_from_name(asset_name)
 
         base_result = {
             'cleaned_asset_name': cleaned_name,
             'ownership_indicator': ownership_indicator,
         }
 
-        if not ticker:
+        if not ticker_result:
             return {
                 **base_result,
                 'ticker_symbol': None,
@@ -276,8 +349,11 @@ class StockAPIEnricher:
                 'exchange': None,
                 'is_publicly_traded': False,
                 'enrichment_status': 'ticker_not_found',
-                'extraction_method': 'regex_failed'
+                'extraction_method': 'none'
             }
+
+        # Unpack ticker and extraction method
+        ticker, extraction_method = ticker_result
 
         # Validate and fetch stock info
         stock_info = self.get_stock_info(ticker)
@@ -294,12 +370,12 @@ class StockAPIEnricher:
                 'exchange': None,
                 'is_publicly_traded': False,
                 'enrichment_status': 'api_failed',
-                'extraction_method': 'regex'
+                'extraction_method': extraction_method
             }
 
         # Success - merge with base result
         stock_info['enrichment_status'] = 'success'
-        stock_info['extraction_method'] = 'regex+yahoo_finance'
+        stock_info['extraction_method'] = extraction_method
         return {**base_result, **stock_info}
 
     def classify_asset_type(self, asset_name: str) -> str:
@@ -334,11 +410,13 @@ class StockAPIEnricher:
         else:
             # Only classify as Stock if we can extract a valid ticker
             # Don't classify based on the word "stock" alone (too many false positives)
-            ticker = self.extract_ticker_from_name(asset_name)
-            if ticker and ticker not in self.TICKER_BLACKLIST:
-                return 'Stock'
+            ticker_result = self.extract_ticker_from_name(asset_name)
+            if ticker_result:
+                ticker, _ = ticker_result
+                if ticker not in self.TICKER_BLACKLIST:
+                    return 'Stock'
             # Check for specific stock-related keywords with company names
-            elif any(x in name_lower for x in ['inc.', 'corp.', 'corporation', 'incorporated', 'plc', 'ltd']) and \
+            if any(x in name_lower for x in ['inc.', 'corp.', 'corporation', 'incorporated', 'plc', 'ltd']) and \
                  not any(x in name_lower for x in ['fund', 'trust', 'partnership']):
                 return 'Stock'
             else:

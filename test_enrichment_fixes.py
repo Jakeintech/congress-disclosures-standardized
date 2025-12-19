@@ -15,17 +15,17 @@ def test_enrichment_fixes():
 
     # Test cases from actual problematic data
     test_cases = [
-        # Case 1: Asset with SP prefix (should clean and NOT extract "SP" as ticker)
+        # Case 1: Asset with SP prefix (should clean, lookup company name via fuzzy match)
         {
             'name': 'SP Citizens Financial Group, Inc.',
-            'expected_ticker': None,  # No ticker in parentheses
+            'expected_ticker': 'CFG-PI',  # Found via company lookup (94% confidence)
             'expected_ownership': 'SP',
             'expected_cleaned': 'Citizens Financial Group, Inc'  # Trailing punctuation removed
         },
-        # Case 2: Asset with JT prefix
+        # Case 2: Asset with JT prefix (company lookup should find ticker)
         {
             'name': 'JT Apple Inc',
-            'expected_ticker': None,
+            'expected_ticker': 'AAPL',  # Found via company lookup (100% confidence)
             'expected_ownership': 'JT',
             'expected_cleaned': 'Apple Inc'
         },
@@ -57,12 +57,33 @@ def test_enrichment_fixes():
             'expected_ownership': 'SP',
             'expected_cleaned': 'Microsoft Corporation (MSFT)'
         },
-        # Case 7: Complex ownership prefix
+        # Case 7: Complex ownership prefix with company lookup
         {
             'name': 'F S: New\nS O: Trust Account\nSP Walt Disney Company',
-            'expected_ticker': None,
+            'expected_ticker': 'DIS',  # Found via company lookup (100% confidence)
             'expected_ownership': 'SP',  # Should detect SP
             'expected_cleaned': 'Walt Disney Company'  # Should clean all prefixes
+        },
+        # Case 8: Arrow notation with ticker after arrow
+        {
+            'name': 'Old Account ⇒ Tesla Inc (TSLA)',
+            'expected_ticker': 'TSLA',
+            'expected_ownership': None,
+            'expected_cleaned': 'Old Account ⇒ Tesla Inc (TSLA)'
+        },
+        # Case 9: Bracket notation
+        {
+            'name': '[NVDA] NVIDIA Corporation',
+            'expected_ticker': 'NVDA',
+            'expected_ownership': None,
+            'expected_cleaned': '[NVDA] NVIDIA Corporation'
+        },
+        # Case 10: Prefix notation with dash
+        {
+            'name': 'AMZN - Amazon.com Inc',
+            'expected_ticker': 'AMZN',
+            'expected_ownership': None,
+            'expected_cleaned': 'AMZN - Amazon.com Inc'
         }
     ]
 
@@ -82,9 +103,12 @@ def test_enrichment_fixes():
         print(f"  Cleaned name: '{cleaned_name}'")
         print(f"  Ownership indicator: {ownership}")
 
-        # Test ticker extraction
-        ticker = enricher.extract_ticker_from_name(test['name'])
+        # Test ticker extraction (returns tuple of (ticker, method) or None)
+        ticker_result = enricher.extract_ticker_from_name(test['name'])
+        ticker = ticker_result[0] if ticker_result else None
+        extraction_method = ticker_result[1] if ticker_result else None
         print(f"  Extracted ticker: {ticker}")
+        print(f"  Extraction method: {extraction_method}")
 
         # Verify results
         checks_passed = []

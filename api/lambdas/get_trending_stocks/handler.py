@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import duckdb
+from api.lib import success_response, error_response
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -68,7 +69,6 @@ def handler(event, context):
         result_df = conn.execute(query).fetchdf()
 
         # Note: top_movers feature requires historical window data which isn't currently stored
-        # Returning empty until we implement proper time-window tracking
         top_movers = []
 
         stocks = result_df.to_dict('records')
@@ -81,22 +81,12 @@ def handler(event, context):
             'sort_by': sort_by
         }
 
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=1800'  # Cache for 30 minutes
-            },
-            'body': json.dumps(response, default=str)
-        }
+        return success_response(response)
 
     except Exception as e:
         logger.error(f"Error retrieving trending stocks: {str(e)}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'error': 'Failed to retrieve trending stocks',
-                'details': str(e)
-            })
-        }
+        return error_response(
+            message="Failed to retrieve trending stocks",
+            status_code=500,
+            details=str(e)
+        )

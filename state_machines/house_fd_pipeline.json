@@ -281,14 +281,6 @@
           "IntervalSeconds": 10,
           "MaxAttempts": 6,
           "BackoffRate": 2.0
-        },
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException"
-          ],
-          "IntervalSeconds": 2,
-          "MaxAttempts": 2,
-          "BackoffRate": 2.0
         }
       ],
       "Catch": [
@@ -301,11 +293,28 @@
           "Next": "NotifyQualityFailure"
         }
       ],
+      "Next": "ConsolidateSilverTabular"
+    },
+    "ConsolidateSilverTabular": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CONSOLIDATE_TABULAR}",
+      "Comment": "Consolidate individual extractions into Hive-partitioned Parquet (Tabular Layer)",
+      "Parameters": {
+        "year.$": "$.year"
+      },
+      "ResultPath": "$.consolidation_result",
+      "Next": "ConsolidateStockCache"
+    },
+    "ConsolidateStockCache": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CONSOLIDATE_CACHE}",
+      "Comment": "Consolidate individual ticker cache JSONs into optimized Parquet",
+      "ResultPath": "$.cache_consolidation_result",
       "Next": "TransformToGoldParallel"
     },
     "TransformToGoldParallel": {
       "Type": "Parallel",
-      "Comment": "Build Gold dimensions and facts in parallel",
+      "Comment": "Build Gold dimensions and facts in parallel using optimized Tabular sources",
       "ResultPath": "$.gold_results",
       "Branches": [
         {

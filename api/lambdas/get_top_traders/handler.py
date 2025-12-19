@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import duckdb
+from api.lib import success_response, error_response
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -36,14 +37,14 @@ def handler(event, context):
         query_params = event.get('queryStringParameters') or {}
 
         # Parameters
-        days = int(query_params.get('days', 365))  # Last N days (changed from 30 to 365 for 2024 data)
+        days = int(query_params.get('days', 365))  # Last N days
         limit = min(int(query_params.get('limit', 50)), 100)
         party = query_params.get('party')  # Optional: 'D', 'R', or 'I'
         metric = query_params.get('metric', 'volume')  # 'volume' or 'transactions'
 
         conn = get_duckdb_connection()
 
-        # Build WHERE clause (days=0 means no date filter - show all historical data)
+        # Build WHERE clause
         where_clauses = []
         if days > 0:
             where_clauses.append(f"CAST(transaction_date AS DATE) >= CURRENT_DATE - INTERVAL '{days} days'")
@@ -51,6 +52,7 @@ def handler(event, context):
         if party:
             where_clauses.append(f"party = '{party}'")
 
+        # Explicitly check for NaN-prone columns
         where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
         # Sort column based on metric
@@ -74,7 +76,7 @@ def handler(event, context):
                     COUNT(DISTINCT ticker) AS unique_stocks,
                     MIN(transaction_date) AS first_trade_date,
                     MAX(transaction_date) AS last_trade_date,
-                    -- Compliance metrics (filing_date - transaction_date <= 45 days)
+                    -- Compliance metrics
                     AVG(CASE WHEN CAST((CAST(filing_date AS DATE) - CAST(transaction_date AS DATE)) AS INTEGER) <= 45 THEN 1.0 ELSE 0.0 END) AS compliance_rate
                 FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
                 WHERE {where_sql}
@@ -125,22 +127,12 @@ def handler(event, context):
             'party_breakdown': party_stats
         }
 
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=1800'  # Cache for 30 minutes
-            },
-            'body': json.dumps(response, default=str)
-        }
+        return success_response(response)
 
     except Exception as e:
         logger.error(f"Error retrieving top traders: {str(e)}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'error': 'Failed to retrieve top traders',
-                'details': str(e)
-            })
-        }
+        return error_response(
+            message="Failed to retrieve top traders",
+            status_code=500,
+            details=str(e)
+        )

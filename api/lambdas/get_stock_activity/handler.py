@@ -30,8 +30,15 @@ def handler(event, context):
         total = qb.count_records('gold/house/financial/facts/fact_ptr_transactions', filters)
         trades_df = qb.query_parquet('gold/house/financial/facts/fact_ptr_transactions', filters=filters, order_by='transaction_date DESC', limit=limit, offset=offset)
         
-        response = build_pagination_response(trades_df.to_dict('records'), total, limit, offset, f'/v1/stocks/{ticker}/activity', {k: v for k, v in query_params.items() if k not in ['limit', 'offset']})
-        return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': json.dumps(response, default=str)}
+        return success_response({
+            'trades': trades_df.to_dict('records'),
+            'pagination': {
+                'total': total,
+                'limit': limit,
+                'offset': offset,
+                'ticker': ticker
+            }
+        })
     except Exception as e:
         logger.error(f"Error: {e}", exc_info=True)
         return error_response("Failed to retrieve stock activity", 500, str(e))

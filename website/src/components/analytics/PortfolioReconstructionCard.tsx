@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, PieChart, TrendingUp, Clock } from "lucide-react";
-import { useState, useEffect } from "react";
+import { usePortfolios } from "@/hooks/use-api";
 
 interface PortfolioData {
     member_key: string;
@@ -26,45 +26,21 @@ interface PortfolioData {
 interface PortfolioReconstructionCardProps {
     memberId?: string;
     limit?: number;
-    apiBase?: string;
     showDetails?: boolean;
 }
 
 export function PortfolioReconstructionCard({
     memberId,
     limit = 10,
-    apiBase = process.env.NEXT_PUBLIC_API_URL || '',
     showDetails = false
 }: PortfolioReconstructionCardProps) {
-    const [portfolios, setPortfolios] = useState<PortfolioData[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                setLoading(true);
-                const params = new URLSearchParams({ limit: String(limit) });
-                if (memberId) params.set('member_id', memberId);
-                if (showDetails) params.set('include_holdings', 'true');
-
-                const response = await fetch(
-                    `${apiBase}/v1/analytics/portfolio?${params.toString()}`
-                );
-
-                if (!response.ok) throw new Error('Failed to fetch portfolio data');
-
-                const result = await response.json();
-                setPortfolios(result.portfolios || []);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Unknown error');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchData();
-    }, [memberId, limit, apiBase, showDetails]);
+    const { data, isLoading, error } = usePortfolios({
+        member_id: memberId,
+        limit,
+        include_holdings: showDetails
+    });
+    const portfolios = (data as PortfolioData[]) || [];
+    const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
 
     const formatValue = (val: number | undefined) => {
         if (!val) return '--';
@@ -85,7 +61,7 @@ export function PortfolioReconstructionCard({
         return 'Low';
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <Card>
                 <CardHeader>
@@ -103,14 +79,14 @@ export function PortfolioReconstructionCard({
         );
     }
 
-    if (error) {
+    if (errorMessage) {
         return (
             <Card>
                 <CardHeader>
                     <CardTitle>Portfolio Reconstruction</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-destructive py-4">Error: {error}</div>
+                    <div className="text-destructive py-4">Error: {errorMessage}</div>
                 </CardContent>
             </Card>
         );
@@ -174,7 +150,7 @@ export function PortfolioReconstructionCard({
                                         {/* Top Holdings */}
                                         {portfolio.top_holdings && portfolio.top_holdings.length > 0 && (
                                             <div className="flex flex-wrap gap-1 mt-2">
-                                                {portfolio.top_holdings.slice(0, 5).map((holding, hidx) => (
+                                                {portfolio.top_holdings.slice(0, 5).map((holding: { ticker: string; value: number; sector: string }, hidx: number) => (
                                                     <Badge key={hidx} variant="secondary" className="text-xs">
                                                         {holding.ticker}: {formatValue(holding.value)}
                                                     </Badge>
@@ -201,7 +177,7 @@ export function PortfolioReconstructionCard({
                                     <div className="mt-3">
                                         <div className="text-xs text-muted-foreground mb-1">Sector Allocation</div>
                                         <div className="flex h-2 rounded overflow-hidden">
-                                            {Object.entries(portfolio.sector_allocation).slice(0, 5).map(([sector, pct], sidx) => {
+                                            {(Object.entries(portfolio.sector_allocation || {}) as [string, any][]).slice(0, 5).map(([sector, pct], sidx) => {
                                                 const colors = [
                                                     'bg-blue-500', 'bg-green-500', 'bg-yellow-500',
                                                     'bg-purple-500', 'bg-pink-500'
@@ -217,7 +193,7 @@ export function PortfolioReconstructionCard({
                                             })}
                                         </div>
                                         <div className="flex flex-wrap gap-2 mt-1 text-xs">
-                                            {Object.entries(portfolio.sector_allocation).slice(0, 5).map(([sector, pct], sidx) => (
+                                            {(Object.entries(portfolio.sector_allocation || {}) as [string, any][]).slice(0, 5).map(([sector, pct], sidx) => (
                                                 <span key={sidx} className="text-muted-foreground">
                                                     {sector}: {pct}%
                                                 </span>

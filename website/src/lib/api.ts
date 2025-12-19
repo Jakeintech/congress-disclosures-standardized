@@ -294,6 +294,86 @@ export async function fetchDashboardSummary(): Promise<{
     };
 }
 
+/**
+ * Fetch sector trading activity
+ */
+export async function fetchSectorActivity() {
+    try {
+        const raw = await fetchApi<{ sectors?: any[], message?: string }>(
+            `${API_BASE}/v1/analytics/sector-activity`
+        );
+        return raw.sectors || [];
+    } catch (e) {
+        console.warn("Failed to fetch sector activity", e);
+        return [];
+    }
+}
+
+/**
+ * Fetch congressional alpha data
+ */
+export async function fetchCongressionalAlpha(type: 'member' | 'party' | 'sector_rotation' = 'member', limit = 10) {
+    try {
+        const raw = await fetchApi<{ data?: any[] }>(
+            `${API_BASE}/v1/analytics/alpha?type=${type}&limit=${limit}`
+        );
+        return raw.data || raw || [];
+    } catch (e) {
+        console.warn(`Failed to fetch ${type} alpha`, e);
+        return [];
+    }
+}
+export async function fetchPatternInsights(type: 'trending' | 'timing' | 'sector' = 'trending') {
+    try {
+        const raw = await fetchApi<any>(
+            `${API_BASE}/v1/analytics/insights?type=${type}`
+        );
+        return raw;
+    } catch (e) {
+        console.warn(`Failed to fetch ${type} insights`, e);
+        return null;
+    }
+}
+
+/**
+ * Fetch conflict of interest detection data
+ */
+export async function fetchConflicts(severity = 'all', limit = 10) {
+    try {
+        const raw = await fetchApi<{ conflicts?: any[], summary?: any }>(
+            `${API_BASE}/v1/analytics/conflicts?severity=${severity}&limit=${limit}`
+        );
+        return raw;
+    } catch (e) {
+        console.warn("Failed to fetch conflicts", e);
+        return { conflicts: [], summary: null };
+    }
+}
+
+/**
+ * Fetch portfolio reconstruction data
+ */
+export async function fetchPortfolios(params: {
+    member_id?: string;
+    limit?: number;
+    include_holdings?: boolean;
+} = {}) {
+    try {
+        const searchParams = new URLSearchParams();
+        if (params.member_id) searchParams.set('member_id', params.member_id);
+        if (params.limit) searchParams.set('limit', String(params.limit));
+        if (params.include_holdings) searchParams.set('include_holdings', 'true');
+
+        const raw = await fetchApi<{ portfolios?: any[] }>(
+            `${API_BASE}/v1/analytics/portfolio?${searchParams.toString()}`
+        );
+        return raw.portfolios || [];
+    } catch (e) {
+        console.warn("Failed to fetch portfolios", e);
+        return [];
+    }
+}
+
 // Network graph types are imported from @/types/api
 
 /**

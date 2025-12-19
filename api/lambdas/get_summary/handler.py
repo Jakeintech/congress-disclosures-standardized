@@ -9,9 +9,7 @@ import logging
 from api.lib import (
     ParquetQueryBuilder,
     success_response,
-    error_response,
-    cache_response,
-    get_cached
+    error_response
 )
 
 logger = logging.getLogger()
@@ -33,15 +31,8 @@ def handler(event, context):
     - Data coverage period
     """
     try:
-        # Check cache first
-        cache_key = 'analytics_summary_v3'
-        cached = get_cached(cache_key)
-        if cached:
-            logger.info("Returning cached summary")
-            return success_response(cached)
-        
         # Initialize query builder
-        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)  # Use local filesystem 
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # Get member count
         try:
@@ -119,9 +110,6 @@ def handler(event, context):
             },
             'last_updated': str(latest_filing) if latest_filing else None
         }
-        
-        # Cache for 5 minutes
-        cache_response(cache_key, summary, ttl=300)
         
         return success_response(summary)
     

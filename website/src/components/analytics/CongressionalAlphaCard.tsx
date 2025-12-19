@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Users, Building, ArrowUpRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useCongressionalAlpha } from "@/hooks/use-api";
 
 interface AlphaData {
     member_key?: string;
@@ -24,39 +24,14 @@ interface AlphaData {
 interface CongressionalAlphaCardProps {
     type?: 'member' | 'party' | 'sector_rotation';
     limit?: number;
-    apiBase?: string;
 }
 
 export function CongressionalAlphaCard({
     type = 'member',
-    limit = 10,
-    apiBase = process.env.NEXT_PUBLIC_API_URL || ''
+    limit = 10
 }: CongressionalAlphaCardProps) {
-    const [data, setData] = useState<AlphaData[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                setLoading(true);
-                const response = await fetch(
-                    `${apiBase}/v1/analytics/alpha?type=${type}&limit=${limit}`
-                );
-
-                if (!response.ok) throw new Error('Failed to fetch alpha data');
-
-                const result = await response.json();
-                setData(result.data || []);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Unknown error');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchData();
-    }, [type, limit, apiBase]);
+    const { data = [], isLoading, error } = useCongressionalAlpha(type, limit);
+    const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
 
     const formatAlpha = (alpha: number | undefined) => {
         if (alpha === undefined || alpha === null) return '--';
@@ -93,7 +68,7 @@ export function CongressionalAlphaCard({
         }
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <Card>
                 <CardHeader>
@@ -111,14 +86,14 @@ export function CongressionalAlphaCard({
         );
     }
 
-    if (error) {
+    if (errorMessage) {
         return (
             <Card>
                 <CardHeader>
                     <CardTitle>Congressional Alpha</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-destructive py-4">Error: {error}</div>
+                    <div className="text-destructive py-4">Error: {errorMessage}</div>
                 </CardContent>
             </Card>
         );
@@ -144,12 +119,12 @@ export function CongressionalAlphaCard({
             </CardHeader>
             <CardContent>
                 <div className="space-y-3">
-                    {data.length === 0 ? (
+                    {(!data || (Array.isArray(data) && data.length === 0)) ? (
                         <div className="text-center text-muted-foreground py-8">
                             No alpha data available
                         </div>
                     ) : (
-                        data.map((item, idx) => (
+                        (Array.isArray(data) ? data : []).map((item: any, idx: number) => (
                             <div
                                 key={idx}
                                 className="flex items-center justify-between py-2 border-b last:border-0"

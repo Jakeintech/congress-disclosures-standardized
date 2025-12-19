@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, AlertCircle, Info, ShieldAlert } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useConflicts } from "@/hooks/use-api";
 
 interface ConflictData {
     member_bioguide_id: string;
@@ -30,43 +30,18 @@ interface ConflictSummary {
 interface ConflictDetectionCardProps {
     severity?: 'all' | 'critical' | 'high' | 'medium' | 'low';
     limit?: number;
-    apiBase?: string;
     showSummary?: boolean;
 }
 
 export function ConflictDetectionCard({
     severity = 'all',
     limit = 10,
-    apiBase = process.env.NEXT_PUBLIC_API_URL || '',
     showSummary = true
 }: ConflictDetectionCardProps) {
-    const [conflicts, setConflicts] = useState<ConflictData[]>([]);
-    const [summary, setSummary] = useState<ConflictSummary | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                setLoading(true);
-                const response = await fetch(
-                    `${apiBase}/v1/analytics/conflicts?severity=${severity}&limit=${limit}`
-                );
-
-                if (!response.ok) throw new Error('Failed to fetch conflict data');
-
-                const result = await response.json();
-                setConflicts(result.conflicts || []);
-                setSummary(result.summary || null);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Unknown error');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchData();
-    }, [severity, limit, apiBase]);
+    const { data, isLoading, error } = useConflicts(severity, limit);
+    const conflicts = data?.conflicts || [];
+    const summary = data?.summary || null;
+    const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
 
     const getSeverityIcon = (sev: string) => {
         switch (sev) {
@@ -99,7 +74,7 @@ export function ConflictDetectionCard({
         return `${score}/100`;
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <Card>
                 <CardHeader>
@@ -117,14 +92,14 @@ export function ConflictDetectionCard({
         );
     }
 
-    if (error) {
+    if (errorMessage) {
         return (
             <Card>
                 <CardHeader>
                     <CardTitle>Conflict Detection</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-destructive py-4">Error: {error}</div>
+                    <div className="text-destructive py-4">Error: {errorMessage}</div>
                 </CardContent>
             </Card>
         );

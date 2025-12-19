@@ -6,7 +6,14 @@ import {
     fetchMemberTrades,
     fetchNetworkGraph,
     fetchTopTraders,
-    fetchMemberAssets
+    fetchMemberAssets,
+    fetchTrendingStocks,
+    fetchSectorActivity,
+    fetchPatternInsights,
+    fetchDashboardSummary,
+    fetchCongressionalAlpha,
+    fetchConflicts,
+    fetchPortfolios
 } from '@/lib/api';
 
 /**
@@ -59,5 +66,79 @@ export function useTopTraders(days?: number) {
     return useQuery({
         queryKey: ['top-traders', days],
         queryFn: () => fetchTopTraders(days),
+    });
+}
+
+/**
+ * Hook to fetch dashboard summary statistics.
+ */
+export function useDashboardSummary() {
+    return useQuery({
+        queryKey: ['dashboard-summary'],
+        queryFn: () => fetchDashboardSummary(),
+    });
+}
+
+/**
+ * Hook to fetch trending stocks.
+ */
+export function useTrendingStocks(limit?: number) {
+    return useQuery({
+        queryKey: ['trending-stocks', limit],
+        queryFn: () => fetchTrendingStocks(limit),
+    });
+}
+
+/**
+ * Hook to fetch sector activity.
+ */
+export function useSectorActivity() {
+    return useQuery({
+        queryKey: ['sector-activity'],
+        queryFn: () => fetchSectorActivity(),
+    });
+}
+
+/**
+ * Hook to fetch pattern insights.
+ */
+export function usePatternInsights(type: 'trending' | 'timing' | 'sector' = 'trending') {
+    return useQuery({
+        queryKey: ['pattern-insights', type],
+        queryFn: () => fetchPatternInsights(type),
+    });
+}
+
+/**
+ * Hook to fetch congressional alpha data.
+ */
+export function useCongressionalAlpha(type: 'member' | 'party' | 'sector_rotation' = 'member', limit = 10) {
+    return useQuery({
+        queryKey: ['congressional-alpha', type, limit],
+        queryFn: () => fetchCongressionalAlpha(type, limit),
+    });
+}
+
+/**
+ * Hook to fetch conflict of interest data.
+ */
+export function useConflicts(severity = 'all', limit = 10) {
+    return useQuery({
+        queryKey: ['conflicts', severity, limit],
+        queryFn: () => fetchConflicts(severity, limit),
+    });
+}
+
+/**
+ * Hook to fetch portfolio reconstruction data.
+ */
+export function usePortfolios(params: {
+    member_id?: string;
+    limit?: number;
+    include_holdings?: boolean;
+} = {}) {
+    return useQuery({
+        queryKey: ['portfolios', params],
+        queryFn: () => fetchPortfolios(params),
     });
 }

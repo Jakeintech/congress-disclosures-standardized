@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Clock, PieChart, TrendingUp, BarChart3 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { usePatternInsights } from "@/hooks/use-api";
 
 interface TimingData {
     day_name?: string;
@@ -26,38 +26,13 @@ interface SectorData {
 
 interface PatternInsightsCardProps {
     type?: 'timing' | 'sector' | 'trending';
-    apiBase?: string;
 }
 
 export function PatternInsightsCard({
-    type = 'trending',
-    apiBase = process.env.NEXT_PUBLIC_API_URL || ''
+    type = 'trending'
 }: PatternInsightsCardProps) {
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                setLoading(true);
-                const response = await fetch(
-                    `${apiBase}/v1/analytics/insights?type=${type}`
-                );
-
-                if (!response.ok) throw new Error('Failed to fetch insights');
-
-                const result = await response.json();
-                setData(result);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Unknown error');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchData();
-    }, [type, apiBase]);
+    const { data, isLoading, error } = usePatternInsights(type);
+    const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
 
     const formatVolume = (val: number | undefined) => {
         if (!val) return '--';
@@ -76,7 +51,7 @@ export function PatternInsightsCard({
         }
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <Card>
                 <CardHeader>
@@ -94,14 +69,14 @@ export function PatternInsightsCard({
         );
     }
 
-    if (error) {
+    if (errorMessage) {
         return (
             <Card>
                 <CardHeader>
                     <CardTitle>Pattern Insights</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-destructive py-4">Error: {error}</div>
+                    <div className="text-destructive py-4">Error: {errorMessage}</div>
                 </CardContent>
             </Card>
         );

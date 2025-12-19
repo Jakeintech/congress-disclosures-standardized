@@ -6,6 +6,21 @@ Provides consistent JSON response structure with CORS headers.
 
 from typing import Dict, Any, Optional
 import json
+import math
+
+class NaNToNoneEncoder(json.JSONEncoder):
+    """Encodes NaN/Inf floats as null for valid JSON output."""
+    def encode(self, obj):
+        def replace_nan(o):
+            if isinstance(o, float):
+                if math.isnan(o) or math.isinf(o):
+                    return None
+            elif isinstance(o, dict):
+                return {k: replace_nan(v) for k, v in o.items()}
+            elif isinstance(o, (list, tuple)):
+                return [replace_nan(x) for x in o]
+            return o
+        return super().encode(replace_nan(obj))
 
 
 def success_response(
@@ -41,7 +56,7 @@ def success_response(
     return {
         "statusCode": status_code,
         "headers": _get_cors_headers(),
-        "body": json.dumps(body, default=str)  # default=str handles dates
+        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str)  # default=str handles dates
     }
 
 
@@ -82,7 +97,7 @@ def error_response(
     return {
         "statusCode": status_code,
         "headers": _get_cors_headers(),
-        "body": json.dumps(body, default=str)
+        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str)
     }
 
 

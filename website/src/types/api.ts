@@ -137,8 +137,9 @@ export interface MembersParams extends PaginationParams {
 
 export interface Committee {
   system_code: string;
+  systemCode?: string;
   name: string;
-  chamber: 'house' | 'senate' | 'joint';
+  chamber: 'house' | 'senate' | 'joint' | 'House' | 'Senate' | 'Joint' | string;
   type: string;
   subcommittees?: Subcommittee[];
 }
@@ -206,6 +207,10 @@ export interface BillDetail {
 export interface Sponsor {
   bioguide_id: string;
   name: string;
+  first_name?: string;
+  last_name?: string;
+  firstName?: string;
+  lastName?: string;
   party: string;
   state: string;
   district?: number;
@@ -295,6 +300,11 @@ export interface PaginatedBillAmendments {
 
 export interface PaginatedRelatedBills {
   relatedBills: RelatedBill[];
+  count: number;
+}
+
+export interface PaginatedBillCommittees {
+  committees: any[];
   count: number;
 }
 

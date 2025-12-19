@@ -10,14 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Building2, FileText, Info } from 'lucide-react';
 import { fetchCommittees } from '@/lib/api';
-
-interface Committee {
-    systemCode: string;
-    name: string;
-    chamber: string;
-    type: string;
-    subcommittees?: any[];
-}
+import { Committee } from '@/types/api';
 
 export default function CommitteesPage() {
     const [committees, setCommittees] = useState<Committee[]>([]);
@@ -154,8 +147,8 @@ export default function CommitteesPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                     {filteredCommittees.map((committee) => (
                         <Link
-                            key={committee.systemCode}
-                            href={`/committees/${committee.chamber.toLowerCase()}/${committee.systemCode}`}
+                            key={committee.system_code}
+                            href={`/committees/${committee.chamber.toLowerCase()}/${committee.system_code}`}
                         >
                             <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
                                 <CardHeader>

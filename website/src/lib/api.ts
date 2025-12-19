@@ -39,9 +39,9 @@ import type {
     LobbyingActivity,
     PortfolioData,
     AlphaData,
-    AlphaData,
     MemberPortfolio,
     Committee,
+    PaginationMeta,
     PaginatedBillActions,
     PaginatedBillCosponsors,
     PaginatedBillSubjects,
@@ -49,6 +49,7 @@ import type {
     PaginatedBillTitles,
     PaginatedBillAmendments,
     PaginatedRelatedBills,
+    PaginatedBillCommittees,
 } from '@/types/api';
 
 // Re-export types for convenience
@@ -543,9 +544,9 @@ export async function fetchCommitteeDetail(chamber: string, committeeCode: strin
 /**
  * Fetch bill committees
  */
-export async function fetchBillCommittees(billId: string) {
+export async function fetchBillCommittees(billId: string): Promise<PaginatedBillCommittees> {
     try {
-        const raw = await fetchApi<{ data?: { committees: any[], count: number }, committees?: any[], count?: number }>(
+        const raw = await fetchApi<{ data?: PaginatedBillCommittees } & Partial<PaginatedBillCommittees>>(
             `${API_BASE}/v1/congress/bills/${billId}/committees`
         );
         if (raw.data) return raw.data;

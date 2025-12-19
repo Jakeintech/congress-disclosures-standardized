@@ -39,8 +39,16 @@ import type {
     LobbyingActivity,
     PortfolioData,
     AlphaData,
+    AlphaData,
     MemberPortfolio,
     Committee,
+    PaginatedBillActions,
+    PaginatedBillCosponsors,
+    PaginatedBillSubjects,
+    PaginatedBillSummaries,
+    PaginatedBillTitles,
+    PaginatedBillAmendments,
+    PaginatedRelatedBills,
 } from '@/types/api';
 
 // Re-export types for convenience
@@ -537,117 +545,133 @@ export async function fetchCommitteeDetail(chamber: string, committeeCode: strin
  */
 export async function fetchBillCommittees(billId: string) {
     try {
-        const raw = await fetchApi<{ data?: { committees: any[], count: number } }>(
+        const raw = await fetchApi<{ data?: { committees: any[], count: number }, committees?: any[], count?: number }>(
             `${API_BASE}/v1/congress/bills/${billId}/committees`
         );
-        return raw.data || raw;
+        if (raw.data) return raw.data;
+        if (raw.committees) return { committees: raw.committees, count: raw.count || 0 };
+        return { committees: [], count: 0 };
     } catch (e) {
         console.warn("Failed to fetch bill committees", e);
-        return null;
+        return { committees: [], count: 0 };
     }
 }
 
 /**
  * Fetch bill cosponsors
  */
-export async function fetchBillCosponsors(billId: string) {
+export async function fetchBillCosponsors(billId: string): Promise<PaginatedBillCosponsors> {
     try {
-        const raw = await fetchApi<{ data?: { cosponsors: any[], count: number } }>(
+        const raw = await fetchApi<{ data?: PaginatedBillCosponsors } & Partial<PaginatedBillCosponsors>>(
             `${API_BASE}/v1/congress/bills/${billId}/cosponsors`
         );
-        return raw.data || raw;
+        if (raw.data) return raw.data;
+        if (raw.cosponsors) return { cosponsors: raw.cosponsors, count: raw.count || 0 };
+        return { cosponsors: [], count: 0 };
     } catch (e) {
         console.warn("Failed to fetch bill cosponsors", e);
-        return null;
+        return { cosponsors: [], count: 0 };
     }
 }
 
 /**
  * Fetch bill subjects
  */
-export async function fetchBillSubjects(billId: string) {
+export async function fetchBillSubjects(billId: string): Promise<PaginatedBillSubjects> {
     try {
-        const raw = await fetchApi<{ data?: { subjects: any[], count: number } }>(
+        const raw = await fetchApi<{ data?: PaginatedBillSubjects } & Partial<PaginatedBillSubjects>>(
             `${API_BASE}/v1/congress/bills/${billId}/subjects`
         );
-        return raw.data || raw;
+        if (raw.data) return raw.data;
+        if (raw.subjects) return { subjects: raw.subjects, count: raw.count || 0 };
+        return { subjects: [], count: 0 };
     } catch (e) {
         console.warn("Failed to fetch bill subjects", e);
-        return null;
+        return { subjects: [], count: 0 };
     }
 }
 
 /**
  * Fetch bill summaries
  */
-export async function fetchBillSummaries(billId: string) {
+export async function fetchBillSummaries(billId: string): Promise<PaginatedBillSummaries> {
     try {
-        const raw = await fetchApi<{ data?: { summaries: any[], count: number } }>(
+        const raw = await fetchApi<{ data?: PaginatedBillSummaries } & Partial<PaginatedBillSummaries>>(
             `${API_BASE}/v1/congress/bills/${billId}/summaries`
         );
-        return raw.data || raw;
+        if (raw.data) return raw.data;
+        if (raw.summaries) return { summaries: raw.summaries, count: raw.count || 0 };
+        return { summaries: [], count: 0 };
     } catch (e) {
         console.warn("Failed to fetch bill summaries", e);
-        return null;
+        return { summaries: [], count: 0 };
     }
 }
 
 /**
  * Fetch bill titles
  */
-export async function fetchBillTitles(billId: string) {
+export async function fetchBillTitles(billId: string): Promise<PaginatedBillTitles> {
     try {
-        const raw = await fetchApi<{ data?: { titles: any[], count: number } }>(
+        const raw = await fetchApi<{ data?: PaginatedBillTitles } & Partial<PaginatedBillTitles>>(
             `${API_BASE}/v1/congress/bills/${billId}/titles`
         );
-        return raw.data || raw;
+        if (raw.data) return raw.data;
+        if (raw.titles) return { titles: raw.titles, count: raw.count || 0 };
+        return { titles: [], count: 0 };
     } catch (e) {
         console.warn("Failed to fetch bill titles", e);
-        return null;
+        return { titles: [], count: 0 };
     }
 }
 
 /**
  * Fetch bill amendments
  */
-export async function fetchBillAmendments(billId: string) {
+export async function fetchBillAmendments(billId: string): Promise<PaginatedBillAmendments> {
     try {
-        const raw = await fetchApi<{ data?: { amendments: any[], count: number } }>(
+        const raw = await fetchApi<{ data?: PaginatedBillAmendments } & Partial<PaginatedBillAmendments>>(
             `${API_BASE}/v1/congress/bills/${billId}/amendments`
         );
-        return raw.data || raw;
+        if (raw.data) return raw.data;
+        if (raw.amendments) return { amendments: raw.amendments, count: raw.count || 0 };
+        return { amendments: [], count: 0 };
     } catch (e) {
         console.warn("Failed to fetch bill amendments", e);
-        return null;
+        return { amendments: [], count: 0 };
     }
 }
 
 /**
  * Fetch related bills
  */
-export async function fetchBillRelated(billId: string) {
+export async function fetchBillRelated(billId: string): Promise<PaginatedRelatedBills> {
     try {
-        const raw = await fetchApi<{ data?: { relatedBills: any[], count: number } }>(
+        const raw = await fetchApi<{ data?: PaginatedRelatedBills } & Partial<PaginatedRelatedBills>>(
             `${API_BASE}/v1/congress/bills/${billId}/related`
         );
-        return raw.data || raw;
+        if (raw.data) return raw.data;
+        if (raw.relatedBills) return { relatedBills: raw.relatedBills, count: raw.count || 0 };
+        return { relatedBills: [], count: 0 };
     } catch (e) {
         console.warn("Failed to fetch related bills", e);
-        return null;
+        return { relatedBills: [], count: 0 };
     }
 }
 
 /**
  * Fetch bill actions
  */
-export async function fetchBillActions(billId: string) {
+export async function fetchBillActions(billId: string): Promise<PaginatedBillActions> {
     try {
-        const raw = await fetchApi<{ data?: { actions: any[], count: number } }>(
+        const raw = await fetchApi<{ data?: PaginatedBillActions } & Partial<PaginatedBillActions>>(
             `${API_BASE}/v1/congress/bills/${billId}/actions`
         );
-        return raw.data || raw;
+        if (raw.data) return raw.data;
+        if (raw.actions) return { actions: raw.actions, count: raw.count || 0 };
+        return { actions: [], count: 0 };
     } catch (e) {
         console.warn("Failed to fetch bill actions", e);
-        return null;
+        return { actions: [], count: 0 };
     }
 }

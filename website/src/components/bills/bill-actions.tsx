@@ -27,7 +27,7 @@ export function BillActions({ billId, initialData }: BillActionsProps) {
         <DataContainer
             isLoading={actionsQuery.isLoading}
             isError={actionsQuery.isError}
-            data={actionsQuery.data?.actions || initialData}
+            data={(actionsQuery.data as any)?.actions || initialData}
             emptyMessage="No legislative actions found for this bill."
             onRetry={() => actionsQuery.refetch()}
         >

@@ -263,6 +263,41 @@ export interface BillTitle {
   congress?: number;
 }
 
+export interface PaginatedBillActions {
+  actions: BillAction[];
+  count: number;
+}
+
+export interface PaginatedBillCosponsors {
+  cosponsors: Cosponsor[];
+  count: number;
+}
+
+export interface PaginatedBillSubjects {
+  subjects: Subject[];
+  count: number;
+}
+
+export interface PaginatedBillSummaries {
+  summaries: BillSummary[];
+  count: number;
+}
+
+export interface PaginatedBillTitles {
+  titles: BillTitle[];
+  count: number;
+}
+
+export interface PaginatedBillAmendments {
+  amendments: Amendment[];
+  count: number;
+}
+
+export interface PaginatedRelatedBills {
+  relatedBills: RelatedBill[];
+  count: number;
+}
+
 export interface TradeCorrelation {
   bill_id: string;
   member_name: string;

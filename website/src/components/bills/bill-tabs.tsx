@@ -128,7 +128,7 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                         emptyMessage="No legislative timeline data available."
                         onRetry={() => actionsQuery.refetch()}
                     >
-                        <BillTimeline events={timelineEvents} billId={billId} />
+                        {(data: any) => <BillTimeline events={data} billId={billId} />}
                     </DataContainer>
                 </TabsContent>
 
@@ -176,9 +176,11 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                                 emptyMessage="Text not yet available for this version."
                                 onRetry={() => textQuery.refetch()}
                             >
-                                <ScrollArea className="h-[600px] w-full rounded-xl border bg-background p-6">
-                                    <pre className="text-xs font-mono whitespace-pre-wrap leading-relaxed text-foreground/90">{textContent}</pre>
-                                </ScrollArea>
+                                {(data: string | null) => (
+                                    <ScrollArea className="h-[600px] w-full rounded-xl border bg-background p-6">
+                                        <pre className="text-xs font-mono whitespace-pre-wrap leading-relaxed text-foreground/90">{data}</pre>
+                                    </ScrollArea>
+                                )}
                             </DataContainer>
                         </CardContent>
                     </Card>
@@ -200,14 +202,16 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                                 data={(titlesQuery.data as any)?.titles}
                                 onRetry={() => titlesQuery.refetch()}
                             >
-                                <div className="grid gap-3">
-                                    {(titlesQuery.data as any)?.titles?.map((t: any, i: number) => (
-                                        <div key={i} className="p-4 bg-background rounded-xl border">
-                                            <Badge variant="secondary" className="mb-2 text-[10px] uppercase">{t.type}</Badge>
-                                            <p className="text-sm font-medium leading-relaxed">{t.title}</p>
-                                        </div>
-                                    ))}
-                                </div>
+                                {(data: any[]) => (
+                                    <div className="grid gap-3">
+                                        {data?.map((t: any, i: number) => (
+                                            <div key={i} className="p-4 bg-background rounded-xl border">
+                                                <Badge variant="secondary" className="mb-2 text-[10px] uppercase">{t.type}</Badge>
+                                                <p className="text-sm font-medium leading-relaxed">{t.title}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </DataContainer>
                         </CardContent>
                     </Card>

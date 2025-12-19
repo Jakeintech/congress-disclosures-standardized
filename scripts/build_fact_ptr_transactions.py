@@ -181,12 +181,15 @@ def process_year(year):
         logger.error(f"Could not load filings table: {e}")
         filings_dict = {}
 
-    # Scan silver/house/financial/objects/year={year}/filing_type=type_p/
-    # Note: Actual path structure has year first, then filing_type
-    prefix = f"silver/house/financial/objects/year={year}/filing_type=type_p/"
+    # Scan all filing types that may contain transactions
+    # Type P = PTR, Unknown = miscategorized, Type T = Termination (may have transactions)
+    filing_type_prefixes = [
+        f"silver/house/financial/objects/year={year}/filing_type=type_p/",
+        f"silver/house/financial/objects/year={year}/filing_type=unknown/",
+        f"silver/house/financial/objects/year={year}/filing_type=type_t/",
+    ]
 
     paginator = s3.get_paginator('list_objects_v2')
-    pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
 
     transactions = []
     filing_count = 0
@@ -206,97 +209,101 @@ def process_year(year):
              logger.warning(f"Could not import SimpleMemberLookup: {e}, skipping enrichment")
              member_lookup = None
 
-    for page in pages:
-        if 'Contents' not in page:
-            continue
+    for prefix in filing_type_prefixes:
+        logger.info(f"Scanning {prefix}...")
+        pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
+        
+        for page in pages:
+            if 'Contents' not in page:
+                continue
             
-        for obj in page['Contents']:
-            key = obj['Key']
-            if key.endswith("extraction.json"):
-                try:
-                    response = s3.get_object(Bucket=S3_BUCKET, Key=key)
-                    data = json.loads(response['Body'].read())
-                    
-                    doc_id = data.get('doc_id')
-                    filing_date = data.get('filing_date')
-
-                    # Get member info from filings table
-                    filing_info = filings_dict.get(doc_id, {})
-                    first = filing_info.get('first_name')
-                    last = filing_info.get('last_name')
-                    state_district = filing_info.get('state_district')
-                    filer_name = f"{first} {last}" if first and last else None
-
-                    # Enrich with bioguide_id if available
-                    bioguide_id = None
-                    party = None
-                    state = None
-                    chamber = None
-
-                    if member_lookup and first and last:
-                        state_hint = state_district[:2] if state_district else None
-
-                        enriched = member_lookup.enrich_member(
-                            first_name=first,
-                            last_name=last,
-                            state=state_hint
-                        )
-                        bioguide_id = enriched.get('bioguide_id')
-                        party = enriched.get('party')
-                        state = enriched.get('state') or state_hint
-                        chamber = enriched.get('chamber')
-
-                    # Get transactions list
-                    # The extraction Lambda puts them in 'transactions' list for Type P
-                    doc_transactions = data.get('transactions', [])
-                    
-                    if not doc_transactions:
-                        continue
+            for obj in page['Contents']:
+                key = obj['Key']
+                if key.endswith("extraction.json"):
+                    try:
+                        response = s3.get_object(Bucket=S3_BUCKET, Key=key)
+                        data = json.loads(response['Body'].read())
                         
-                    filing_count += 1
-                    
-                    for tx in doc_transactions:
-                        # Extract fields with defaults
-                        tx_date = tx.get('transaction_date') or tx.get('trans_date')
-                        
-                        # Parse amount
-                        amt_low, amt_high = parse_amount_string(tx.get('amount'))
+                        doc_id = data.get('doc_id')
+                        filing_date = data.get('filing_date')
 
-                        record = {
-                            'doc_id': doc_id,
-                            'filing_year': year,
-                            'filing_date': filing_date,
-                            'filing_date_key': get_date_key(filing_date),
-                            'filer_name': filer_name,
-                            'first_name': first,
-                            'last_name': last,
-                            'state_district': state_district,
-                            'bioguide_id': bioguide_id,
-                            'party': party,
-                            'state': state,
-                            'chamber': chamber,
+                        # Get member info from filings table
+                        filing_info = filings_dict.get(doc_id, {})
+                        first = filing_info.get('first_name')
+                        last = filing_info.get('last_name')
+                        state_district = filing_info.get('state_district')
+                        filer_name = f"{first} {last}" if first and last else None
+
+                        # Enrich with bioguide_id if available
+                        bioguide_id = None
+                        party = None
+                        state = None
+                        chamber = None
+
+                        if member_lookup and first and last:
+                            state_hint = state_district[:2] if state_district else None
+
+                            enriched = member_lookup.enrich_member(
+                                first_name=first,
+                                last_name=last,
+                                state=state_hint
+                            )
+                            bioguide_id = enriched.get('bioguide_id')
+                            party = enriched.get('party')
+                            state = enriched.get('state') or state_hint
+                            chamber = enriched.get('chamber')
+
+                        # Get transactions list
+                        # The extraction Lambda puts them in 'transactions' list for Type P
+                        doc_transactions = data.get('transactions', [])
+                        
+                        if not doc_transactions:
+                            continue
                             
-                            'transaction_date': tx_date,
-                            'transaction_date_key': get_date_key(tx_date),
-                            'owner': tx.get('owner') or tx.get('owner_code'),
-                            'ticker': tx.get('ticker') or extract_ticker_from_description(tx.get('asset_name') or tx.get('asset_description')),
-                            'asset_description': tx.get('asset_name') or tx.get('asset_description'),
-                            'asset_type': tx.get('asset_type') or tx.get('type_code'),
-                            'transaction_type': get_transaction_type(tx),
-                            'amount': tx.get('amount'), # Usually a range string like "$1,001 - $15,000"
-                            'amount_low': amt_low,
-                            'amount_high': amt_high,
-                            'comment': tx.get('comment'),
-                            'cap_gains_over_200': tx.get('cap_gains_over_200', False)
-                        }
+                        filing_count += 1
                         
-                        # Generate unique key
-                        record['transaction_key'] = generate_transaction_key(record)
-                        
-                        transactions.append(record)
-                        
-                except Exception as e:
-                    logger.error(f"Error processing {key}: {e}")
+                        for tx in doc_transactions:
+                            # Extract fields with defaults
+                            tx_date = tx.get('transaction_date') or tx.get('trans_date')
+                            
+                            # Parse amount
+                            amt_low, amt_high = parse_amount_string(tx.get('amount'))
+
+                            record = {
+                                'doc_id': doc_id,
+                                'filing_year': year,
+                                'filing_date': filing_date,
+                                'filing_date_key': get_date_key(filing_date),
+                                'filer_name': filer_name,
+                                'first_name': first,
+                                'last_name': last,
+                                'state_district': state_district,
+                                'bioguide_id': bioguide_id,
+                                'party': party,
+                                'state': state,
+                                'chamber': chamber,
+                                
+                                'transaction_date': tx_date,
+                                'transaction_date_key': get_date_key(tx_date),
+                                'owner': tx.get('owner') or tx.get('owner_code'),
+                                'ticker': tx.get('ticker') or extract_ticker_from_description(tx.get('asset_name') or tx.get('asset_description')),
+                                'asset_description': tx.get('asset_name') or tx.get('asset_description'),
+                                'asset_type': tx.get('asset_type') or tx.get('type_code'),
+                                'transaction_type': get_transaction_type(tx),
+                                'amount': tx.get('amount'),
+                                'amount_low': amt_low,
+                                'amount_high': amt_high,
+                                'comment': tx.get('comment'),
+                                'cap_gains_over_200': tx.get('cap_gains_over_200', False)
+                            }
+                            
+                            # Generate unique key
+                            record['transaction_key'] = generate_transaction_key(record)
+                            
+                            transactions.append(record)
+                            
+                    except Exception as e:
+                        logger.error(f"Error processing {key}: {e}")
 
     if not transactions:
         logger.warning(f"No transactions found for year {year}")

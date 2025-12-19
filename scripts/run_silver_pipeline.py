@@ -69,15 +69,19 @@ def list_bronze_pdfs():
 
 def send_to_extraction_queue(pdf_key):
     """Send a PDF to the extraction queue."""
-    # Extract doc_id and year from path
+    # Extract doc_id, year, and filing_type from path
     # Format: bronze/house/financial/year=YYYY/filing_type=X/pdfs/DOCID.pdf
+    # Also handle: bronze/house/financial/year=YYYY/pdfs/YYYY/DOCID.pdf (old format)
     parts = pdf_key.split('/')
     year = None
     doc_id = None
+    filing_type = None
 
     for part in parts:
         if part.startswith('year='):
             year = int(part.split('=')[1])
+        if part.startswith('filing_type='):
+            filing_type = part.split('=')[1].upper()  # e.g., "P", "A", "T"
         if part.endswith('.pdf'):
             doc_id = part.replace('.pdf', '')
 
@@ -88,7 +92,8 @@ def send_to_extraction_queue(pdf_key):
     message = {
         'doc_id': doc_id,
         'year': year,
-        's3_pdf_key': pdf_key
+        's3_pdf_key': pdf_key,
+        'filing_type': filing_type  # Include filing_type (may be None for old paths)
     }
 
     try:

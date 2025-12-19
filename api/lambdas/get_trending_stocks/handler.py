@@ -79,35 +79,9 @@ def handler(event, context):
         logger.info(f"Querying trending stocks: window={time_window}, limit={limit}, sort={sort_by}")
         result_df = conn.execute(query).fetchdf()
 
-        # Get top movers (biggest sentiment change)
-        movers_query = f"""
-            WITH current AS (
-                SELECT ticker, sentiment_score
-                FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet')
-                WHERE time_window = '{time_window}'
-            ),
-            previous AS (
-                SELECT ticker, sentiment_score AS prev_score
-                FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet')
-                WHERE time_window = '{time_window}_prev'
-            )
-            SELECT
-                c.ticker,
-                c.sentiment_score,
-                COALESCE(p.prev_score, 0) AS prev_score,
-                (c.sentiment_score - COALESCE(p.prev_score, 0)) AS sentiment_change
-            FROM current c
-            LEFT JOIN previous p ON c.ticker = p.ticker
-            ORDER BY ABS(sentiment_change) DESC
-            LIMIT 10
-        """
-
-        try:
-            movers_df = conn.execute(movers_query).fetchdf()
-            top_movers = movers_df.to_dict('records')
-        except:
-            # Fallback if previous window doesn't exist
-            top_movers = []
+        # Note: top_movers feature requires historical window data which isn't currently stored
+        # Returning empty until we implement proper time-window tracking
+        top_movers = []
 
         stocks = result_df.to_dict('records')
 

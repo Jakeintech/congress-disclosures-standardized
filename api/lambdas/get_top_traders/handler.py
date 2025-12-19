@@ -121,7 +121,7 @@ def handler(event, context):
                 COUNT(DISTINCT bioguide_id) AS member_count,
                 SUM((amount_low + amount_high) / 2.0) AS total_volume
             FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
-            WHERE {where_clauses[0]}
+            WHERE {where_sql}
                 AND bioguide_id IS NOT NULL
             GROUP BY party
             ORDER BY total_volume DESC

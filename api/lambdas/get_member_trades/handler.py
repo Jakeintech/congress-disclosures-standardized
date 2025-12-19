@@ -79,16 +79,16 @@ def handler(event, context):
             SELECT
                 t.transaction_date,
                 COALESCE(t.ticker, '') as ticker,
-                t.asset_description,
-                t.asset_name,
+                t.asset_description AS asset_name,
                 t.transaction_type,
                 COALESCE(t.amount_low, 0) as amount_low,
                 COALESCE(t.amount_high, 0) as amount_high,
                 (COALESCE(t.amount_low, 0) + COALESCE(t.amount_high, 0)) / 2.0 AS amount_midpoint,
                 t.bioguide_id,
-                t.full_name,
+                t.filer_name AS full_name,
                 t.party,
-                t.state
+                t.state,
+                t.chamber
             FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet') t
             WHERE {where_sql}
             ORDER BY t.transaction_date DESC

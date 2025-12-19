@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,23 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchBills, type BillsParams } from '@/lib/api';
-import { ErrorBoundary, ApiError } from '@/components/ErrorBoundary';
-
-interface Bill {
-    bill_id?: string;
-    congress: number;
-    bill_type: string;
-    bill_number: number;
-    title: string;
-    sponsor_name?: string;
-    sponsor_bioguide_id?: string;
-    cosponsors_count?: number;
-    latest_action_date?: string;
-    latest_action_text?: string;
-    top_industry_tags?: string[];
-    trade_correlations_count?: number;
-}
+import { useBills } from '@/hooks/use-api';
+import { type BillsParams, type Bill } from '@/types/api';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { DataContainer } from '@/components/ui/data-container';
+import { Search, RotateCcw, AlertTriangle } from 'lucide-react';
 
 const INDUSTRIES = [
     'Defense', 'Healthcare', 'Finance', 'Energy',
@@ -40,10 +28,6 @@ const BILL_TYPES = [
 ];
 
 function BillsPage() {
-    const [bills, setBills] = useState<Bill[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
     // Filters - using default values
     const [congress, setCongress] = useState<string>('119');
     const [billType, setBillType] = useState<string>('');
@@ -51,35 +35,17 @@ function BillsPage() {
     const [search, setSearch] = useState<string>('');
     const [hasCorrelations, setHasCorrelations] = useState<boolean>(false);
 
-    useEffect(() => {
-        async function loadBills() {
-            setLoading(true);
-            setError(null);
+    const params: BillsParams = {
+        limit: 50,
+        congress: parseInt(congress, 10),
+        billType: billType || undefined,
+        industry: industry || undefined,
+        hasTradeCorrelations: hasCorrelations || undefined,
+        sortBy: 'latest_action_date',
+        sortOrder: 'desc',
+    };
 
-            try {
-                const params: BillsParams = {
-                    limit: 50,
-                    sortBy: 'latest_action_date',
-                    sortOrder: 'desc',
-                };
-
-                if (congress) params.congress = parseInt(congress, 10);
-                if (billType) params.billType = billType;
-                if (industry) params.industry = industry;
-                if (hasCorrelations) params.hasTradeCorrelations = true;
-
-                const data = await fetchBills(params);
-                setBills(Array.isArray(data) ? (data as Bill[]) : []);
-            } catch (err) {
-                setError('Failed to load bills');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadBills();
-    }, [congress, billType, industry, hasCorrelations]);
+    const { data: bills = [], isLoading, error, refetch } = useBills(params);
 
     const filteredBills = bills.filter(bill => {
         if (!search) return true;
@@ -107,34 +73,38 @@ function BillsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="container mx-auto py-6 space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Bills</h1>
-                <p className="text-muted-foreground">
-                    Browse congressional legislation with trade correlation analysis
+            <div className="flex flex-col gap-2">
+                <h1 className="text-3xl font-bold tracking-tight">Congressional Bills</h1>
+                <p className="text-muted-foreground max-w-2xl">
+                    Search and analyze legislation with integrated trade correlation insights,
+                    identifying potential conflicts of interest and market-moving bills.
                 </p>
             </div>
 
             {/* Filters */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Filters</CardTitle>
+            <Card className="border-none shadow-sm bg-muted/30">
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                        <Search className="h-4 w-4" /> Filter Legislation
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                         {/* Search */}
                         <div className="lg:col-span-2">
                             <Input
-                                placeholder="Search bills by title or sponsor..."
+                                placeholder="Search bills by title, number or sponsor..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
+                                className="bg-background shadow-none"
                             />
                         </div>
 
                         {/* Congress */}
                         <Select value={congress} onValueChange={setCongress}>
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-background shadow-none">
                                 <SelectValue placeholder="Congress" />
                             </SelectTrigger>
                             <SelectContent>
@@ -147,7 +117,7 @@ function BillsPage() {
 
                         {/* Bill Type */}
                         <Select value={billType || "all"} onValueChange={(val) => setBillType(val === "all" ? "" : val)}>
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-background shadow-none">
                                 <SelectValue placeholder="Bill Type" />
                             </SelectTrigger>
                             <SelectContent>
@@ -162,7 +132,7 @@ function BillsPage() {
 
                         {/* Industry */}
                         <Select value={industry || "all"} onValueChange={(val) => setIndustry(val === "all" ? "" : val)}>
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-background shadow-none">
                                 <SelectValue placeholder="Industry" />
                             </SelectTrigger>
                             <SelectContent>
@@ -174,18 +144,21 @@ function BillsPage() {
                         </Select>
                     </div>
 
-                    <div className="flex items-center gap-4 mt-4">
+                    <div className="flex flex-wrap items-center gap-2 mt-4">
                         <Button
                             variant={hasCorrelations ? 'default' : 'outline'}
                             size="sm"
+                            className={hasCorrelations ? 'bg-amber-600 hover:bg-amber-700' : ''}
                             onClick={() => setHasCorrelations(!hasCorrelations)}
                         >
-                            ⚠️ Has Trade Correlations
+                            <AlertTriangle className="h-4 w-4 mr-2" />
+                            Has Trade Correlations
                         </Button>
 
                         <Button
                             variant="ghost"
                             size="sm"
+                            className="text-muted-foreground ml-auto"
                             onClick={() => {
                                 setCongress('119');
                                 setBillType('');
@@ -194,121 +167,112 @@ function BillsPage() {
                                 setHasCorrelations(false);
                             }}
                         >
-                            Clear Filters
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Reset Filters
                         </Button>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Error */}
-            {error && (
-                <Card className="border-destructive">
-                    <CardContent className="pt-6">
-                        <p className="text-destructive">{error}</p>
-                    </CardContent>
-                </Card>
-            )}
-
             {/* Bills Table */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>
-                        {loading ? 'Loading...' : `${filteredBills.length} Bills`}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[120px]">Bill</TableHead>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead className="w-[140px]">Sponsor</TableHead>
-                                    <TableHead className="w-[100px] text-center">Cosponsors</TableHead>
-                                    <TableHead className="w-[100px] text-center">Trades</TableHead>
-                                    <TableHead className="w-[120px]">Last Action</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                    [...Array(10)].map((_, i) => (
-                                        <TableRow key={i}>
-                                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                                            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                            <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                                            <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : filteredBills.length === 0 ? (
+            <DataContainer
+                isLoading={isLoading}
+                isError={!!error}
+                error={error}
+                data={filteredBills}
+                onRetry={() => refetch()}
+                emptyMessage="No bills found matching your updated criteria."
+                loadingSkeleton={
+                    <div className="space-y-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-[400px] w-full" />
+                    </div>
+                }
+            >
+                {(data) => (
+                    <Card className="border-none shadow-sm overflow-hidden">
+                        <div className="relative w-full overflow-auto">
+                            <Table>
+                                <TableHeader className="bg-muted/50">
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                            No bills found matching your criteria
-                                        </TableCell>
+                                        <TableHead className="w-[120px]">Bill ID</TableHead>
+                                        <TableHead>Legislation Title</TableHead>
+                                        <TableHead className="w-[160px]">Sponsor</TableHead>
+                                        <TableHead className="w-[100px] text-center">Cosponsors</TableHead>
+                                        <TableHead className="w-[100px] text-center">Trade Analysis</TableHead>
+                                        <TableHead className="w-[140px]">Last Action</TableHead>
                                     </TableRow>
-                                ) : (
-                                    filteredBills.map((bill) => (
-                                        <TableRow key={getBillId(bill)}>
+                                </TableHeader>
+                                <TableBody>
+                                    {data.map((bill) => (
+                                        <TableRow key={getBillId(bill)} className="hover:bg-muted/30 transition-colors">
                                             <TableCell>
                                                 <Link
                                                     href={`/bills/${bill.congress}/${bill.bill_type}/${bill.bill_number}`}
-                                                    className="font-medium text-primary hover:underline"
+                                                    className="font-mono font-medium text-primary hover:underline decoration-primary/30 underline-offset-4"
                                                 >
                                                     {bill.bill_type.toUpperCase()} {bill.bill_number}
                                                 </Link>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="max-w-xs truncate" title={bill.title}>
-                                                    {bill.title}
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="font-medium line-clamp-2 leading-tight" title={bill.title}>
+                                                        {bill.title}
+                                                    </span>
+                                                    {bill.top_industry_tags && bill.top_industry_tags.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {bill.top_industry_tags.slice(0, 3).map(tag => (
+                                                                <Badge key={tag} variant="secondary" className="text-[10px] py-0 px-1 font-normal bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-none">
+                                                                    {tag}
+                                                                </Badge>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {bill.top_industry_tags && bill.top_industry_tags.length > 0 && (
-                                                    <div className="flex gap-1 mt-1">
-                                                        {bill.top_industry_tags.slice(0, 2).map(tag => (
-                                                            <Badge key={tag} variant="outline" className="text-xs">
-                                                                {tag}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                )}
                                             </TableCell>
                                             <TableCell>
                                                 {bill.sponsor_bioguide_id ? (
                                                     <Link
                                                         href={`/politician/${bill.sponsor_bioguide_id}`}
-                                                        className="hover:underline text-blue-600 hover:text-blue-800"
+                                                        className="text-sm hover:text-primary transition-colors flex flex-col"
                                                     >
-                                                        {bill.sponsor_name || bill.sponsor_bioguide_id}
+                                                        <span className="font-medium">{bill.sponsor_name || bill.sponsor_bioguide_id}</span>
+                                                        <span className="text-xs text-muted-foreground">{bill.sponsor_party} - {bill.sponsor_state}</span>
                                                     </Link>
                                                 ) : (
-                                                    <span className="text-muted-foreground">
-                                                        {bill.sponsor_name || 'Unknown'}
+                                                    <span className="text-sm text-muted-foreground">
+                                                        {bill.sponsor_name || 'Multiple/Unknown'}
                                                     </span>
                                                 )}
                                             </TableCell>
-                                            <TableCell className="text-center">
+                                            <TableCell className="text-center font-medium">
                                                 {bill.cosponsors_count || 0}
                                             </TableCell>
                                             <TableCell className="text-center">
                                                 {(bill.trade_correlations_count || 0) > 0 ? (
-                                                    <Badge variant="destructive">
-                                                        {bill.trade_correlations_count}
+                                                    <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800 transition-colors">
+                                                        {bill.trade_correlations_count} Correlated
                                                     </Badge>
                                                 ) : (
-                                                    <span className="text-muted-foreground">-</span>
+                                                    <span className="inline-block w-4 h-[1px] bg-muted mx-auto" aria-label="No data"></span>
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-sm text-muted-foreground">
-                                                {formatDate(bill.latest_action_date)}
+                                                <div className="flex flex-col">
+                                                    <span>{formatDate(bill.latest_action_date)}</span>
+                                                    <span className="text-[10px] truncate max-w-[120px]" title={bill.latest_action_text}>
+                                                        {bill.latest_action_text}
+                                                    </span>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </Card>
+                )}
+            </DataContainer>
         </div>
     );
 }

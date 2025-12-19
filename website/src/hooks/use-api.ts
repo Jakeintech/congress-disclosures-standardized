@@ -13,8 +13,37 @@ import {
     fetchDashboardSummary,
     fetchCongressionalAlpha,
     fetchConflicts,
-    fetchPortfolios
+    fetchPortfolios,
+    fetchBills,
+    fetchBillDetail,
+    fetchBillText,
+    fetchBillActions,
+    fetchBillCosponsors,
+    fetchBillSummaries,
+    fetchBillCommittees,
+    fetchBillSubjects,
+    fetchBillTitles,
+    fetchBillAmendments,
+    fetchBillRelated,
+    fetchMembers,
+    fetchLobbyingNetwork,
+    fetchTripleCorrelations,
 } from '@/lib/api';
+import type {
+    BillsParams,
+    NetworkGraphData,
+    MembersParams, // Added MembersParams
+} from '@/types/api';
+
+/**
+ * Hook to fetch members list.
+ */
+export function useMembers(params: MembersParams = {}) {
+    return useQuery({
+        queryKey: ['members', params],
+        queryFn: () => fetchMembers(params),
+    });
+}
 
 /**
  * Hook to fetch a member's profile data.
@@ -52,7 +81,13 @@ export function useMemberAssets(bioguideId: string) {
 /**
  * Hook to fetch network graph data.
  */
-export function useNetworkGraph(params: any) {
+export function useNetworkGraph(params: {
+    year?: number;
+    view_mode?: 'aggregate' | 'member_detail';
+    bioguide_id?: string;
+    congress?: number;
+    limit?: number;
+} = {}) {
     return useQuery({
         queryKey: ['network-graph', params],
         queryFn: () => fetchNetworkGraph(params),
@@ -130,7 +165,7 @@ export function useConflicts(severity = 'all', limit = 10) {
 }
 
 /**
- * Hook to fetch portfolio reconstruction data.
+ * Hook to fetch portfolios.
  */
 export function usePortfolios(params: {
     member_id?: string;
@@ -140,5 +175,152 @@ export function usePortfolios(params: {
     return useQuery({
         queryKey: ['portfolios', params],
         queryFn: () => fetchPortfolios(params),
+    });
+}
+
+/**
+ * Hook to fetch bills list with filters.
+ */
+export function useBills(params: BillsParams = {}) {
+    return useQuery({
+        queryKey: ['filtered-bills', params],
+        queryFn: () => fetchBills(params),
+    });
+}
+
+/**
+ * Hook to fetch detailed bill data.
+ */
+export function useBillDetail(billId: string) {
+    return useQuery({
+        queryKey: ['bill', billId],
+        queryFn: () => fetchBillDetail(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch bill text.
+ */
+export function useBillText(billId: string) {
+    return useQuery({
+        queryKey: ['bill-text', billId],
+        queryFn: () => fetchBillText(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch bill actions.
+ */
+export function useBillActions(billId: string) {
+    return useQuery({
+        queryKey: ['bill-actions', billId],
+        queryFn: () => fetchBillActions(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch bill summaries.
+ */
+export function useBillSummaries(billId: string) {
+    return useQuery({
+        queryKey: ['bill-summaries', billId],
+        queryFn: () => fetchBillSummaries(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch bill committees.
+ */
+export function useBillCommittees(billId: string) {
+    return useQuery({
+        queryKey: ['bill-committees', billId],
+        queryFn: () => fetchBillCommittees(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch bill cosponsors.
+ */
+export function useBillCosponsors(billId: string) {
+    return useQuery({
+        queryKey: ['bill-cosponsors', billId],
+        queryFn: () => fetchBillCosponsors(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch bill subjects.
+ */
+export function useBillSubjects(billId: string) {
+    return useQuery({
+        queryKey: ['bill-subjects', billId],
+        queryFn: () => fetchBillSubjects(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch bill titles.
+ */
+export function useBillTitles(billId: string) {
+    return useQuery({
+        queryKey: ['bill-titles', billId],
+        queryFn: () => fetchBillTitles(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch bill amendments.
+ */
+export function useBillAmendments(billId: string) {
+    return useQuery({
+        queryKey: ['bill-amendments', billId],
+        queryFn: () => fetchBillAmendments(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch related bills.
+ */
+export function useBillRelated(billId: string) {
+    return useQuery({
+        queryKey: ['bill-related', billId],
+        queryFn: () => fetchBillRelated(billId),
+        enabled: !!billId,
+    });
+}
+
+/**
+ * Hook to fetch lobbying network graph data.
+ */
+export function useLobbyingNetwork() {
+    return useQuery({
+        queryKey: ['lobbying-network'],
+        queryFn: () => fetchLobbyingNetwork(),
+    });
+}
+
+/**
+ * Hook to fetch triple correlations (trade-bill-lobbying).
+ */
+export function useTripleCorrelations(params: {
+    year?: string;
+    min_score?: number;
+    member_bioguide?: string;
+    ticker?: string;
+    bill_id?: string;
+    limit?: number;
+} = {}) {
+    return useQuery({
+        queryKey: ['triple-correlations', params],
+        queryFn: () => fetchTripleCorrelations(params),
     });
 }

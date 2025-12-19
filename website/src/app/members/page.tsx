@@ -1,20 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchMembers, type MembersParams, type CongressMember } from '@/lib/api';
-import { ErrorBoundary, ApiError } from '@/components/ErrorBoundary';
-
-type Member = CongressMember & {
-    name?: string; // Computed from first_name + last_name
-    trade_count?: number; // Optional trade count from API
-};
+import { useMembers } from '@/hooks/use-api';
+import { DataContainer } from '@/components/ui/data-container';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { MembersParams, CongressMember } from '@/types/api';
 
 /**
  * Small member photo with fallback to initials
@@ -63,11 +60,6 @@ const STATES = [
 ];
 
 function MembersPage() {
-    const [members, setMembers] = useState<CongressMember[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [totalCount, setTotalCount] = useState(0);
-
     // Filters & Pagination
     const [search, setSearch] = useState('');
     const [party, setParty] = useState('');
@@ -77,39 +69,20 @@ function MembersPage() {
     const [page, setPage] = useState(1);
     const limit = 50;
 
-    useEffect(() => {
-        async function loadMembers() {
-            setLoading(true);
-            setError(null);
+    const params: MembersParams = {
+        limit,
+        offset: (page - 1) * limit,
+        sortBy,
+        sortOrder: 'desc'
+    };
+    if (party) params.party = party as 'D' | 'R' | 'I';
+    if (chamber) params.chamber = chamber as 'house' | 'senate';
+    if (state) params.state = state;
 
-            try {
-                const params: MembersParams = {
-                    limit,
-                    offset: (page - 1) * limit,
-                    sortBy,
-                    sortOrder: 'desc'
-                };
-                if (party) params.party = party as 'D' | 'R' | 'I';
-                if (chamber) params.chamber = chamber as 'house' | 'senate';
-                if (state) params.state = state;
-
-                const response: any = await fetchMembers(params);
-                // Handle both raw array and paginated response
-                const memberData = Array.isArray(response) ? response : response.data || [];
-                const pagination = response.pagination || {};
-
-                setMembers(memberData);
-                setTotalCount(pagination.total || memberData.length);
-            } catch (err) {
-                setError('Failed to load members');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadMembers();
-    }, [party, chamber, state, sortBy, page]);
+    const membersQuery = useMembers(params);
+    const membersData = membersQuery.data || { data: [], pagination: { total: 0, count: 0, limit: 50, offset: 0 } };
+    const members = membersData.data;
+    const totalCount = membersData.pagination.total;
 
     // Client-side search for the current page
     const filteredMembers = members.filter(member => {
@@ -205,13 +178,15 @@ function MembersPage() {
                 </CardContent>
             </Card>
 
-            {/* Error */}
-            {error && <ApiError error={error} onRetry={() => window.location.reload()} />}
-
-            {/* Members Grid */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {loading ? (
-                    [...Array(12)].map((_, i) => (
+            <DataContainer
+                isLoading={membersQuery.isLoading}
+                isError={membersQuery.isError}
+                error={membersQuery.error}
+                data={members}
+                emptyMessage="No members found matching your criteria"
+                onRetry={() => membersQuery.refetch()}
+                loadingSkeleton={<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {[...Array(12)].map((_, i) => (
                         <Card key={i}>
                             <CardContent className="pt-6">
                                 <div className="flex items-center gap-4">
@@ -223,68 +198,66 @@ function MembersPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                    ))
-                ) : filteredMembers.length === 0 ? (
-                    <Card className="col-span-full">
-                        <CardContent className="py-8 text-center text-muted-foreground">
-                            No members found matching your criteria
-                        </CardContent>
-                    </Card>
-                ) : (
-                    filteredMembers.map((member) => (
-                        <Link key={member.bioguide_id || `${member.first_name}-${member.last_name}`} href={`/politician/${member.bioguide_id}`}>
-                            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-t-4 data-[party=D]:border-t-blue-500 data-[party=R]:border-t-red-500" data-party={member.party}>
-                                <CardContent className="pt-6">
-                                    <div className="flex items-start gap-4">
-                                        <MemberPhotoSmall
-                                            bioguideId={member.bioguide_id || 'UNKNOWN'}
-                                            name={`${member.first_name} ${member.last_name}`}
-                                            party={member.party}
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold truncate">
-                                                {member.first_name} {member.last_name}
-                                            </h3>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <Badge variant="outline" className="text-[10px] px-1 h-4">
-                                                    {member.party}-{member.state}
-                                                </Badge>
-                                                <span className="text-[10px] text-muted-foreground uppercase font-medium">
-                                                    {member.chamber}
-                                                </span>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-muted">
-                                                <div>
-                                                    <p className="text-[10px] text-muted-foreground uppercase">Volume (Est)</p>
-                                                    <p className="text-sm font-bold text-primary">
-                                                        {formatVolume(member.total_volume)}
-                                                    </p>
+                    ))}
+                </div>}
+            >
+                {() => (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {filteredMembers.map((member) => (
+                            <Link key={member.bioguide_id || `${member.first_name}-${member.last_name}`} href={`/politician/${member.bioguide_id}`}>
+                                <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-t-4 data-[party=D]:border-t-blue-500 data-[party=R]:border-t-red-500" data-party={member.party}>
+                                    <CardContent className="pt-6">
+                                        <div className="flex items-start gap-4">
+                                            <MemberPhotoSmall
+                                                bioguideId={member.bioguide_id || 'UNKNOWN'}
+                                                name={`${member.first_name} ${member.last_name}`}
+                                                party={member.party}
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-semibold truncate">
+                                                    {member.first_name} {member.last_name}
+                                                </h3>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <Badge variant="outline" className="text-[10px] px-1 h-4">
+                                                        {member.party}-{member.state}
+                                                    </Badge>
+                                                    <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                                                        {member.chamber}
+                                                    </span>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[10px] text-muted-foreground uppercase">Trades</p>
-                                                    <p className="text-sm font-bold text-primary">
-                                                        {member.total_trades || 0}
-                                                    </p>
-                                                </div>
-                                            </div>
 
-                                            {member.last_trade_date && (
-                                                <p className="text-[10px] text-muted-foreground mt-2 italic">
-                                                    Last trade: {member.last_trade_date}
-                                                </p>
-                                            )}
+                                                <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-muted">
+                                                    <div>
+                                                        <p className="text-[10px] text-muted-foreground uppercase">Volume (Est)</p>
+                                                        <p className="text-sm font-bold text-primary">
+                                                            {formatVolume(member.total_volume)}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] text-muted-foreground uppercase">Trades</p>
+                                                        <p className="text-sm font-bold text-primary">
+                                                            {member.total_trades || 0}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {member.last_trade_date && (
+                                                    <p className="text-[10px] text-muted-foreground mt-2 italic">
+                                                        Last trade: {member.last_trade_date}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
                 )}
-            </div>
+            </DataContainer>
 
             {/* Pagination */}
-            {!loading && totalPages > 1 && (
+            {!membersQuery.isLoading && totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 pt-8">
                     <button
                         onClick={() => setPage(p => Math.max(1, p - 1))}

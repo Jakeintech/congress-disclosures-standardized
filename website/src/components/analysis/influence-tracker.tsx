@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ExternalLink, TrendingUp, TrendingDown, Minus, Search, FilterX, ChevronRight } from 'lucide-react';
+import { useTripleCorrelations } from '@/hooks/use-api';
+import { DataContainer } from '@/components/ui/data-container';
 
 interface Correlation {
     bill_id: string;
@@ -30,89 +31,35 @@ interface Correlation {
 }
 
 export function InfluenceTracker() {
-    const [correlations, setCorrelations] = useState<Correlation[]>([]);
-    const [displayedCorrelations, setDisplayedCorrelations] = useState<Correlation[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    // Filters
     const [year, setYear] = useState('2025');
     const [minScore, setMinScore] = useState([50]);
     const [memberFilter, setMemberFilter] = useState('');
     const [tickerFilter, setTickerFilter] = useState('');
     const [billFilter, setBillFilter] = useState('');
 
-    // Pagination
-    const [displayCount, setDisplayCount] = useState(20);
+    const { data: correlationsData, isLoading, isError, error, refetch } = useTripleCorrelations({
+        year,
+        min_score: minScore[0],
+        member_bioguide: memberFilter,
+        ticker: tickerFilter,
+        bill_id: billFilter,
+        limit: 100
+    });
 
-    useEffect(() => {
-        fetchCorrelations();
-    }, [year, minScore, memberFilter, tickerFilter, billFilter]);
-
-    const fetchCorrelations = async () => {
-        setLoading(true);
-        try {
-            const params = new URLSearchParams({
-                year,
-                min_score: minScore[0].toString(),
-                limit: '200',
-            });
-
-            if (memberFilter) params.append('member_bioguide', memberFilter);
-            if (tickerFilter) params.append('ticker', tickerFilter.toUpperCase());
-            if (billFilter) params.append('bill_id', billFilter.toLowerCase());
-
-            const response = await fetch(`/api/correlations/triple?${params}`);
-            if (!response.ok) throw new Error('Failed to fetch correlations');
-
-            const data = await response.json();
-            const correlationsData = data.data?.correlations || data.correlations || [];
-            setCorrelations(correlationsData);
-            setDisplayedCorrelations(correlationsData.slice(0, displayCount));
-        } catch (err: any) {
-            console.error('Error fetching correlations:', err);
-            setError(err.message || 'Failed to load correlation data');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const loadMore = () => {
-        const newCount = displayCount + 20;
-        setDisplayCount(newCount);
-        setDisplayedCorrelations(correlations.slice(0, newCount));
-    };
+    const correlations = (correlationsData as any)?.correlations || [];
 
     const getScoreColor = (score: number) => {
-        if (score === 100) return 'bg-purple-500';
-        if (score >= 80) return 'bg-red-500';
-        if (score >= 60) return 'bg-orange-500';
-        if (score >= 40) return 'bg-yellow-500';
-        return 'bg-gray-400';
-    };
-
-    const getCongressUrl = (billId: string) => {
-        const match = billId?.match(/(\d+)-(hr|s|hjres|sjres|hres|sres)-(\d+)/i);
-        if (match) {
-            const [, congress, type, number] = match;
-            const typeMap: Record<string, string> = {
-                'hr': 'house-bill',
-                's': 'senate-bill',
-                'hjres': 'house-joint-resolution',
-                'sjres': 'senate-joint-resolution'
-            };
-            const urlType = typeMap[type.toLowerCase()] || type;
-            return `https://www.congress.gov/bill/${congress}th-congress/${urlType}/${number}`;
-        }
-        return null;
+        if (score === 100) return 'bg-purple-600';
+        if (score >= 80) return 'bg-red-600';
+        if (score >= 60) return 'bg-orange-600';
+        if (score >= 40) return 'bg-amber-500';
+        return 'bg-slate-400';
     };
 
     const formatCurrency = (amount: number) =>
         new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
             notation: 'compact'
         }).format(amount);
 
@@ -140,31 +87,22 @@ export function InfluenceTracker() {
         return impacts.slice(0, 6);
     };
 
-    const getSentimentIcon = (sentiment: string) => {
-        if (sentiment === 'BULLISH') return <TrendingUp className="h-3 w-3" />;
-        if (sentiment === 'BEARISH') return <TrendingDown className="h-3 w-3" />;
-        return <Minus className="h-3 w-3" />;
-    };
-
-    const getSentimentColor = (sentiment: string) => {
-        if (sentiment === 'BULLISH') return 'bg-green-100 text-green-700 border-green-200';
-        if (sentiment === 'BEARISH') return 'bg-red-100 text-red-700 border-red-200';
-        return 'bg-orange-100 text-orange-700 border-orange-200';
-    };
-
     return (
         <div className="space-y-6">
-            {/* Filters */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Filter Correlations</CardTitle>
+            <Card className="border-none shadow-none bg-accent/5">
+                <CardHeader className="px-0 pt-0">
+                    <CardTitle className="flex items-center gap-2">
+                        <Search className="h-5 w-5" />
+                        Analysis Filters
+                    </CardTitle>
+                    <CardDescription>Refine triple correlation results by member, asset, or legislation</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div>
-                            <Label>Year</Label>
+                <CardContent className="px-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div className="space-y-2">
+                            <Label className="text-xs uppercase font-bold text-muted-foreground">Legislative Year</Label>
                             <Select value={year} onValueChange={setYear}>
-                                <SelectTrigger>
+                                <SelectTrigger className="bg-background">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -175,197 +113,158 @@ export function InfluenceTracker() {
                             </Select>
                         </div>
 
-                        <div>
-                            <Label>Member (Bioguide ID)</Label>
+                        <div className="space-y-2">
+                            <Label className="text-xs uppercase font-bold text-muted-foreground">Member ID</Label>
                             <Input
                                 placeholder="e.g., P000197"
                                 value={memberFilter}
                                 onChange={(e) => setMemberFilter(e.target.value)}
+                                className="bg-background"
                             />
                         </div>
 
-                        <div>
-                            <Label>Stock Ticker</Label>
+                        <div className="space-y-2">
+                            <Label className="text-xs uppercase font-bold text-muted-foreground">Ticker</Label>
                             <Input
                                 placeholder="e.g., NVDA"
                                 value={tickerFilter}
                                 onChange={(e) => setTickerFilter(e.target.value)}
+                                className="bg-background font-mono uppercase"
                             />
                         </div>
 
-                        <div>
-                            <Label>Bill ID</Label>
+                        <div className="space-y-2">
+                            <Label className="text-xs uppercase font-bold text-muted-foreground">Bill ID</Label>
                             <Input
                                 placeholder="e.g., 119-hr-1234"
                                 value={billFilter}
                                 onChange={(e) => setBillFilter(e.target.value)}
+                                className="bg-background font-mono"
                             />
                         </div>
 
-                        <div>
-                            <Label>Min Score: {minScore[0]}</Label>
-                            <Slider
-                                value={minScore}
-                                onValueChange={setMinScore}
-                                min={0}
-                                max={100}
-                                step={10}
-                            />
+                        <div className="space-y-2">
+                            <Label className="text-xs uppercase font-bold text-muted-foreground">Confidence: {minScore[0]}%</Label>
+                            <div className="pt-2">
+                                <Slider
+                                    value={minScore}
+                                    onValueChange={setMinScore}
+                                    min={0}
+                                    max={100}
+                                    step={10}
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-6 flex justify-between items-center bg-background/50 p-3 rounded-lg border border-dashed">
+                        <div className="text-xs font-mono text-muted-foreground">
+                            Found {correlations.length} potential correlations
+                        </div>
                         <Button
-                            variant="outline"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                                 setMemberFilter('');
                                 setTickerFilter('');
                                 setBillFilter('');
                                 setMinScore([50]);
                             }}
+                            className="h-8 text-[10px] uppercase font-bold"
                         >
-                            Clear Filters
+                            <FilterX className="h-3 w-3 mr-2" />
+                            Reset All
                         </Button>
-                        <div className="text-sm text-muted-foreground flex items-center">
-                            Found {correlations.length} correlations
-                        </div>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Results */}
-            {loading ? (
-                <div className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                        <Card key={i}>
-                            <CardContent className="p-6">
-                                <Skeleton className="h-24 w-full" />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            ) : error ? (
-                <Card>
-                    <CardContent className="p-6 text-center text-muted-foreground">
-                        {error}
-                    </CardContent>
-                </Card>
-            ) : correlations.length === 0 ? (
-                <Card>
-                    <CardContent className="p-6 text-center text-muted-foreground">
-                        No correlations found matching your filters. Try adjusting the criteria.
-                    </CardContent>
-                </Card>
-            ) : (
-                <>
-                    <div className="space-y-4">
-                        {displayedCorrelations.map((corr, idx) => {
+            <DataContainer
+                isLoading={isLoading}
+                isError={isError}
+                error={error}
+                data={correlations}
+                onRetry={() => refetch()}
+                emptyMessage="No correlations match your current filters. Try lowering the confidence threshold."
+            >
+                {(correlations: any) => (
+                    <div className="grid gap-4">
+                        {correlations.map((corr: Correlation, idx: number) => {
                             const clients = corr.client_names.split('|').filter(c => c).slice(0, 3);
-                            const registrants = corr.registrant_names.split('|').filter(r => r).slice(0, 2);
                             const issues = corr.top_issue_codes.split('|').filter(i => i);
                             const stockImpacts = getStockImpact(corr.top_issue_codes);
-                            const congressUrl = getCongressUrl(corr.bill_id);
 
                             return (
-                                <Card key={idx} className="hover:shadow-md transition-shadow">
-                                    <CardContent className="p-6">
-                                        <div className="flex gap-4">
-                                            {/* Score Badge */}
-                                            <div className="flex-shrink-0">
-                                                <div
-                                                    className={`${getScoreColor(corr.correlation_score)} text-white rounded-lg w-16 h-16 flex items-center justify-center font-bold text-2xl`}
-                                                >
-                                                    {Math.round(corr.correlation_score)}
-                                                </div>
+                                <Card key={idx} className="group hover:border-primary/50 transition-all border shadow-sm">
+                                    <CardContent className="p-0">
+                                        <div className="flex flex-col md:flex-row">
+                                            {/* Score Section */}
+                                            <div className={`${getScoreColor(corr.correlation_score)} text-white p-6 md:w-32 flex flex-col items-center justify-center text-center gap-1 group-hover:brightness-110 transition-all`}>
+                                                <div className="text-3xl font-black">{Math.round(corr.correlation_score)}</div>
+                                                <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">Score</div>
                                             </div>
 
-                                            {/* Content */}
-                                            <div className="flex-1 space-y-3">
-                                                {/* Bill Info */}
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <h3 className="font-semibold text-lg">
+                                            {/* Content Section */}
+                                            <div className="flex-1 p-6 space-y-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="space-y-1">
+                                                        <h3 className="font-bold text-lg group-hover:text-primary transition-colors flex items-center gap-2">
                                                             {corr.raw_reference || corr.bill_id}
+                                                            <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
                                                         </h3>
-                                                        {congressUrl && (
-                                                            <a
-                                                                href={congressUrl}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="text-blue-600 hover:text-blue-800"
-                                                            >
-                                                                <ExternalLink className="h-4 w-4" />
-                                                            </a>
+                                                        <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground uppercase">
+                                                            <span>{corr.filing_count} Filings</span>
+                                                            <span>{corr.registrant_count} Firms</span>
+                                                            <span className="text-primary font-bold">{formatCurrency(corr.lobbying_amount)} Vol</span>
+                                                        </div>
+                                                    </div>
+                                                    {corr.ticker && (
+                                                        <Badge className="font-mono text-base bg-primary/10 text-primary border-none px-3 py-1">
+                                                            {corr.ticker}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Key Lobbing Clients</div>
+                                                            <div className="flex flex-wrap gap-1.5">
+                                                                {clients.map((client, i) => (
+                                                                    <Badge key={i} variant="secondary" className="bg-emerald-500/10 text-emerald-700 border-none text-[10px]">
+                                                                        {client}
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        {issues.length > 0 && (
+                                                            <div>
+                                                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Lobbying Focus Areas</div>
+                                                                <div className="flex flex-wrap gap-1.5">
+                                                                    {issues.map((issue, i) => (
+                                                                        <Badge key={i} variant="outline" className="text-[10px] border-orange-500/30 text-orange-700">
+                                                                            {issue}
+                                                                        </Badge>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
                                                         )}
                                                     </div>
-                                                </div>
 
-                                                {/* Quick Stats */}
-                                                <div className="flex flex-wrap gap-4 text-sm">
-                                                    <div>
-                                                        <span className="text-muted-foreground">Clients:</span>{' '}
-                                                        <span className="font-semibold">{corr.client_count}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-muted-foreground">Lobbyists:</span>{' '}
-                                                        <span className="font-semibold">{corr.registrant_count} firms</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-muted-foreground">Filings:</span>{' '}
-                                                        <span className="font-semibold">{corr.filing_count}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-muted-foreground">Lobbying:</span>{' '}
-                                                        <span className="font-semibold">{formatCurrency(corr.lobbying_amount)}</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Clients */}
-                                                {clients.length > 0 && (
-                                                    <div>
-                                                        <div className="text-xs text-muted-foreground mb-1">Lobbying Clients</div>
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {clients.map((client, i) => (
-                                                                <Badge key={i} variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                                                    {client.substring(0, 30)}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Issue Codes */}
-                                                {issues.length > 0 && (
-                                                    <div>
-                                                        <div className="text-xs text-muted-foreground mb-1">Issue Codes</div>
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {issues.map((issue, i) => (
-                                                                <Badge key={i} variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                                                                    {issue}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Stock Impact Predictions */}
-                                                {stockImpacts.length > 0 && (
-                                                    <div>
-                                                        <div className="text-xs text-muted-foreground mb-1">📈 Potential Stock Impact</div>
-                                                        <div className="flex flex-wrap gap-1">
+                                                    <div className="bg-muted/30 p-4 rounded-xl space-y-3">
+                                                        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Impact Projection</div>
+                                                        <div className="grid grid-cols-2 gap-2">
                                                             {stockImpacts.map((impact, i) => (
-                                                                <Badge
-                                                                    key={i}
-                                                                    variant="outline"
-                                                                    className={`${getSentimentColor(impact.sentiment)} flex items-center gap-1`}
-                                                                >
-                                                                    {getSentimentIcon(impact.sentiment)}
-                                                                    {impact.ticker}
-                                                                </Badge>
+                                                                <div key={i} className="flex items-center justify-between p-2 bg-background rounded-lg border shadow-sm">
+                                                                    <span className="font-mono text-xs font-bold">{impact.ticker}</span>
+                                                                    <Badge variant="outline" className={`text-[9px] h-4 py-0 ${impact.sentiment === 'BULLISH' ? 'border-green-500 text-green-700' : 'border-slate-500 text-slate-700'}`}>
+                                                                        {impact.sentiment}
+                                                                    </Badge>
+                                                                </div>
                                                             ))}
                                                         </div>
                                                     </div>
-                                                )}
+                                                </div>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -373,17 +272,8 @@ export function InfluenceTracker() {
                             );
                         })}
                     </div>
-
-                    {/* Load More */}
-                    {displayCount < correlations.length && (
-                        <div className="text-center">
-                            <Button onClick={loadMore} variant="outline">
-                                Load More ({correlations.length - displayCount} remaining)
-                            </Button>
-                        </div>
-                    )}
-                </>
-            )}
+                )}
+            </DataContainer>
         </div>
     );
 }

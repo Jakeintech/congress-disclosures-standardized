@@ -28,9 +28,19 @@ import type {
     Cosponsor,
     Subject,
     BillSummary,
-    BillTitle,
     Amendment,
     RelatedBill,
+    SectorData,
+    TimingData,
+    PatternInsights,
+    PatternInsight,
+    Conflict,
+    ConflictSummary,
+    LobbyingActivity,
+    PortfolioData,
+    AlphaData,
+    MemberPortfolio,
+    Committee,
 } from '@/types/api';
 
 // Re-export types for convenience
@@ -158,7 +168,7 @@ export async function fetchBills(params: BillsParams = {}): Promise<Bill[]> {
 /**
  * Fetch members list
  */
-export async function fetchMembers(params: MembersParams = {}): Promise<CongressMember[]> {
+export async function fetchMembers(params: MembersParams = {}): Promise<{ data: CongressMember[], pagination: PaginationMeta }> {
     const searchParams = new URLSearchParams();
 
     if (params.congress) searchParams.set('congress', params.congress.toString());
@@ -171,9 +181,12 @@ export async function fetchMembers(params: MembersParams = {}): Promise<Congress
     if (params.offset) searchParams.set('offset', params.offset.toString());
 
     const url = `${API_BASE}/v1/congress/members?${searchParams.toString()}`;
-    const raw = await fetchApi<{ data?: any[] }>(`${url}`);
-    const data = (Array.isArray(raw) ? raw : raw.data) || [];
-    return data;
+    const raw = await fetchApi<any>(`${url}`);
+
+    return {
+        data: (Array.isArray(raw) ? raw : raw.data) || [],
+        pagination: raw.pagination || { total: 0, count: 0, limit: 50, offset: 0 }
+    };
 }
 
 /**
@@ -188,12 +201,12 @@ export async function fetchMemberProfile(bioguideId: string): Promise<MemberProf
 /**
  * Fetch member trades
  */
-export async function fetchMemberTrades(bioguideId: string, limit = 50) {
-    const raw = await fetchApi<{ data?: any[] }>(
+export async function fetchMemberTrades(bioguideId: string, limit = 50): Promise<Transaction[]> {
+    const raw = await fetchApi<{ data?: Transaction[] }>(
         `${API_BASE}/v1/members/${bioguideId}/trades?limit=${limit}`
     );
     const data = (Array.isArray(raw) ? raw : raw.data) || [];
-    return data;
+    return data as Transaction[];
 }
 
 /**
@@ -250,27 +263,56 @@ export async function fetchTopTraders(limit = 10): Promise<TopTrader[]> {
 /**
  * Fetch lobbying activity for a bill
  */
-export async function fetchBillLobbyingActivity(billId: string) {
-    const raw = await fetchApi<{ data?: unknown }>(
+export async function fetchBillLobbyingActivity(billId: string): Promise<LobbyingActivity | null> {
+    const raw = await fetchApi<{ data?: LobbyingActivity }>(
         `${API_BASE}/v1/lobbying/bills/${billId}/lobbying-activity`
     );
-    return raw.data || raw;
+    return raw.data || (raw as unknown as LobbyingActivity) || null;
+}
+
+/**
+ * Fetch lobbying network graph data
+ */
+export async function fetchLobbyingNetwork() {
+    try {
+        const raw = await fetchApi<{ data?: any }>(
+            `${API_BASE}/v1/lobbying/network`
+        );
+        return raw.data || raw;
+    } catch (e) {
+        console.warn("Failed to fetch lobbying network", e);
+        return null;
+    }
 }
 
 /**
  * Fetch triple correlations (trade-bill-lobbying)
  */
-export async function fetchTripleCorrelations(params: TripleCorrelationsParams = {}): Promise<TripleCorrelation[]> {
-    const searchParams = new URLSearchParams();
 
-    if (params.minScore) searchParams.set('min_score', params.minScore.toString());
-    if (params.year) searchParams.set('year', params.year.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
+export async function fetchTripleCorrelations(params: {
+    year?: string;
+    min_score?: number;
+    member_bioguide?: string;
+    ticker?: string;
+    bill_id?: string;
+    limit?: number;
+} = {}) {
+    try {
+        const searchParams = new URLSearchParams();
+        if (params.year) searchParams.append('year', params.year);
+        if (params.min_score) searchParams.append('min_score', params.min_score.toString());
+        if (params.member_bioguide) searchParams.append('member_bioguide', params.member_bioguide);
+        if (params.ticker) searchParams.append('ticker', params.ticker.toUpperCase());
+        if (params.bill_id) searchParams.append('bill_id', params.bill_id.toLowerCase());
+        if (params.limit) searchParams.append('limit', params.limit.toString());
 
-    const url = `${API_BASE}/v1/correlations/triple?${searchParams.toString()}`;
-    const raw = await fetchApi<{ data?: any[] }>(`${url}`);
-    const data = (Array.isArray(raw) ? raw : raw.data) || [];
-    return data;
+        const url = `${API_BASE}/v1/correlations/triple?${searchParams.toString()}`;
+        const raw = await fetchApi<{ data?: any }>(url);
+        return raw.data || raw;
+    } catch (e) {
+        console.warn("Failed to fetch triple correlations", e);
+        return { correlations: [] };
+    }
 }
 
 /**
@@ -297,9 +339,9 @@ export async function fetchDashboardSummary(): Promise<{
 /**
  * Fetch sector trading activity
  */
-export async function fetchSectorActivity() {
+export async function fetchSectorActivity(): Promise<SectorData[]> {
     try {
-        const raw = await fetchApi<{ sectors?: any[], message?: string }>(
+        const raw = await fetchApi<{ sectors?: SectorData[], message?: string }>(
             `${API_BASE}/v1/analytics/sector-activity`
         );
         return raw.sectors || [];
@@ -312,20 +354,20 @@ export async function fetchSectorActivity() {
 /**
  * Fetch congressional alpha data
  */
-export async function fetchCongressionalAlpha(type: 'member' | 'party' | 'sector_rotation' = 'member', limit = 10) {
+export async function fetchCongressionalAlpha(type: 'member' | 'party' | 'sector_rotation' = 'member', limit = 10): Promise<AlphaData[]> {
     try {
-        const raw = await fetchApi<{ data?: any[] }>(
+        const raw = await fetchApi<{ data?: AlphaData[] }>(
             `${API_BASE}/v1/analytics/alpha?type=${type}&limit=${limit}`
         );
-        return raw.data || raw || [];
+        return raw.data || (Array.isArray(raw) ? raw : []);
     } catch (e) {
         console.warn(`Failed to fetch ${type} alpha`, e);
         return [];
     }
 }
-export async function fetchPatternInsights(type: 'trending' | 'timing' | 'sector' = 'trending') {
+export async function fetchPatternInsights(type: 'trending' | 'timing' | 'sector' = 'trending'): Promise<PatternInsights | null> {
     try {
-        const raw = await fetchApi<any>(
+        const raw = await fetchApi<PatternInsights>(
             `${API_BASE}/v1/analytics/insights?type=${type}`
         );
         return raw;
@@ -338,12 +380,15 @@ export async function fetchPatternInsights(type: 'trending' | 'timing' | 'sector
 /**
  * Fetch conflict of interest detection data
  */
-export async function fetchConflicts(severity = 'all', limit = 10) {
+export async function fetchConflicts(severity = 'all', limit = 10): Promise<{ conflicts: Conflict[], summary: ConflictSummary | null }> {
     try {
-        const raw = await fetchApi<{ conflicts?: any[], summary?: any }>(
+        const raw = await fetchApi<{ conflicts?: Conflict[], summary?: ConflictSummary }>(
             `${API_BASE}/v1/analytics/conflicts?severity=${severity}&limit=${limit}`
         );
-        return raw;
+        return {
+            conflicts: raw.conflicts || [],
+            summary: raw.summary || null
+        };
     } catch (e) {
         console.warn("Failed to fetch conflicts", e);
         return { conflicts: [], summary: null };
@@ -357,17 +402,17 @@ export async function fetchPortfolios(params: {
     member_id?: string;
     limit?: number;
     include_holdings?: boolean;
-} = {}) {
+} = {}): Promise<PortfolioData[]> {
     try {
         const searchParams = new URLSearchParams();
         if (params.member_id) searchParams.set('member_id', params.member_id);
         if (params.limit) searchParams.set('limit', String(params.limit));
         if (params.include_holdings) searchParams.set('include_holdings', 'true');
 
-        const raw = await fetchApi<{ portfolios?: any[] }>(
+        const raw = await fetchApi<{ portfolios?: PortfolioData[] }>(
             `${API_BASE}/v1/analytics/portfolio?${searchParams.toString()}`
         );
-        return raw.portfolios || [];
+        return raw.portfolios || (Array.isArray(raw) ? raw : []);
     } catch (e) {
         console.warn("Failed to fetch portfolios", e);
         return [];
@@ -422,10 +467,9 @@ export async function fetchNetworkGraph(params: {
 /**
  * Fetch member assets (portfolio)
  */
-export async function fetchMemberAssets(bioguideId: string) {
-    const raw = await fetchApi<{ data?: { holdings: any[] } }>(`${API_BASE}/v1/members/${bioguideId}/portfolio`);
-    const result = raw.data || raw;
-    // @ts-expect-error - Runtime check
+export async function fetchMemberAssets(bioguideId: string): Promise<PortfolioHolding[]> {
+    const raw = await fetchApi<{ data?: { holdings: PortfolioHolding[] } }>(`${API_BASE}/v1/members/${bioguideId}/portfolio`);
+    const result = raw.data || (raw as any);
     return result.holdings || [];
 }
 
@@ -461,12 +505,12 @@ export async function fetchBillText(billId: string) {
 /**
  * Fetch all congressional committees
  */
-export async function fetchCommittees(congress = 119) {
+export async function fetchCommittees(congress = 119): Promise<Committee[]> {
     try {
-        const raw = await fetchApi<{ data?: { committees: any[] } }>(
+        const raw = await fetchApi<{ data?: { committees: Committee[] } }>(
             `${API_BASE}/v1/congress/committees?congress=${congress}`
         );
-        return raw.data?.committees || raw || [];
+        return raw.data?.committees || (Array.isArray(raw) ? raw : []);
     } catch (e) {
         console.warn("Failed to fetch committees", e);
         return [];

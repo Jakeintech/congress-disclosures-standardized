@@ -9,6 +9,7 @@ import { PoliticianHeader } from './politician-header';
 import { TradeVolumeChart } from './trade-volume-chart';
 import { SectorPieChart } from './sector-pie-chart';
 import { RecentTradesTable } from './recent-trades-table';
+import { MemberPortfolioTable } from './member-portfolio-table';
 import { MemberAssociationGraph } from '../analysis/member-association-graph';
 
 interface PoliticianDashboardProps {
@@ -45,15 +46,15 @@ export function PoliticianDashboard({ bioguideId }: PoliticianDashboardProps) {
                         <PoliticianHeader member={member} />
 
                         <Tabs defaultValue="overview" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+                            <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
                                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                                <TabsTrigger value="network">Association Network</TabsTrigger>
+                                <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+                                <TabsTrigger value="network">Network</TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="overview" className="space-y-6 mt-6">
-                                {/* Main Content Grid */}
+                                {/* Overview content */}
                                 <div className="grid gap-6 lg:grid-cols-3">
-                                    {/* Left Column: Charts */}
                                     <div className="lg:col-span-2 space-y-6">
                                         <Card>
                                             <CardHeader>
@@ -73,8 +74,7 @@ export function PoliticianDashboard({ bioguideId }: PoliticianDashboardProps) {
                                         <Card>
                                             <CardHeader>
                                                 <div className="flex items-center justify-between">
-                                                    <CardTitle>Transactions</CardTitle>
-                                                    <span className="text-sm text-muted-foreground">Recent trading activity</span>
+                                                    <CardTitle>Recent Transactions</CardTitle>
                                                 </div>
                                             </CardHeader>
                                             <CardContent>
@@ -83,7 +83,6 @@ export function PoliticianDashboard({ bioguideId }: PoliticianDashboardProps) {
                                         </Card>
                                     </div>
 
-                                    {/* Right Column: Stats & Actions */}
                                     <div className="space-y-6">
                                         <Card>
                                             <CardHeader>
@@ -95,6 +94,10 @@ export function PoliticianDashboard({ bioguideId }: PoliticianDashboardProps) {
                                         </Card>
                                     </div>
                                 </div>
+                            </TabsContent>
+
+                            <TabsContent value="portfolio" className="mt-6">
+                                <MemberPortfolioTable bioguideId={bioguideId} />
                             </TabsContent>
 
                             <TabsContent value="network" className="mt-6">

@@ -2,47 +2,27 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, PieChart, TrendingUp, Clock } from "lucide-react";
+import { Briefcase, TrendingUp, ShieldCheck, AlertCircle, PieChart } from "lucide-react";
 import { usePortfolios } from "@/hooks/use-api";
-
-interface PortfolioData {
-    member_key: string;
-    name?: string;
-    party?: string;
-    estimated_portfolio_value: number;
-    portfolio_value_low?: number;
-    portfolio_value_high?: number;
-    position_count: number;
-    top_5_concentration?: number;
-    top_sector?: string;
-    top_sector_pct?: number;
-    confidence_score: number;
-    total_trades?: number;
-    last_trade_date?: string;
-    sector_allocation?: Record<string, number>;
-    top_holdings?: Array<{ ticker: string; value: number; sector: string }>;
-}
+import { DataContainer } from "@/components/ui/data-container";
+import { PortfolioData } from "@/types/api";
 
 interface PortfolioReconstructionCardProps {
     memberId?: string;
     limit?: number;
-    showDetails?: boolean;
 }
 
 export function PortfolioReconstructionCard({
     memberId,
-    limit = 10,
-    showDetails = false
+    limit = 10
 }: PortfolioReconstructionCardProps) {
-    const { data, isLoading, error } = usePortfolios({
+    const { data = [], isLoading, error, refetch } = usePortfolios({
         member_id: memberId,
         limit,
-        include_holdings: showDetails
+        include_holdings: false
     });
-    const portfolios = (data as PortfolioData[]) || [];
-    const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
 
-    const formatValue = (val: number | undefined) => {
+    const formatCurrency = (val: number | undefined) => {
         if (!val) return '--';
         if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
         if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
@@ -50,162 +30,120 @@ export function PortfolioReconstructionCard({
     };
 
     const getConfidenceColor = (score: number) => {
-        if (score >= 75) return 'text-green-600';
-        if (score >= 50) return 'text-yellow-600';
-        return 'text-orange-600';
+        if (score >= 0.8) return 'text-green-600';
+        if (score >= 0.5) return 'text-yellow-600';
+        return 'text-red-600';
     };
-
-    const getConfidenceLevel = (score: number) => {
-        if (score >= 75) return 'High';
-        if (score >= 50) return 'Medium';
-        return 'Low';
-    };
-
-    if (isLoading) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Wallet className="h-5 w-5" />
-                        Portfolio Reconstruction
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-center py-8">
-                        <div className="animate-pulse text-muted-foreground">Reconstructing portfolios...</div>
-                    </div>
-                </CardContent>
-            </Card>
-        );
-    }
-
-    if (errorMessage) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Portfolio Reconstruction</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-destructive py-4">Error: {errorMessage}</div>
-                </CardContent>
-            </Card>
-        );
-    }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5" />
-                    Portfolio Reconstruction
-                </CardTitle>
-                <CardDescription>
-                    Estimated holdings reconstructed from cumulative trading data
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    {portfolios.length === 0 ? (
-                        <div className="text-center text-muted-foreground py-8">
-                            No portfolio data available
+        <DataContainer
+            isLoading={isLoading}
+            isError={!!error}
+            error={error}
+            data={data}
+            onRetry={() => refetch()}
+            loadingSkeleton={
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Briefcase className="h-5 w-5" />
+                            Portfolio Reconstruction
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-center py-8">
+                            <div className="animate-pulse text-muted-foreground">Reconstructing portfolios...</div>
                         </div>
-                    ) : (
-                        portfolios.map((portfolio, idx) => (
-                            <div
-                                key={idx}
-                                className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                            >
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-semibold">
-                                                {portfolio.name || portfolio.member_key}
-                                            </span>
-                                            {portfolio.party && (
-                                                <Badge variant="outline" className="text-xs">
-                                                    {portfolio.party}
+                    </CardContent>
+                </Card>
+            }
+        >
+            {(data) => (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Briefcase className="h-5 w-5" />
+                            Portfolio Reconstruction
+                        </CardTitle>
+                        <CardDescription>
+                            Estimated current holdings based on disclosure history
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {(Array.isArray(data) ? data : []).map((port: PortfolioData, idx: number) => (
+                                <div key={idx} className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h4 className="font-semibold text-lg">{port.name || port.member_key}</h4>
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <span>{port.party}</span>
+                                                <span>•</span>
+                                                <Badge variant="outline" className="text-[10px] uppercase">
+                                                    {port.position_count} positions
                                                 </Badge>
-                                            )}
-                                        </div>
-
-                                        <div className="flex items-center gap-4 mt-2 text-sm">
-                                            <div className="flex items-center gap-1">
-                                                <PieChart className="h-4 w-4 text-muted-foreground" />
-                                                <span>{portfolio.position_count} positions</span>
                                             </div>
-                                            {portfolio.top_sector && (
-                                                <div className="flex items-center gap-1">
-                                                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                                                    <span>{portfolio.top_sector} ({portfolio.top_sector_pct}%)</span>
-                                                </div>
-                                            )}
-                                            {portfolio.last_trade_date && (
-                                                <div className="flex items-center gap-1">
-                                                    <Clock className="h-4 w-4 text-muted-foreground" />
-                                                    <span>Last: {portfolio.last_trade_date}</span>
-                                                </div>
-                                            )}
                                         </div>
+                                        <div className="text-right">
+                                            <div className="text-sm text-muted-foreground mb-1 uppercase tracking-wider font-semibold">
+                                                Est. Value
+                                            </div>
+                                            <div className="text-xl font-bold text-primary">
+                                                {formatCurrency(port.estimated_portfolio_value)}
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                        {/* Top Holdings */}
-                                        {portfolio.top_holdings && portfolio.top_holdings.length > 0 && (
-                                            <div className="flex flex-wrap gap-1 mt-2">
-                                                {portfolio.top_holdings.slice(0, 5).map((holding: { ticker: string; value: number; sector: string }, hidx: number) => (
-                                                    <Badge key={hidx} variant="secondary" className="text-xs">
-                                                        {holding.ticker}: {formatValue(holding.value)}
+                                    <div className="grid grid-cols-2 gap-4 mt-4 py-3 border-t">
+                                        <div>
+                                            <div className="text-xs text-muted-foreground uppercase mb-1">Top Sector</div>
+                                            <div className="flex items-center gap-2">
+                                                <PieChart className="h-3 w-3 text-muted-foreground" />
+                                                <span className="text-sm font-medium">{port.top_sector || '--'}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-muted-foreground uppercase mb-1">Confidence</div>
+                                            <div className="flex items-center gap-2">
+                                                {port.confidence_score >= 0.7 ? (
+                                                    <ShieldCheck className={`h-3 w-3 ${getConfidenceColor(port.confidence_score)}`} />
+                                                ) : (
+                                                    <AlertCircle className={`h-3 w-3 ${getConfidenceColor(port.confidence_score)}`} />
+                                                )}
+                                                <span className={`text-sm font-bold ${getConfidenceColor(port.confidence_score)}`}>
+                                                    {(port.confidence_score * 100).toFixed(0)}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {port.top_holdings && port.top_holdings.length > 0 && (
+                                        <div className="mt-4 pt-3 border-t">
+                                            <div className="text-xs text-muted-foreground uppercase mb-2">Top Holdings</div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {port.top_holdings.map((h, i) => (
+                                                    <Badge key={i} variant="secondary" className="font-mono text-[10px]">
+                                                        {h.ticker}: {formatCurrency(h.value)}
                                                     </Badge>
                                                 ))}
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
 
-                                    <div className="text-right">
-                                        <div className="text-lg font-bold">
-                                            {formatValue(portfolio.estimated_portfolio_value)}
+                                    {port.total_trades !== undefined && (
+                                        <div className="mt-4 pt-3 flex items-center justify-between text-xs text-muted-foreground border-t border-dashed">
+                                            <span>History: {port.total_trades} trades analyzed</span>
+                                            {port.last_trade_date && (
+                                                <span>Updated {new Date(port.last_trade_date).toLocaleDateString()}</span>
+                                            )}
                                         </div>
-                                        <div className="text-xs text-muted-foreground">
-                                            Range: {formatValue(portfolio.portfolio_value_low)} - {formatValue(portfolio.portfolio_value_high)}
-                                        </div>
-                                        <div className={`text-xs mt-1 ${getConfidenceColor(portfolio.confidence_score)}`}>
-                                            Confidence: {getConfidenceLevel(portfolio.confidence_score)} ({portfolio.confidence_score.toFixed(0)})
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
-
-                                {/* Sector Allocation Bar */}
-                                {portfolio.sector_allocation && Object.keys(portfolio.sector_allocation).length > 0 && (
-                                    <div className="mt-3">
-                                        <div className="text-xs text-muted-foreground mb-1">Sector Allocation</div>
-                                        <div className="flex h-2 rounded overflow-hidden">
-                                            {(Object.entries(portfolio.sector_allocation || {}) as [string, any][]).slice(0, 5).map(([sector, pct], sidx) => {
-                                                const colors = [
-                                                    'bg-blue-500', 'bg-green-500', 'bg-yellow-500',
-                                                    'bg-purple-500', 'bg-pink-500'
-                                                ];
-                                                return (
-                                                    <div
-                                                        key={sidx}
-                                                        className={`${colors[sidx % colors.length]}`}
-                                                        style={{ width: `${pct}%` }}
-                                                        title={`${sector}: ${pct}%`}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                        <div className="flex flex-wrap gap-2 mt-1 text-xs">
-                                            {(Object.entries(portfolio.sector_allocation || {}) as [string, any][]).slice(0, 5).map(([sector, pct], sidx) => (
-                                                <span key={sidx} className="text-muted-foreground">
-                                                    {sector}: {pct}%
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+        </DataContainer>
     );
 }

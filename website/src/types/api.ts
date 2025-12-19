@@ -181,6 +181,8 @@ export interface Bill {
   summary?: string;
   update_date?: string;
   congress_gov_url?: string;
+  top_industry_tags?: string[];
+  trade_correlations_count?: number;
 }
 
 export interface BillDetail {
@@ -501,6 +503,138 @@ export interface ComplianceMetrics {
   compliance_rate: number;
   avg_days_late: number;
   members_with_violations: number;
+}
+
+// ============================================================================
+// Analytics & Insights Types
+// ============================================================================
+
+export interface SectorData {
+  sector: string;
+  total_volume: number;
+  pct_of_total: number;
+  flow_signal?: string;
+  party_lean?: string;
+  d_pct?: number;
+  r_pct?: number;
+}
+
+export interface TimingData {
+  day_name?: string;
+  month_name?: string;
+  total_volume: number;
+  pct_of_volume: number;
+  deviation?: number;
+  trade_count: number;
+}
+
+export interface PatternInsights {
+  day_of_week?: TimingData[];
+  month_of_year?: TimingData[];
+  sector_summary?: SectorData[];
+  party_preferences?: SectorData[];
+  sector_rotation?: any[];
+  top_stocks?: any[];
+}
+
+export interface PatternInsight {
+  type: string;
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  impact_score: number;
+  related_tickers?: string[];
+  related_members?: string[];
+  detected_at: string;
+}
+
+export interface Conflict {
+  id: string;
+  member_id: string;
+  member_name: string;
+  ticker: string;
+  company_name: string;
+  bill_id: string;
+  bill_title: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  details: string;
+  detected_at: string;
+}
+
+export interface ConflictSummary {
+  total_conflicts: number;
+  critical_count: number;
+  high_count: number;
+  affected_members: number;
+  affected_sectors: string[];
+}
+
+export interface LobbyingActivity {
+  bill_id: string;
+  total_spend: number;
+  client_count: number;
+  registrant_count: number;
+  latest_filing_date: string;
+  top_lobbyists: Array<{
+    name: string;
+    spend: number;
+  }>;
+}
+
+export interface AlphaData {
+  member_key?: string;
+  name?: string;
+  party?: string;
+  alpha?: number;
+  alpha_percentile?: number;
+  total_trades?: number;
+  total_volume?: number;
+  unique_members?: number;
+  sector?: string;
+  rotation_signal?: string;
+  net_flow?: number;
+}
+
+// ============================================================================
+// Portfolio Types
+// ============================================================================
+
+export interface PortfolioHolding {
+  ticker?: string;
+  asset_description: string;
+  asset_type: string;
+  value_range: string;
+  value_low?: number;
+  value_high?: number;
+  income_range?: string;
+  filing_date: string;
+  doc_id: string;
+}
+
+export interface PortfolioData {
+  member_key: string;
+  name?: string;
+  party?: string;
+  estimated_portfolio_value: number;
+  portfolio_value_low?: number;
+  portfolio_value_high?: number;
+  position_count: number;
+  top_5_concentration?: number;
+  top_sector?: string;
+  top_sector_pct?: number;
+  confidence_score: number;
+  total_trades?: number;
+  last_trade_date?: string;
+  sector_allocation?: Record<string, number>;
+  top_holdings?: Array<{ ticker: string; value: number; sector: string }>;
+}
+
+export interface MemberPortfolio {
+  bioguide_id: string;
+  member_name: string;
+  holdings: PortfolioHolding[];
+  total_value_range: string;
+  last_updated: string;
 }
 
 // ============================================================================

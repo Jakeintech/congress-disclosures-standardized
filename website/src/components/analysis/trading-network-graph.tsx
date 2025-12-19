@@ -316,6 +316,34 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                     visibleNodeIds.add(aggNode.id);
                 }
             });
+        } else if (aggregationMode === 'household') {
+            // Group members and their associated family filers
+            const memberIds = new Set<string>(nodes.filter((n: any) => n.group === 'member').map((n: any) => n.id as string));
+            memberIds.forEach((mId: string) => {
+                if (expandedGroups.has(mId)) {
+                    const familyNodes = nodes.filter((n: any) =>
+                        (n.id === mId && n.group === 'member') ||
+                        (n.parent_id === mId && n.group === 'person' && n.subgroup === 'family')
+                    );
+                    visibleNodes.push(...familyNodes);
+                    familyNodes.forEach((n: any) => visibleNodeIds.add(n.id));
+                } else {
+                    const householdNodes = nodes.filter((n: any) =>
+                        n.id === mId || (n.parent_id === mId && n.subgroup === 'family')
+                    );
+                    const memberNode = nodes.find((n: any) => n.id === mId);
+                    const aggNode = {
+                        id: mId,
+                        name: `${memberNode?.name || mId} Household`,
+                        group: 'household_agg',
+                        value: householdNodes.reduce((acc: number, curr: any) => acc + (curr.value || 0), 0),
+                        transaction_count: householdNodes.reduce((acc: number, curr: any) => acc + (curr.transaction_count || 0), 0),
+                        is_primary: memberNode?.is_primary
+                    };
+                    visibleNodes.push(aggNode);
+                    visibleNodeIds.add(aggNode.id);
+                }
+            });
         }
 
         // Filter links
@@ -475,6 +503,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                                 <SelectItem value="chamber">By Chamber</SelectItem>
                                 <SelectItem value="state">By State</SelectItem>
                                 <SelectItem value="volume">By Volume</SelectItem>
+                                <SelectItem value="household">By Household</SelectItem>
                                 <SelectItem value="none">No Aggregation</SelectItem>
                             </SelectContent>
                         </Select>

@@ -1,18 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Users, TrendingUp, FileText, FolderOpen } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchDashboardSummary, fetchTrendingStocks, fetchTopTraders } from '@/lib/api';
 import { ErrorBoundary, ApiError } from '@/components/ErrorBoundary';
 import { StatCardEnhanced } from '@/components/dashboard/stat-card-enhanced';
 import { TradingVolumeChart } from '@/components/dashboard/trading-volume-chart';
 import { TopStocksChart } from '@/components/dashboard/top-stocks-chart';
 import { StockLogo } from '@/components/ui/stock-logo';
+import { useDashboardSummary, useTrendingStocks, useTopTraders } from '@/hooks/use-api';
+import { DataContainer } from '@/components/ui/data-container';
 
 interface DashboardData {
   totalMembers?: number;
@@ -65,54 +65,17 @@ function StatCard({
   );
 }
 
+
 function DashboardPage() {
-  const [summary, setSummary] = useState<DashboardData>({});
-  const [trendingStocks, setTrendingStocks] = useState<TrendingStock[]>([]);
-  const [topTraders, setTopTraders] = useState<TopTrader[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const summaryQuery = useDashboardSummary();
+  const trendingQuery = useTrendingStocks(5);
+  const tradersQuery = useTopTraders(5);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [summaryData, stocksData, tradersData] = await Promise.allSettled([
-          fetchDashboardSummary(),
-          fetchTrendingStocks(5),
-          fetchTopTraders(5),
-        ]);
-
-        if (summaryData.status === 'fulfilled') {
-          setSummary(summaryData.value as DashboardData);
-          console.log('[Dashboard] Summary loaded:', summaryData.value);
-        } else {
-          console.error('[Dashboard] Summary failed:', summaryData.reason);
-        }
-
-        if (stocksData.status === 'fulfilled') {
-          const stocks = stocksData.value as TrendingStock[];
-          setTrendingStocks(stocks);
-          console.log('[Dashboard] Trending stocks loaded:', stocks.length, 'stocks');
-        } else {
-          console.error('[Dashboard] Trending stocks failed:', stocksData.reason);
-        }
-
-        if (tradersData.status === 'fulfilled') {
-          const traders = tradersData.value as TopTrader[];
-          setTopTraders(traders);
-          console.log('[Dashboard] Top traders loaded:', traders.length, 'traders', traders);
-        } else {
-          console.error('[Dashboard] Top traders failed:', tradersData.reason);
-        }
-      } catch (err) {
-        setError('Failed to load dashboard data');
-        console.error('[Dashboard] Error:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
-  }, []);
+  const loading = summaryQuery.isLoading || trendingQuery.isLoading || tradersQuery.isLoading;
+  const isError = summaryQuery.isError || trendingQuery.isError || tradersQuery.isError;
+  const summary = (summaryQuery.data || {}) as DashboardData;
+  const trendingStocks = trendingQuery.data || [];
+  const topTraders = tradersQuery.data || [];
 
   return (
     <div className="space-y-8">
@@ -131,174 +94,178 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* Error State */}
-      {error && <ApiError error={error} onRetry={() => window.location.reload()} />}
+      <DataContainer
+        isLoading={loading}
+        isError={isError}
+        error={summaryQuery.error || trendingQuery.error || tradersQuery.error}
+        data={summaryQuery.data}
+        onRetry={() => {
+          summaryQuery.refetch();
+          trendingQuery.refetch();
+          tradersQuery.refetch();
+        }}
+        loadingSkeleton={<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full" />)}
+        </div>}
+      >
+        {(data) => (
+          <>
+            {/* Stats Grid */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <StatCardEnhanced
+                title="Total Members"
+                value={summary.totalMembers || 535}
+                subtitle="Congress members tracked"
+                icon={Users}
+                loading={loading}
+                trend="neutral"
+              />
+              <StatCardEnhanced
+                title="Transactions"
+                value={summary.totalTransactions || 0}
+                subtitle="Financial disclosures filed"
+                icon={TrendingUp}
+                loading={loading}
+                change="+423 this quarter"
+                trend="up"
+              />
+              <StatCardEnhanced
+                title="Bills Tracked"
+                value={summary.totalBills || 0}
+                subtitle="Active legislation monitored"
+                icon={FileText}
+                loading={loading}
+                trend="neutral"
+              />
+              <StatCardEnhanced
+                title="Filings Processed"
+                value={summary.totalFilings || 0}
+                subtitle="Total documents analyzed"
+                icon={FolderOpen}
+                loading={loading}
+                change="+1.2K this month"
+                trend="up"
+              />
+            </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCardEnhanced
-          title="Total Members"
-          value={summary.totalMembers || 535}
-          subtitle="Congress members tracked"
-          icon={Users}
-          loading={loading}
-          trend="neutral"
-        />
-        <StatCardEnhanced
-          title="Transactions"
-          value={summary.totalTransactions || 0}
-          subtitle="Financial disclosures filed"
-          icon={TrendingUp}
-          loading={loading}
-          change="+423 this quarter"
-          trend="up"
-        />
-        <StatCardEnhanced
-          title="Bills Tracked"
-          value={summary.totalBills || 0}
-          subtitle="Active legislation monitored"
-          icon={FileText}
-          loading={loading}
-          trend="neutral"
-        />
-        <StatCardEnhanced
-          title="Filings Processed"
-          value={summary.totalFilings || 0}
-          subtitle="Total documents analyzed"
-          icon={FolderOpen}
-          loading={loading}
-          change="+1.2K this month"
-          trend="up"
-        />
-      </div>
+            {/* Charts Section */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              <TradingVolumeChart loading={loading} />
+              <TopStocksChart data={trendingStocks} loading={loading} />
+            </div>
 
-      {/* Charts Section */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <TradingVolumeChart loading={loading} />
-        <TopStocksChart data={trendingStocks} loading={loading} />
-      </div>
+            {/* Two Column Layout */}
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Trending Stocks List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span>📈</span>
+                    Trending Stocks
+                  </CardTitle>
+                  <CardDescription>
+                    Most traded stocks by Congress members
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {trendingStocks.length > 0 ? (
+                    <div className="space-y-2">
+                      {trendingStocks.map((stock, i) => (
+                        <div
+                          key={stock.ticker}
+                          className="flex items-center justify-between p-2 rounded-md hover:bg-muted"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg font-semibold text-muted-foreground">
+                              #{i + 1}
+                            </span>
+                            <StockLogo ticker={stock.ticker} size="md" />
+                            <div>
+                              <p className="font-medium">{stock.ticker}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {stock.company_name || stock.ticker}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant={stock.net_direction === 'buy' ? 'default' : 'secondary'}>
+                              {stock.trade_count} trades
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-center py-4">
+                      No trending stocks data available
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
 
-      {/* Two Column Layout */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Trending Stocks List */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span>📈</span>
-              Trending Stocks
-            </CardTitle>
-            <CardDescription>
-              Most traded stocks by Congress members
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
-            ) : trendingStocks.length > 0 ? (
-              <div className="space-y-2">
-                {trendingStocks.map((stock, i) => (
-                  <div
-                    key={stock.ticker}
-                    className="flex items-center justify-between p-2 rounded-md hover:bg-muted"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-semibold text-muted-foreground">
-                        #{i + 1}
-                      </span>
-                      <StockLogo ticker={stock.ticker} size="md" />
-                      <div>
-                        <p className="font-medium">{stock.ticker}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {stock.company_name || stock.ticker}
-                        </p>
-                      </div>
+              {/* Top Traders */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span>🏆</span>
+                    Top Traders
+                  </CardTitle>
+                  <CardDescription>
+                    Most active members by transaction count
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {topTraders.length > 0 ? (
+                    <div className="space-y-2">
+                      {topTraders.map((trader, i) => {
+                        // Skip invalid traders
+                        if (!trader.bioguide_id || !trader.name) {
+                          console.warn('[Dashboard] Skipping invalid trader:', trader);
+                          return null;
+                        }
+                        return (
+                          <Link
+                            key={trader.bioguide_id}
+                            href={`/politician/${trader.bioguide_id}`}
+                            className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg font-semibold text-muted-foreground">
+                                #{i + 1}
+                              </span>
+                              <div>
+                                <p className="font-medium">{trader.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {trader.party ? `${trader.party}-${trader.state}` : trader.state}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <Badge>{trader.trade_count} trades</Badge>
+                              {trader.total_volume && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {trader.total_volume}
+                                </p>
+                              )}
+                            </div>
+                          </Link>
+                        );
+                      })}
                     </div>
-                    <div className="text-right">
-                      <Badge variant={stock.net_direction === 'buy' ? 'default' : 'secondary'}>
-                        {stock.trade_count} trades
-                      </Badge>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-muted-foreground">No trader data available</p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        The analytics pipeline may still be processing data.
+                      </p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-center py-4">
-                No trending stocks data available
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Top Traders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span>🏆</span>
-              Top Traders
-            </CardTitle>
-            <CardDescription>
-              Most active members by transaction count
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
-            ) : topTraders.length > 0 ? (
-              <div className="space-y-2">
-                {topTraders.map((trader, i) => {
-                  // Skip invalid traders
-                  if (!trader.bioguide_id || !trader.name) {
-                    console.warn('[Dashboard] Skipping invalid trader:', trader);
-                    return null;
-                  }
-                  return (
-                  <Link
-                    key={trader.bioguide_id}
-                    href={`/politician/${trader.bioguide_id}`}
-                    className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-semibold text-muted-foreground">
-                        #{i + 1}
-                      </span>
-                      <div>
-                        <p className="font-medium">{trader.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {trader.party ? `${trader.party}-${trader.state}` : trader.state}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Badge>{trader.trade_count} trades</Badge>
-                      {trader.total_volume && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {trader.total_volume}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">No trader data available</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  The analytics pipeline may still be processing data.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+      </DataContainer>
 
       {/* Quick Links */}
       <Card>

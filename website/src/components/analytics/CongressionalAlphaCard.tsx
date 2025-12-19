@@ -4,22 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Users, Building, ArrowUpRight } from "lucide-react";
 import { useCongressionalAlpha } from "@/hooks/use-api";
-
-interface AlphaData {
-    member_key?: string;
-    name?: string;
-    party?: string;
-    alpha?: number;
-    alpha_percentile?: number;
-    total_trades?: number;
-    total_volume?: number;
-    // Party level
-    unique_members?: number;
-    // Sector rotation
-    sector?: string;
-    rotation_signal?: string;
-    net_flow?: number;
-}
+import { DataContainer } from "@/components/ui/data-container";
+import { AlphaData } from "@/types/api";
 
 interface CongressionalAlphaCardProps {
     type?: 'member' | 'party' | 'sector_rotation';
@@ -30,8 +16,7 @@ export function CongressionalAlphaCard({
     type = 'member',
     limit = 10
 }: CongressionalAlphaCardProps) {
-    const { data = [], isLoading, error } = useCongressionalAlpha(type, limit);
-    const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
+    const { data = [], isLoading, error, refetch } = useCongressionalAlpha(type, limit);
 
     const formatAlpha = (alpha: number | undefined) => {
         if (alpha === undefined || alpha === null) return '--';
@@ -68,128 +53,116 @@ export function CongressionalAlphaCard({
         }
     };
 
-    if (isLoading) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5" />
-                        Congressional Alpha
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-center py-8">
-                        <div className="animate-pulse text-muted-foreground">Loading alpha data...</div>
-                    </div>
-                </CardContent>
-            </Card>
-        );
-    }
-
-    if (errorMessage) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Congressional Alpha</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-destructive py-4">Error: {errorMessage}</div>
-                </CardContent>
-            </Card>
-        );
-    }
-
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    {type === 'member' && <Users className="h-5 w-5" />}
-                    {type === 'party' && <Building className="h-5 w-5" />}
-                    {type === 'sector_rotation' && <ArrowUpRight className="h-5 w-5" />}
-                    Congressional Alpha
-                    <Badge variant="outline" className="ml-2">
-                        {type === 'member' ? 'By Member' : type === 'party' ? 'By Party' : 'Sector Rotation'}
-                    </Badge>
-                </CardTitle>
-                <CardDescription>
-                    {type === 'member' && 'Trading performance vs S&P 500 benchmark'}
-                    {type === 'party' && 'Aggregate alpha by political party'}
-                    {type === 'sector_rotation' && 'Sector flow signals based on congressional trading'}
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-3">
-                    {(!data || (Array.isArray(data) && data.length === 0)) ? (
-                        <div className="text-center text-muted-foreground py-8">
-                            No alpha data available
+        <DataContainer
+            isLoading={isLoading}
+            isError={!!error}
+            error={error}
+            data={data}
+            onRetry={() => refetch()}
+            loadingSkeleton={
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <TrendingUp className="h-5 w-5" />
+                            Congressional Alpha
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-center py-8">
+                            <div className="animate-pulse text-muted-foreground">Loading alpha data...</div>
                         </div>
-                    ) : (
-                        (Array.isArray(data) ? data : []).map((item: any, idx: number) => (
-                            <div
-                                key={idx}
-                                className="flex items-center justify-between py-2 border-b last:border-0"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <span className="text-muted-foreground text-sm w-6">#{idx + 1}</span>
-                                    <div>
-                                        {type === 'member' && (
-                                            <>
-                                                <span className="font-medium">{item.name || item.member_key}</span>
-                                                {item.party && (
-                                                    <Badge variant="outline" className="ml-2 text-xs">
-                                                        {item.party}
-                                                    </Badge>
-                                                )}
-                                            </>
-                                        )}
-                                        {type === 'party' && (
-                                            <span className="font-medium">
-                                                {item.party === 'D' ? 'Democrats' : item.party === 'R' ? 'Republicans' : item.party}
-                                            </span>
-                                        )}
-                                        {type === 'sector_rotation' && (
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium">{item.sector}</span>
-                                                {getSignalBadge(item.rotation_signal)}
-                                            </div>
-                                        )}
-                                        <div className="text-xs text-muted-foreground">
-                                            {item.total_trades && `${item.total_trades} trades`}
-                                            {item.total_volume && ` • ${formatVolume(item.total_volume)}`}
-                                            {item.unique_members && ` • ${item.unique_members} members`}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    {type !== 'sector_rotation' ? (
-                                        <div className={`font-mono font-semibold ${getAlphaColor(item.alpha)}`}>
-                                            {formatAlpha(item.alpha)}
-                                            {item.alpha !== undefined && (
-                                                item.alpha > 0 ? (
-                                                    <TrendingUp className="inline ml-1 h-4 w-4" />
-                                                ) : item.alpha < 0 ? (
-                                                    <TrendingDown className="inline ml-1 h-4 w-4" />
-                                                ) : (
-                                                    <Minus className="inline ml-1 h-4 w-4" />
-                                                )
+                    </CardContent>
+                </Card>
+            }
+        >
+            {(data) => (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            {type === 'member' && <Users className="h-5 w-5" />}
+                            {type === 'party' && <Building className="h-5 w-5" />}
+                            {type === 'sector_rotation' && <ArrowUpRight className="h-5 w-5" />}
+                            Congressional Alpha
+                            <Badge variant="outline" className="ml-2">
+                                {type === 'member' ? 'By Member' : type === 'party' ? 'By Party' : 'Sector Rotation'}
+                            </Badge>
+                        </CardTitle>
+                        <CardDescription>
+                            {type === 'member' && 'Trading performance vs S&P 500 benchmark'}
+                            {type === 'party' && 'Aggregate alpha by political party'}
+                            {type === 'sector_rotation' && 'Sector flow signals based on congressional trading'}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {(Array.isArray(data) ? data : []).map((item: AlphaData, idx: number) => (
+                                <div
+                                    key={idx}
+                                    className="flex items-center justify-between py-2 border-b last:border-0"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-muted-foreground text-sm w-6">#{idx + 1}</span>
+                                        <div>
+                                            {type === 'member' && (
+                                                <>
+                                                    <span className="font-medium">{item.name || item.member_key}</span>
+                                                    {item.party && (
+                                                        <Badge variant="outline" className="ml-2 text-xs">
+                                                            {item.party}
+                                                        </Badge>
+                                                    )}
+                                                </>
                                             )}
-                                        </div>
-                                    ) : (
-                                        <div className="font-mono text-sm">
-                                            {item.net_flow && (
-                                                <span className={item.net_flow > 0 ? 'text-green-600' : 'text-red-600'}>
-                                                    {formatVolume(Math.abs(item.net_flow))}
-                                                    {item.net_flow > 0 ? ' inflow' : ' outflow'}
+                                            {type === 'party' && (
+                                                <span className="font-medium">
+                                                    {item.party === 'D' ? 'Democrats' : item.party === 'R' ? 'Republicans' : item.party}
                                                 </span>
                                             )}
+                                            {type === 'sector_rotation' && (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium">{item.sector}</span>
+                                                    {getSignalBadge(item.rotation_signal)}
+                                                </div>
+                                            )}
+                                            <div className="text-xs text-muted-foreground">
+                                                {item.total_trades && `${item.total_trades} trades`}
+                                                {item.total_volume && ` • ${formatVolume(item.total_volume)}`}
+                                                {item.unique_members && ` • ${item.unique_members} members`}
+                                            </div>
                                         </div>
-                                    )}
+                                    </div>
+                                    <div className="text-right">
+                                        {type !== 'sector_rotation' ? (
+                                            <div className={`font-mono font-semibold ${getAlphaColor(item.alpha)}`}>
+                                                {formatAlpha(item.alpha)}
+                                                {item.alpha !== undefined && (
+                                                    item.alpha > 0 ? (
+                                                        <TrendingUp className="inline ml-1 h-4 w-4" />
+                                                    ) : item.alpha < 0 ? (
+                                                        <TrendingDown className="inline ml-1 h-4 w-4" />
+                                                    ) : (
+                                                        <Minus className="inline ml-1 h-4 w-4" />
+                                                    )
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="font-mono text-sm">
+                                                {item.net_flow != null && (
+                                                    <span className={item.net_flow > 0 ? 'text-green-600' : 'text-red-600'}>
+                                                        {formatVolume(Math.abs(item.net_flow))}
+                                                        {item.net_flow > 0 ? ' inflow' : ' outflow'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+        </DataContainer>
     );
 }

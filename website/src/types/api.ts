@@ -355,11 +355,14 @@ export interface NetworkGraphNode {
   id: string;
   name?: string;
   group: 'member' | 'asset' | 'person' | 'bill' | 'party_agg';
+  type?: 'member' | 'asset' | 'person' | 'bill' | 'party_agg' | 'client' | 'lobbyist'; // Legacy/Lobbying alias
   subgroup?: 'family';
   party?: string;
   state?: string;
   chamber?: string;
   value?: number;
+  spend?: number; // For lobbying
+  connections?: number; // For lobbying
   transaction_count?: number;
   degree?: number;
   is_primary?: boolean;

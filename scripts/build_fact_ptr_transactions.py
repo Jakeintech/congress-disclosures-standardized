@@ -166,179 +166,147 @@ def extract_ticker_from_description(asset_desc: str) -> str:
     
     return None
 
+import duckdb
+
 def process_year(year):
-    """Process all Type P filings for a specific year."""
-    logger.info(f"Processing year {year}...")
+    """Process consolidated Silver Tabular data for a specific year using DuckDB."""
+    logger.info(f"Processing year {year} using DuckDB and Silver Tabular...")
 
-    # Load Silver filings table to get member names
     try:
-        filings_key = f"silver/house/financial/filings/year={year}/part-0000.parquet"
-        response = s3.get_object(Bucket=S3_BUCKET, Key=filings_key)
-        filings_df = pd.read_parquet(io.BytesIO(response['Body'].read()))
-        filings_dict = filings_df.set_index('doc_id').to_dict('index')
-        logger.info(f"Loaded {len(filings_df)} filings from Silver layer")
-    except Exception as e:
-        logger.error(f"Could not load filings table: {e}")
-        filings_dict = {}
+        # 1. Setup DuckDB with S3 access
+        con = duckdb.connect(database=':memory:')
+        con.execute("INSTALL httpfs;")
+        con.execute("LOAD httpfs;")
+        con.execute(f"SET s3_region='{S3_REGION}';")
+        
+        # 2. Define source paths (Hive-partitioned)
+        # Tabular transactions (Type P)
+        tabular_path = f"s3://{S3_BUCKET}/silver/house/financial/tabular/year={year}/filing_type=P/transactions.parquet"
+        
+        # Check if file exists before DuckDB attempt to avoid 404
+        s3_check = boto3.client('s3', region_name=S3_REGION)
+        try:
+            s3_check.head_object(Bucket=S3_BUCKET, Key=f"silver/house/financial/tabular/year={year}/filing_type=P/transactions.parquet")
+        except:
+            logger.warning(f"No tabular transactions found in S3 for year {year} at {tabular_path} - skipping.")
+            return
 
-    # Scan all filing types that may contain transactions
-    # We check multiple possible S3 prefixes due to path evolution
-    filing_type_prefixes = [
-        f"silver/house/financial/objects/year={year}/filing_type=type_p/",
-        f"silver/house/financial/objects/year={year}/filing_type=unknown/",
-        f"silver/house/financial/objects/year={year}/filing_type=type_t/",
-        f"silver/house/financial/structured_code/year={year}/filing_type=P/",
-        f"silver/house/financial/structured_code/year={year}/filing_type=unknown/",
-    ]
+        # Filings metadata (Silver)
+        filings_path = f"s3://{S3_BUCKET}/silver/house/financial/filings/year={year}/*.parquet"
 
-    paginator = s3.get_paginator('list_objects_v2')
+        # 3. Query and Join using DuckDB
+        # We perform the enrichment (bioguide_id, party, etc.) via the filings join 
+        # and then apply the same extraction logic for amounts/tickers.
+        query = f"""
+            SELECT 
+                t.*,
+                f.first_name,
+                f.last_name,
+                f.state_district,
+                f.bioguide_id as filing_bioguide_id
+            FROM read_parquet('{tabular_path}') t
+            LEFT JOIN read_parquet('{filings_path}') f ON t.doc_id = f.doc_id
+        """
+        df = con.execute(query).df()
+        
+        if df.empty:
+            logger.warning(f"No transactions found for year {year} in tabular layer")
+            return
 
-    transactions = []
-    filing_count = 0
+        logger.info(f"Loaded {len(df):,} transactions from Silver Tabular via DuckDB")
 
-    # Initialize member lookup for enrichment
-    try:
+        # 4. Final processing (computational logic that's easier in Python)
+        transactions = []
+        
+        # Load SimpleMemberLookup for additional enrichment if needed
         from lib.simple_member_lookup import SimpleMemberLookup
         member_lookup = SimpleMemberLookup()
-        logger.info("Initialized SimpleMemberLookup for enrichment")
-    except ImportError as e:
-        # Try alternate import path just in case
-        try:
-             from ingestion.lib.simple_member_lookup import SimpleMemberLookup
-             member_lookup = SimpleMemberLookup()
-             logger.info("Initialized SimpleMemberLookup via fully qualified path")
-        except ImportError:
-             logger.warning(f"Could not import SimpleMemberLookup: {e}, skipping enrichment")
-             member_lookup = None
 
-    for prefix in filing_type_prefixes:
-        logger.info(f"Scanning {prefix}...")
-        pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
-        
-        for page in pages:
-            if 'Contents' not in page:
-                continue
+        for _, row in df.iterrows():
+            doc_id = row['doc_id']
+            first = row['first_name']
+            last = row['last_name']
+            state_district = row['state_district']
+            bioguide_id = row['filing_bioguide_id']
             
-            for obj in page['Contents']:
-                key = obj['Key']
-                # Support both doc_id/extraction.json and doc_id.json
-                if key.endswith(".json"):
-                    try:
-                        # Extract doc_id from key as fallback
-                        # key could be .../doc_id.json or .../doc_id/extraction.json
-                        key_parts = key.split('/')
-                        filename = key_parts[-1]
-                        
-                        potential_doc_id = None
-                        if filename == "extraction.json" and len(key_parts) >= 2:
-                             # Legacy path: silver/house/financial/objects/year=2024/filing_type=type_p/doc_id=20000788/extraction.json
-                             folder = key_parts[-2]
-                             if 'doc_id=' in folder:
-                                 potential_doc_id = folder.replace('doc_id=', '')
-                        elif filename.endswith(".json"):
-                             # Structured path: silver/house/financial/structured_code/year=2025/filing_type=P/doc_id=10063230.json
-                             potential_doc_id = filename.replace('.json', '').replace('doc_id=', '')
+            # Additional enrichment if bioguide_id missing from filings join
+            party = None
+            state = None
+            chamber = None
+            
+            if member_lookup and first and last:
+                state_hint = state_district[:2] if state_district else None
+                enriched = member_lookup.enrich_member(
+                    first_name=first,
+                    last_name=last,
+                    state=state_hint
+                )
+                bioguide_id = bioguide_id or enriched.get('bioguide_id')
+                party = enriched.get('party')
+                state = enriched.get('state') or state_hint
+                chamber = enriched.get('chamber')
 
-                        response = s3.get_object(Bucket=S3_BUCKET, Key=key)
-                        data = json.loads(response['Body'].read())
-                        
-                        doc_id = data.get('doc_id') or potential_doc_id
-                        filing_date = data.get('filing_date')
+            tx_date = row.get('transaction_date') or row.get('trans_date')
+            notif_date = row.get('notification_date') or row.get('notif_date')
+            amt_low, amt_high = parse_amount_string(row.get('amount'))
+            
+            asset_description = row.get('asset_name') or row.get('asset_description')
+            owner_code = row.get('owner') or row.get('owner_code')
+            
+            record = {
+                'doc_id': doc_id,
+                'filing_year': year,
+                'filing_date': row.get('filing_date'),
+                'filing_date_key': get_date_key(row.get('filing_date')),
+                'filer_name': f"{first} {last}" if first and last else None,
+                'first_name': first,
+                'last_name': last,
+                'state_district': state_district,
+                'bioguide_id': bioguide_id,
+                'parent_bioguide_id': bioguide_id,
+                'member_key': bioguide_id,
+                'asset_key': abs(hash(str(asset_description))) % 1000000 + 1 if asset_description else None,
+                'party': party,
+                'state': state,
+                'chamber': chamber,
+                'transaction_date': tx_date,
+                'transaction_date_key': get_date_key(tx_date),
+                'notification_date': notif_date,
+                'notification_date_key': get_date_key(notif_date),
+                'owner_code': owner_code,
+                'is_spouse_transaction': (owner_code == 'SP'),
+                'is_dependent_child_transaction': (owner_code == 'DC'),
+                'ticker': row.get('ticker') or extract_ticker_from_description(asset_description),
+                'asset_description': asset_description,
+                'asset_type': row.get('asset_type') or row.get('type_code'),
+                'transaction_type': get_transaction_type({'transaction_type': row.get('transaction_type')}),
+                'amount': row.get('amount'),
+                'amount_low': amt_low,
+                'amount_high': amt_high,
+                'comment': row.get('comment'),
+                'cap_gains_over_200': row.get('cap_gains_over_200', False)
+            }
+            record['transaction_key'] = generate_transaction_key(record)
+            transactions.append(record)
 
-                        # Get member info from filings table
-                        filing_info = filings_dict.get(doc_id, {})
-                        first = filing_info.get('first_name')
-                        last = filing_info.get('last_name')
-                        state_district = filing_info.get('state_district')
-                        filer_name = f"{first} {last}" if first and last else None
+        # 5. Write Gold
+        df_gold = pd.DataFrame(transactions)
+        output_key = f"gold/house/financial/facts/fact_ptr_transactions/year={year}/part-0000.parquet"
+        
+        buffer = io.BytesIO()
+        df_gold.to_parquet(buffer, index=False, engine="pyarrow")
+        s3.put_object(
+            Bucket=S3_BUCKET, 
+            Key=output_key, 
+            Body=buffer.getvalue(),
+            ContentType="application/x-parquet"
+        )
+        logger.info(f"Processed {len(df_gold)} transactions from Silver Tabular via DuckDB")
 
-                        # Enrich with bioguide_id if available
-                        bioguide_id = None
-                        party = None
-                        state = None
-                        chamber = None
-
-                        if member_lookup and first and last:
-                            state_hint = state_district[:2] if state_district else None
-
-                            enriched = member_lookup.enrich_member(
-                                first_name=first,
-                                last_name=last,
-                                state=state_hint
-                            )
-                            bioguide_id = enriched.get('bioguide_id')
-                            party = enriched.get('party')
-                            state = enriched.get('state') or state_hint
-                            chamber = enriched.get('chamber')
-
-                        # Get transactions list
-                        # The extraction Lambda puts them in 'transactions' list for Type P
-                        doc_transactions = data.get('transactions', [])
-                        
-                        if not doc_transactions:
-                            continue
-                            
-                        filing_count += 1
-                        
-                        for tx in doc_transactions:
-                            # Extract fields with defaults
-                            tx_date = tx.get('transaction_date') or tx.get('trans_date')
-                            notif_date = tx.get('notification_date') or tx.get('notif_date')
-                            
-                            # Parse amount
-                            amt_low, amt_high = parse_amount_string(tx.get('amount'))
-                            
-                            # Lookup asset_key (using simple hashing for now if not available)
-                            asset_name = tx.get('asset_name') or tx.get('asset_description')
-                            asset_key = abs(hash(str(asset_name))) % 1000000 + 1 if asset_name else None
-
-                            # Owner code logic
-                            owner_code = tx.get('owner') or tx.get('owner_code')
-                            is_spouse = (owner_code == 'SP')
-                            is_dependent = (owner_code == 'DC')
-
-                            record = {
-                                'doc_id': doc_id,
-                                'filing_year': year,
-                                'filing_date': filing_date,
-                                'filing_date_key': get_date_key(filing_date),
-                                'filer_name': filer_name,
-                                'first_name': first,
-                                'last_name': last,
-                                'state_district': state_district,
-                                'bioguide_id': bioguide_id,
-                                'parent_bioguide_id': bioguide_id, # Absolute lineage to primary member
-                                'member_key': bioguide_id, # Fallback to bioguide_id for key
-                                'asset_key': asset_key,
-                                'party': party,
-                                'state': state,
-                                'chamber': chamber,
-                                
-                                'transaction_date': tx_date,
-                                'transaction_date_key': get_date_key(tx_date),
-                                'notification_date': notif_date,
-                                'notification_date_key': get_date_key(notif_date),
-                                'owner_code': owner_code,
-                                'is_spouse_transaction': is_spouse,
-                                'is_dependent_child_transaction': is_dependent,
-                                'ticker': tx.get('ticker') or extract_ticker_from_description(asset_name),
-                                'asset_description': asset_name,
-                                'asset_type': tx.get('asset_type') or tx.get('type_code'),
-                                'transaction_type': get_transaction_type(tx),
-                                'amount': tx.get('amount'),
-                                'amount_low': amt_low,
-                                'amount_high': amt_high,
-                                'comment': tx.get('comment'),
-                                'cap_gains_over_200': tx.get('cap_gains_over_200', False)
-                            }
-                            
-                            # Generate unique key
-                            record['transaction_key'] = generate_transaction_key(record)
-                            
-                            transactions.append(record)
-                            
-                    except Exception as e:
-                        logger.error(f"Error processing {key}: {e}")
+    except Exception as e:
+        logger.error(f"DuckDB processing failed for year {year}: {e}")
+        # Revert to non-duckdb fallback if necessary, but here we expect duckdb to be available
+        raise
 
     if not transactions:
         logger.warning(f"No transactions found for year {year}")

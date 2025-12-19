@@ -29,217 +29,251 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import duckdb
+
+from botocore.config import Config
+
+def config_boto():
+    return Config(max_pool_connections=50)
+
 def load_unique_assets_from_silver(bucket_name: str) -> pd.DataFrame:
-    """Load unique assets from silver extraction JSON data."""
-    s3 = boto3.client('s3')
+    """Load unique assets from consolidated silver tabular Parquet files using DuckDB."""
+    logger.info("Loading assets from Silver Tabular layer via DuckDB...")
 
-    logger.info("Loading assets from silver objects layer...")
-
-    # List all extraction JSON files (scan multiple filing types)
-    prefixes = [
-        'silver/house/financial/objects/',  # New path structure
-    ]
-    
     assets = []
     asset_occurrences = Counter()
     asset_first_seen = {}
     asset_last_seen = {}
-    paginator = s3.get_paginator('list_objects_v2')
 
-    for prefix in prefixes:
-        pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
+    current_year = datetime.now().year
+    years = [current_year - 1, current_year]
+    
+    try:
+        con = duckdb.connect(database=':memory:')
+        con.execute("INSTALL httpfs;")
+        con.execute("LOAD httpfs;")
+        # S3_REGION should be accessible if we import it or define it, 
+        # but let's assume it's us-east-1 for now or get from env
+        s3_reg = os.environ.get('AWS_REGION', 'us-east-1')
+        con.execute(f"SET s3_region='{s3_reg}';")
 
-        for page in pages:
-            if 'Contents' not in page:
-                continue
+        for year in years:
+            logger.info(f"Processing year {year}...")
+            
+            # Paths
+            tx_path = f"s3://{bucket_name}/silver/house/financial/tabular/year={year}/filing_type=P/transactions.parquet"
+            sh_path = f"s3://{bucket_name}/silver/house/financial/tabular/year={year}/filing_type=A/holdings.parquet"
 
-            for obj in page['Contents']:
-                if not obj['Key'].endswith('extraction.json'):
-                    continue
+            # Load Transactions
+            try:
+                df_tx = con.execute(f"SELECT asset_name, transaction_date FROM read_parquet('{tx_path}')").df()
+                for _, row in df_tx.iterrows():
+                    name = str(row['asset_name']).strip() if row['asset_name'] else ""
+                    if not name: continue
+                    date = row['transaction_date']
+                    asset_occurrences[name] += 1
+                    assets.append(name)
+                    if date:
+                        if name not in asset_first_seen or str(date) < str(asset_first_seen[name]):
+                            asset_first_seen[name] = date
+                        if name not in asset_last_seen or str(date) > str(asset_last_seen[name]):
+                            asset_last_seen[name] = date
+                logger.info(f"  Loaded {len(df_tx):,} transactions from {year}")
+            except Exception:
+                logger.warning(f"  No transactions found for {year} in tabular layer")
 
-                # Load extraction JSON
-                try:
-                    response = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
-                    data = json.loads(response['Body'].read().decode('utf-8'))
+            # Load Holdings
+            try:
+                df_sh = con.execute(f"SELECT asset_name FROM read_parquet('{sh_path}')").df()
+                for _, row in df_sh.iterrows():
+                    name = str(row['asset_name']).strip() if row['asset_name'] else ""
+                    if not name: continue
+                    asset_occurrences[name] += 1
+                    assets.append(name)
+                logger.info(f"  Loaded {len(df_sh):,} holdings from {year}")
+            except Exception:
+                logger.warning(f"  No holdings found for {year} in tabular layer")
 
-                    # Extract doc info from path
-                    # Path: silver/house/financial/objects/year=2024/filing_type=type_p/doc_id=12345/extraction.json
-                    path_parts = obj['Key'].split('/')
-                    doc_id = None
-                    year = None
-                    for part in path_parts:
-                        if part.startswith('doc_id='):
-                            doc_id = part.replace('doc_id=', '')
-                        if part.startswith('year='):
-                            year = int(part.replace('year=', ''))
-                    
-                    filing_date = None  # Would need to join with filings table
+    except Exception as e:
+        logger.error(f"DuckDB asset loading failed: {e}")
+        return pd.DataFrame()
 
-                    # Extract transactions (PTR data)
-                    transactions = data.get('transactions', [])
-                    
-                    # Also check schedule_a for annual filings (asset holdings)
-                    schedule_a = data.get('schedule_a', [])
+    if not assets:
+        return pd.DataFrame()
 
-                    for txn in transactions:
-                        asset_name = txn.get('asset_name', '').strip()
-                        if not asset_name:
-                            continue
-
-                        # Track occurrences
-                        asset_occurrences[asset_name] += 1
-
-                        # Track first/last seen
-                        txn_date = txn.get('transaction_date')
-                        if txn_date:
-                            if asset_name not in asset_first_seen or txn_date < asset_first_seen[asset_name]:
-                                asset_first_seen[asset_name] = txn_date
-                            if asset_name not in asset_last_seen or txn_date > asset_last_seen[asset_name]:
-                                asset_last_seen[asset_name] = txn_date
-
-                        assets.append(asset_name)
-                    
-                    # Also process schedule_a for asset holdings
-                    for holding in schedule_a:
-                        asset_name = holding.get('asset_name', '').strip()
-                        if not asset_name:
-                            continue
-                        asset_occurrences[asset_name] += 1
-                        assets.append(asset_name)
-
-                except Exception as e:
-                    logger.warning(f"Error processing {obj['Key']}: {e}")
-                    continue
-
-    logger.info(f"Loaded {len(assets):,} total asset transactions")
-
-    # Create unique assets dataframe
-    unique_assets = pd.DataFrame({
-        'asset_name': list(set(assets))
-    })
-
-    # Add occurrence counts
+    unique_assets = pd.DataFrame({'asset_name': list(set(assets))})
     unique_assets['occurrence_count'] = unique_assets['asset_name'].map(asset_occurrences)
     unique_assets['first_seen_date'] = unique_assets['asset_name'].map(asset_first_seen)
     unique_assets['last_seen_date'] = unique_assets['asset_name'].map(asset_last_seen)
 
-    # Fill missing dates with today
     today = datetime.now().strftime('%Y-%m-%d')
-    unique_assets['first_seen_date'].fillna(today, inplace=True)
-    unique_assets['last_seen_date'].fillna(today, inplace=True)
-
-    logger.info(f"Found {len(unique_assets)} unique assets")
-    logger.info(f"  Most common: {unique_assets.nlargest(5, 'occurrence_count')[['asset_name', 'occurrence_count']].to_dict('records')}")
+    unique_assets['first_seen_date'] = unique_assets['first_seen_date'].fillna(today)
+    unique_assets['last_seen_date'] = unique_assets['last_seen_date'].fillna(today)
 
     return unique_assets
 
 
-def enrich_assets(assets_df: pd.DataFrame, stock_enricher: StockAPIEnricher) -> pd.DataFrame:
-    """Enrich assets with stock API."""
-    logger.info("Enriching assets with stock API...")
+def enrich_assets(assets_df: pd.DataFrame, stock_enricher: StockAPIEnricher, bucket_name: str) -> pd.DataFrame:
+    """Enrich assets using vectorized cache lookups and delta enrichment."""
+    logger.info("Enriching assets using Vectorized Data Lake approach...")
 
-    enriched_records = []
-
-    # Track data quality metrics
-    enrichment_stats = {
-        'total': 0,
-        'ticker_extracted': 0,
-        'api_success': 0,
-        'api_failed': 0,
-        'ticker_not_found': 0,
-        'non_stock_asset': 0,
-        'blacklist_filtered': 0,
-        'ownership_indicators': Counter()
-    }
-
-    for idx, row in assets_df.iterrows():
+    # 1. Vectorized Ticker Extraction (Parallel)
+    logger.info("  Step 1: Parallel ticker extraction & classification...")
+    records = assets_df.to_dict('records')
+    
+    def extract_info(row):
         asset_name = row['asset_name']
-        enrichment_stats['total'] += 1
-
-        if idx % 100 == 0:
-            logger.info(f"  [{idx+1}/{len(assets_df)}] Processing...")
-
-        # Classify asset type (this now uses cleaned names internally)
+        ticker, method = stock_enricher.extract_ticker_from_name(asset_name) or (None, None)
         asset_type = stock_enricher.classify_asset_type(asset_name)
-
-        # Enrich with stock API (if Stock/ETF/Fund)
-        if asset_type in ['Stock', 'ETF', 'Mutual Fund']:
-            enriched = stock_enricher.enrich_asset(asset_name)
-
-            # Track enrichment stats
-            status = enriched.get('enrichment_status', 'unknown')
-            if status == 'success':
-                enrichment_stats['api_success'] += 1
-            elif status == 'api_failed':
-                enrichment_stats['api_failed'] += 1
-            elif status == 'ticker_not_found':
-                enrichment_stats['ticker_not_found'] += 1
-
-            if enriched.get('ticker_symbol'):
-                enrichment_stats['ticker_extracted'] += 1
-
-            if enriched.get('ownership_indicator'):
-                enrichment_stats['ownership_indicators'][enriched['ownership_indicator']] += 1
-        else:
-            enriched = {
-                'cleaned_asset_name': None,
-                'ownership_indicator': None,
-                'ticker_symbol': None,
-                'company_name': None,
-                'sector': None,
-                'industry': None,
-                'market_cap': None,
-                'market_cap_category': None,
-                'exchange': None,
-                'is_publicly_traded': False,
-                'enrichment_status': 'non_stock_asset'
-            }
-            enrichment_stats['non_stock_asset'] += 1
-
-        # Get cleaned name (with fallback to original)
-        cleaned_name = enriched.get('cleaned_asset_name', asset_name.strip())
-
-        # Build dim_assets record
-        record = {
-            'asset_name': asset_name,  # Original name with metadata
-            'cleaned_asset_name': cleaned_name,  # Cleaned name for matching
-            'ownership_indicator': enriched.get('ownership_indicator'),  # SP, JT, DC, etc.
-            'ticker_symbol': enriched.get('ticker_symbol'),
-            'company_name': enriched.get('company_name'),
-            'asset_type': asset_type,
-            'sector': enriched.get('sector'),
-            'industry': enriched.get('industry'),
-            'market_cap_category': enriched.get('market_cap_category'),
-            'is_publicly_traded': enriched.get('is_publicly_traded', False),
-            'is_crypto': asset_type == 'Cryptocurrency',
-            'exchange': enriched.get('exchange'),
-            'enrichment_status': enriched.get('enrichment_status'),
-            'cusip': None,  # Not currently extracted
-            'first_seen_date': row['first_seen_date'],
-            'last_seen_date': row['last_seen_date'],
-            'occurrence_count': row['occurrence_count'],
-            'created_at': datetime.utcnow().isoformat(),
-            'updated_at': datetime.utcnow().isoformat()
+        return {
+            'asset_name': asset_name,
+            'extracted_ticker': ticker,
+            'extraction_method': method,
+            'asset_type': asset_type
         }
 
-        enriched_records.append(record)
+    extracted_data = []
+    with ThreadPoolExecutor(max_workers=50) as executor:
+        futures = {executor.submit(extract_info, r): r for r in records}
+        completed = 0
+        for future in as_completed(futures):
+            extracted_data.append(future.result())
+            completed += 1
+            if completed % 1000 == 0:
+                logger.info(f"    [{completed}/{len(records)}] Assets pre-processed...")
 
-    # Log enrichment statistics
-    logger.info("\n" + "=" * 80)
-    logger.info("DATA QUALITY METRICS")
-    logger.info("=" * 80)
-    logger.info(f"Total assets processed: {enrichment_stats['total']:,}")
-    logger.info(f"  Ticker extracted: {enrichment_stats['ticker_extracted']:,} ({enrichment_stats['ticker_extracted']/enrichment_stats['total']*100:.1f}%)")
-    logger.info(f"  API enrichment success: {enrichment_stats['api_success']:,} ({enrichment_stats['api_success']/enrichment_stats['total']*100:.1f}%)")
-    logger.info(f"  API enrichment failed: {enrichment_stats['api_failed']:,}")
-    logger.info(f"  Ticker not found: {enrichment_stats['ticker_not_found']:,}")
-    logger.info(f"  Non-stock assets: {enrichment_stats['non_stock_asset']:,}")
-    logger.info(f"\nOwnership indicators found:")
-    for indicator, count in enrichment_stats['ownership_indicators'].most_common():
-        logger.info(f"  {indicator}: {count:,}")
-    logger.info("=" * 80 + "\n")
+    extracted_df = pd.DataFrame(extracted_data)
+    assets_df = assets_df.merge(extracted_df, on='asset_name')
 
-    return pd.DataFrame(enriched_records)
+    # 2. Vectorized Cache Join (DuckDB)
+    logger.info("  Step 2: Vectorized cache join with DuckDB...")
+    cache_path = f"s3://{bucket_name}/silver/house/financial/tabular/cache/stock_enrichment.parquet"
+    
+    con = duckdb.connect(database=':memory:')
+    con.execute("INSTALL httpfs; LOAD httpfs;")
+    s3_reg = os.environ.get('AWS_REGION', 'us-east-1')
+    con.execute(f"SET s3_region='{s3_reg}';")
+
+    try:
+        # Load cache into a DuckDB view
+        con.execute(f"CREATE VIEW stock_cache AS SELECT * FROM read_parquet('{cache_path}')")
+        
+        # Register the assets_df with DuckDB
+        con.register('raw_assets', assets_df)
+        
+        # Join assets with consolidated cache
+        # We join on extracted_ticker = ticker_symbol
+        query = """
+            SELECT 
+                r.*,
+                c.company_name,
+                c.sector,
+                c.industry,
+                c.market_cap,
+                c.market_cap_category,
+                c.exchange,
+                c.is_publicly_traded as cache_is_publicly_traded,
+                c.ticker_symbol as cache_ticker,
+                c.ownership_indicator,
+                c.cleaned_asset_name
+            FROM raw_assets r
+            LEFT JOIN stock_cache c ON r.extracted_ticker = c.ticker_symbol
+        """
+        joined_df = con.execute(query).df()
+        logger.info(f"  Joined {len(joined_df):,} assets with consolidated cache")
+    except Exception as e:
+        logger.warning(f"  Vectorized cache join failed: {e}. Falling back to row-level lookups.")
+        joined_df = assets_df
+        joined_df['cache_ticker'] = None
+        joined_df['company_name'] = None
+        joined_df['sector'] = None
+        joined_df['industry'] = None
+        joined_df['market_cap'] = None
+        joined_df['market_cap_category'] = None
+        joined_df['exchange'] = None
+        joined_df['cache_is_publicly_traded'] = None
+        joined_df['ownership_indicator'] = None
+        joined_df['cleaned_asset_name'] = None
+
+    # 3. Identify Delta (Assets needing API/individual cache calls)
+    # We only enrich if:
+    # - Ticker was extracted BUT not found in the consolidated cache join
+    # - OR its a stock/etf and we want to ensure fresh data (though for speed we trust cache)
+    
+    # We define 'needs_enrichment' as: has ticker but no cache info
+    needs_enrichment = joined_df[
+        (joined_df['extracted_ticker'].notna()) & (joined_df['cache_ticker'].isna())
+    ].copy()
+
+    if not needs_enrichment.empty:
+        logger.info(f"  Step 3: Enriching Delta of {len(needs_enrichment):,} new/missing assets...")
+        
+        records_to_enrich = needs_enrichment.to_dict('records')
+        enriched_results = {}
+
+        def process_delta_record(idx, row):
+            asset_name = row['asset_name']
+            # Re-use the existing parallel logic
+            enriched = stock_enricher.enrich_asset(asset_name)
+            return asset_name, enriched
+
+        # Parallel process only the delta
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            future_to_name = {executor.submit(process_delta_record, i, r): r['asset_name'] for i, r in enumerate(records_to_enrich)}
+            for future in as_completed(future_to_name):
+                name, res = future.result()
+                enriched_results[name] = res
+
+        # Map results back to joined_df
+        for name, res in enriched_results.items():
+            mask = joined_df['asset_name'] == name
+            joined_df.loc[mask, 'company_name'] = res.get('company_name')
+            joined_df.loc[mask, 'sector'] = res.get('sector')
+            joined_df.loc[mask, 'industry'] = res.get('industry')
+            joined_df.loc[mask, 'market_cap_category'] = res.get('market_cap_category')
+            joined_df.loc[mask, 'exchange'] = res.get('exchange')
+            joined_df.loc[mask, 'is_publicly_traded'] = res.get('is_publicly_traded', False)
+            joined_df.loc[mask, 'enrichment_status'] = res.get('enrichment_status')
+            joined_df.loc[mask, 'ownership_indicator'] = res.get('ownership_indicator')
+            joined_df.loc[mask, 'cleaned_asset_name'] = res.get('cleaned_asset_name')
+    else:
+        logger.info("  Step 3: No new assets found. Build is nearly instant!")
+
+    # 4. Final Cleanup
+    # Fill in missing values from cache where delta enrichment didn't apply
+    joined_df['ticker_symbol'] = joined_df['extracted_ticker']
+    joined_df['is_publicly_traded'] = joined_df['cache_is_publicly_traded'].fillna(False)
+    joined_df['is_crypto'] = joined_df['asset_type'] == 'Cryptocurrency'
+    joined_df['created_at'] = datetime.utcnow().isoformat()
+    joined_df['updated_at'] = datetime.utcnow().isoformat()
+    # Filling enrichment_status if retrieved from cache
+    joined_df['enrichment_status'] = joined_df['enrichment_status'].fillna('success_from_cache')
+    
+    # For non-stock assets or those without extracted tickers, set default enrichment status
+    joined_df.loc[joined_df['extracted_ticker'].isna(), 'enrichment_status'] = 'non_stock_asset'
+    joined_df.loc[joined_df['asset_type'] == 'Cryptocurrency', 'enrichment_status'] = 'non_stock_asset'
+    joined_df.loc[joined_df['asset_type'] == 'Other', 'enrichment_status'] = 'non_stock_asset'
+
+    # Ensure cleaned_asset_name is populated
+    joined_df['cleaned_asset_name'] = joined_df['cleaned_asset_name'].fillna(joined_df['asset_name'].str.strip())
+
+    # Select and reorder columns to match the expected output schema
+    final_columns = [
+        'asset_name', 'cleaned_asset_name', 'ownership_indicator', 'ticker_symbol',
+        'company_name', 'asset_type', 'sector', 'industry', 'market_cap_category',
+        'is_publicly_traded', 'is_crypto', 'exchange', 'enrichment_status',
+        'first_seen_date', 'last_seen_date', 'occurrence_count',
+        'created_at', 'updated_at'
+    ]
+    
+    # Add any missing columns with None if they weren't generated
+    for col in final_columns:
+        if col not in joined_df.columns:
+            joined_df[col] = None
+
+    return joined_df[final_columns]
 
 
 def assign_asset_keys(df: pd.DataFrame) -> pd.DataFrame:
@@ -300,8 +334,8 @@ def main():
     # Load unique assets from silver layer
     assets_df = load_unique_assets_from_silver(bucket_name)
 
-    # Enrich with stock API
-    enriched_df = enrich_assets(assets_df, stock_enricher)
+    # 2. Enrich with Vectorized approach (DuckDB Join + Delta Parallelism)
+    enriched_df = enrich_assets(assets_df, stock_enricher, bucket_name)
 
     # Handle empty results
     if len(enriched_df) == 0:

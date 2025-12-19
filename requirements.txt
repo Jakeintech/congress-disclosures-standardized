@@ -14,3 +14,4 @@ python-Levenshtein==0.25.0
 pytest==8.0.0
 pytest-cov==4.1.0
 python-dotenv==1.0.1
+duckdb==0.10.0

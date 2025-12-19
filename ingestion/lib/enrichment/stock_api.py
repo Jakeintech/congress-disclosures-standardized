@@ -264,7 +264,7 @@ class StockAPIEnricher:
         if self.cache:
             cached = self.cache.get('stock_api', ticker)
             if cached:
-                logger.info(f"Cache hit for ticker {ticker}")
+                # logger.info(f"Cache hit for ticker {ticker}")
                 return cached
 
         try:

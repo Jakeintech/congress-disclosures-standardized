@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 import boto3
 from botocore.exceptions import ClientError
+from botocore.config import Config
 
 
 class EnrichmentCache:
@@ -28,7 +29,8 @@ class EnrichmentCache:
             'congress-disclosures-standardized'
         )
         self.ttl_hours = ttl_hours
-        self.s3 = boto3.client('s3')
+        config = Config(max_pool_connections=100)
+        self.s3 = boto3.client('s3', config=config)
 
     def _get_cache_key(self, cache_type: str, identifier: str) -> str:
         """Generate S3 cache key."""

@@ -20,7 +20,6 @@ def get_duckdb_connection():
     """Get or create DuckDB connection with S3 support (connection pooling)."""
     global _conn
     if _conn is None:
-        import boto3
         logger.info("Creating new DuckDB connection (cold start)")
         _conn = duckdb.connect(':memory:')
         # Set home_directory for Lambda environment (required for extension installs)
@@ -28,17 +27,6 @@ def get_duckdb_connection():
         _conn.execute("INSTALL httpfs; LOAD httpfs;")
         _conn.execute("SET enable_http_metadata_cache=true;")
         _conn.execute("SET s3_region='us-east-1';")
-        
-        # Get AWS credentials from boto3 session (for Lambda IAM role)
-        session = boto3.Session()
-        credentials = session.get_credentials()
-        if credentials:
-            frozen_creds = credentials.get_frozen_credentials()
-            _conn.execute(f"SET s3_access_key_id='{frozen_creds.access_key}';")
-            _conn.execute(f"SET s3_secret_access_key='{frozen_creds.secret_key}';")
-            if frozen_creds.token:
-                _conn.execute(f"SET s3_session_token='{frozen_creds.token}';")
-        
         _conn.execute("SET s3_use_ssl=true;")
     return _conn
 

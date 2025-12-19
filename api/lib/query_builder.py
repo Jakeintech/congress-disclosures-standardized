@@ -38,21 +38,7 @@ class ParquetQueryBuilder:
         if s3_bucket:
             self.conn.execute("INSTALL httpfs;")
             self.conn.execute("LOAD httpfs;")
-            
-            # Configure S3 access for Lambda (uses IAM role credentials)
-            # Get credentials from boto3 session
-            session = boto3.Session()
-            credentials = session.get_credentials()
-            
-            if credentials:
-                # Get frozen credentials (current values)
-                frozen_creds = credentials.get_frozen_credentials()
-                
-                # Set AWS credentials in DuckDB
-                self.conn.execute(f"SET s3_access_key_id='{frozen_creds.access_key}';")
-                self.conn.execute(f"SET s3_secret_access_key='{frozen_creds.secret_key}';")
-                if frozen_creds.token:
-                    self.conn.execute(f"SET s3_session_token='{frozen_creds.token}';")
+            self.conn.execute("SET enable_http_metadata_cache=true;")
             
             # Set S3 region
             region = os.environ.get('AWS_REGION', 'us-east-1')

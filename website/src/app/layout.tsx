@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Providers } from "@/components/providers";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -47,7 +48,9 @@ export default function RootLayout({
                 <ThemeToggle />
               </header>
               <main className="flex-1 p-6 md:p-8">
-                {children}
+                <Providers>
+                  {children}
+                </Providers>
               </main>
               <footer className="border-t py-6 px-6">
                 <div className="flex flex-col items-center justify-between gap-4 md:flex-row">

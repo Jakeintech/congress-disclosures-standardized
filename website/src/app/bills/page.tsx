@@ -204,7 +204,7 @@ function BillsPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {data.map((bill) => (
+                                    {data.map((bill: Bill) => (
                                         <TableRow key={getBillId(bill)} className="hover:bg-muted/30 transition-colors">
                                             <TableCell>
                                                 <Link

@@ -140,20 +140,50 @@ def enrich_assets(assets_df: pd.DataFrame, stock_enricher: StockAPIEnricher) -> 
 
     enriched_records = []
 
+    # Track data quality metrics
+    enrichment_stats = {
+        'total': 0,
+        'ticker_extracted': 0,
+        'api_success': 0,
+        'api_failed': 0,
+        'ticker_not_found': 0,
+        'non_stock_asset': 0,
+        'blacklist_filtered': 0,
+        'ownership_indicators': Counter()
+    }
+
     for idx, row in assets_df.iterrows():
         asset_name = row['asset_name']
+        enrichment_stats['total'] += 1
 
         if idx % 100 == 0:
             logger.info(f"  [{idx+1}/{len(assets_df)}] Processing...")
 
-        # Classify asset type
+        # Classify asset type (this now uses cleaned names internally)
         asset_type = stock_enricher.classify_asset_type(asset_name)
 
         # Enrich with stock API (if Stock/ETF/Fund)
         if asset_type in ['Stock', 'ETF', 'Mutual Fund']:
             enriched = stock_enricher.enrich_asset(asset_name)
+
+            # Track enrichment stats
+            status = enriched.get('enrichment_status', 'unknown')
+            if status == 'success':
+                enrichment_stats['api_success'] += 1
+            elif status == 'api_failed':
+                enrichment_stats['api_failed'] += 1
+            elif status == 'ticker_not_found':
+                enrichment_stats['ticker_not_found'] += 1
+
+            if enriched.get('ticker_symbol'):
+                enrichment_stats['ticker_extracted'] += 1
+
+            if enriched.get('ownership_indicator'):
+                enrichment_stats['ownership_indicators'][enriched['ownership_indicator']] += 1
         else:
             enriched = {
+                'cleaned_asset_name': None,
+                'ownership_indicator': None,
                 'ticker_symbol': None,
                 'company_name': None,
                 'sector': None,
@@ -164,14 +194,16 @@ def enrich_assets(assets_df: pd.DataFrame, stock_enricher: StockAPIEnricher) -> 
                 'is_publicly_traded': False,
                 'enrichment_status': 'non_stock_asset'
             }
+            enrichment_stats['non_stock_asset'] += 1
 
-        # Normalize asset name
-        normalized_name = asset_name.strip()
+        # Get cleaned name (with fallback to original)
+        cleaned_name = enriched.get('cleaned_asset_name', asset_name.strip())
 
         # Build dim_assets record
         record = {
-            'asset_name': asset_name,
-            'normalized_asset_name': normalized_name,
+            'asset_name': asset_name,  # Original name with metadata
+            'cleaned_asset_name': cleaned_name,  # Cleaned name for matching
+            'ownership_indicator': enriched.get('ownership_indicator'),  # SP, JT, DC, etc.
             'ticker_symbol': enriched.get('ticker_symbol'),
             'company_name': enriched.get('company_name'),
             'asset_type': asset_type,
@@ -181,6 +213,7 @@ def enrich_assets(assets_df: pd.DataFrame, stock_enricher: StockAPIEnricher) -> 
             'is_publicly_traded': enriched.get('is_publicly_traded', False),
             'is_crypto': asset_type == 'Cryptocurrency',
             'exchange': enriched.get('exchange'),
+            'enrichment_status': enriched.get('enrichment_status'),
             'cusip': None,  # Not currently extracted
             'first_seen_date': row['first_seen_date'],
             'last_seen_date': row['last_seen_date'],
@@ -190,6 +223,21 @@ def enrich_assets(assets_df: pd.DataFrame, stock_enricher: StockAPIEnricher) -> 
         }
 
         enriched_records.append(record)
+
+    # Log enrichment statistics
+    logger.info("\n" + "=" * 80)
+    logger.info("DATA QUALITY METRICS")
+    logger.info("=" * 80)
+    logger.info(f"Total assets processed: {enrichment_stats['total']:,}")
+    logger.info(f"  Ticker extracted: {enrichment_stats['ticker_extracted']:,} ({enrichment_stats['ticker_extracted']/enrichment_stats['total']*100:.1f}%)")
+    logger.info(f"  API enrichment success: {enrichment_stats['api_success']:,} ({enrichment_stats['api_success']/enrichment_stats['total']*100:.1f}%)")
+    logger.info(f"  API enrichment failed: {enrichment_stats['api_failed']:,}")
+    logger.info(f"  Ticker not found: {enrichment_stats['ticker_not_found']:,}")
+    logger.info(f"  Non-stock assets: {enrichment_stats['non_stock_asset']:,}")
+    logger.info(f"\nOwnership indicators found:")
+    for indicator, count in enrichment_stats['ownership_indicators'].most_common():
+        logger.info(f"  {indicator}: {count:,}")
+    logger.info("=" * 80 + "\n")
 
     return pd.DataFrame(enriched_records)
 
@@ -263,14 +311,35 @@ def main():
     # Assign surrogate keys
     final_df = assign_asset_keys(enriched_df)
 
-    logger.info(f"\nEnrichment summary:")
-    logger.info(f"  Total assets: {len(final_df)}")
-    logger.info(f"  With ticker: {final_df['ticker_symbol'].notna().sum()}")
-    logger.info(f"  With sector: {final_df['sector'].notna().sum()}")
-    logger.info(f"  Publicly traded: {final_df['is_publicly_traded'].sum()}")
-    logger.info(f"  Ticker extraction rate: {(final_df['ticker_symbol'].notna().sum() / len(final_df) * 100):.1f}%")
+    logger.info("\n" + "=" * 80)
+    logger.info("FINAL ENRICHMENT SUMMARY")
+    logger.info("=" * 80)
+    logger.info(f"Total unique assets: {len(final_df):,}")
+    logger.info(f"  With ticker symbol: {final_df['ticker_symbol'].notna().sum():,} ({final_df['ticker_symbol'].notna().sum() / len(final_df) * 100:.1f}%)")
+    logger.info(f"  With sector info: {final_df['sector'].notna().sum():,} ({final_df['sector'].notna().sum() / len(final_df) * 100:.1f}%)")
+    logger.info(f"  Publicly traded: {final_df['is_publicly_traded'].sum():,} ({final_df['is_publicly_traded'].sum() / len(final_df) * 100:.1f}%)")
+    logger.info(f"  With ownership indicator: {final_df['ownership_indicator'].notna().sum():,}")
+
     logger.info(f"\nAsset type breakdown:")
-    logger.info(final_df['asset_type'].value_counts())
+    for asset_type, count in final_df['asset_type'].value_counts().items():
+        logger.info(f"  {asset_type}: {count:,} ({count/len(final_df)*100:.1f}%)")
+
+    logger.info(f"\nEnrichment status breakdown:")
+    for status, count in final_df['enrichment_status'].value_counts().items():
+        logger.info(f"  {status}: {count:,} ({count/len(final_df)*100:.1f}%)")
+
+    logger.info(f"\nOwnership indicator breakdown:")
+    ownership_counts = final_df['ownership_indicator'].value_counts()
+    for indicator, count in ownership_counts.items():
+        logger.info(f"  {indicator}: {count:,}")
+    logger.info(f"  None/Unknown: {final_df['ownership_indicator'].isna().sum():,}")
+
+    logger.info(f"\nTop 10 most common assets:")
+    top_assets = final_df.nlargest(10, 'occurrence_count')[['cleaned_asset_name', 'ticker_symbol', 'asset_type', 'occurrence_count']]
+    for idx, row in top_assets.iterrows():
+        ticker_str = f"({row['ticker_symbol']})" if pd.notna(row['ticker_symbol']) else "(no ticker)"
+        logger.info(f"  {row['cleaned_asset_name'][:50]} {ticker_str} - {row['asset_type']} - {row['occurrence_count']:,} occurrences")
+    logger.info("=" * 80)
 
     # Write to gold layer
     write_to_gold(final_df, bucket_name)

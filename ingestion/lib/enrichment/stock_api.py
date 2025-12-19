@@ -24,11 +24,47 @@ class StockAPIEnricher:
     """Enricher for stock data using Yahoo Finance."""
 
     # Common ticker patterns in PTR asset names
+    # Prioritized: more specific patterns first
     TICKER_PATTERNS = [
-        r'\(([A-Z]{1,5})\)$',  # "Company Name (TICKER)"
-        r'\b([A-Z]{2,5})\s*$',  # "TICKER" at end
+        r'\(([A-Z]{1,5})\)',  # "Company Name (TICKER)" - most reliable
         r'ticker:\s*([A-Z]{1,5})',  # "ticker: TICKER"
-        r'symbol:\s*([A-Z]{1,5})'  # "symbol: TICKER"
+        r'symbol:\s*([A-Z]{1,5})',  # "symbol: TICKER"
+        r'\b([A-Z]{3,5})\b(?=\s+(?:stock|shares|common|ordinary|class))',  # "AAPL Stock", "MSFT Shares"
+    ]
+
+    # Blacklist of invalid "tickers" (common words, filing metadata, generic terms)
+    TICKER_BLACKLIST = {
+        # Common words that aren't tickers
+        'STOCK', 'STOCKS', 'TRUST', 'TRUSTS', 'UNITS', 'UNIT', 'BANK',
+        'BANKS', 'BOND', 'BONDS', 'FUND', 'FUNDS', 'GROUP', 'GROUPS',
+        'CORP', 'CORPS', 'INC', 'LLC', 'LTD', 'LP', 'LLP', 'COMPANY',
+        'COMPANIES', 'SHARES', 'SHARE', 'CLASS', 'SERIES', 'COMMON',
+        'PREFERRED', 'ORDINARY', 'EQUITY', 'ASSET', 'ASSETS', 'HOLDING',
+        'HOLDINGS', 'INVESTMENT', 'INVESTMENTS', 'CAPITAL', 'GROWTH',
+        'VALUE', 'INDEX', 'REAL', 'ESTATE', 'PROPERTY', 'LAND',
+        'NOTE', 'NOTES', 'SECURITY', 'SECURITIES', 'MUTUAL',
+        # Filing metadata prefixes
+        'SP', 'JT', 'DC', 'SO', 'FS', 'HN',
+        # Common suffixes/words
+        'CO', 'THE', 'AND', 'FOR', 'NEW', 'RENT', 'LIFE', 'CARE',
+        'GLOBAL', 'INTERNATIONAL', 'NATIONAL', 'AMERICAN', 'US', 'USA',
+        # Geographic indicators
+        'USA', 'UK', 'EU', 'NYC', 'LA',
+    }
+
+    # Filing metadata prefixes to strip from asset names
+    # Note: These patterns are applied iteratively, so order doesn't matter
+    FILING_METADATA_PREFIXES = [
+        r'^SP\s+',  # Spouse/Dependent
+        r'^JT\s+',  # Joint
+        r'^DC\s+',  # Dependent Child
+        r'^SO\s+',  # Spouse Only
+        r'^S\s+O:\s*[^\n]*\n',  # S O: prefix with content until newline
+        r'^F\s+S:\s*[^\n]*\n',  # F S: prefix with content until newline
+        r'^D:\s*[^\n]*\n',  # D: prefix with content until newline
+        r'F\s+S:\s+New\s+',  # F S: New (inline)
+        r'S\s+O:\s+',  # S O: (inline)
+        r'D:\s+',  # D: (inline)
     ]
 
     def __init__(self, use_cache: bool = True):
@@ -40,6 +76,53 @@ class StockAPIEnricher:
         """
         self.cache = EnrichmentCache() if use_cache else None
 
+    def clean_asset_name(self, asset_name: str) -> tuple[str, Optional[str]]:
+        """
+        Clean asset name by removing filing metadata prefixes.
+
+        Args:
+            asset_name: Raw asset name from PTR (may contain prefixes like "SP", "JT", etc.)
+
+        Returns:
+            Tuple of (cleaned_name, ownership_indicator)
+            - cleaned_name: Asset name with metadata stripped
+            - ownership_indicator: Detected prefix (SP, JT, DC, etc.) or None
+        """
+        if not asset_name:
+            return asset_name, None
+
+        # Detect ownership indicator by searching anywhere in the text
+        # (not just at the start, since multiline text may have it embedded)
+        ownership_indicator = None
+
+        # Look for standalone SP/JT/DC indicators (word boundaries)
+        if re.search(r'\bSP\b', asset_name, re.IGNORECASE):
+            ownership_indicator = 'SP'
+        elif re.search(r'\bJT\b', asset_name, re.IGNORECASE):
+            ownership_indicator = 'JT'
+        elif re.search(r'\bDC\b', asset_name, re.IGNORECASE):
+            ownership_indicator = 'DC'
+        elif re.search(r'\bSO\b|S\s+O:', asset_name, re.IGNORECASE):
+            ownership_indicator = 'SO'
+
+        # Strip all metadata prefixes (apply iteratively)
+        cleaned = asset_name
+        for pattern in self.FILING_METADATA_PREFIXES:
+            cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE | re.MULTILINE)
+
+        # Additional cleanup: remove extra whitespace and newlines
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+
+        # Remove leading/trailing punctuation
+        cleaned = cleaned.strip('.,;:-_')
+
+        # If we detected SP/JT/DC, remove it from the cleaned name as well
+        if ownership_indicator:
+            cleaned = re.sub(r'\b' + ownership_indicator + r'\b', '', cleaned, flags=re.IGNORECASE)
+            cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+
+        return cleaned, ownership_indicator
+
     def extract_ticker_from_name(self, asset_name: str) -> Optional[str]:
         """
         Extract ticker symbol from asset name using regex patterns.
@@ -50,13 +133,24 @@ class StockAPIEnricher:
         Returns:
             Ticker symbol or None
         """
+        # First, clean the asset name to remove metadata
+        cleaned_name, _ = self.clean_asset_name(asset_name)
+
         for pattern in self.TICKER_PATTERNS:
-            match = re.search(pattern, asset_name, re.IGNORECASE)
+            match = re.search(pattern, cleaned_name, re.IGNORECASE)
             if match:
                 ticker = match.group(1).upper()
-                # Validate ticker (1-5 uppercase letters)
-                if re.match(r'^[A-Z]{1,5}$', ticker):
-                    return ticker
+
+                # Validate ticker format (1-5 uppercase letters)
+                if not re.match(r'^[A-Z]{1,5}$', ticker):
+                    continue
+
+                # Check against blacklist
+                if ticker in self.TICKER_BLACKLIST:
+                    logger.debug(f"Skipping blacklisted ticker: {ticker}")
+                    continue
+
+                return ticker
 
         return None
 
@@ -154,16 +248,25 @@ class StockAPIEnricher:
         Enrich asset data with stock information.
 
         Args:
-            asset_name: Full asset name from PTR
+            asset_name: Full asset name from PTR (may contain metadata prefixes)
 
         Returns:
-            Enriched asset data dict
+            Enriched asset data dict with cleaned names and ownership info
         """
-        # Extract ticker
+        # Clean asset name and extract ownership indicator
+        cleaned_name, ownership_indicator = self.clean_asset_name(asset_name)
+
+        # Extract ticker from cleaned name
         ticker = self.extract_ticker_from_name(asset_name)
+
+        base_result = {
+            'cleaned_asset_name': cleaned_name,
+            'ownership_indicator': ownership_indicator,
+        }
 
         if not ticker:
             return {
+                **base_result,
                 'ticker_symbol': None,
                 'company_name': None,
                 'sector': None,
@@ -181,6 +284,7 @@ class StockAPIEnricher:
 
         if not stock_info:
             return {
+                **base_result,
                 'ticker_symbol': ticker,
                 'company_name': None,
                 'sector': None,
@@ -193,10 +297,10 @@ class StockAPIEnricher:
                 'extraction_method': 'regex'
             }
 
-        # Success
+        # Success - merge with base result
         stock_info['enrichment_status'] = 'success'
         stock_info['extraction_method'] = 'regex+yahoo_finance'
-        return stock_info
+        return {**base_result, **stock_info}
 
     def classify_asset_type(self, asset_name: str) -> str:
         """
@@ -208,23 +312,34 @@ class StockAPIEnricher:
         Returns:
             Asset type string
         """
-        name_lower = asset_name.lower()
+        # Clean the name first for more accurate classification
+        cleaned_name, _ = self.clean_asset_name(asset_name)
+        name_lower = cleaned_name.lower()
 
-        if any(x in name_lower for x in ['etf', 'index fund', 'spdr', 'ishares']):
+        # Priority order: most specific first
+        if any(x in name_lower for x in ['etf', 'exchange traded fund', 'spdr', 'ishares', 'vanguard etf']):
             return 'ETF'
-        elif any(x in name_lower for x in ['mutual fund', 'fund']):
+        elif any(x in name_lower for x in ['mutual fund', 'index fund', 'vanguard fund']):
             return 'Mutual Fund'
-        elif any(x in name_lower for x in ['bond', 'treasury', 'note']):
+        elif any(x in name_lower for x in ['bond', 'treasury', 'note', 'debenture']):
             return 'Bond'
-        elif any(x in name_lower for x in ['bitcoin', 'ethereum', 'crypto', 'btc', 'eth']):
+        elif any(x in name_lower for x in ['bitcoin', 'ethereum', 'crypto', 'btc', 'eth', 'cryptocurrency']):
             return 'Cryptocurrency'
-        elif any(x in name_lower for x in ['option', 'call', 'put']):
+        elif any(x in name_lower for x in ['option', 'call option', 'put option', 'warrant']):
             return 'Option'
-        elif any(x in name_lower for x in ['real estate', 'property', 'land']):
+        elif any(x in name_lower for x in ['real estate', 'property', 'land', 'reit']):
             return 'Real Estate'
-        elif any(x in name_lower for x in ['stock', 'common stock', 'equity']):
-            return 'Stock'
+        elif 'hedge fund' in name_lower or 'private equity' in name_lower:
+            return 'Alternative Investment'
         else:
-            # Default to Stock if ticker found
+            # Only classify as Stock if we can extract a valid ticker
+            # Don't classify based on the word "stock" alone (too many false positives)
             ticker = self.extract_ticker_from_name(asset_name)
-            return 'Stock' if ticker else 'Other'
+            if ticker and ticker not in self.TICKER_BLACKLIST:
+                return 'Stock'
+            # Check for specific stock-related keywords with company names
+            elif any(x in name_lower for x in ['inc.', 'corp.', 'corporation', 'incorporated', 'plc', 'ltd']) and \
+                 not any(x in name_lower for x in ['fund', 'trust', 'partnership']):
+                return 'Stock'
+            else:
+                return 'Other'

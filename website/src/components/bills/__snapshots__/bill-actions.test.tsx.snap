@@ -1,0 +1,71 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BillActions > renders actions from MSW 1`] = `
+<DocumentFragment>
+  <div
+    class="space-y-4"
+  >
+    <div
+      class="flex items-center justify-between"
+    >
+      <h3
+        class="text-lg font-semibold flex items-center gap-2"
+      >
+        Legislative History
+        <span
+          class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 text-xs"
+          data-slot="badge"
+        >
+          1
+        </span>
+      </h3>
+    </div>
+    <div
+      class="bg-background rounded-xl border overflow-hidden"
+    >
+      <table
+        class="w-full text-sm"
+      >
+        <thead>
+          <tr
+            class="border-b bg-muted/50"
+          >
+            <th
+              class="text-left py-3 px-4 font-semibold w-32 text-muted-foreground"
+            >
+              Date
+            </th>
+            <th
+              class="text-left py-3 px-4 font-semibold text-muted-foreground"
+            >
+              Action
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="divide-y"
+        >
+          <tr
+            class="hover:bg-accent/5 transition-colors"
+          >
+            <td
+              class="py-3 px-4 text-muted-foreground font-mono text-xs"
+            >
+              Jan 19, 2025
+            </td>
+            <td
+              class="py-3 px-4 leading-relaxed"
+            >
+              <div
+                class="flex flex-col gap-1"
+              >
+                Introduced in House
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</DocumentFragment>
+`;

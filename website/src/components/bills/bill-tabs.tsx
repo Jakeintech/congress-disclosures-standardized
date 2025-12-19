@@ -18,23 +18,58 @@ import { BillTimeline, type TimelineEvent } from './bill-timeline';
 import { AmendmentImpactAnalysis } from './amendment-impact-analysis';
 import { DataContainer } from '@/components/ui/data-container';
 import { useBillText, useBillTitles, useBillActions } from '@/hooks/use-api';
-import { type Bill } from '@/types/api';
+import {
+    type Bill,
+    type BillAction,
+    type Cosponsor,
+    type Subject,
+    type BillSummary as BillSummaryType,
+    type BillTitle,
+    type RelatedBill,
+    type TextVersion,
+    type Committee,
+    type TradeCorrelation
+} from '@/types/api';
 
 interface BillTabsProps {
     bill: Bill;
-    textVersions?: any[];
+    textVersions?: TextVersion[];
     cosponsorsCount: number;
     actionsCount: number;
     billId: string;
+    actions?: BillAction[];
+    cosponsors?: Cosponsor[];
+    industryTags?: string[];
+    tradeCorrelations?: TradeCorrelation[];
+    summary?: BillSummaryType;
+    committees?: Committee[];
+    relatedBills?: RelatedBill[];
+    subjects?: Subject[];
+    titles?: BillTitle[];
 }
 
-export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, billId }: BillTabsProps) {
+export function BillTabs({
+    bill,
+    textVersions,
+    cosponsorsCount,
+    actionsCount,
+    billId,
+    actions,
+    cosponsors,
+    industryTags,
+    tradeCorrelations,
+    summary,
+    committees,
+    relatedBills,
+    subjects,
+    titles
+}: BillTabsProps) {
     const [selectedVersion, setSelectedVersion] = useState<number>(0);
     const [activeTab, setActiveTab] = useState<string>("summary");
 
     // We still need actions for the timeline and summaries for some basic info
-    const actionsQuery = useBillActions(billId);
-    const titlesQuery = useBillTitles(billId);
+    const actionsQuery = useBillActions(billId, actions);
+    const titlesQuery = useBillTitles(billId, titles);
     const textQuery = useBillText(billId);
 
     // Convert actions to timeline events
@@ -117,12 +152,12 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
 
             <div className="space-y-4">
                 <TabsContent value="summary">
-                    <BillSummary billId={billId} initialData={bill.summary ? { text: bill.summary } as any : undefined} />
+                    <BillSummary billId={billId} initialData={summary || (bill.summary ? { text: bill.summary } as any : undefined)} />
                 </TabsContent>
 
                 <TabsContent value="timeline">
                     <DataContainer
-                        isLoading={actionsQuery.isLoading}
+                        isLoading={actionsQuery.isLoading && !actions}
                         isError={actionsQuery.isError}
                         data={timelineEvents}
                         emptyMessage="No legislative timeline data available."
@@ -197,9 +232,9 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                         </CardHeader>
                         <CardContent className="px-0">
                             <DataContainer
-                                isLoading={titlesQuery.isLoading}
+                                isLoading={titlesQuery.isLoading && !titles}
                                 isError={titlesQuery.isError}
-                                data={(titlesQuery.data as any)?.titles}
+                                data={(titlesQuery.data as any)?.titles || titles}
                                 onRetry={() => titlesQuery.refetch()}
                             >
                                 {(data: any[]) => (
@@ -218,7 +253,7 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                 </TabsContent>
 
                 <TabsContent value="cosponsors">
-                    <BillCosponsors billId={billId} />
+                    <BillCosponsors billId={billId} initialData={cosponsors} />
                 </TabsContent>
 
                 <TabsContent value="committees">
@@ -235,7 +270,7 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                 </TabsContent>
 
                 <TabsContent value="subjects">
-                    <BillSubjects billId={billId} />
+                    <BillSubjects billId={billId} initialData={subjects} />
                 </TabsContent>
 
                 <TabsContent value="amendments">
@@ -243,7 +278,7 @@ export function BillTabs({ bill, textVersions, cosponsorsCount, actionsCount, bi
                 </TabsContent>
 
                 <TabsContent value="related">
-                    <RelatedBills billId={billId} />
+                    <RelatedBills billId={billId} initialData={relatedBills} />
                 </TabsContent>
 
                 <TabsContent value="impact">

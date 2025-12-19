@@ -1,0 +1,364 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.16 [39m[90m/Users/jake/Documents/GitHub/congress-disclosures-standardized/website[39m
+
+(node:79305) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+[90mstdout[2m | src/components/bills/bill-tabs.test.tsx[2m > [22m[2mBillTabs[2m > [22m[2mrenders other tabs correctly when clicked
+[22m[39m[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex flex-col gap-2 w-full"[39m
+      [33mdata-orientation[39m=[32m"horizontal"[39m
+      [33mdata-slot[39m=[32m"tabs"[39m
+      [33mdir[39m=[32m"ltr"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-orientation[39m=[32m"horizontal"[39m
+        [33mclass[39m=[32m"text-muted-foreground inline-flex items-center w-full justify-start overflow-x-auto h-auto flex-wrap gap-1 p-1 bg-background border-b rounded-none mb-6"[39m
+        [33mdata-orientation[39m=[32m"horizontal"[39m
+        [33mdata-slot[39m=[32m"tabs-list"[39m
+        [33mrole[39m=[32m"tablist"[39m
+        [33mstyle[39m=[32m"outline: none;"[39m
+        [33mtabindex[39m=[32m"0"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-controls[39m=[32m"radix-_r_c_-content-summary"[39m
+          [33maria-selected[39m=[32m"true"[39m
+          [33mclass[39m=[32m"data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-radix-collection-item[39m=[32m""[39m
+          [33mdata-slot[39m=[32m"tabs-trigger"[39m
+          [33mdata-state[39m=[32m"active"[39m
+          [33mid[39m=[32m"radix-_r_c_-trigger-summary"[39m
+          [33mrole[39m=[32m"tab"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-file-search h-4 w-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+            [36m/>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"11.5"[39m
+              [33mcy[39m=[32m"14.5"[39m
+              [33mr[39m=[32m"2.5"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M13.3 16.3 15 18"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0m Summary[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-controls[39m=[32m"radix-_r_c_-content-timeline"[39m
+          [33maria-selected[39m=[32m"false"[39m
+          [33mclass[39m=[32m"data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-radix-collection-item[39m=[32m""[39m
+          [33mdata-slot[39m=[32m"tabs-trigger"[39m
+          [33mdata-state[39m=[32m"inactive"[39m
+          [33mid[39m=[32m"radix-_r_c_-trigger-timeline"[39m
+          [33mrole[39m=[32m"tab"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-history h-4 w-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M3 3v5h5"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12 7v5l4 2"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0m Timeline[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-controls[39m=[32m"radix-_r_c_-content-text"[39m
+          [33maria-selected[39m=[32m"false"[39m
+          [33mclass[39m=[32m"data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-radix-collection-item[39m=[32m""[39m
+          [33mdata-slot[39m=[32m"tabs-trigger"[39m
+          [33mdata-state[39m=[32m"inactive"[39m
+          [33mid[39m=[32m"radix-_r_c_-trigger-text"[39m
+          [33mrole[39m=[32m"tab"[39m
+          [33mtabindex[39m=[32m"-1...
+
+ [31m❯[39m src/components/bills/bill-tabs.test.tsx [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1551[2mms[22m[39m
+     [32m✓[39m renders summary tab by default[32m 299[2mms[22m[39m
+[31m     [31m×[31m renders other tabs correctly when clicked[39m[33m 1249[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/components/bills/bill-tabs.test.tsx[2m > [22mBillTabs[2m > [22mrenders other tabs correctly when clicked
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find an element with the text: /Legislative History/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex flex-col gap-2 w-full"[39m
+      [33mdata-orientation[39m=[32m"horizontal"[39m
+      [33mdata-slot[39m=[32m"tabs"[39m
+      [33mdir[39m=[32m"ltr"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-orientation[39m=[32m"horizontal"[39m
+        [33mclass[39m=[32m"text-muted-foreground inline-flex items-center w-full justify-start overflow-x-auto h-auto flex-wrap gap-1 p-1 bg-background border-b rounded-none mb-6"[39m
+        [33mdata-orientation[39m=[32m"horizontal"[39m
+        [33mdata-slot[39m=[32m"tabs-list"[39m
+        [33mrole[39m=[32m"tablist"[39m
+        [33mstyle[39m=[32m"outline: none;"[39m
+        [33mtabindex[39m=[32m"0"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-controls[39m=[32m"radix-_r_c_-content-summary"[39m
+          [33maria-selected[39m=[32m"true"[39m
+          [33mclass[39m=[32m"data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-radix-collection-item[39m=[32m""[39m
+          [33mdata-slot[39m=[32m"tabs-trigger"[39m
+          [33mdata-state[39m=[32m"active"[39m
+          [33mid[39m=[32m"radix-_r_c_-trigger-summary"[39m
+          [33mrole[39m=[32m"tab"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-file-search h-4 w-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+            [36m/>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"11.5"[39m
+              [33mcy[39m=[32m"14.5"[39m
+              [33mr[39m=[32m"2.5"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M13.3 16.3 15 18"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0m Summary[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-controls[39m=[32m"radix-_r_c_-content-timeline"[39m
+          [33maria-selected[39m=[32m"false"[39m
+          [33mclass[39m=[32m"data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-radix-collection-item[39m=[32m""[39m
+          [33mdata-slot[39m=[32m"tabs-trigger"[39m
+          [33mdata-state[39m=[32m"inactive"[39m
+          [33mid[39m=[32m"radix-_r_c_-trigger-timeline"[39m
+          [33mrole[39m=[32m"tab"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-history h-4 w-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M3 3v5h5"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12 7v5l4 2"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0m Timeline[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-controls[39m=[32m"radix-_r_c_-content-text"[39m
+          [33maria-selected[39m=[32m"false"[39m
+          [33mclass[39m=[32m"data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-radix-collection-item[39m=[32m""[39m
+          [33mdata-slot[39m=[32m"tabs-trigger"[39m
+          [33mdata-state[39m=[32m"inactive"[39m
+          [33mid[39m=[32m"radix-_r_c_-trigger-text"[39m
+          [33mrole[39m=[32m"tab"[39m
+          [33mtabindex[39m=[32m"-1...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex flex-col gap-2 w-full"[39m
+      [33mdata-orientation[39m=[32m"horizontal"[39m
+      [33mdata-slot[39m=[32m"tabs"[39m
+      [33mdir[39m=[32m"ltr"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-orientation[39m=[32m"horizontal"[39m
+        [33mclass[39m=[32m"text-muted-foreground inline-flex items-center w-full justify-start overflow-x-auto h-auto flex-wrap gap-1 p-1 bg-background border-b rounded-none mb-6"[39m
+        [33mdata-orientation[39m=[32m"horizontal"[39m
+        [33mdata-slot[39m=[32m"tabs-list"[39m
+        [33mrole[39m=[32m"tablist"[39m
+        [33mstyle[39m=[32m"outline: none;"[39m
+        [33mtabindex[39m=[32m"0"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-controls[39m=[32m"radix-_r_c_-content-summary"[39m
+          [33maria-selected[39m=[32m"true"[39m
+          [33mclass[39m=[32m"data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-radix-collection-item[39m=[32m""[39m
+          [33mdata-slot[39m=[32m"tabs-trigger"[39m
+          [33mdata-state[39m=[32m"active"[39m
+          [33mid[39m=[32m"radix-_r_c_-trigger-summary"[39m
+          [33mrole[39m=[32m"tab"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-file-search h-4 w-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+            [36m/>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"11.5"[39m
+              [33mcy[39m=[32m"14.5"[39m
+              [33mr[39m=[32m"2.5"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M13.3 16.3 15 18"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0m Summary[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-controls[39m=[32m"radix-_r_c_-content-timeline"[39m
+          [33maria-selected[39m=[32m"false"[39m
+          [33mclass[39m=[32m"data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-radix-collection-item[39m=[32m""[39m
+          [33mdata-slot[39m=[32m"tabs-trigger"[39m
+          [33mdata-state[39m=[32m"inactive"[39m
+          [33mid[39m=[32m"radix-_r_c_-trigger-timeline"[39m
+          [33mrole[39m=[32m"tab"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-history h-4 w-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M3 3v5h5"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M12 7v5l4 2"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0m Timeline[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-controls[39m=[32m"radix-_r_c_-content-text"[39m
+          [33maria-selected[39m=[32m"false"[39m
+          [33mclass[39m=[32m"data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-radix-collection-item[39m=[32m""[39m
+          [33mdata-slot[39m=[32m"tabs-trigger"[39m
+          [33mdata-state[39m=[32m"inactive"[39m
+          [33mid[39m=[32m"radix-_r_c_-trigger-text"[39m
+          [33mrole[39m=[32m"tab"[39m
+          [33mtabindex[39m=[32m"-1...
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/components/bills/bill-tabs.test.tsx:[2m77:37[22m[39m
+    [90m 75| [39m
+    [90m 76| [39m        [90m// Use findByText which handles waiting and retries[39m
+    [90m 77| [39m        [35mconst[39m historyHeader [33m=[39m [35mawait[39m [34mfindByText[39m([36m/Legislative History/i[39m)[33m;[39m
+    [90m   | [39m                                    [31m^[39m
+    [90m 78| [39m        [34mexpect[39m(historyHeader)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m 79| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 16:41:06
+[2m   Duration [22m 2.54s[2m (transform 175ms, setup 169ms, import 339ms, tests 1.55s, environment 384ms)[22m
+

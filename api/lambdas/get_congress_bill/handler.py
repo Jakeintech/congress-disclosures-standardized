@@ -13,6 +13,7 @@ import os
 import json
 import logging
 import math
+import pandas as pd
 from api.lib import (
     ParquetQueryBuilder,
     success_response,
@@ -27,9 +28,14 @@ S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized'
 
 def clean_nan(obj):
     """Replace NaN/Inf values with None for JSON serialization."""
-    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
-        return None
-    elif isinstance(obj, dict):
+    try:
+        if (isinstance(obj, (float, int)) or (hasattr(obj, '__class__') and 'numpy' in str(obj.__class__))):
+            if math.isnan(obj) or math.isinf(obj):
+                return None
+    except (TypeError, ValueError):
+        pass
+
+    if isinstance(obj, dict):
         return {k: clean_nan(v) for k, v in obj.items()}
     elif isinstance(obj, list):
         return [clean_nan(v) for v in obj]
@@ -42,7 +48,7 @@ def get_cosponsors(qb, bill_id, congress):
         try:
             cosponsors_df = qb.query_parquet(
                 'gold/congress/fact_member_bill_role',
-                filters=filters,
+                filters={'bill_id': bill_id},
                 limit=500  # Max 500 cosponsors
             )
         except Exception as e:
@@ -104,7 +110,7 @@ def get_recent_actions(qb, bill_id, limit=10, include_all=False):
         try:
             actions_df = qb.query_parquet(
                 'silver/congress/bill_actions',
-                filters=filters,
+                filters={'bill_id': bill_id},
                 order_by='action_date DESC',
                 limit=500 if include_all else limit
             )
@@ -503,15 +509,14 @@ def handler(event, context):
         # Determine cache duration (archived congresses get longer cache)
         cache_max_age = 86400 if congress <= 118 else 300  # 24h for archived, 5min for current
 
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': f'public, max-age={cache_max_age}'
-            },
-            'body': json.dumps(clean_nan(response_data), default=str)
-        }
+        return success_response(
+            data=response_data,
+            metadata={
+                'bill_id': bill_id,
+                'cached': congress <= 118,
+                'cache_max_age': cache_max_age
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error fetching bill: {e}", exc_info=True)

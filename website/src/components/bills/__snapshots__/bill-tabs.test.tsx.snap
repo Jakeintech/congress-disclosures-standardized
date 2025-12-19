@@ -1,0 +1,1304 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BillTabs > renders other tabs correctly when clicked 1`] = `
+<DocumentFragment>
+  <div
+    class="flex flex-col gap-2 w-full"
+    data-orientation="horizontal"
+    data-slot="tabs"
+    dir="ltr"
+  >
+    <div
+      aria-orientation="horizontal"
+      class="text-muted-foreground inline-flex items-center w-full justify-start overflow-x-auto h-auto flex-wrap gap-1 p-1 bg-background border-b rounded-none mb-6"
+      data-orientation="horizontal"
+      data-slot="tabs-list"
+      role="tablist"
+      style="outline: none;"
+      tabindex="0"
+    >
+      <button
+        aria-controls="radix-_r_c_-content-summary"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-summary"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-file-search h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
+          />
+          <path
+            d="M14 2v5a1 1 0 0 0 1 1h5"
+          />
+          <circle
+            cx="11.5"
+            cy="14.5"
+            r="2.5"
+          />
+          <path
+            d="M13.3 16.3 15 18"
+          />
+        </svg>
+         Summary
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-timeline"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-timeline"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-history h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+          />
+          <path
+            d="M3 3v5h5"
+          />
+          <path
+            d="M12 7v5l4 2"
+          />
+        </svg>
+         Timeline
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-text"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-text"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-file-text h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
+          />
+          <path
+            d="M14 2v5a1 1 0 0 0 1 1h5"
+          />
+          <path
+            d="M10 9H8"
+          />
+          <path
+            d="M16 13H8"
+          />
+          <path
+            d="M16 17H8"
+          />
+        </svg>
+         Text
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-actions"
+        aria-selected="true"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="active"
+        id="radix-_r_c_-trigger-actions"
+        role="tab"
+        tabindex="0"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-layers h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"
+          />
+          <path
+            d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"
+          />
+          <path
+            d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"
+          />
+        </svg>
+         Actions
+        <span
+          class="rounded-full border px-2 py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 ml-1 text-[10px] h-4 min-w-4 flex items-center justify-center"
+          data-slot="badge"
+        >
+          10
+        </span>
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-titles"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-titles"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-tag h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+          />
+          <circle
+            cx="7.5"
+            cy="7.5"
+            fill="currentColor"
+            r=".5"
+          />
+        </svg>
+         Titles
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-cosponsors"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-cosponsors"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-users h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+          />
+          <path
+            d="M16 3.128a4 4 0 0 1 0 7.744"
+          />
+          <path
+            d="M22 21v-2a4 4 0 0 0-3-3.87"
+          />
+          <circle
+            cx="9"
+            cy="7"
+            r="4"
+          />
+        </svg>
+         Cosponsors
+        <span
+          class="rounded-full border px-2 py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 ml-1 text-[10px] h-4 min-w-4 flex items-center justify-center"
+          data-slot="badge"
+        >
+          5
+        </span>
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-committees"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-committees"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-landmark h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 18v-7"
+          />
+          <path
+            d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"
+          />
+          <path
+            d="M14 18v-7"
+          />
+          <path
+            d="M18 18v-7"
+          />
+          <path
+            d="M3 22h18"
+          />
+          <path
+            d="M6 18v-7"
+          />
+        </svg>
+         Committees
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-subjects"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-subjects"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-tag h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+          />
+          <circle
+            cx="7.5"
+            cy="7.5"
+            fill="currentColor"
+            r=".5"
+          />
+        </svg>
+         Subjects
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-amendments"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-amendments"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-layers h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"
+          />
+          <path
+            d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"
+          />
+          <path
+            d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"
+          />
+        </svg>
+         Amendments
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-related"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-related"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-link h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+          />
+          <path
+            d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+          />
+        </svg>
+         Related
+      </button>
+      <button
+        aria-controls="radix-_r_c_-content-impact"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_c_-trigger-impact"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-chart-column h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 3v16a2 2 0 0 0 2 2h16"
+          />
+          <path
+            d="M18 17V9"
+          />
+          <path
+            d="M13 17V5"
+          />
+          <path
+            d="M8 17v-3"
+          />
+        </svg>
+         AI Impact
+      </button>
+    </div>
+    <div
+      class="space-y-4"
+    >
+      <div
+        aria-labelledby="radix-_r_c_-trigger-summary"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-summary"
+        role="tabpanel"
+        style=""
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_c_-trigger-timeline"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-timeline"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_c_-trigger-text"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-text"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_c_-trigger-actions"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="active"
+        id="radix-_r_c_-content-actions"
+        role="tabpanel"
+        tabindex="0"
+      >
+        <div
+          class="space-y-4"
+        >
+          <div
+            class="flex items-center justify-between"
+          >
+            <h3
+              class="text-lg font-semibold flex items-center gap-2"
+            >
+              Legislative History
+              <span
+                class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 text-xs"
+                data-slot="badge"
+              >
+                1
+              </span>
+            </h3>
+          </div>
+          <div
+            class="bg-background rounded-xl border overflow-hidden"
+          >
+            <table
+              class="w-full text-sm"
+            >
+              <thead>
+                <tr
+                  class="border-b bg-muted/50"
+                >
+                  <th
+                    class="text-left py-3 px-4 font-semibold w-32 text-muted-foreground"
+                  >
+                    Date
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 font-semibold text-muted-foreground"
+                  >
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="divide-y"
+              >
+                <tr
+                  class="hover:bg-accent/5 transition-colors"
+                >
+                  <td
+                    class="py-3 px-4 text-muted-foreground font-mono text-xs"
+                  >
+                    Jan 19, 2025
+                  </td>
+                  <td
+                    class="py-3 px-4 leading-relaxed"
+                  >
+                    <div
+                      class="flex flex-col gap-1"
+                    >
+                      Introduced in House
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div
+        aria-labelledby="radix-_r_c_-trigger-titles"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-titles"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_c_-trigger-cosponsors"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-cosponsors"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_c_-trigger-committees"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-committees"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_c_-trigger-subjects"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-subjects"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_c_-trigger-amendments"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-amendments"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_c_-trigger-related"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-related"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_c_-trigger-impact"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_c_-content-impact"
+        role="tabpanel"
+        tabindex="0"
+      />
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`BillTabs > renders summary tab by default 1`] = `
+<DocumentFragment>
+  <div
+    class="flex flex-col gap-2 w-full"
+    data-orientation="horizontal"
+    data-slot="tabs"
+    dir="ltr"
+  >
+    <div
+      aria-orientation="horizontal"
+      class="text-muted-foreground inline-flex items-center w-full justify-start overflow-x-auto h-auto flex-wrap gap-1 p-1 bg-background border-b rounded-none mb-6"
+      data-orientation="horizontal"
+      data-slot="tabs-list"
+      role="tablist"
+      style="outline: none;"
+      tabindex="0"
+    >
+      <button
+        aria-controls="radix-_r_0_-content-summary"
+        aria-selected="true"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="active"
+        id="radix-_r_0_-trigger-summary"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-file-search h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
+          />
+          <path
+            d="M14 2v5a1 1 0 0 0 1 1h5"
+          />
+          <circle
+            cx="11.5"
+            cy="14.5"
+            r="2.5"
+          />
+          <path
+            d="M13.3 16.3 15 18"
+          />
+        </svg>
+         Summary
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-timeline"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-timeline"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-history h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+          />
+          <path
+            d="M3 3v5h5"
+          />
+          <path
+            d="M12 7v5l4 2"
+          />
+        </svg>
+         Timeline
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-text"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-text"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-file-text h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
+          />
+          <path
+            d="M14 2v5a1 1 0 0 0 1 1h5"
+          />
+          <path
+            d="M10 9H8"
+          />
+          <path
+            d="M16 13H8"
+          />
+          <path
+            d="M16 17H8"
+          />
+        </svg>
+         Text
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-actions"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-actions"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-layers h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"
+          />
+          <path
+            d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"
+          />
+          <path
+            d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"
+          />
+        </svg>
+         Actions
+        <span
+          class="rounded-full border px-2 py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 ml-1 text-[10px] h-4 min-w-4 flex items-center justify-center"
+          data-slot="badge"
+        >
+          10
+        </span>
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-titles"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-titles"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-tag h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+          />
+          <circle
+            cx="7.5"
+            cy="7.5"
+            fill="currentColor"
+            r=".5"
+          />
+        </svg>
+         Titles
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-cosponsors"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-cosponsors"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-users h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+          />
+          <path
+            d="M16 3.128a4 4 0 0 1 0 7.744"
+          />
+          <path
+            d="M22 21v-2a4 4 0 0 0-3-3.87"
+          />
+          <circle
+            cx="9"
+            cy="7"
+            r="4"
+          />
+        </svg>
+         Cosponsors
+        <span
+          class="rounded-full border px-2 py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 ml-1 text-[10px] h-4 min-w-4 flex items-center justify-center"
+          data-slot="badge"
+        >
+          5
+        </span>
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-committees"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-committees"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-landmark h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 18v-7"
+          />
+          <path
+            d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"
+          />
+          <path
+            d="M14 18v-7"
+          />
+          <path
+            d="M18 18v-7"
+          />
+          <path
+            d="M3 22h18"
+          />
+          <path
+            d="M6 18v-7"
+          />
+        </svg>
+         Committees
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-subjects"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-subjects"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-tag h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+          />
+          <circle
+            cx="7.5"
+            cy="7.5"
+            fill="currentColor"
+            r=".5"
+          />
+        </svg>
+         Subjects
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-amendments"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-amendments"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-layers h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"
+          />
+          <path
+            d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"
+          />
+          <path
+            d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"
+          />
+        </svg>
+         Amendments
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-related"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-related"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-link h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+          />
+          <path
+            d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+          />
+        </svg>
+         Related
+      </button>
+      <button
+        aria-controls="radix-_r_0_-content-impact"
+        aria-selected="false"
+        class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2"
+        data-orientation="horizontal"
+        data-radix-collection-item=""
+        data-slot="tabs-trigger"
+        data-state="inactive"
+        id="radix-_r_0_-trigger-impact"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-chart-column h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 3v16a2 2 0 0 0 2 2h16"
+          />
+          <path
+            d="M18 17V9"
+          />
+          <path
+            d="M13 17V5"
+          />
+          <path
+            d="M8 17v-3"
+          />
+        </svg>
+         AI Impact
+      </button>
+    </div>
+    <div
+      class="space-y-4"
+    >
+      <div
+        aria-labelledby="radix-_r_0_-trigger-summary"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="active"
+        id="radix-_r_0_-content-summary"
+        role="tabpanel"
+        style=""
+        tabindex="0"
+      >
+        <div
+          class="text-card-foreground flex flex-col gap-6 rounded-xl border py-6 border-none shadow-none bg-accent/5"
+          data-slot="card"
+        >
+          <div
+            class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 px-0 pt-0"
+            data-slot="card-header"
+          >
+            <div
+              class="font-semibold text-lg"
+              data-slot="card-title"
+            >
+              Official Summary
+            </div>
+            <div
+              class="text-muted-foreground text-sm"
+              data-slot="card-description"
+            >
+              Provided by the Congressional Research Service (CRS)
+            </div>
+          </div>
+          <div
+            class="px-0"
+            data-slot="card-content"
+          >
+            <div
+              class="prose prose-sm dark:prose-invert max-w-none text-foreground/80 leading-relaxed whitespace-pre-wrap bg-background p-6 rounded-xl border shadow-sm"
+            >
+              This bill provides for the common defense by increasing funding.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        aria-labelledby="radix-_r_0_-trigger-timeline"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-timeline"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_0_-trigger-text"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-text"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_0_-trigger-actions"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-actions"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_0_-trigger-titles"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-titles"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_0_-trigger-cosponsors"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-cosponsors"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_0_-trigger-committees"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-committees"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_0_-trigger-subjects"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-subjects"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_0_-trigger-amendments"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-amendments"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_0_-trigger-related"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-related"
+        role="tabpanel"
+        tabindex="0"
+      />
+      <div
+        aria-labelledby="radix-_r_0_-trigger-impact"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-_r_0_-content-impact"
+        role="tabpanel"
+        tabindex="0"
+      />
+    </div>
+  </div>
+</DocumentFragment>
+`;

@@ -8,7 +8,11 @@ import {
     useBills,
     useBillDetail,
     useBillText,
-    useBillActions
+    useBillActions,
+    useBillCosponsors,
+    useBillCommittees,
+    useMembers,
+    useTopTraders
 } from './use-api';
 import React from 'react';
 
@@ -116,5 +120,49 @@ describe('use-api hooks', () => {
 
         expect((result.current.data as any)?.actions).toHaveLength(1);
         expect((result.current.data as any)?.actions[0].action_text).toBe('Introduced in House');
+    });
+
+    it('useBillCosponsors returns mocked cosponsors', async () => {
+        const { result } = renderHook(() => useBillCosponsors('119-hr-1'), {
+            wrapper: createQueryClientWrapper(),
+        });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+        expect(result.current.data?.cosponsors).toHaveLength(1);
+        expect(result.current.data?.cosponsors[0].name).toBe('Jane Smith');
+    });
+
+    it('useBillCommittees returns mocked committees', async () => {
+        const { result } = renderHook(() => useBillCommittees('119-hr-1'), {
+            wrapper: createQueryClientWrapper(),
+        });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+        expect(result.current.data?.committees).toHaveLength(1);
+        expect(result.current.data?.committees[0].name).toBe('House Committee on Armed Services');
+    });
+
+    it('useMembers returns mocked members list', async () => {
+        const { result } = renderHook(() => useMembers(), {
+            wrapper: createQueryClientWrapper(),
+        });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+        expect(result.current.data?.data).toHaveLength(3);
+        expect(result.current.data?.data[0].first_name).toBe('Nancy');
+    });
+
+    it('useTopTraders returns mocked top traders', async () => {
+        const { result } = renderHook(() => useTopTraders(), {
+            wrapper: createQueryClientWrapper(),
+        });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+        expect(result.current.data).toHaveLength(2);
+        expect(result.current.data?.[0].name).toBe('Nancy Pelosi');
     });
 });

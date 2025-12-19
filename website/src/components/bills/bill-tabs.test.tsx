@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BillTabs } from './bill-tabs';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
@@ -46,30 +47,31 @@ const mockBill = {
 
 describe('BillTabs', () => {
     it('renders summary tab by default', async () => {
-        render(
+        const { asFragment } = render(
             <BillTabs bill={mockBill as any} billId="119-hr-1" cosponsorsCount={5} actionsCount={10} />,
             { wrapper: createQueryClientWrapper() }
         );
 
-        // Summary tab should be present (default)
-        // We use findByText because it might take a moment to load from MSW
-        const summaryText = await screen.findByText(/This bill provides for the common defense/i);
-        expect(summaryText).toBeDefined();
+        await screen.findByText(/This bill provides for the common defense/i);
+        expect(asFragment()).toMatchSnapshot();
     });
 
     it('renders other tabs correctly when clicked', async () => {
-        render(
+        const user = userEvent.setup();
+        const { getByRole, findByText, asFragment } = render(
             <BillTabs bill={mockBill as any} billId="119-hr-1" cosponsorsCount={5} actionsCount={10} />,
             { wrapper: createQueryClientWrapper() }
         );
 
-        // Wait for data to load in tabs (MSW will provide it)
-        // Click on "Actions" tab
-        const actionsTab = screen.getByRole('tab', { name: /actions/i });
-        actionsTab.click();
+        // Wait for summary to load first to ensure component is settled
+        await findByText(/This bill provides for the common defense/i);
 
-        // Use findByText which handles waiting
-        const historyHeader = await screen.findByText(/Legislative History/i);
-        expect(historyHeader).toBeDefined();
+        // Use userEvent.click which is more realistic
+        const actionsTab = getByRole('tab', { name: /actions/i });
+        await user.click(actionsTab);
+
+        // Use findByText which handles waiting and retries
+        await findByText(/Legislative History/i);
+        expect(asFragment()).toMatchSnapshot();
     });
 });

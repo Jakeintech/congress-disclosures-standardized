@@ -1,0 +1,75 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BillSummary > renders summary from MSW 1`] = `
+<DocumentFragment>
+  <div
+    class="text-card-foreground flex flex-col gap-6 rounded-xl border py-6 border-none shadow-none bg-accent/5"
+    data-slot="card"
+  >
+    <div
+      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 px-0 pt-0"
+      data-slot="card-header"
+    >
+      <div
+        class="font-semibold text-lg"
+        data-slot="card-title"
+      >
+        Official Summary
+      </div>
+      <div
+        class="text-muted-foreground text-sm"
+        data-slot="card-description"
+      >
+        Provided by the Congressional Research Service (CRS)
+      </div>
+    </div>
+    <div
+      class="px-0"
+      data-slot="card-content"
+    >
+      <div
+        class="prose prose-sm dark:prose-invert max-w-none text-foreground/80 leading-relaxed whitespace-pre-wrap bg-background p-6 rounded-xl border shadow-sm"
+      >
+        This bill provides for the common defense by increasing funding.
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`BillSummary > uses initial data if provided 1`] = `
+<DocumentFragment>
+  <div
+    class="text-card-foreground flex flex-col gap-6 rounded-xl border py-6 border-none shadow-none bg-accent/5"
+    data-slot="card"
+  >
+    <div
+      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 px-0 pt-0"
+      data-slot="card-header"
+    >
+      <div
+        class="font-semibold text-lg"
+        data-slot="card-title"
+      >
+        Official Summary
+      </div>
+      <div
+        class="text-muted-foreground text-sm"
+        data-slot="card-description"
+      >
+        Provided by the Congressional Research Service (CRS)
+      </div>
+    </div>
+    <div
+      class="px-0"
+      data-slot="card-content"
+    >
+      <div
+        class="prose prose-sm dark:prose-invert max-w-none text-foreground/80 leading-relaxed whitespace-pre-wrap bg-background p-6 rounded-xl border shadow-sm"
+      >
+        Initial summary
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

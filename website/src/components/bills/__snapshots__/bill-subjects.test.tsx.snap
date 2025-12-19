@@ -1,0 +1,22 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BillSubjects > renders subjects from MSW 1`] = `
+<DocumentFragment>
+  <div
+    class="flex flex-wrap gap-2 p-6 bg-background rounded-xl border"
+  >
+    <span
+      class="inline-flex items-center justify-center border text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 px-4 py-1.5 rounded-full font-normal shadow-sm hover:bg-secondary/80 transition-colors"
+      data-slot="badge"
+    >
+      Defense spending
+    </span>
+    <span
+      class="inline-flex items-center justify-center border text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 px-4 py-1.5 rounded-full font-normal shadow-sm hover:bg-secondary/80 transition-colors"
+      data-slot="badge"
+    >
+      Military personnel
+    </span>
+  </div>
+</DocumentFragment>
+`;

@@ -32,7 +32,14 @@ import {
 import type {
     BillsParams,
     NetworkGraphData,
-    MembersParams, // Added MembersParams
+    MembersParams,
+    BillAction,
+    BillSummary,
+    Cosponsor,
+    Subject,
+    BillTitle,
+    Amendment,
+    RelatedBill,
 } from '@/types/api';
 
 /**
@@ -213,22 +220,24 @@ export function useBillText(billId: string) {
 /**
  * Hook to fetch bill actions.
  */
-export function useBillActions(billId: string) {
+export function useBillActions(billId: string, initialData?: BillAction[]) {
     return useQuery({
         queryKey: ['bill-actions', billId],
         queryFn: () => fetchBillActions(billId),
         enabled: !!billId,
+        initialData: initialData ? { actions: initialData, count: initialData.length } : undefined,
     });
 }
 
 /**
  * Hook to fetch bill summaries.
  */
-export function useBillSummaries(billId: string) {
+export function useBillSummaries(billId: string, initialData?: BillSummary[]) {
     return useQuery({
         queryKey: ['bill-summaries', billId],
         queryFn: () => fetchBillSummaries(billId),
         enabled: !!billId,
+        initialData: initialData ? { summaries: Array.isArray(initialData) ? initialData : [initialData], count: Array.isArray(initialData) ? initialData.length : 1 } : undefined,
     });
 }
 
@@ -246,33 +255,36 @@ export function useBillCommittees(billId: string) {
 /**
  * Hook to fetch bill cosponsors.
  */
-export function useBillCosponsors(billId: string) {
+export function useBillCosponsors(billId: string, initialData?: Cosponsor[]) {
     return useQuery({
         queryKey: ['bill-cosponsors', billId],
         queryFn: () => fetchBillCosponsors(billId),
         enabled: !!billId,
+        initialData: initialData ? { cosponsors: initialData, count: initialData.length } : undefined,
     });
 }
 
 /**
  * Hook to fetch bill subjects.
  */
-export function useBillSubjects(billId: string) {
+export function useBillSubjects(billId: string, initialData?: Subject[]) {
     return useQuery({
         queryKey: ['bill-subjects', billId],
         queryFn: () => fetchBillSubjects(billId),
         enabled: !!billId,
+        initialData: initialData ? { subjects: initialData, count: initialData.length } : undefined,
     });
 }
 
 /**
  * Hook to fetch bill titles.
  */
-export function useBillTitles(billId: string) {
+export function useBillTitles(billId: string, initialData?: BillTitle[]) {
     return useQuery({
         queryKey: ['bill-titles', billId],
         queryFn: () => fetchBillTitles(billId),
         enabled: !!billId,
+        initialData: initialData ? { titles: initialData, count: initialData.length } : undefined,
     });
 }
 

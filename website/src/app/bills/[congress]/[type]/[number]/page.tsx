@@ -56,6 +56,15 @@ async function BillContent({ params }: { params: { congress: string; type: strin
                     cosponsorsCount={data.cosponsors_count}
                     actionsCount={data.actions_count_total}
                     billId={billId}
+                    actions={data.actions}
+                    cosponsors={data.cosponsors}
+                    industryTags={data.industry_tags}
+                    tradeCorrelations={data.trade_correlations}
+                    summary={data.summary}
+                    committees={data.committees}
+                    relatedBills={data.related_bills}
+                    subjects={data.subjects}
+                    titles={data.titles}
                 />
             </div>
         );

@@ -12,10 +12,16 @@ class NaNToNoneEncoder(json.JSONEncoder):
     """Encodes NaN/Inf floats as null for valid JSON output."""
     def encode(self, obj):
         def replace_nan(o):
-            if isinstance(o, float):
-                if math.isnan(o) or math.isinf(o):
-                    return None
-            elif isinstance(o, dict):
+            # Check for NaN/Inf in any numeric type (including numpy.float64)
+            # Use try-except to handle types that might not have math.isnan support
+            try:
+                if isinstance(o, (float, int)) or (hasattr(o, '__class__') and 'numpy' in str(o.__class__)):
+                    if math.isnan(o) or math.isinf(o):
+                        return None
+            except (TypeError, ValueError):
+                pass
+
+            if isinstance(o, dict):
                 return {k: replace_nan(v) for k, v in o.items()}
             elif isinstance(o, (list, tuple)):
                 return [replace_nan(x) for x in o]

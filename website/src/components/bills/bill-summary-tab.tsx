@@ -15,7 +15,7 @@ export function BillSummary({ billId, initialData }: BillSummaryProps) {
 
     return (
         <DataContainer
-            isLoading={summaryQuery.isLoading}
+            isLoading={summaryQuery.isLoading && !initialData}
             isError={summaryQuery.isError}
             data={summaryQuery.data?.summaries?.[0] || initialData}
             emptyMessage="No official summary available for this bill yet."

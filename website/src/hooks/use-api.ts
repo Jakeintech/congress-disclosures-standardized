@@ -291,22 +291,24 @@ export function useBillTitles(billId: string, initialData?: BillTitle[]) {
 /**
  * Hook to fetch bill amendments.
  */
-export function useBillAmendments(billId: string) {
+export function useBillAmendments(billId: string, initialData?: Amendment[]) {
     return useQuery({
         queryKey: ['bill-amendments', billId],
         queryFn: () => fetchBillAmendments(billId),
         enabled: !!billId,
+        initialData: initialData ? { amendments: initialData, count: initialData.length } : undefined,
     });
 }
 
 /**
  * Hook to fetch related bills.
  */
-export function useBillRelated(billId: string) {
+export function useBillRelated(billId: string, initialData?: RelatedBill[]) {
     return useQuery({
         queryKey: ['bill-related', billId],
         queryFn: () => fetchBillRelated(billId),
         enabled: !!billId,
+        initialData: initialData ? { relatedBills: initialData, count: initialData.length } : undefined,
     });
 }
 

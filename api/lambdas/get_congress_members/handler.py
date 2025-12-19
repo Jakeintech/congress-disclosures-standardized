@@ -64,12 +64,12 @@ def handler(event, context):
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         total_count = qb.count_records(
-            'gold/congress/dim_member',
+            'gold/house/financial/dimensions/dim_members',
             filters=filters if filters else None
         )
         
         members_df = qb.query_parquet(
-            'gold/congress/dim_member',
+            'gold/house/financial/dimensions/dim_members',
             filters=filters if filters else None,
             order_by='last_name ASC, first_name ASC',
             limit=limit,

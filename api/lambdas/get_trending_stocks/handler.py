@@ -62,19 +62,17 @@ def handler(event, context):
         query = f"""
             SELECT
                 ticker,
-                time_window,
-                total_transactions,
-                total_volume,
-                buy_volume,
-                sell_volume,
-                net_volume,
-                sentiment_score,
-                dem_transactions,
-                rep_transactions,
-                unique_members
+                name,
+                trade_count AS total_transactions,
+                total_volume_usd AS total_volume,
+                buy_count,
+                sell_count,
+                net_sentiment AS sentiment_score,
+                unique_members,
+                period_start,
+                period_end
             FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet')
-            WHERE time_window = '{time_window}'
-            ORDER BY {sort_by} DESC
+            ORDER BY {sort_by.replace('total_volume', 'total_volume_usd').replace('total_transactions', 'trade_count')} DESC
             LIMIT {limit}
         """
 

@@ -287,7 +287,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                 }
             });
         } else if (aggregationMode === 'state') {
-            const states = Array.from(new Set(nodes.map((n: any) => n.state))).filter(s => s && s !== 'N/A');
+            const states = Array.from(new Set(nodes.map((n: any) => n.state))).filter(s => s && s !== 'N/A') as string[];
             states.forEach(state => {
                 if (expandedGroups.has(state)) {
                     const stateMembers = nodes.filter((n: any) => n.state === state && n.group === 'member');

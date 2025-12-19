@@ -20,12 +20,25 @@ def get_duckdb_connection():
     """Get or create DuckDB connection with S3 support."""
     global _conn
     if _conn is None:
+        import boto3
         logger.info("Creating new DuckDB connection (cold start)")
         _conn = duckdb.connect(':memory:')
         _conn.execute("SET home_directory='/tmp';")
         _conn.execute("INSTALL httpfs; LOAD httpfs;")
         _conn.execute("SET enable_http_metadata_cache=true;")
         _conn.execute("SET s3_region='us-east-1';")
+        
+        # Get AWS credentials from boto3 session (for Lambda IAM role)
+        session = boto3.Session()
+        credentials = session.get_credentials()
+        if credentials:
+            frozen_creds = credentials.get_frozen_credentials()
+            _conn.execute(f"SET s3_access_key_id='{frozen_creds.access_key}';")
+            _conn.execute(f"SET s3_secret_access_key='{frozen_creds.secret_key}';")
+            if frozen_creds.token:
+                _conn.execute(f"SET s3_session_token='{frozen_creds.token}';")
+        
+        _conn.execute("SET s3_use_ssl=true;")
     return _conn
 
 
@@ -42,13 +55,15 @@ def handler(event, context):
 
         conn = get_duckdb_connection()
 
-        # Build WHERE clause
-        where_clauses = [f"CAST(transaction_date AS DATE) >= CURRENT_DATE - INTERVAL '{days} days'"]
+        # Build WHERE clause (days=0 means no date filter - show all historical data)
+        where_clauses = []
+        if days > 0:
+            where_clauses.append(f"CAST(transaction_date AS DATE) >= CURRENT_DATE - INTERVAL '{days} days'")
 
         if party:
             where_clauses.append(f"party = '{party}'")
 
-        where_sql = " AND ".join(where_clauses)
+        where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
         # Sort column based on metric
         sort_col = 'total_volume' if metric == 'volume' else 'total_transactions'

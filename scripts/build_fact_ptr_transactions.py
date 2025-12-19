@@ -181,8 +181,9 @@ def process_year(year):
         logger.error(f"Could not load filings table: {e}")
         filings_dict = {}
 
-    # Scan silver/objects/filing_type=type_p/year={year}/
-    prefix = f"silver/objects/filing_type=type_p/year={year}/"
+    # Scan silver/house/financial/objects/year={year}/filing_type=type_p/
+    # Note: Actual path structure has year first, then filing_type
+    prefix = f"silver/house/financial/objects/year={year}/filing_type=type_p/"
 
     paginator = s3.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)

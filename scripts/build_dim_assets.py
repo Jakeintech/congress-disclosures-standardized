@@ -30,63 +30,86 @@ logger = logging.getLogger(__name__)
 
 
 def load_unique_assets_from_silver(bucket_name: str) -> pd.DataFrame:
-    """Load unique assets from silver structured PTR data."""
+    """Load unique assets from silver extraction JSON data."""
     s3 = boto3.client('s3')
 
-    logger.info("Loading assets from silver structured layer...")
+    logger.info("Loading assets from silver objects layer...")
 
-    # List all structured JSON files
-    prefix = 'silver/house/financial/structured/'
-    paginator = s3.get_paginator('list_objects_v2')
-    pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
-
+    # List all extraction JSON files (scan multiple filing types)
+    prefixes = [
+        'silver/house/financial/objects/',  # New path structure
+    ]
+    
     assets = []
     asset_occurrences = Counter()
     asset_first_seen = {}
     asset_last_seen = {}
+    paginator = s3.get_paginator('list_objects_v2')
 
-    for page in pages:
-        if 'Contents' not in page:
-            continue
+    for prefix in prefixes:
+        pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
 
-        for obj in page['Contents']:
-            if not obj['Key'].endswith('structured.json'):
+        for page in pages:
+            if 'Contents' not in page:
                 continue
 
-            # Load structured JSON
-            try:
-                response = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
-                data = json.loads(response['Body'].read().decode('utf-8'))
+            for obj in page['Contents']:
+                if not obj['Key'].endswith('extraction.json'):
+                    continue
 
-                # Extract doc info
-                doc_id = obj['Key'].split('/')[5].replace('doc_id=', '')
-                year = int(obj['Key'].split('/')[4].replace('year=', ''))
-                filing_date = None  # Would need to join with filings table
+                # Load extraction JSON
+                try:
+                    response = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
+                    data = json.loads(response['Body'].read().decode('utf-8'))
 
-                # Extract transactions
-                transactions = data.get('transactions', [])
+                    # Extract doc info from path
+                    # Path: silver/house/financial/objects/year=2024/filing_type=type_p/doc_id=12345/extraction.json
+                    path_parts = obj['Key'].split('/')
+                    doc_id = None
+                    year = None
+                    for part in path_parts:
+                        if part.startswith('doc_id='):
+                            doc_id = part.replace('doc_id=', '')
+                        if part.startswith('year='):
+                            year = int(part.replace('year=', ''))
+                    
+                    filing_date = None  # Would need to join with filings table
 
-                for txn in transactions:
-                    asset_name = txn.get('asset_name', '').strip()
-                    if not asset_name:
-                        continue
+                    # Extract transactions (PTR data)
+                    transactions = data.get('transactions', [])
+                    
+                    # Also check schedule_a for annual filings (asset holdings)
+                    schedule_a = data.get('schedule_a', [])
 
-                    # Track occurrences
-                    asset_occurrences[asset_name] += 1
+                    for txn in transactions:
+                        asset_name = txn.get('asset_name', '').strip()
+                        if not asset_name:
+                            continue
 
-                    # Track first/last seen
-                    txn_date = txn.get('transaction_date')
-                    if txn_date:
-                        if asset_name not in asset_first_seen or txn_date < asset_first_seen[asset_name]:
-                            asset_first_seen[asset_name] = txn_date
-                        if asset_name not in asset_last_seen or txn_date > asset_last_seen[asset_name]:
-                            asset_last_seen[asset_name] = txn_date
+                        # Track occurrences
+                        asset_occurrences[asset_name] += 1
 
-                    assets.append(asset_name)
+                        # Track first/last seen
+                        txn_date = txn.get('transaction_date')
+                        if txn_date:
+                            if asset_name not in asset_first_seen or txn_date < asset_first_seen[asset_name]:
+                                asset_first_seen[asset_name] = txn_date
+                            if asset_name not in asset_last_seen or txn_date > asset_last_seen[asset_name]:
+                                asset_last_seen[asset_name] = txn_date
 
-            except Exception as e:
-                logger.warning(f"Error processing {obj['Key']}: {e}")
-                continue
+                        assets.append(asset_name)
+                    
+                    # Also process schedule_a for asset holdings
+                    for holding in schedule_a:
+                        asset_name = holding.get('asset_name', '').strip()
+                        if not asset_name:
+                            continue
+                        asset_occurrences[asset_name] += 1
+                        assets.append(asset_name)
+
+                except Exception as e:
+                    logger.warning(f"Error processing {obj['Key']}: {e}")
+                    continue
 
     logger.info(f"Loaded {len(assets):,} total asset transactions")
 
@@ -231,6 +254,11 @@ def main():
 
     # Enrich with stock API
     enriched_df = enrich_assets(assets_df, stock_enricher)
+
+    # Handle empty results
+    if len(enriched_df) == 0:
+        logger.warning("No assets found to process - skipping write to Gold layer")
+        return
 
     # Assign surrogate keys
     final_df = assign_asset_keys(enriched_df)

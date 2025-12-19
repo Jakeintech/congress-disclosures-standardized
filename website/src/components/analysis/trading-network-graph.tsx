@@ -332,6 +332,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                     const chamberMembers = new Set(nodes.filter((n: any) => n.chamber === chamber).map((n: any) => n.id));
                     const chamberLinks = links.filter((l: any) => chamberMembers.has(l.source));
 
+                    const stockMap = new Map();
                     chamberLinks.forEach((l: any) => {
                         if (!stockMap.has(l.target)) stockMap.set(l.target, { value: 0, count: 0 });
                         stockMap.get(l.target).value += (l.value || 0);

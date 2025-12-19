@@ -30,11 +30,9 @@ from typing import Any, Dict, List, Optional, Generator
 import boto3
 from botocore.exceptions import ClientError
 
-# Add parent path for lib imports
-import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from lib.congress_api_client import CongressAPIClient, CongressAPIError
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -121,7 +119,43 @@ def hash_checkpoint_id(entity_type: str, congress: Optional[int] = None,
         parts.append(bill_type)
     return "_".join(parts)
 
-# ... queue_fetch_jobs (keep as is) ...
+
+def queue_fetch_jobs(jobs: List[Dict[str, Any]], queue_url: str) -> int:
+    """Send fetch jobs to SQS in batches of 10.
+    
+    Args:
+        jobs: List of job dicts to queue
+        queue_url: SQS queue URL
+        
+    Returns:
+        Number of successfully queued jobs
+    """
+    queued = 0
+    sqs = boto3.client('sqs')
+    
+    # Process in batches of 10 (SQS limit)
+    for i in range(0, len(jobs), 10):
+        batch = jobs[i:i+10]
+        entries = [
+            {
+                "Id": str(idx),
+                "MessageBody": json.dumps(job)
+            }
+            for idx, job in enumerate(batch)
+        ]
+        
+        try:
+            response = sqs.send_message_batch(QueueUrl=queue_url, Entries=entries)
+            queued += len(entries) - len(response.get('Failed', []))
+            
+            if 'Failed' in response:
+                for failed in response['Failed']:
+                    logger.error(f"Failed to queue job {failed['Id']}: {failed.get('Message')}")
+        except Exception as e:
+            logger.error(f"Error queuing batch: {e}")
+    
+    return queued
+
 
 def build_member_jobs_generator(
     client: CongressAPIClient, 

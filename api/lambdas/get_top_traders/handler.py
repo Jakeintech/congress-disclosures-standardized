@@ -48,7 +48,7 @@ def handler(event, context):
         query_params = event.get('queryStringParameters') or {}
 
         # Parameters
-        days = int(query_params.get('days', 30))  # Last N days
+        days = int(query_params.get('days', 365))  # Last N days (changed from 30 to 365 for 2024 data)
         limit = min(int(query_params.get('limit', 50)), 100)
         party = query_params.get('party')  # Optional: 'D', 'R', or 'I'
         metric = query_params.get('metric', 'volume')  # 'volume' or 'transactions'

@@ -188,15 +188,20 @@ def handler(event, context):
         # Query bills (get more than needed for post-filtering)
         query_limit = min(limit * 3, 1500)  # Get extra for filtering
 
-        bills_df = qb.query_parquet(
-            s3_prefix,
-            filters=filters if filters else None,
-            order_by=base_order,
-            limit=query_limit,
-            offset=0  # Don't apply offset yet, do it after enrichment
-        )
+        try:
+            bills_df = qb.query_parquet(
+                s3_prefix,
+                filters=filters if filters else None,
+                order_by=base_order,
+                limit=query_limit,
+                offset=0  # Don't apply offset yet, do it after enrichment
+            )
+        except Exception as e:
+            # Handle missing dim_bill data gracefully (e.g., during initial setup)
+            logger.warning(f"No bills data available: {e}")
+            bills_df = None
 
-        if bills_df.empty:
+        if bills_df is None or bills_df.empty:
             return {
                 'statusCode': 200,
                 'headers': {

@@ -54,9 +54,9 @@ def handler(event, context):
         
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
-        # Get member from dim_member
+        # Get member from dim_members (House financial disclosures)
         members_df = qb.query_parquet(
-            'gold/congress/dim_member',
+            'gold/house/financial/dimensions/dim_members',
             filters={'bioguide_id': bioguide_id.upper()},
             limit=1
         )

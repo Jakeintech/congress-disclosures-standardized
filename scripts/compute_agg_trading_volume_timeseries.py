@@ -122,14 +122,8 @@ def compute_timeseries(transactions_df: pd.DataFrame, members_df: pd.DataFrame,
             transactions_df.get('amount_high', 0).fillna(0)
         ) / 2
     
-    # Merge with members for party info
-    if not members_df.empty and 'member_key' in transactions_df.columns:
-        if 'party' in members_df.columns:
-            transactions_df = transactions_df.merge(
-                members_df[['member_key', 'party']],
-                on='member_key',
-                how='left'
-            )
+    # Merge with members for party info (party already in transactions_df)
+    # Skip merge since fact_ptr_transactions already has party column
     
     # Create period column based on granularity
     if granularity == 'daily':
@@ -156,7 +150,7 @@ def compute_timeseries(transactions_df: pd.DataFrame, members_df: pd.DataFrame,
         'sell_volume': 'sum',
         'is_buy': 'sum',
         'is_sell': 'sum',
-        'member_key': 'nunique',
+        'bioguide_id': 'nunique',
     }).reset_index()
     
     agg_df.columns = ['period', 'total_volume', 'buy_volume', 'sell_volume', 

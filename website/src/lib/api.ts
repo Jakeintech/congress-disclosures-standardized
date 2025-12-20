@@ -151,6 +151,10 @@ export async function fetchBillDetail(billId: string) {
     };
 }
 
+import { parseAPIResponse, type BillsResponse } from './api-types';
+
+// ... (keep existing imports)
+
 /**
  * Fetch bills list with filters
  */
@@ -170,10 +174,13 @@ export async function fetchBills(params: BillsParams = {}): Promise<Bill[]> {
     if (params.offset) searchParams.set('offset', params.offset.toString());
 
     const url = `${API_BASE}/v1/congress/bills?${searchParams.toString()}`;
-    // API returns { success: true, data: { bills: [...], pagination: {...} } }
-    const raw = await fetchApi<{ data?: { bills?: any[] } }>(`${url}`);
-    const data = (Array.isArray(raw) ? raw : raw.data?.bills) || [];
-    return data;
+    const raw = await fetchApi(url);
+
+    // Use type-safe parser with explicit typing
+    return parseAPIResponse<Bill>(raw, {
+        expectPaginated: true,
+        dataKey: 'bills'
+    }) as Bill[];
 }
 
 /**

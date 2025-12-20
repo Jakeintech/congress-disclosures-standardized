@@ -518,10 +518,11 @@ export async function fetchBillText(billId: string) {
  */
 export async function fetchCommittees(congress = 119): Promise<Committee[]> {
     try {
-        const raw = await fetchApi<{ data?: { committees: Committee[] } }>(
+        const raw = await fetchApi<{ committees?: Committee[] } & ApiResponse<any>>(
             `${API_BASE}/v1/congress/committees?congress=${congress}`
         );
-        return raw.data?.committees || (Array.isArray(raw) ? raw : []);
+        // Standardized response is { committees: [...] }
+        return raw.committees || (raw as any).data?.committees || (Array.isArray(raw) ? raw : []);
     } catch (e) {
         console.warn("Failed to fetch committees", e);
         return [];
@@ -533,13 +534,59 @@ export async function fetchCommittees(congress = 119): Promise<Committee[]> {
  */
 export async function fetchCommitteeDetail(chamber: string, committeeCode: string, congress = 119) {
     try {
-        const raw = await fetchApi<{ data?: any }>(
+        const raw = await fetchApi<any>(
             `${API_BASE}/v1/congress/committees/${chamber}/${committeeCode}?congress=${congress}`
         );
+        // Standardized response is flattened
         return raw.data || raw;
     } catch (e) {
         console.warn(`Failed to fetch committee ${chamber}/${committeeCode}`, e);
         return null;
+    }
+}
+
+/**
+ * Fetch committee bills
+ */
+export async function fetchCommitteeBills(chamber: string, committeeCode: string, limit = 50, offset = 0) {
+    try {
+        const raw = await fetchApi<any>(
+            `${API_BASE}/v1/congress/committees/${chamber}/${committeeCode}/bills?limit=${limit}&offset=${offset}`
+        );
+        return raw.bills || raw.data?.bills || [];
+    } catch (e) {
+        console.warn(`Failed to fetch bills for committee ${chamber}/${committeeCode}`, e);
+        return [];
+    }
+}
+
+/**
+ * Fetch committee members
+ */
+export async function fetchCommitteeMembers(chamber: string, committeeCode: string, limit = 250, offset = 0) {
+    try {
+        const raw = await fetchApi<any>(
+            `${API_BASE}/v1/congress/committees/${chamber}/${committeeCode}/members?limit=${limit}&offset=${offset}`
+        );
+        return raw.members || raw.data?.members || [];
+    } catch (e) {
+        console.warn(`Failed to fetch members for committee ${chamber}/${committeeCode}`, e);
+        return [];
+    }
+}
+
+/**
+ * Fetch committee reports
+ */
+export async function fetchCommitteeReports(chamber: string, committeeCode: string, limit = 50, offset = 0) {
+    try {
+        const raw = await fetchApi<any>(
+            `${API_BASE}/v1/congress/committees/${chamber}/${committeeCode}/reports?limit=${limit}&offset=${offset}`
+        );
+        return raw.reports || raw.data?.reports || [];
+    } catch (e) {
+        console.warn(`Failed to fetch reports for committee ${chamber}/${committeeCode}`, e);
+        return [];
     }
 }
 

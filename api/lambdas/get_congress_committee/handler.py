@@ -87,29 +87,62 @@ def handler(event, context):
                 )
 
             data = resp.json()
-            committee = data.get('committee', {})
+            committee_data = data.get('committee', {})
+
+            # Try to fetch members if they are not in the main response
+            members = committee_data.get('members', []) or committee_data.get('currentMembership', [])
+            if not members:
+                try:
+                    members_url = f"{api_url}/members"
+                    members_resp = requests.get(members_url, headers=headers, params=params, timeout=5)
+                    if members_resp.status_code == 200:
+                        members_data = members_resp.json()
+                        members = members_data.get('members', []) or members_data.get('currentMembership', [])
+                except Exception as e:
+                    logger.warning(f"Failed to fetch committee members: {e}")
+
+            # Try to fetch subcommittees if not in main response
+            subcommittees = committee_data.get('subcommittees', [])
+            if not subcommittees:
+                try:
+                    subs_url = f"{api_url}/subcommittees"
+                    subs_resp = requests.get(subs_url, headers=headers, params=params, timeout=5)
+                    if subs_resp.status_code == 200:
+                        subs_data = subs_resp.json()
+                        subcommittees = subs_data.get('subcommittees', [])
+                except Exception as e:
+                    logger.warning(f"Failed to fetch subcommittees: {e}")
 
             # Clean and standardize committee data
-            result = {
-                'committee': clean_nan_values({
-                    'systemCode': committee.get('systemCode', system_code),
-                    'name': committee.get('name', ''),
-                    'chamber': committee.get('chamber', chamber.capitalize()),
-                    'type': committee.get('type', ''),
-                    'subcommittees': committee.get('subcommittees', []),
-                    'history': committee.get('history', []),
-                    'url': committee.get('url', ''),
-                    'updateDate': committee.get('updateDate', ''),
-                    'parent': committee.get('parent', None),
-                    'officialWebsiteUrl': committee.get('officialWebsiteUrl', ''),
-                    'phone': committee.get('phone', ''),
-                    'location': committee.get('location', '')
-                }),
-                'raw_source': 'congress.gov'
+            cleaned_committee = {
+                'systemCode': committee_data.get('systemCode', system_code),
+                'name': committee_data.get('name', ''),
+                'chamber': committee_data.get('chamber', chamber.capitalize()),
+                'type': committee_data.get('type', ''),
+                'subcommitteeCount': committee_data.get('subcommitteeCount', len(subcommittees)),
+                'subcommittees': [{
+                    'systemCode': sub.get('systemCode', ''),
+                    'name': sub.get('name', ''),
+                    'url': sub.get('url', '')
+                } for sub in subcommittees],
+                'members': [{
+                    'bioguideId': m.get('bioguideId', ''),
+                    'name': m.get('name', ''),
+                    'party': m.get('party', ''),
+                    'state': m.get('state', ''),
+                    'role': m.get('role', m.get('title', ''))
+                } for m in members if m.get('bioguideId')],
+                'history': committee_data.get('history', []),
+                'url': committee_data.get('url', ''),
+                'updateDate': committee_data.get('updateDate', ''),
+                'parent': committee_data.get('parent', None),
+                'officialWebsiteUrl': committee_data.get('officialWebsiteUrl', ''),
+                'phone': committee_data.get('phone', ''),
+                'location': committee_data.get('location', '')
             }
 
             return success_response(
-                result,
+                clean_nan_values(cleaned_committee),
                 status_code=200,
                 metadata={'cache_seconds': DEFAULT_CACHE_SECONDS}
             )

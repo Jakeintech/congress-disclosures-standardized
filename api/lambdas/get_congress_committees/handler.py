@@ -79,6 +79,10 @@ def handler(event, context):
             # Clean and standardize committee data
             cleaned_committees = []
             for committee in committees:
+                # Filter out subcommittees if they have a parent (they should be loaded within the parent)
+                if committee.get('parent'):
+                    continue
+                    
                 cleaned_committees.append({
                     'systemCode': committee.get('systemCode', ''),
                     'name': committee.get('name', ''),

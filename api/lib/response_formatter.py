@@ -93,7 +93,7 @@ def success_response(
     return {
         "statusCode": status_code,
         "headers": _get_cors_headers(),
-        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str)  # default=str handles dates
+        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str, allow_nan=False)  # default=str handles dates
     }
 
 
@@ -134,7 +134,7 @@ def error_response(
     return {
         "statusCode": status_code,
         "headers": _get_cors_headers(),
-        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str)
+        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str, allow_nan=False)
     }
 
 

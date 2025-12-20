@@ -17,7 +17,8 @@ import pandas as pd
 from api.lib import (
     ParquetQueryBuilder,
     success_response,
-    error_response
+    error_response,
+    clean_nan_values
 )
 
 logger = logging.getLogger()
@@ -26,20 +27,7 @@ logger.setLevel(logging.INFO)
 S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
 
-def clean_nan(obj):
-    """Replace NaN/Inf values with None for JSON serialization."""
-    try:
-        if (isinstance(obj, (float, int)) or (hasattr(obj, '__class__') and 'numpy' in str(obj.__class__))):
-            if math.isnan(obj) or math.isinf(obj):
-                return None
-    except (TypeError, ValueError):
-        pass
-
-    if isinstance(obj, dict):
-        return {k: clean_nan(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [clean_nan(v) for v in obj]
-    return obj
+# Removed local clean_nan, using api.lib.clean_nan_values
 
 
 def get_cosponsors(qb, bill_id, congress):
@@ -58,20 +46,17 @@ def get_cosponsors(qb, bill_id, congress):
         if cosponsors_df.empty:
             return []
 
-        # Get member details
+        # Get member details efficiently with filter
         bioguide_ids = cosponsors_df['bioguide_id'].unique().tolist()
         members_df = qb.query_parquet(
             'silver/congress/dim_member',
-            filters=None,  # Read all, filter in memory
-            limit=1000
+            filters={'bioguide_id': {'in': bioguide_ids}},
+            limit=len(bioguide_ids)
         )
 
-        # Filter to requested bioguides
+        members_dict = {}
         if not members_df.empty and 'bioguide_id' in members_df.columns:
-            members_df = members_df[members_df['bioguide_id'].isin(bioguide_ids)]
             members_dict = {row['bioguide_id']: row for _, row in members_df.iterrows()}
-        else:
-            members_dict = {}
 
         # Build cosponsor list with member details
         cosponsors = []
@@ -206,17 +191,16 @@ def get_trade_correlations(qb, bill_id, limit=20):
         if corr_df.empty:
             return []
 
-        # Get member details for correlations
+        # Get member details efficiently with filter
         bioguide_ids = corr_df['bioguide_id'].unique().tolist()
         members_df = qb.query_parquet(
             'silver/congress/dim_member',
-            filters=None,
-            limit=1000
+            filters={'bioguide_id': {'in': bioguide_ids}},
+            limit=len(bioguide_ids)
         )
 
         members_dict = {}
         if not members_df.empty and 'bioguide_id' in members_df.columns:
-            members_df = members_df[members_df['bioguide_id'].isin(bioguide_ids)]
             members_dict = {row['bioguide_id']: row for _, row in members_df.iterrows()}
 
         # Build correlations list
@@ -368,28 +352,48 @@ def handler(event, context):
     - Committee assignments
     """
     try:
-        # Extract bill_id from path
+        # Extract params from path
         path_params = event.get('pathParameters') or {}
+        
+        # Support both formats:
+        # 1. /v1/congress/bills/{bill_id} (legacy/internal)
+        # 2. /v1/congress/bills/{congress}/{type}/{number} (standardized)
         bill_id = path_params.get('bill_id', '')
-
+        
         if not bill_id:
-            return error_response(
-                message="Missing bill_id parameter",
-                status_code=400
-            )
+            congress_str = path_params.get('congress')
+            bill_type = path_params.get('type')
+            bill_number_str = path_params.get('number')
+            
+            if congress_str and bill_type and bill_number_str:
+                bill_id = f"{congress_str}-{bill_type}-{bill_number_str}"
+            else:
+                return error_response(
+                    message="Missing path parameters",
+                    status_code=400
+                )
 
         # Parse bill_id: "118-hr-1" -> congress=118, bill_type=hr, bill_number=1
         parts = bill_id.split('-')
         if len(parts) != 3:
-            return error_response(
-                message="Invalid bill_id format. Expected: congress-type-number (e.g., 118-hr-1)",
-                status_code=400
-            )
+            # Fallback for direct path param usage if somehow not reconstructed
+            congress_str = path_params.get('congress')
+            bill_type = path_params.get('type')
+            bill_number_str = path_params.get('number')
+            if congress_str and bill_type and bill_number_str:
+                parts = [congress_str, bill_type, bill_number_str]
+            else:
+                return error_response(
+                    message="Invalid bill_id format. Expected: congress-type-number (e.g., 118-hr-1)",
+                    status_code=400
+                )
 
         try:
             congress = int(parts[0])
             bill_type = parts[1].lower()
             bill_number = int(parts[2])
+            # Reconstruct canonical bill_id
+            bill_id = f"{congress}-{bill_type}-{bill_number}"
         except ValueError:
             return error_response(
                 message="Invalid bill_id format",
@@ -498,7 +502,8 @@ def handler(event, context):
             'text_versions': [
                 {'format': 'txt', 'url': bill.get('text_url')},
                 {'format': 'pdf', 'url': bill.get('pdf_url')}
-            ] if bill.get('text_url') or bill.get('pdf_url') else [],
+            ] if (bill.get('text_url') and not pd.isna(bill.get('text_url'))) or \
+                 (bill.get('pdf_url') and not pd.isna(bill.get('pdf_url'))) else [],
             'committees': get_committees(qb, bill_id),
             'related_bills': get_related_bills(qb, bill_id),
             'subjects': bill.get('subjects', []), # Assuming subjects might be in dim_bill
@@ -510,7 +515,7 @@ def handler(event, context):
         cache_max_age = 86400 if congress <= 118 else 300  # 24h for archived, 5min for current
 
         return success_response(
-            data=response_data,
+            data=clean_nan_values(response_data),
             metadata={
                 'bill_id': bill_id,
                 'cached': congress <= 118,

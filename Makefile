@@ -10,6 +10,7 @@ ifneq (,$(wildcard ./.env))
 endif
 
 # Variables
+# Version: 20251219175505
 TERRAFORM_DIR := infra/terraform
 LAMBDA_DIR := ingestion/lambdas
 S3_BUCKET ?= congress-disclosures-standardized

@@ -1,6 +1,6 @@
 """
-Lambda handler: GET /v1/congress/committees/{chamber}/{code}/bills
-Get bills referred to a committee from Congress.gov API with caching.
+Lambda handler: GET /v1/congress/committees/{chamber}/{code}/reports
+Get committee reports from Congress.gov API with caching.
 """
 
 import os
@@ -17,7 +17,7 @@ logger.setLevel(logging.INFO)
 
 CONGRESS_API_KEY = os.environ.get('CONGRESS_GOV_API_KEY', '')
 CONGRESS_API_BASE = 'https://api.congress.gov/v3'
-DEFAULT_CACHE_SECONDS = 1800  # 30 minutes cache
+DEFAULT_CACHE_SECONDS = 3600  # 1 hour cache
 
 
 def parse_committee_code(code):
@@ -36,8 +36,7 @@ def parse_committee_code(code):
 
 def handler(event, context):
     """
-    GET /v1/congress/committees/{chamber}/{code}/bills
-    GET /v1/congress/committees/{code}/bills (Legacy)
+    GET /v1/congress/committees/{chamber}/{code}/reports
     """
     try:
         path_params = event.get('pathParameters') or {}
@@ -58,13 +57,13 @@ def handler(event, context):
         else:
             system_code = committee_code
 
-        limit = min(int(query_params.get('limit', 250)), 250)
+        limit = min(int(query_params.get('limit', 100)), 250)
         offset = int(query_params.get('offset', 0))
 
-        # Build API URL
-        api_url = f"{CONGRESS_API_BASE}/committee/{chamber.lower()}/{system_code.lower()}/bills"
+        # Build API URL (reports are usually at /reports)
+        api_url = f"{CONGRESS_API_BASE}/committee/{chamber.lower()}/{system_code.lower()}/reports"
 
-        logger.info(f"Fetching bills for committee {chamber}/{system_code}: limit={limit}, offset={offset}")
+        logger.info(f"Fetching reports for committee {chamber}/{system_code}: limit={limit}, offset={offset}")
 
         try:
             params = {
@@ -78,50 +77,50 @@ def handler(event, context):
             resp = requests.get(api_url, headers=headers, params=params, timeout=15)
 
             if resp.status_code == 404:
-                return error_response(
-                    message=f"Bills not found for committee: {chamber}/{system_code}",
-                    status_code=404
-                )
+                # Some committees might not have reports at this exact endpoint
+                # Return empty list instead of 404 to be more friendly to frontend
+                return success_response({
+                    'committeeCode': system_code,
+                    'reports': [],
+                    'count': 0,
+                    'pagination': {'count': 0, 'offset': offset, 'limit': limit}
+                })
 
             if resp.status_code != 200:
                 logger.error(f"Congress.gov API error: {resp.status_code} - {resp.text}")
                 return error_response(
-                    message=f"Failed to fetch committee bills ({resp.status_code})",
+                    message=f"Failed to fetch committee reports ({resp.status_code})",
                     status_code=502
                 )
 
             data = resp.json()
-            bills = data.get('bills', [])
+            reports = data.get('reports', [])
             pagination_info = data.get('pagination', {})
 
-            # Clean and standardize bill data
-            cleaned_bills = []
-            for bill in bills:
-                item = {
-                    'billId': f"{bill.get('congress', '')}-{bill.get('type', '').lower()}-{bill.get('number', '')}",
-                    'congress': bill.get('congress', ''),
-                    'type': bill.get('type', ''),
-                    'number': bill.get('number', ''),
-                    'title': bill.get('title', ''),
-                    'originChamber': bill.get('originChamber', ''),
-                    'introducedDate': bill.get('introducedDate', ''),
-                    'latestAction': {
-                        'date': bill.get('latestAction', {}).get('actionDate', ''),
-                        'text': bill.get('latestAction', {}).get('text', '')
-                    },
-                    'url': bill.get('url', ''),
-                    'updateDate': bill.get('updateDate', '')
-                }
-                cleaned_bills.append(item)
+            # Clean and standardize report data
+            cleaned_reports = []
+            for report in reports:
+                cleaned_reports.append({
+                    'citation': report.get('citation', ''),
+                    'title': report.get('title', ''),
+                    'type': report.get('type', ''),
+                    'number': report.get('number', ''),
+                    'congress': report.get('congress', ''),
+                    'issueDate': report.get('issueDate', ''),
+                    'url': report.get('url', ''),
+                    'updateDate': report.get('updateDate', '')
+                })
+
+            result = {
+                'committeeCode': system_code,
+                'reports': cleaned_reports,
+                'count': len(cleaned_reports),
+                'pagination': pagination_info,
+                'raw_source': 'congress.gov'
+            }
 
             return success_response(
-                clean_nan_values({
-                    'committeeCode': system_code,
-                    'bills': cleaned_bills,
-                    'count': len(cleaned_bills),
-                    'pagination': pagination_info,
-                    'raw_source': 'congress.gov'
-                }),
+                clean_nan_values(result),
                 status_code=200,
                 metadata={'cache_seconds': DEFAULT_CACHE_SECONDS}
             )
@@ -134,7 +133,7 @@ def handler(event, context):
             return error_response(message=f"Fetch failed: {str(e)}", status_code=502)
 
     except Exception as e:
-        logger.error(f"Error fetching committee bills: {e}", exc_info=True)
+        logger.error(f"Error fetching committee reports: {e}", exc_info=True)
         return error_response(
             message="Internal error",
             status_code=500,

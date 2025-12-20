@@ -24,10 +24,12 @@ def handler(event, context):
     try:
         # Connect to DuckDB
         db = duckdb.connect(':memory:')
-        db.execute("INSTALL httpfs; LOAD httpfs;")
         
-        # Configure S3 access - assume IAM role has access
+        # Configure S3 access and home directory for Lambda (MUST BE BEFORE INSTALL)
+        db.execute("SET home_directory='/tmp';")
         db.execute("SET s3_region='us-east-1';")
+        
+        db.execute("INSTALL httpfs; LOAD httpfs;")
         
         # Define paths
         year = datetime.now().year

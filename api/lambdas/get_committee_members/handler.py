@@ -118,21 +118,19 @@ def handler(event, context):
             total_count = len(cleaned_members)
             paged_members = cleaned_members[offset:offset + limit]
 
-            result = {
-                'committeeCode': system_code,
-                'members': paged_members,
-                'count': len(paged_members),
-                'total_count': total_count,
-                'pagination': {
-                    'count': total_count,
-                    'offset': offset,
-                    'limit': limit
-                },
-                'raw_source': 'congress.gov'
-            }
-
             return success_response(
-                clean_nan_values(result),
+                clean_nan_values({
+                    'committeeCode': system_code,
+                    'members': paged_members,
+                    'count': len(paged_members),
+                    'total_count': total_count,
+                    'pagination': {
+                        'count': total_count,
+                        'offset': offset,
+                        'limit': limit
+                    },
+                    'raw_source': 'congress.gov'
+                }),
                 status_code=200,
                 metadata={'cache_seconds': DEFAULT_CACHE_SECONDS}
             )

@@ -108,7 +108,7 @@ def handler(event, context):
         total_count = conn.execute(count_query).fetchone()[0]
 
         # Convert to records
-        trades = result_df.to_dict('records')
+        trades = clean_nan_values(result_df.to_dict('records'))
 
         response = {
             'bioguide_id': bioguide_id,
@@ -119,22 +119,16 @@ def handler(event, context):
             'has_more': offset + limit < total_count
         }
 
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=3600'  # Cache for 1 hour
-            },
-            'body': json.dumps(response, default=str)
-        }
+        return success_response(
+            response,
+            status_code=200,
+            metadata={'cache_seconds': 3600}
+        )
 
     except Exception as e:
         logger.error(f"Error retrieving member trades: {str(e)}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'error': 'Failed to retrieve member trades',
-                'details': str(e)
-            })
-        }
+        return error_response(
+            message="Failed to retrieve member trades",
+            status_code=500,
+            details=str(e)
+        )

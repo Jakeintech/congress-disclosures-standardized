@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Users, FileText, Calendar, Info } from 'lucide-react';
-import { fetchCommitteeDetail } from '@/lib/api';
+import { fetchCommitteeDetail, fetchCommitteeBills, fetchCommitteeReports } from '@/lib/api';
 
 interface PageProps {
     params: Promise<{
@@ -27,24 +27,36 @@ export default function CommitteeDetailPage(props: PageProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [bills, setBills] = useState<any[]>([]);
+    const [reports, setReports] = useState<any[]>([]);
+
     useEffect(() => {
-        async function loadCommittee() {
+        async function loadCommitteeData() {
             setLoading(true);
             try {
-                const data = await fetchCommitteeDetail(chamber, code);
-                if (!data) {
-                    setError('Committee data not available - API endpoint implementation in progress');
+                // Fetch detail, bills, and reports in parallel
+                const [detailData, billsData, reportsData] = await Promise.all([
+                    fetchCommitteeDetail(chamber, code),
+                    fetchCommitteeBills(chamber, code, 20),
+                    fetchCommitteeReports(chamber, code, 20)
+                ]);
+
+                if (!detailData) {
+                    setError('Committee metadata not found');
                 } else {
-                    setCommittee(data);
+                    setCommittee(detailData);
                 }
+
+                setBills(billsData || []);
+                setReports(reportsData || []);
             } catch (err) {
-                console.error('Failed to load committee:', err);
-                setError('Failed to load committee data - API endpoint implementation in progress');
+                console.error('Failed to load committee data:', err);
+                setError('Failed to load committee data');
             } finally {
                 setLoading(false);
             }
         }
-        loadCommittee();
+        loadCommitteeData();
     }, [chamber, code]);
 
     if (loading) {
@@ -119,7 +131,7 @@ export default function CommitteeDetailPage(props: PageProps) {
                         <FileText className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{committee.billsReferred || '-'}</div>
+                        <div className="text-2xl font-bold">{committee.billCount || bills.length || 0}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -128,7 +140,7 @@ export default function CommitteeDetailPage(props: PageProps) {
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{committee.reports || '-'}</div>
+                        <div className="text-2xl font-bold">{reports.length || 0}</div>
                     </CardContent>
                 </Card>
             </div>
@@ -192,11 +204,35 @@ export default function CommitteeDetailPage(props: PageProps) {
                     <Card>
                         <CardHeader>
                             <CardTitle>Bills Referred to Committee</CardTitle>
+                            <CardDescription>Recent legislation referred to this committee</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-center py-8 text-muted-foreground">
-                                Bills list coming soon - requires backend integration
-                            </div>
+                            {bills.length > 0 ? (
+                                <div className="space-y-4">
+                                    {bills.map((bill: any, idx: number) => (
+                                        <div key={idx} className="p-4 border rounded-lg hover:bg-muted transition-colors">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <Link href={`/bills/${bill.congress}/${bill.type.toLowerCase()}/${bill.number}`} className="font-bold text-blue-500 hover:underline">
+                                                        {bill.type.toUpperCase()} {bill.number}
+                                                    </Link>
+                                                    <h3 className="text-sm font-medium mt-1">{bill.title}</h3>
+                                                </div>
+                                                <Badge variant="outline">{bill.introducedDate}</Badge>
+                                            </div>
+                                            {bill.latestAction && (
+                                                <p className="text-xs text-muted-foreground mt-2">
+                                                    <span className="font-semibold">Latest Action:</span> {bill.latestAction.text}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    No recent bills found for this committee
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -231,11 +267,30 @@ export default function CommitteeDetailPage(props: PageProps) {
                     <Card>
                         <CardHeader>
                             <CardTitle>Committee Reports</CardTitle>
+                            <CardDescription>Recent reports issued by this committee</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-center py-8 text-muted-foreground">
-                                Reports coming soon - requires backend integration
-                            </div>
+                            {reports.length > 0 ? (
+                                <div className="space-y-4">
+                                    {reports.map((report: any, idx: number) => (
+                                        <div key={idx} className="p-4 border rounded-lg">
+                                            <div className="flex justify-between">
+                                                <span className="font-bold">{report.citation}</span>
+                                                <span className="text-xs text-muted-foreground">{report.issueDate}</span>
+                                            </div>
+                                            <p className="text-sm mt-1">{report.title}</p>
+                                            <div className="flex gap-2 mt-2">
+                                                <Badge variant="outline" className="text-[10px]">{report.type}</Badge>
+                                                {report.number && <Badge variant="outline" className="text-[10px]">Report #{report.number}</Badge>}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    No recent reports found
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>

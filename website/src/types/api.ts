@@ -76,6 +76,18 @@ export interface TopTrader {
   latest_trade_date?: string;
 }
 
+export interface TradingTimelineData {
+  timeline: Array<{
+    date: string;
+    trade_count: number;
+    total_volume_usd?: number;
+    volume?: number;
+    count?: number;
+  }>;
+  start_date: string;
+  end_date: string;
+}
+
 // ============================================================================
 // Member Types
 // ============================================================================

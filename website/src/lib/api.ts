@@ -50,6 +50,7 @@ import type {
     PaginatedBillAmendments,
     PaginatedRelatedBills,
     PaginatedBillCommittees,
+    TradingTimelineData,
 } from '@/types/api';
 
 // Re-export types for convenience
@@ -742,9 +743,6 @@ export async function fetchBillActions(billId: string): Promise<PaginatedBillAct
     }
 }
 
-/**
- * Fetch recent activity across trades, bills, and lobbying
- */
 export async function fetchRecentActivity(): Promise<any[]> {
     try {
         const raw = await fetchApi<{ activity?: any[] }>(
@@ -753,6 +751,29 @@ export async function fetchRecentActivity(): Promise<any[]> {
         return raw.activity || [];
     } catch (e) {
         console.warn("Failed to fetch recent activity", e);
+        return [];
+    }
+}
+
+export async function fetchTradingTimeline(days = 365): Promise<TradingTimelineData['timeline']> {
+    try {
+        const endDate = new Date().toISOString().split('T')[0];
+        const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+        const raw = await fetchApi<any>(
+            `${API_BASE}/v1/analytics/trading-timeline?start_date=${startDate}&end_date=${endDate}`
+        );
+
+        const timeline = raw.data?.timeline || raw.timeline || [];
+
+        // Standardize to format expected by chart components: { date, volume, count }
+        return timeline.map((entry: any) => ({
+            date: entry.date || entry.transaction_date,
+            volume: entry.total_volume_usd || entry.volume || 0,
+            count: entry.trade_count || entry.count || 0
+        }));
+    } catch (e) {
+        console.warn("Failed to fetch trading timeline", e);
         return [];
     }
 }

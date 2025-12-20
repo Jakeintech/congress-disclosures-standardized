@@ -170,9 +170,9 @@ export async function fetchBills(params: BillsParams = {}): Promise<Bill[]> {
     if (params.offset) searchParams.set('offset', params.offset.toString());
 
     const url = `${API_BASE}/v1/congress/bills?${searchParams.toString()}`;
-    // API returns { data: [...] } or just [...]
-    const raw = await fetchApi<{ data?: any[] }>(`${url}`);
-    const data = (Array.isArray(raw) ? raw : raw.data) || [];
+    // API returns { success: true, data: { bills: [...], pagination: {...} } }
+    const raw = await fetchApi<{ data?: { bills?: any[] } }>(`${url}`);
+    const data = (Array.isArray(raw) ? raw : raw.data?.bills) || [];
     return data;
 }
 

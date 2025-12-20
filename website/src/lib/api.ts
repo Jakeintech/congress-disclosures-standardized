@@ -253,11 +253,22 @@ export async function fetchTransactions(params: TransactionsParams = {}): Promis
  */
 export async function fetchTrendingStocks(limit = 10): Promise<TrendingStock[]> {
     try {
-        const raw = await fetchApi<{ stocks?: TrendingStock[], trending_stocks?: TrendingStock[] }>(
+        const raw = await fetchApi<any>(
             `${API_BASE}/v1/analytics/trending-stocks?limit=${limit}`
         );
         // Handle both legacy (trending_stocks) and standardized (stocks) formats
-        return raw.stocks || raw.trending_stocks || [];
+        const stocks = raw.stocks || raw.trending_stocks || (Array.isArray(raw) ? raw : []);
+
+        // Map backend fields to frontend expectations (e.g., total_transactions -> trade_count)
+        return stocks.map((s: any) => ({
+            ticker: s.ticker,
+            company_name: s.company_name || s.name || s.ticker,
+            trade_count: Number(s.trade_count || s.total_transactions || 0),
+            net_direction: s.net_direction || (s.sentiment_score > 0 ? 'buy' : 'sale'),
+            buy_count: s.buy_count,
+            sale_count: s.sale_count,
+            total_volume: s.total_volume || s.total_volume_usd,
+        }));
     } catch (e) {
         console.warn("Failed to fetch trending stocks", e);
         return [];
@@ -269,11 +280,25 @@ export async function fetchTrendingStocks(limit = 10): Promise<TrendingStock[]> 
  */
 export async function fetchTopTraders(limit = 10): Promise<TopTrader[]> {
     try {
-        const raw = await fetchApi<{ traders?: TopTrader[], top_traders?: TopTrader[] }>(
+        const raw = await fetchApi<any>(
             `${API_BASE}/v1/analytics/top-traders?limit=${limit}`
         );
         // Handle both legacy (top_traders) and standardized (traders) formats
-        return raw.traders || raw.top_traders || [];
+        const traders = raw.traders || raw.top_traders || (Array.isArray(raw) ? raw : []);
+
+        return traders.map((t: any) => ({
+            name: t.name || t.full_name || t.filer_name,
+            bioguide_id: t.bioguide_id,
+            party: t.party,
+            state: t.state,
+            chamber: t.chamber?.toLowerCase(),
+            trade_count: Number(t.trade_count || t.total_transactions || 0),
+            total_volume: typeof t.total_volume === 'number' ?
+                new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(t.total_volume) :
+                t.total_volume,
+            avg_amount: t.avg_amount,
+            latest_trade_date: t.latest_trade_date || t.last_trade_date
+        }));
     } catch (e) {
         console.warn("Failed to fetch top traders", e);
         return [];

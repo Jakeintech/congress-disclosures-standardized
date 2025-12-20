@@ -11,7 +11,7 @@ import { StatCardEnhanced } from '@/components/dashboard/stat-card-enhanced';
 import { TradingVolumeChart } from '@/components/dashboard/trading-volume-chart';
 import { TopStocksChart } from '@/components/dashboard/top-stocks-chart';
 import { StockLogo } from '@/components/ui/stock-logo';
-import { useDashboardSummary, useTrendingStocks, useTopTraders } from '@/hooks/use-api';
+import { useDashboardSummary, useTrendingStocks, useTopTraders, useTradingTimeline } from '@/hooks/use-api';
 import { DataContainer } from '@/components/ui/data-container';
 import { RecentActivityFeed } from '@/components/dashboard/recent-activity-feed';
 
@@ -71,12 +71,14 @@ function DashboardPage() {
   const summaryQuery = useDashboardSummary();
   const trendingQuery = useTrendingStocks(5);
   const tradersQuery = useTopTraders(5);
+  const timelineQuery = useTradingTimeline(365);
 
-  const loading = summaryQuery.isLoading || trendingQuery.isLoading || tradersQuery.isLoading;
-  const isError = summaryQuery.isError || trendingQuery.isError || tradersQuery.isError;
+  const loading = summaryQuery.isLoading || trendingQuery.isLoading || tradersQuery.isLoading || timelineQuery.isLoading;
+  const isError = summaryQuery.isError || trendingQuery.isError || tradersQuery.isError || timelineQuery.isError;
   const summary = (summaryQuery.data || {}) as DashboardData;
   const trendingStocks = trendingQuery.data || [];
   const topTraders = tradersQuery.data || [];
+  const timelineData = timelineQuery.data || [];
 
   return (
     <div className="space-y-8">
@@ -98,12 +100,13 @@ function DashboardPage() {
       <DataContainer
         isLoading={loading}
         isError={isError}
-        error={summaryQuery.error || trendingQuery.error || tradersQuery.error}
+        error={summaryQuery.error || trendingQuery.error || tradersQuery.error || timelineQuery.error}
         data={summaryQuery.data}
         onRetry={() => {
           summaryQuery.refetch();
           trendingQuery.refetch();
           tradersQuery.refetch();
+          timelineQuery.refetch();
         }}
         loadingSkeleton={<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full" />)}
@@ -151,8 +154,8 @@ function DashboardPage() {
 
             {/* Charts Section */}
             <div className="grid gap-6 lg:grid-cols-2">
-              <TradingVolumeChart loading={loading} />
-              <TopStocksChart data={trendingStocks} loading={loading} />
+              <TradingVolumeChart data={timelineData} loading={timelineQuery.isLoading} />
+              <TopStocksChart data={trendingStocks} loading={trendingQuery.isLoading} />
             </div>
 
             {/* Recent Activity Section */}

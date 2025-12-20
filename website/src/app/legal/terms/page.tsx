@@ -4,8 +4,8 @@ import { FileText, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Terms of Service - Congress Transparency Platform',
-  description: 'Terms and conditions for using the Congress Transparency Platform',
+  title: 'Terms of Service - Congress Activity Platform',
+  description: 'Terms and conditions for using the Congress Activity Platform',
 };
 
 export default function TermsPage() {
@@ -29,7 +29,7 @@ export default function TermsPage() {
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
           <p>
-            Welcome to the <strong>Congress Transparency Platform</strong> (the "Platform", "Service", "we", "us", or "our").
+            Welcome to the <strong>Congress Activity Platform</strong> (the "Platform", "Service", "we", "us", or "our").
             By accessing or using this Platform, you agree to be bound by these Terms of Service ("Terms").
           </p>
           <p>

@@ -4,7 +4,7 @@ import { Shield, Eye, Cookie, Database, Lock } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Privacy Policy - Congress Transparency Platform',
+  title: 'Privacy Policy - Congress Activity Platform',
   description: 'How we collect, use, and protect your information',
 };
 
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
         </CardHeader>
         <CardContent className="text-sm space-y-4">
           <p className="text-muted-foreground">
-            The Congress Transparency Platform ("Platform", "we", "us", or "our") is committed to protecting
+            The Congress Activity Platform ("Platform", "we", "us", or "our") is committed to protecting
             your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your
             information when you visit our Platform.
           </p>

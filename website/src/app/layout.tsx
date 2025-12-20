@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Congress Transparency | Surfacing Hidden Connections",
+  title: "Congress Activity | Surfacing Hidden Connections",
   description: "Surfacing the hidden connections between politics and markets. Track congressional trades, bill correlations, lobbying activity, and conflicts of interest.",
   keywords: ["congress", "stock trades", "financial disclosures", "lobbying", "transparency", "conflicts of interest", "political intelligence"],
 };
@@ -39,7 +39,7 @@ export default function RootLayout({
                 <div className="flex items-center gap-4">
                   <SidebarTrigger className="-ml-2" />
                   <div className="flex flex-col">
-                    <span className="font-semibold text-foreground">Congress Transparency</span>
+                    <span className="font-semibold text-foreground">Congress Activity</span>
                     <span className="hidden text-xs text-muted-foreground md:inline">
                       Surfacing the Hidden Connections Between Politics and Markets
                     </span>

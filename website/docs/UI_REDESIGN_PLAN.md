@@ -1,8 +1,8 @@
-# UI Redesign Plan - Congress Transparency Platform
+# UI Redesign Plan - Congress Activity Platform
 
 ## Design Philosophy
 
-**Goal**: Create a modern, analytics-focused platform for Congress transparency that makes complex financial and legislative data easily accessible and understandable.
+**Goal**: Create a modern, analytics-focused platform for Congress Activity that makes complex financial and legislative data easily accessible and understandable.
 
 **Inspiration**: Quiver Quant's congressional trading dashboard + shadcn/ui modern blocks
 
@@ -18,7 +18,7 @@
 ### Main Sidebar Navigation (Always Visible)
 
 ```
-🏛️ Congress Transparency
+🏛️ Congress Activity
 
 📊 Dashboard (Home)
    ├─ Overview metrics

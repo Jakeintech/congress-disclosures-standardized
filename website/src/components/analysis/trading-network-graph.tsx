@@ -318,40 +318,74 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             .style('opacity', 1)
             .style('transform', 'scale(1)');
 
-        // Node circles with enhanced styling
-        node.append('circle')
-            .attr('r', (d: any) => d.calculatedRadius)
-            .attr('fill', getNodeColor)
-            .attr('stroke', getNodeStroke)
-            .attr('stroke-width', (d: any) => d.group?.includes('_agg') ? 3 : 2)
-            .attr('stroke-dasharray', (d: any) => d.group?.includes('_agg') ? '5,5' : 'none')
-            .style('cursor', 'pointer')
-            .style('filter', 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))')
-            .style('transition', 'all 0.3s ease')
-            .on('mouseenter', function (this: any) {
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .attr('r', function (d: any) { return d.calculatedRadius * 1.15; })
-                    .style('filter', 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))');
-            })
-            .on('mouseleave', function (this: any) {
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .attr('r', function (d: any) { return d.calculatedRadius; })
-                    .style('filter', 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))');
-            })
-            .on('click', (event: any, d: any) => {
-                event.stopPropagation();
-                if (d.group?.includes('_agg')) {
-                    const newExpanded = new Set(expandedGroups);
-                    newExpanded.add(d.id);
-                    setExpandedGroups(newExpanded);
-                } else {
-                    setSelectedNode(d);
-                }
-            });
+        // Node rendering with images using foreignObject
+        node.each(function (d: any) {
+            const nodeGroup = d3.select(this);
+
+            // Use image-based rendering for non-aggregated nodes
+            if (!d.group?.includes('_agg')) {
+                const size = d.calculatedRadius * 2;
+
+                // Import dynamically to avoid SSR issues
+                import('@/components/analysis/NodeComponent').then(({ renderNodeToHTML }) => {
+                    nodeGroup.append('foreignObject')
+                        .attr('width', size)
+                        .attr('height', size)
+                        .attr('x', -size / 2)
+                        .attr('y', -size / 2)
+                        .style('overflow', 'visible')
+                        .style('cursor', 'pointer')
+                        .html(renderNodeToHTML(d, size))
+                        .on('click', (event: any) => {
+                            event.stopPropagation();
+                            setSelectedNode(d);
+                        });
+                }).catch(() => {
+                    // Fallback to circle if import fails
+                    nodeGroup.append('circle')
+                        .attr('r', d.calculatedRadius)
+                        .attr('fill', getNodeColor(d))
+                        .attr('stroke', getNodeStroke(d))
+                        .attr('stroke-width', 2)
+                        .style('cursor', 'pointer')
+                        .on('click', (event: any) => {
+                            event.stopPropagation();
+                            setSelectedNode(d);
+                        });
+                });
+            } else {
+                // Aggregated nodes use circles with enhanced styling
+                nodeGroup.append('circle')
+                    .attr('r', d.calculatedRadius)
+                    .attr('fill', getNodeColor(d))
+                    .attr('stroke', getNodeStroke(d))
+                    .attr('stroke-width', 3)
+                    .attr('stroke-dasharray', '5,5')
+                    .style('cursor', 'pointer')
+                    .style('filter', 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))')
+                    .style('transition', 'all 0.3s ease')
+                    .on('mouseenter', function (this: any) {
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .attr('r', d.calculatedRadius * 1.15)
+                            .style('filter', 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))');
+                    })
+                    .on('mouseleave', function (this: any) {
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .attr('r', d.calculatedRadius)
+                            .style('filter', 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))');
+                    })
+                    .on('click', (event: any) => {
+                        event.stopPropagation();
+                        const newExpanded = new Set(expandedGroups);
+                        newExpanded.add(d.id);
+                        setExpandedGroups(newExpanded);
+                    });
+            }
+        });
 
         // Node labels
         node.append('text')

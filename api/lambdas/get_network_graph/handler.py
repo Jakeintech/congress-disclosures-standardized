@@ -212,16 +212,24 @@ def build_aggregate_graph_response(trades_df, limit):
             
         if bioguide_id not in member_map:
             member_name = f"{row.get('first_name', '')} {row.get('last_name', '')}".strip() or bioguide_id
+            first_name = row.get('first_name', '')
+            last_name = row.get('last_name', '')
+            initials = f"{first_name[0] if first_name else ''}{last_name[0] if last_name else ''}".upper()
+            
             member_map[bioguide_id] = len(nodes)
             nodes.append({
                 'id': bioguide_id,
                 'name': member_name,
+                'initials': initials,
                 'group': 'member',
                 'party': row.get('party', 'Unknown'),
                 'state': row.get('state', 'N/A'),
                 'chamber': row.get('chamber', 'House'),
+                'photo_url': f'https://www.congress.gov/img/member/{bioguide_id}_200.jpg',
                 'value': 0,
                 'transaction_count': 0,
+                'buy_count': 0,
+                'sell_count': 0,
                 'degree': 0
             })
         
@@ -232,20 +240,34 @@ def build_aggregate_graph_response(trades_df, limit):
                 'id': ticker,
                 'name': ticker,
                 'group': 'asset',
+                'logo_url': f'https://assets.polygon.io/logos/{ticker.lower()}/logo.png',
                 'value': 0,
                 'transaction_count': 0,
-                'degree': 0
+                'buy_count': 0,
+                'sell_count': 0,
+                'degree': 0,
+                'unique_traders': set()
             })
         
         member_idx = member_map[bioguide_id]
-        nodes[member_idx]['value'] += row.get('total_value', 0) or 0
-        nodes[member_idx]['transaction_count'] += row.get('trade_count', 0) or 0
+        trade_value = row.get('total_value', 0) or 0
+        trade_count = row.get('trade_count', 0) or 0
+        buy_count = row.get('buy_count', 0) or 0
+        sell_count = row.get('sell_count', 0) or 0
+        
+        nodes[member_idx]['value'] += trade_value
+        nodes[member_idx]['transaction_count'] += trade_count
+        nodes[member_idx]['buy_count'] += buy_count
+        nodes[member_idx]['sell_count'] += sell_count
         nodes[member_idx]['degree'] += 1
         
         stock_idx = stock_map[stock_id]
-        nodes[stock_idx]['value'] += row.get('total_value', 0) or 0
-        nodes[stock_idx]['transaction_count'] += row.get('trade_count', 0) or 0
+        nodes[stock_idx]['value'] += trade_value
+        nodes[stock_idx]['transaction_count'] += trade_count
+        nodes[stock_idx]['buy_count'] += buy_count
+        nodes[stock_idx]['sell_count'] += sell_count
         nodes[stock_idx]['degree'] += 1
+        nodes[stock_idx]['unique_traders'].add(bioguide_id)
         
         trade_count = row.get('trade_count', 0) or 0
         buy_count = row.get('buy_count', 0) or 0
@@ -264,6 +286,36 @@ def build_aggregate_graph_response(trades_df, limit):
             'count': trade_count,
             'type': link_type
         })
+    
+    # Calculate rankings and tiers for members
+    member_nodes = [n for n in nodes if n['group'] == 'member']
+    member_nodes_sorted = sorted(member_nodes, key=lambda x: x['value'], reverse=True)
+    
+    for rank, node in enumerate(member_nodes_sorted, 1):
+        node['rank'] = rank
+        # Assign tier based on trading volume
+        if node['value'] > 1000000:  # Over $1M
+            node['tier'] = 'platinum'
+        elif node['value'] > 500000:  # Over $500K
+            node['tier'] = 'gold'
+        elif node['value'] > 100000:  # Over $100K
+            node['tier'] = 'silver'
+        else:
+            node['tier'] = 'bronze'
+        
+        # Calculate average trade value
+        node['avg_trade_value'] = node['value'] / node['transaction_count'] if node['transaction_count'] > 0 else 0
+        
+        # Calculate buy/sell ratio
+        node['buy_sell_ratio'] = node['buy_count'] / node['sell_count'] if node['sell_count'] > 0 else float(node['buy_count'])
+    
+    # Process stock nodes
+    for node in nodes:
+        if node['group'] == 'asset':
+            # Convert set to count
+            node['unique_traders'] = len(node['unique_traders'])
+            # Calculate buy/sell ratio
+            node['buy_sell_ratio'] = node['buy_count'] / node['sell_count'] if node['sell_count'] > 0 else float(node['buy_count'])
     
     if len(nodes) > limit * 2:
         member_nodes = [n for n in nodes if n['group'] == 'member']

@@ -4,7 +4,7 @@ import { Scale, FileText, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Legal Basis - Congress Transparency Platform',
+  title: 'Legal Basis - Congress Activity Platform',
   description: 'Legal framework and statutory authority for congressional financial disclosure data usage',
 };
 

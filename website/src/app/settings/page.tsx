@@ -177,7 +177,7 @@ export default function SettingsPage() {
                     <div className="flex items-start gap-3">
                         <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div className="space-y-1">
-                            <p className="text-sm font-medium">Congress Transparency Platform</p>
+                            <p className="text-sm font-medium">Congress Activity Platform</p>
                             <p className="text-sm text-muted-foreground">Version 1.0.0 (Phase 1)</p>
                         </div>
                     </div>

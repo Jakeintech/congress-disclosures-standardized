@@ -60,7 +60,7 @@ export function MainNav() {
                 <Link href="/" className="mr-6 flex items-center space-x-3">
                     <Building2 className="h-6 w-6" />
                     <div className="hidden sm:block">
-                        <div className="font-bold text-base">Congress Transparency</div>
+                        <div className="font-bold text-base">Congress Activity</div>
                         <div className="text-[10px] text-muted-foreground leading-tight">
                             Surfacing the Hidden Connections Between Politics and Markets
                         </div>
@@ -138,7 +138,7 @@ export function MainNav() {
                         <nav className="flex flex-col gap-4">
                             <Link href="/" className="flex items-center gap-2 text-lg font-bold">
                                 <Building2 className="h-5 w-5" />
-                                Congress Transparency
+                                Congress Activity
                             </Link>
                             <div className="flex flex-col gap-1 mt-4">
                                 {mainNavItems.map((item) => {

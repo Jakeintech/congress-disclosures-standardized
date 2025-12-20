@@ -1,4 +1,4 @@
-# Implementation Status - Congress Transparency Platform
+# Implementation Status - Congress Activity Platform
 
 Last Updated: December 10, 2025
 

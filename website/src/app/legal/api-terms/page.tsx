@@ -4,7 +4,7 @@ import { Code, Key, Zap, AlertTriangle, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'API Terms of Service - Congress Transparency Platform',
+  title: 'API Terms of Service - Congress Activity Platform',
   description: 'Terms and conditions for API access and usage',
 };
 
@@ -29,7 +29,7 @@ export default function APITermsPage() {
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
           <p className="text-muted-foreground">
-            These API Terms of Service ("API Terms") govern your access to and use of the Congress Transparency
+            These API Terms of Service ("API Terms") govern your access to and use of the Congress Activity
             Platform API (the "API"). By accessing or using the API, you agree to be bound by these API Terms
             and our general <Link href="/legal/terms" className="text-primary hover:underline">Terms of Service</Link>.
           </p>
@@ -276,7 +276,7 @@ export default function APITermsPage() {
             <div className="bg-muted p-3 rounded-md mt-2">
               <p className="font-semibold mb-1">Minimum Attribution Text:</p>
               <p className="text-muted-foreground">
-                "Data provided by the <a href="https://congress-transparency.example.com" className="text-primary hover:underline">Congress Transparency Platform</a>,
+                "Data provided by the <a href="https://congress-transparency.example.com" className="text-primary hover:underline">Congress Activity Platform</a>,
                 sourced from official congressional financial disclosures."
               </p>
             </div>
@@ -297,7 +297,7 @@ export default function APITermsPage() {
           <div>
             <h4 className="font-semibold mb-2">5.3 Logo Usage</h4>
             <p className="text-muted-foreground">
-              You may use the Congress Transparency Platform logo in connection with attribution.
+              You may use the Congress Activity Platform logo in connection with attribution.
               Do not modify, distort, or alter the logo. Do not imply endorsement or partnership
               without written permission.
             </p>

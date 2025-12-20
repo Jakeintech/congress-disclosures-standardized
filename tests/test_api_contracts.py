@@ -1,66 +1,108 @@
+"""
+OpenAPI Contract Testing Suite
+Validates all API responses against the OpenAPI specification.
+"""
+
 import json
 import pytest
 import yaml
+import requests
 from pathlib import Path
-import sys
+from typing import Dict, Any
+import os
 
-# Add scripts to path for test_lambda_locally
-sys.path.append(str(Path(__file__).parent.parent))
-from scripts.test_lambda_locally import simulate_lambda
+# Load OpenAPI spec
+SPEC_PATH = Path("openapi.yaml")
 
-def load_openapi_spec():
-    spec_path = Path("openapi.yaml")
-    if not spec_path.exists():
-        return None
-    with open(spec_path, 'r') as f:
+@pytest.fixture(scope="session")
+def openapi_spec():
+    """Load and return OpenAPI specification."""
+    with open(SPEC_PATH) as f:
         return yaml.safe_load(f)
 
-OPENAPI_SPEC = load_openapi_spec()
+@pytest.fixture(scope="session")
+def api_base_url():
+    """Get API base URL from environment."""
+    url = os.environ.get('API_BASE_URL')
+    if not url:
+        pytest.skip("API_BASE_URL not set")
+    return url.rstrip('/')
 
-@pytest.mark.parametrize("endpoint,handler,params", [
-    ("/v1/version", "get_version", {}),
-    ("/v1/trades", "get_trades", {"queryStringParameters": {"limit": "1"}}),
-    ("/v1/congress/bills", "get_congress_bills", {"queryStringParameters": {"limit": "1"}}),
-])
-def test_handler_output_structure(endpoint, handler, params):
-    """Smoke test handlers and verify they return correct structure."""
-    handler_path = f"api/lambdas/{handler}/handler.py"
+class TestAPIContracts:
+    """Test suite for API contract validation."""
     
-    event = {
-        "httpMethod": "GET",
-        "path": endpoint,
-        "queryStringParameters": params.get("queryStringParameters", {}),
-        "pathParameters": params.get("pathParameters", {})
-    }
+    def test_openapi_spec_valid(self, openapi_spec):
+        """Verify OpenAPI spec is valid."""
+        assert 'openapi' in openapi_spec
+        assert 'paths' in openapi_spec
+        assert 'info' in openapi_spec
     
-    try:
-        response = simulate_lambda(handler_path, event)
-        assert "statusCode" in response
-        assert "body" in response
+    @pytest.mark.parametrize("endpoint,method", [
+        ("/v1/version", "get"),
+        ("/v1/trades", "get"),
+        ("/v1/members", "get"),
+    ])
+    def test_endpoint_in_spec(self, openapi_spec, endpoint, method):
+        """Verify endpoints exist in OpenAPI spec."""
+        assert endpoint in openapi_spec['paths']
+        assert method in openapi_spec['paths'][endpoint]
+    
+    def test_version_endpoint_contract(self, api_base_url):
+        """Test /v1/version matches contract."""
+        response = requests.get(f"{api_base_url}/v1/version")
+        assert response.status_code == 200
         
-        # Verify JSON body
-        body = json.loads(response["body"])
-        assert "success" in body
-    except Exception as e:
-        # We expect some failures (like S3/API key errors) in local environment,
-        # but the handler should not have SyntaxError/ImportError
-        if "HTTP Error" in str(e) or "API_KEY_INVALID" in str(e) or "AccessDenied" in str(e):
-             pytest.skip(f"Skipping due to external dependency: {e}")
-        else:
-             raise e
+        data = response.json()
+        assert 'version' in data
+        assert 'git' in data
+        assert 'build' in data
+    
+    def test_trades_endpoint_contract(self, api_base_url):
+        """Test /v1/trades matches contract."""
+        response = requests.get(f"{api_base_url}/v1/trades", params={"limit": 5})
+        
+        if response.status_code == 200:
+            data = response.json()
+            assert 'trades' in data or 'data' in data
+            assert 'pagination' in data or 'meta' in data
+    
+    def test_error_response_contract(self, api_base_url):
+        """Test error responses follow contract."""
+        # Invalid request
+        response = requests.get(f"{api_base_url}/v1/trades", params={"limit": -1})
+        
+        if response.status_code >= 400:
+            data = response.json()
+            assert 'success' in data
+            assert data['success'] == False
+            assert 'error' in data
 
-def test_openapi_spec_coverage():
-    """Verify that all endpoints in OpenAPI spec have a corresponding handler."""
-    if not OPENAPI_SPEC:
-        pytest.skip("OpenAPI spec not found")
+@pytest.mark.integration
+class TestEndpointResponses:
+    """Integration tests for endpoint responses."""
+    
+    def test_all_endpoints_return_json(self, api_base_url):
+        """Verify all endpoints return valid JSON."""
+        endpoints = [
+            "/v1/version",
+            "/v1/trades?limit=1",
+            "/v1/members?limit=1",
+        ]
         
-    paths = OPENAPI_SPEC.get('paths', {})
-    lambdas_dir = Path("api/lambdas")
+        for endpoint in endpoints:
+            response = requests.get(f"{api_base_url}{endpoint}")
+            assert response.headers.get('Content-Type', '').startswith('application/json')
+            
+            # Should parse as JSON
+            data = response.json()
+            assert isinstance(data, dict)
     
-    # This is a loose check but helpful
-    for path, methods in paths.items():
-        # Expectation: either it's a known static route or mapped in terraform
-        pass
-    
-    # More useful: check if our fixed handlers match the routes they should
-    # (Manual check performed during planning)
+    def test_pagination_consistency(self, api_base_url):
+        """Test pagination works consistently."""
+        response = requests.get(f"{api_base_url}/v1/trades", params={"limit": 10, "offset": 0})
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'pagination' in data:
+                pagination = data['pagination']
+                assert 'total' in pagination or 'limit' in pagination

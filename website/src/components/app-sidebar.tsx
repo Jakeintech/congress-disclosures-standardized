@@ -98,7 +98,7 @@ export function AppSidebar() {
             <SidebarHeader className="border-b px-6 py-4">
                 <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
                     <Building2 className="h-6 w-6" />
-                    <span>Congress Transparency</span>
+                    <span>Congress Activity</span>
                 </Link>
             </SidebarHeader>
             <SidebarContent>

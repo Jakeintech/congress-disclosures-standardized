@@ -1,4 +1,4 @@
-# Congress Transparency Website
+# Congress Activity Website
 
 Next.js website for browsing congressional financial disclosures, bills, and lobbying data.
 

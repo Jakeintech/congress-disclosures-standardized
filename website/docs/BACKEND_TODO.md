@@ -1,4 +1,4 @@
-# Backend API TODO - Congress Transparency Platform
+# Backend API TODO - Congress Activity Platform
 
 ## Critical Issues to Fix
 

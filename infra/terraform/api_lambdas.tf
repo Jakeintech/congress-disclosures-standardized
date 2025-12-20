@@ -126,6 +126,7 @@ locals {
     # System endpoints
     "get_aws_costs"    = { route = "GET /v1/costs" }
     "list_s3_objects"  = { route = "GET /v1/storage/{layer}" }
+    "get_version"      = { route = "GET /v1/version" }
   }
 }
 

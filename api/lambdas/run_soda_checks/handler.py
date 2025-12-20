@@ -12,6 +12,7 @@ from typing import Dict, Any
 
 import duckdb
 import boto3
+from api.lib import success_response, error_response
 
 # Configure logging
 logger = logging.getLogger()
@@ -199,10 +200,7 @@ def lambda_handler(event, context):
 
         logger.info(f"All checks passed! {all_results['passed']}/{all_results['total_checks']}")
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps(all_results)
-        }
+        return success_response(all_results)
 
     except Exception as e:
         logger.error(f"Error running data quality checks: {str(e)}")

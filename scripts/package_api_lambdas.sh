@@ -10,6 +10,11 @@ S3_PREFIX="lambda-deployments/api"
 # Ensure build directory exists
 mkdir -p "$BUILD_DIR"
 
+# Generate version.json with build metadata
+echo "Generating version.json..."
+python3 scripts/generate_version.py --output build/version.json --pretty
+echo "✓ Version generated: $(cat build/version.json | grep '\"version\"' | cut -d':' -f2 | tr -d ' ",')"
+
 # List of API functions (matching api_lambdas.tf)
 FUNCTIONS=(
     "get_members"
@@ -57,7 +62,10 @@ for func in "${FUNCTIONS[@]}"; do
     cp -r api/lib "$PKG_DIR/api/"
     # Create __init__.py if missing to make it a package
     touch "$PKG_DIR/api/__init__.py"
-    
+
+    # Include version.json in package root (for version tracking)
+    cp build/version.json "$PKG_DIR/version.json"
+
     # Zip it up
     cd "$PKG_DIR"
     zip -r "../$func.zip" . > /dev/null

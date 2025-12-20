@@ -1,0 +1,14 @@
+{
+  "version": "v20251220-33a4c83-dirty",
+  "git": {
+    "commit": "33a4c83d220eba54d3befffc007e4f9f904bd96b",
+    "commit_short": "33a4c83",
+    "branch": "enhancement",
+    "dirty": true
+  },
+  "build": {
+    "timestamp": "2025-12-20T01:40:23.727620+00:00",
+    "date": "20251220"
+  },
+  "api_version": "v1"
+}

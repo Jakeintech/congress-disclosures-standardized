@@ -7,7 +7,6 @@ Get single Congress member details.
 import os
 import json
 import logging
-import math
 from api.lib import (
     ParquetQueryBuilder,
     success_response,
@@ -18,17 +17,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
-
-
-def clean_nan(obj):
-    """Replace NaN/Inf values with None for JSON serialization."""
-    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
-        return None
-    elif isinstance(obj, dict):
-        return {k: clean_nan(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [clean_nan(v) for v in obj]
-    return obj
 
 
 def handler(event, context):
@@ -84,15 +72,7 @@ def handler(event, context):
         except Exception as e:
             logger.warning(f"Could not fetch legislative stats: {e}")
         
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=300'
-            },
-            'body': json.dumps({'member': clean_nan(member)}, default=str)
-        }
+        return success_response({'member': member}, metadata={'cache_seconds': 300})
     
     except Exception as e:
         logger.error(f"Error fetching Congress member: {e}", exc_info=True)

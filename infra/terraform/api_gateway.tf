@@ -425,6 +425,23 @@ resource "aws_apigatewayv2_integration" "get_filing" {
   payload_format_version = "2.0"
 }
 
+# System Endpoints
+# ----------------------------------------------------------------------------
+
+# GET /v1/version - API version information
+resource "aws_apigatewayv2_route" "get_version" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/version"
+  target    = "integrations/${aws_apigatewayv2_integration.get_version.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_version" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_version"].invoke_arn
+  payload_format_version = "2.0"
+}
+
 # ============================================================================
 # Lambda Permissions for API Gateway
 # ============================================================================

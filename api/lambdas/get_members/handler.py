@@ -83,14 +83,7 @@ def handler(event, context):
             query_params={k: v for k, v in query_params.items() if k not in ['limit', 'offset']}
         )
         
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': str(response).replace("'", '"').replace('True', 'true').replace('False', 'false').replace('None', 'null')
-        }
+        return success_response(response)
     
     except Exception as e:
         logger.error(f"Error fetching members: {e}", exc_info=True)

@@ -7,6 +7,54 @@ Provides consistent JSON response structure with CORS headers.
 from typing import Dict, Any, Optional, List, Union
 import json
 import math
+import logging
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+
+# Load version at module initialization (cached for all Lambda invocations)
+_VERSION_CACHE = None
+
+def _load_version() -> str:
+    """
+    Load version string from version.json file.
+
+    Searches multiple possible locations in Lambda environment.
+    Falls back to hardcoded version if file not found.
+
+    Returns:
+        str: Version string (e.g., "v20251220-33a4c83")
+    """
+    global _VERSION_CACHE
+
+    if _VERSION_CACHE is not None:
+        return _VERSION_CACHE
+
+    # Try multiple potential locations for version.json
+    possible_paths = [
+        Path("/var/task/version.json"),          # Lambda task root
+        Path("/opt/python/version.json"),        # Layer location
+        Path(__file__).parent.parent / "version.json",  # Relative to lib
+        Path("version.json")                     # Current directory
+    ]
+
+    for version_path in possible_paths:
+        try:
+            if version_path.exists():
+                with open(version_path, 'r') as f:
+                    version_data = json.load(f)
+                    _VERSION_CACHE = version_data.get('version', 'unknown')
+                    logger.info(f"Loaded version {_VERSION_CACHE} from {version_path}")
+                    return _VERSION_CACHE
+        except Exception as e:
+            logger.warning(f"Failed to load version from {version_path}: {e}")
+            continue
+
+    # Fallback to hardcoded version
+    _VERSION_CACHE = "v20251219-fallback"
+    logger.warning("version.json not found, using fallback version")
+    return _VERSION_CACHE
 
 
 def clean_nan_values(data: Union[Dict, List, Any]) -> Union[Dict, List, Any]:
@@ -45,7 +93,7 @@ def success_response(
     body = {
         "success": True,
         "data": data,
-        "version": "20251219-1815" # Version tag to verify deployment
+        "version": _load_version()  # Load version from version.json
     }
     
     if metadata:

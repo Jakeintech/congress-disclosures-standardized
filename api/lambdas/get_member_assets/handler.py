@@ -7,6 +7,7 @@ import os
 import json
 import logging
 from lib.query_builder import ParquetQueryBuilder
+from api.lib import success_response, error_response
 
 # Configure logging
 logger = logging.getLogger()
@@ -34,10 +35,7 @@ def handler(event, context):
         # Extract path parameters
         member_name = event.get('pathParameters', {}).get('name')
         if not member_name:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'success': False, 'error': 'Missing member name parameter'})
-            }
+            return error_response('Missing member name parameter', 400)
         
         # Normalize name
         member_name = member_name.strip().lower()
@@ -69,13 +67,7 @@ def handler(event, context):
         ]
         
         if not member_filings:
-            return {
-                'statusCode': 404,
-                'body': json.dumps({
-                    'success': False,
-                    'error': 'No annual filings found for member'
-                })
-            }
+            return error_response('No annual filings found for member', 404)
         
         # Sort by year descending to get latest
         member_filings.sort(key=lambda x: x.get('filing_year', 0), reverse=True)
@@ -98,29 +90,15 @@ def handler(event, context):
             limit=limit,
             offset=offset
         )
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'success': True,
-                'member': latest_filing.get('filer_name'),
-                'filing_doc_id': latest_doc_id,
-                'filing_year': latest_filing.get('filing_year'),
-                'data': assets_result['data'],
-                'pagination': assets_result['pagination']
-            })
-        }
-        
+
+        return success_response({
+            'member': latest_filing.get('filer_name'),
+            'filing_doc_id': latest_doc_id,
+            'filing_year': latest_filing.get('filing_year'),
+            'data': assets_result['data'],
+            'pagination': assets_result['pagination']
+        })
+
     except Exception as e:
         logger.error(f"Error querying member portfolio: {e}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'success': False,
-                'error': f'Internal server error: {str(e)}'
-            })
-        }
+        return error_response('Internal server error', 500, str(e))

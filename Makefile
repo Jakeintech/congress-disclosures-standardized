@@ -170,21 +170,6 @@ output: ## Show Terraform outputs
 
 package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations ## Package all Lambda functions
 
-package-api: ## Package and upload ALL API Lambda functions to S3
-	@echo "Packaging API Lambda functions..."
-	@rm -rf /tmp/api_lambda_pkg && mkdir -p /tmp/api_lambda_pkg/api
-	@cp -r api/lib /tmp/api_lambda_pkg/api/
-	@cd api/lambdas && find . -maxdepth 1 -type d ! -name '.' ! -name '..*' ! -name '__pycache__' | sed 's|./||' | while read dir; do \
-		if [ -f "$$dir/handler.py" ]; then \
-			echo "  Packaging $$dir..."; \
-			rm -f "$${dir}.zip"; \
-			zip -j "$${dir}.zip" "$${dir}/handler.py" > /dev/null; \
-			cd /tmp/api_lambda_pkg && zip -r "/Users/jake/Documents/GitHub/congress-disclosures-standardized/api/lambdas/$${dir}.zip" api/ > /dev/null; \
-			cd /Users/jake/Documents/GitHub/congress-disclosures-standardized/api/lambdas; \
-			aws s3 cp "$${dir}.zip" "s3://$(S3_BUCKET)/lambda-deployments/api/$${dir}.zip" > /dev/null; \
-		fi; \
-	done
-	@echo "✓ API Lambda packages uploaded to S3"
 
 package-ingest: ## Package house_fd_ingest_zip Lambda
 	@echo "Packaging house_fd_ingest_zip..."
@@ -899,6 +884,40 @@ logs-extract-recent: ## Show recent extract Lambda logs (last 2min, errors + suc
 
 verify-aws: ## Verify AWS credentials are configured
 	@aws sts get-caller-identity > /dev/null && echo "✓ AWS credentials valid" || echo "✗ AWS credentials invalid"
+
+verify-api: ## Verify API health (30+ endpoints)
+	@echo "🏥 Running API health checks..."
+	@$(PYTHON) scripts/verify_api_health.py
+
+verify-api-critical: ## Verify critical API endpoints only
+	@echo "🔴 Checking critical endpoints..."
+	@$(PYTHON) scripts/verify_api_health.py --critical-only
+
+verify-api-version: ## Verify /v1/version endpoint returns correct version
+	@echo "🔍 Checking API version..."
+	@$(PYTHON) scripts/verify_api_health.py --endpoint /v1/version
+
+verify-gold: ## Validate Gold layer data integrity
+	@echo "💎 Validating Gold layer..."
+	@$(PYTHON) scripts/validate_gold_layer.py
+
+verify-gold-strict: ## Validate Gold layer (fail on warnings)
+	@echo "💎 Validating Gold layer (strict mode)..."
+	@$(PYTHON) scripts/validate_gold_layer.py --strict
+
+audit-handlers: ## Audit all Lambda handlers for response patterns
+	@echo "🔍 Auditing Lambda handlers..."
+	@$(PYTHON) scripts/audit_response_patterns.py
+
+audit-handlers-json: ## Audit handlers and output JSON
+	@$(PYTHON) scripts/audit_response_patterns.py --json
+
+verify-deployment: verify-api verify-gold audit-handlers ## Complete deployment verification
+	@echo ""
+	@echo "✅ DEPLOYMENT VERIFICATION COMPLETE"
+	@echo "   - API health checks passed"
+	@echo "   - Gold layer validated"
+	@echo "   - Handler audit passed"
 
 cost-estimate: ## Estimate monthly AWS costs (requires configured infrastructure)
 	@echo "Estimating AWS costs..."

@@ -7,6 +7,7 @@ import os
 import json
 import logging
 from lib.query_builder import ParquetQueryBuilder
+from api.lib import success_response, error_response
 
 # Configure logging
 logger = logging.getLogger()
@@ -34,10 +35,7 @@ def handler(event, context):
         # Extract path parameters
         member_name = event.get('pathParameters', {}).get('name')
         if not member_name:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'success': False, 'error': 'Missing member name parameter'})
-            }
+            return error_response('Missing member name parameter', 400)
         
         # Normalize name for search
         member_name = member_name.strip().lower()
@@ -79,30 +77,16 @@ def handler(event, context):
         
         # Trim to limit
         filtered_data = filtered_data[:limit]
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'success': True,
-                'data': filtered_data,
-                'pagination': {
-                    'total': len(filtered_data),
-                    'limit': limit,
-                    'offset': offset
-                }
-            })
-        }
-        
+
+        return success_response({
+            'data': filtered_data,
+            'pagination': {
+                'total': len(filtered_data),
+                'limit': limit,
+                'offset': offset
+            }
+        })
+
     except Exception as e:
         logger.error(f"Error querying member transactions: {e}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'success': False,
-                'error': f'Internal server error: {str(e)}'
-            })
-        }
+        return error_response('Internal server error', 500, str(e))

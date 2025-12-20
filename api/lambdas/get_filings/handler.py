@@ -76,16 +76,9 @@ def handler(event, context):
             base_url='/v1/filings',
             query_params={k: v for k, v in query_params.items() if k not in ['limit', 'offset']}
         )
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps(response, default=str)
-        }
-    
+
+        return success_response(response)
+
     except Exception as e:
         logger.error(f"Error: {e}", exc_info=True)
         return error_response("Failed to retrieve filings", 500, str(e))

@@ -3,6 +3,7 @@ import logging
 import os
 import boto3
 from datetime import datetime, timedelta
+from api.lib import success_response, error_response
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -100,23 +101,9 @@ def handler(event, context):
             total_cost += day_total
             
         formatted_data['total_period_cost'] = total_cost
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps(formatted_data)
-        }
-        
+
+        return success_response(formatted_data)
+
     except Exception as e:
         logger.error(f"Failed to fetch costs: {e}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({'error': str(e)})
-        }
+        return error_response("Failed to fetch AWS costs", 500, str(e))

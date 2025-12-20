@@ -62,6 +62,137 @@ paths:
               schema:
                 $ref: '#/components/schemas/CostResponse'
 
+  /v1/version:
+    get:
+      tags: [System]
+      summary: Get API version
+      description: |
+        Returns API version information including Git commit hash, build timestamp,
+        and deployment metadata. Use this endpoint to verify which version of the API
+        is currently running.
+      responses:
+        '200':
+          description: Version information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      version:
+                        type: string
+                        description: Human-readable version string (date + Git hash)
+                        example: "v20251220-33a4c83"
+                      git:
+                        type: object
+                        properties:
+                          commit:
+                            type: string
+                            description: Full Git commit hash
+                            example: "33a4c83d220eba54d3befffc007e4f9f904bd96b"
+                          commit_short:
+                            type: string
+                            description: Short Git commit hash (7 chars)
+                            example: "33a4c83"
+                          branch:
+                            type: string
+                            description: Git branch name
+                            example: "main"
+                          dirty:
+                            type: boolean
+                            description: Whether working directory had uncommitted changes
+                            example: false
+                      build:
+                        type: object
+                        properties:
+                          timestamp:
+                            type: string
+                            format: date-time
+                            description: Build timestamp (ISO 8601 UTC)
+                            example: "2025-12-20T01:40:23.727620+00:00"
+                          date:
+                            type: string
+                            description: Build date (YYYYMMDD)
+                            example: "20251220"
+                      api_version:
+                        type: string
+                        description: API version identifier
+                        example: "v1"
+                      runtime:
+                        type: object
+                        properties:
+                          function_name:
+                            type: string
+                            example: "congress-disclosures-api-get_version"
+                          function_version:
+                            type: string
+                            example: "$LATEST"
+                          aws_request_id:
+                            type: string
+                            example: "12345678-1234-1234-1234-123456789abc"
+                          memory_limit_mb:
+                            type: integer
+                            example: 512
+                      status:
+                        type: string
+                        example: "healthy"
+
+  /v1/storage/{layer}:
+    get:
+      tags: [System]
+      summary: List S3 objects
+      description: List objects in a specific data layer (Bronze, Silver, Gold)
+      parameters:
+        - name: layer
+          in: path
+          required: true
+          description: Data layer to query
+          schema:
+            type: string
+            enum: [bronze, silver, gold]
+          example: gold
+        - name: prefix
+          in: query
+          description: S3 prefix filter
+          schema:
+            type: string
+          example: "house/financial/facts/"
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of S3 objects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      objects:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                            size:
+                              type: integer
+                            last_modified:
+                              type: string
+                              format: date-time
+                      count:
+                        type: integer
+                      truncated:
+                        type: boolean
+
   # ============================================================================
   # Member Endpoints
   # ============================================================================
@@ -188,6 +319,153 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PortfolioResponse'
+
+  /v1/members/{name}/filings:
+    get:
+      tags: [Members]
+      summary: Get member filings by name
+      description: |
+        Get all financial disclosure filings for a member using fuzzy name matching.
+        This endpoint performs case-insensitive partial name matching, useful when
+        the exact bioguide_id is unknown.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Member name (fuzzy match, case-insensitive)
+          schema:
+            type: string
+          example: "Pelosi"
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: filing_year
+          in: query
+          description: Filter by filing year
+          schema:
+            type: integer
+          example: 2025
+        - name: filing_type
+          in: query
+          description: Filter by filing type
+          schema:
+            type: string
+            enum: [P, A, T, X, D, W]
+          example: "P"
+      responses:
+        '200':
+          description: List of filings for matched member(s)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Filing'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /v1/members/{name}/transactions:
+    get:
+      tags: [Members, Trading]
+      summary: Get member transactions by name
+      description: |
+        Get all trading transactions for a member using fuzzy name matching.
+        Returns PTR (Periodic Transaction Report) transactions.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Member name (fuzzy match, case-insensitive)
+          schema:
+            type: string
+          example: "Pelosi"
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: ticker
+          in: query
+          description: Filter by stock ticker
+          schema:
+            type: string
+          example: "AAPL"
+        - name: transaction_type
+          in: query
+          description: Filter by transaction type
+          schema:
+            type: string
+            enum: [Purchase, Sale, Exchange]
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeListResponse'
+
+  /v1/members/{name}/assets:
+    get:
+      tags: [Members]
+      summary: Get member assets by name
+      description: |
+        Get all asset holdings from Annual Reports (Type A) for a member
+        using fuzzy name matching. Returns Schedule A asset disclosures.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Member name (fuzzy match, case-insensitive)
+          schema:
+            type: string
+          example: "Pelosi"
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: filing_year
+          in: query
+          description: Filter by year of annual report
+          schema:
+            type: integer
+          example: 2025
+        - name: asset_type
+          in: query
+          description: Filter by asset type
+          schema:
+            type: string
+          example: "Stock"
+      responses:
+        '200':
+          description: List of assets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        asset_name:
+                          type: string
+                        asset_type:
+                          type: string
+                        value_low:
+                          type: number
+                        value_high:
+                          type: number
+                        filing_date:
+                          type: string
+                          format: date
+                        doc_id:
+                          type: string
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
 
   # ============================================================================
   # Trading Endpoints

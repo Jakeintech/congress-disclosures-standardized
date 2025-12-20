@@ -8,7 +8,6 @@ Supports industry filters, trade correlation filters, and multiple sort options.
 import os
 import json
 import logging
-import math
 from api.lib import (
     ParquetQueryBuilder,
     success_response,
@@ -21,17 +20,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
-
-
-def clean_nan(obj):
-    """Replace NaN/Inf values with None for JSON serialization."""
-    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
-        return None
-    elif isinstance(obj, dict):
-        return {k: clean_nan(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [clean_nan(v) for v in obj]
-    return obj
 
 
 def enrich_bills_with_aggregates(qb, bills_df):
@@ -291,15 +279,7 @@ def handler(event, context):
             query_params={k: v for k, v in query_params.items() if k not in ['limit', 'offset']}
         )
 
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=300'
-            },
-            'body': json.dumps(clean_nan(response), default=str)
-        }
+        return success_response(response, metadata={'cache_seconds': 300})
 
     except Exception as e:
         logger.error(f"Error fetching bills: {e}", exc_info=True)

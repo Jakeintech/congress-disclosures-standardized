@@ -7,6 +7,7 @@ import os
 import json
 import logging
 from lib.query_builder import ParquetQueryBuilder
+from api.lib import success_response, error_response
 
 # Configure logging
 logger = logging.getLogger()
@@ -33,10 +34,7 @@ def handler(event, context):
         # Extract path parameters
         doc_id = event.get('pathParameters', {}).get('doc_id')
         if not doc_id:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'success': False, 'error': 'Missing doc_id parameter'})
-            }
+            return error_response('Missing doc_id parameter', 400)
         
         # Extract query parameters
         query_params = event.get('queryStringParameters') or {}
@@ -63,26 +61,12 @@ def handler(event, context):
             limit=limit,
             offset=offset
         )
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'success': True,
-                'data': result['data'],
-                'pagination': result['pagination']
-            })
-        }
-        
+
+        return success_response({
+            'data': result['data'],
+            'pagination': result['pagination']
+        })
+
     except Exception as e:
         logger.error(f"Error querying assets: {e}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'success': False,
-                'error': f'Internal server error: {str(e)}'
-            })
-        }
+        return error_response('Internal server error', 500, str(e))

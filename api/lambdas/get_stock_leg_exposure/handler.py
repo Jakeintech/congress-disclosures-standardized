@@ -9,6 +9,7 @@ import json
 import logging
 from api.lib import (
     ParquetQueryBuilder,
+    success_response,
     error_response
 )
 
@@ -51,20 +52,12 @@ def handler(event, context):
         
         if activity_df.empty:
             # Return empty response if no data
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Cache-Control': 'public, max-age=300'
-                },
-                'body': json.dumps({
-                    'ticker': ticker,
-                    'legislative_activity': None,
-                    'trading_activity': None,
-                    'message': 'No data found for this ticker'
-                })
-            }
+            return success_response({
+                'ticker': ticker,
+                'legislative_activity': None,
+                'trading_activity': None,
+                'message': 'No data found for this ticker'
+            })
         
         activity = activity_df.iloc[0].to_dict()
         
@@ -80,7 +73,7 @@ def handler(event, context):
         except Exception as e:
             logger.warning(f"Could not fetch trades: {e}")
         
-        response = {
+        response_data = {
             'ticker': ticker,
             'legislative_activity': {
                 'exposure_score': activity.get('legislative_exposure_score', 0),
@@ -93,17 +86,9 @@ def handler(event, context):
                 'recent_trades': trades[:20]
             }
         }
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=300'
-            },
-            'body': json.dumps(response, default=str)
-        }
-    
+
+        return success_response(response_data)
+
     except Exception as e:
         logger.error(f"Error fetching legislative exposure: {e}", exc_info=True)
         return error_response(

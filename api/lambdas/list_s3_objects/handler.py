@@ -3,6 +3,7 @@ import logging
 import os
 import boto3
 from urllib.parse import unquote_plus
+from api.lib import success_response, error_response
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -33,11 +34,10 @@ def handler(event, context):
         
         # Validate layer
         if layer not in LAYER_PREFIXES:
-            return {
-                'statusCode': 400,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': f'Invalid layer. Must be one of: {list(LAYER_PREFIXES.keys())}'})
-            }
+            return error_response(
+                f'Invalid layer. Must be one of: {list(LAYER_PREFIXES.keys())}',
+                400
+            )
         
         # Build full S3 prefix
         base_prefix = LAYER_PREFIXES[layer]
@@ -111,23 +111,9 @@ def handler(event, context):
         
         if response.get('NextContinuationToken'):
             result['nextContinuationToken'] = response['NextContinuationToken']
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps(result)
-        }
-        
+
+        return success_response(result)
+
     except Exception as e:
         logger.error(f"Failed to list S3 objects: {e}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({'error': str(e)})
-        }
+        return error_response("Failed to list S3 objects", 500, str(e))

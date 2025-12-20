@@ -1,8 +1,8 @@
 import os
 import json
 import logging
-import math
 import duckdb
+from api.lib import success_response, error_response
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -24,16 +24,6 @@ def get_duckdb_connection():
         _conn.execute("SET s3_region='us-east-1';")
         _conn.execute("SET s3_use_ssl=true;")
     return _conn
-
-def clean_nan(obj):
-    """Replace NaN/Inf values with None for JSON serialization."""
-    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
-        return None
-    elif isinstance(obj, dict):
-        return {k: clean_nan(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [clean_nan(v) for v in obj]
-    return obj
 
 def handler(event, context):
     """
@@ -167,29 +157,12 @@ def handler(event, context):
             }
         }
         
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=300'
-            },
-            'body': json.dumps(clean_nan(response), default=str)
-        }
-    
+        return success_response(response, metadata={'cache_seconds': 300})
+
     except Exception as e:
         logger.error(f"Error fetching Congress members: {e}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'success': False,
-                'error': {
-                    'message': "Failed to retrieve Congress members",
-                    'details': str(e)
-                }
-            })
-        }
+        return error_response(
+            message="Failed to retrieve Congress members",
+            status_code=500,
+            details=str(e)
+        )

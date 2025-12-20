@@ -67,8 +67,6 @@ def handler(event, context):
         
         filings_data = filings_df.to_dict('records')
         
-        if filings_data:
-            logger.info(f"Sample row keys: {list(filings_data[0].keys())}")
         
         # Map to Pydantic models
         filings = []

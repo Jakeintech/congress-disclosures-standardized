@@ -98,7 +98,7 @@ def handler(event, context):
                 # Map DuckDB types/names to Pydantic Transaction fields
                 tx = Transaction(
                     transaction_id=str(row.get('transaction_id') or row.get('doc_id', '')),
-                    disclosure_date=row.get('disclosure_date'),
+                    disclosure_date=row.get('disclosure_date') or row.get('filing_date'),
                     transaction_date=row.get('transaction_date'),
                     ticker=row.get('ticker'),
                     asset_description=row.get('asset_description') or row.get('description', 'Unknown'),
@@ -106,7 +106,7 @@ def handler(event, context):
                     amount_low=int(row.get('amount_low', 0)) if row.get('amount_low') is not None else 0,
                     amount_high=int(row.get('amount_high', 0)) if row.get('amount_high') is not None else 0,
                     bioguide_id=row.get('bioguide_id'),
-                    member_name=row.get('member_name') or row.get('full_name', 'Unknown'),
+                    member_name=row.get('member_name') or row.get('filer_name') or row.get('full_name') or 'Unknown',
                     first_name=row.get('first_name'),
                     last_name=row.get('last_name'),
                     party=row.get('party'),

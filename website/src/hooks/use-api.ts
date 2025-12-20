@@ -28,7 +28,9 @@ import {
     fetchMembers,
     fetchLobbyingNetwork,
     fetchTripleCorrelations,
+    fetchTripleCorrelations,
     fetchRecentActivity,
+    fetchTradingTimeline,
 } from '@/lib/api';
 import type {
     BillsParams,
@@ -350,5 +352,14 @@ export function useRecentActivity() {
         queryKey: ['recent-activity'],
         queryFn: () => fetchRecentActivity(),
         refetchInterval: 30000, // Refetch every 30 seconds for live feel
+    });
+}
+/**
+ * Hook to fetch trading timeline.
+ */
+export function useTradingTimeline(days = 365) {
+    return useQuery({
+        queryKey: ['trading-timeline', days],
+        queryFn: () => fetchTradingTimeline(days),
     });
 }

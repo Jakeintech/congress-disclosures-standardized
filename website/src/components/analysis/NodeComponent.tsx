@@ -192,7 +192,7 @@ export const renderNodeToHTML = (data: NodeData, size: number = 48): string => {
                     src="${data.photo_url || data.logo_url || ''}"
                     alt="${data.name}"
                     class="w-full h-full object-cover"
-                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
                 />
                 <div class="w-full h-full ${fallbackGradient} flex items-center justify-center text-xs font-semibold" style="display: none;">
                     ${initials}

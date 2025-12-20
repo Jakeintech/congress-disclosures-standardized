@@ -227,10 +227,10 @@ resource "aws_apigatewayv2_integration" "get_congress_committees" {
   integration_uri    = aws_lambda_function.api["get_congress_committees"].invoke_arn
 }
 
-# GET /v1/congress/committees/{code}
+# GET /v1/congress/committees/{chamber}/{code}
 resource "aws_apigatewayv2_route" "get_congress_committee" {
   api_id    = aws_apigatewayv2_api.congress_api.id
-  route_key = "GET /v1/congress/committees/{code}"
+  route_key = "GET /v1/congress/committees/{chamber}/{code}"
   target    = "integrations/${aws_apigatewayv2_integration.get_congress_committee.id}"
 }
 
@@ -241,10 +241,10 @@ resource "aws_apigatewayv2_integration" "get_congress_committee" {
   integration_uri    = aws_lambda_function.api["get_congress_committee"].invoke_arn
 }
 
-# GET /v1/congress/committees/{code}/bills
+# GET /v1/congress/committees/{chamber}/{code}/bills
 resource "aws_apigatewayv2_route" "get_committee_bills" {
   api_id    = aws_apigatewayv2_api.congress_api.id
-  route_key = "GET /v1/congress/committees/{code}/bills"
+  route_key = "GET /v1/congress/committees/{chamber}/{code}/bills"
   target    = "integrations/${aws_apigatewayv2_integration.get_committee_bills.id}"
 }
 
@@ -255,10 +255,10 @@ resource "aws_apigatewayv2_integration" "get_committee_bills" {
   integration_uri    = aws_lambda_function.api["get_committee_bills"].invoke_arn
 }
 
-# GET /v1/congress/committees/{code}/members
+# GET /v1/congress/committees/{chamber}/{code}/members
 resource "aws_apigatewayv2_route" "get_committee_members" {
   api_id    = aws_apigatewayv2_api.congress_api.id
-  route_key = "GET /v1/congress/committees/{code}/members"
+  route_key = "GET /v1/congress/committees/{chamber}/{code}/members"
   target    = "integrations/${aws_apigatewayv2_integration.get_committee_members.id}"
 }
 

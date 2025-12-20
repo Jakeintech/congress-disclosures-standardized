@@ -144,7 +144,7 @@ function ActivityItem({ item }: { item: any }) {
                 )}
                 {item.type === 'bill' && item.subject_id && (
                     <Link
-                        href={`/website/bill?id=${item.subject_id}`}
+                        href={`/bills/${item.subject_id.split('-').join('/')}`}
                         className="text-[10px] text-primary hover:underline block"
                     >
                         View Bill Detail

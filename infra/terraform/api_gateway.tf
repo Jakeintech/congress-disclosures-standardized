@@ -307,6 +307,20 @@ resource "aws_apigatewayv2_integration" "get_network_graph" {
   payload_format_version = "2.0"
 }
 
+# GET /v1/analytics/activity
+resource "aws_apigatewayv2_route" "get_recent_activity" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/analytics/activity"
+  target    = "integrations/${aws_apigatewayv2_integration.get_recent_activity.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_recent_activity" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_recent_activity"].invoke_arn
+  payload_format_version = "2.0"
+}
+
 # Advanced Analytics (God Mode) Endpoints
 # ----------------------------------------------------------------------------
 
@@ -408,6 +422,124 @@ resource "aws_apigatewayv2_integration" "get_filing" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"
   integration_uri  = aws_lambda_function.api["get_filing"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# Congress.gov API Endpoints
+# ----------------------------------------------------------------------------
+
+# GET /v1/congress/bills
+resource "aws_apigatewayv2_route" "get_congress_bills" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills"
+  target    = "integrations/${aws_apigatewayv2_integration.get_congress_bills.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_congress_bills" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_congress_bills"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/congress/bills/{bill_id}
+resource "aws_apigatewayv2_route" "get_congress_bill" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}"
+  target    = "integrations/${aws_apigatewayv2_integration.get_congress_bill.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_congress_bill" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_congress_bill"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/congress/members
+resource "aws_apigatewayv2_route" "get_congress_members" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/members"
+  target    = "integrations/${aws_apigatewayv2_integration.get_congress_members.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_congress_members" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_congress_members"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/congress/members/{bioguide_id}
+resource "aws_apigatewayv2_route" "get_congress_member" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/members/{bioguide_id}"
+  target    = "integrations/${aws_apigatewayv2_integration.get_congress_member.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_congress_member" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_congress_member"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# Committee Endpoints
+# ----------------------------------------------------------------------------
+
+# GET /v1/congress/committees
+resource "aws_apigatewayv2_route" "get_congress_committees" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/committees"
+  target    = "integrations/${aws_apigatewayv2_integration.get_congress_committees.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_congress_committees" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_congress_committees"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/congress/committees/{chamber}/{code}
+resource "aws_apigatewayv2_route" "get_congress_committee" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/committees/{chamber}/{code}"
+  target    = "integrations/${aws_apigatewayv2_integration.get_congress_committee.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_congress_committee" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_congress_committee"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/congress/committees/{chamber}/{code}/bills
+resource "aws_apigatewayv2_route" "get_committee_bills" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/committees/{chamber}/{code}/bills"
+  target    = "integrations/${aws_apigatewayv2_integration.get_committee_bills.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_committee_bills" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_committee_bills"].invoke_arn
+  payload_format_version = "2.0"
+}
+
+# GET /v1/congress/committees/{chamber}/{code}/members
+resource "aws_apigatewayv2_route" "get_committee_members" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/committees/{chamber}/{code}/members"
+  target    = "integrations/${aws_apigatewayv2_integration.get_committee_members.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_committee_members" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_committee_members"].invoke_arn
   payload_format_version = "2.0"
 }
 

@@ -1,14 +1,10 @@
 # Congress.gov API Configuration Variables
 
 variable "congress_gov_api_key" {
-  description = "API key for Congress.gov API (required for all API requests)"
+  description = "API key for Congress.gov API (optional if sourced from SSM)"
   type        = string
   sensitive   = true
-
-  validation {
-    condition     = length(var.congress_gov_api_key) > 0
-    error_message = "Congress.gov API key is required."
-  }
+  default     = ""
 }
 
 variable "congress_api_base_url" {

@@ -5,6 +5,8 @@
  */
 
 import type { Bill } from '../types/api';
+import { z } from 'zod';
+import { validateInDev } from './schemas/base';
 // Note: Add Trade and Member types when implementing those endpoints
 
 export interface APIResponse<T = any> {
@@ -78,7 +80,11 @@ export function isPaginatedResponse(data: any): data is PaginatedData<any> {
  * Automatically detects the data array key
  */
 export function extractPaginatedItems<T>(response: PaginatedData<T>): T[] {
-    // Find the key that contains the array (not 'pagination')
+    // Prioritize 'items' key, then fallback to other arrays
+    if (Array.isArray(response.items)) {
+        return response.items as T[];
+    }
+
     const dataKey = Object.keys(response).find(
         key => key !== 'pagination' && Array.isArray(response[key])
     );
@@ -100,35 +106,42 @@ export function parseAPIResponse<T>(
         expectArray?: boolean;
         expectPaginated?: boolean;
         dataKey?: string;
+        schema?: z.ZodSchema<T>;
+        context?: string;
     } = {}
 ): T | T[] {
+    // 1. Initial Data Extraction
+    let data: any;
     // Handle direct array responses (legacy)
     if (Array.isArray(raw)) {
         return raw as T[];
     }
 
-    // Handle standard API response wrapper
+    // Standard API response wrapper
     if (raw && typeof raw === 'object' && 'data' in raw) {
-        const data = raw.data;
+        data = raw.data;
 
-        // If expecting paginated response
-        if (options.expectPaginated && isPaginatedResponse(data)) {
-            return extractPaginatedItems<T>(data) as T[];
-        }
-
-        // If a specific data key is provided (e.g., 'bills')
+        // If a specific data key is provided (e.g., 'bills') inside data
         if (options.dataKey && data && typeof data === 'object' && options.dataKey in data) {
-            return data[options.dataKey] as T | T[];
+            data = data[options.dataKey];
         }
-
-        // Return data as-is
-        return data as T | T[];
+        // If expecting paginated response and it looks paginated
+        else if (options.expectPaginated && isPaginatedResponse(data)) {
+            data = extractPaginatedItems<T>(data);
+        }
+    } else {
+        data = raw;
     }
 
-    // Fallback
-    if (options.expectArray) {
-        return [] as T[];
+    // 2. Fallback for arrays
+    if (!data && options.expectArray) {
+        data = [];
     }
 
-    throw new Error(`Invalid API response format: ${JSON.stringify(raw).substring(0, 100)}`);
+    // 3. Validation (Dev only)
+    if (options.schema) {
+        validateInDev(data, options.schema, options.context || 'API');
+    }
+
+    return data as T | T[];
 }

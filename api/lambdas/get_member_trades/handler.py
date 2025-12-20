@@ -7,124 +7,108 @@ import json
 import logging
 import os
 import duckdb
-from api.lib import success_response, error_response, clean_nan_values
+from api.lib import (
+    ParquetQueryBuilder,
+    success_response,
+    error_response,
+    clean_nan_values,
+    parse_pagination_params
+)
+from api.lib.response_models import (
+    Transaction,
+    PaginationMetadata,
+    PaginatedResponse
+)
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
 
 S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
-# Global connection (reused across warm invocations)
-_conn = None
-
-def get_duckdb_connection():
-    """Get or create DuckDB connection with S3 support (connection pooling)."""
-    global _conn
-    if _conn is None:
-        logger.info("Creating new DuckDB connection (cold start)")
-        _conn = duckdb.connect(':memory:')
-        # Set home_directory for Lambda environment (required for extension installs)
-        _conn.execute("SET home_directory='/tmp';")
-        _conn.execute("INSTALL httpfs; LOAD httpfs;")
-        _conn.execute("SET enable_http_metadata_cache=true;")
-        _conn.execute("SET s3_region='us-east-1';")
-        _conn.execute("SET s3_use_ssl=true;")
-    return _conn
-
-
 def handler(event, context):
     """GET /v1/members/{bioguide_id}/trades - Member's trading history."""
     try:
-        # Parse parameters
-        path_params = event.get('pathParameters', {})
+        path_params = event.get('pathParameters') or {}
         query_params = event.get('queryStringParameters') or {}
 
         bioguide_id = path_params.get('bioguide_id')
         if not bioguide_id:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'bioguide_id is required'})
-            }
+            return error_response(message="bioguide_id is required", status_code=400)
 
-        # Pagination
-        limit = min(int(query_params.get('limit', 100)), 500)
-        offset = int(query_params.get('offset', 0))
-
-        # Optional filters
-        ticker = query_params.get('ticker', '').upper()
-        transaction_type = query_params.get('transaction_type')
-        start_date = query_params.get('start_date')
-        end_date = query_params.get('end_date')
-
-        conn = get_duckdb_connection()
-
-        # Build WHERE clause - filter on transactions table directly
-        where_clauses = [f"t.bioguide_id = '{bioguide_id}'"]
-
-        if ticker:
-            where_clauses.append(f"t.ticker = '{ticker}'")
-
-        if transaction_type:
-            where_clauses.append(f"t.transaction_type = '{transaction_type}'")
-
-        if start_date:
-            where_clauses.append(f"t.transaction_date >= '{start_date}'")
-
-        if end_date:
-            where_clauses.append(f"t.transaction_date <= '{end_date}'")
-
-        where_sql = " AND ".join(where_clauses)
-
-        # Simplified query - no join needed since bioguide_id is in transactions
-        query = f"""
-            SELECT
-                t.transaction_date,
-                COALESCE(t.ticker, '') as ticker,
-                t.asset_description AS asset_name,
-                t.transaction_type,
-                COALESCE(t.amount_low, 0) as amount_low,
-                COALESCE(t.amount_high, 0) as amount_high,
-                (COALESCE(t.amount_low, 0) + COALESCE(t.amount_high, 0)) / 2.0 AS amount_midpoint,
-                t.bioguide_id,
-                t.filer_name AS full_name,
-                t.party,
-                t.state,
-                t.chamber
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet') t
-            WHERE {where_sql}
-            ORDER BY t.transaction_date DESC
-            LIMIT {limit} OFFSET {offset}
-        """
-
-        logger.info(f"Executing DuckDB query for bioguide_id={bioguide_id}")
-        result_df = conn.execute(query).fetchdf()
-
-        # Get total count (for pagination)
-        count_query = f"""
-            SELECT COUNT(*) as total
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet') t
-            WHERE {where_sql}
-        """
-
-        total_count = conn.execute(count_query).fetchone()[0]
-
-        # Convert to records
-        trades = clean_nan_values(result_df.to_dict('records'))
-
-        response = {
-            'bioguide_id': bioguide_id,
-            'total_count': total_count,
-            'limit': limit,
-            'offset': offset,
-            'trades': trades,
-            'has_more': offset + limit < total_count
-        }
-
-        return success_response(
-            response,
-            status_code=200,
-            metadata={'cache_seconds': 3600}
+        limit, offset = parse_pagination_params(query_params)
+        
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
+        
+        # Filters
+        filters = {'bioguide_id': bioguide_id}
+        if query_params.get('ticker'):
+            filters['ticker'] = query_params['ticker'].upper()
+        if query_params.get('transaction_type'):
+            filters['transaction_type'] = query_params['transaction_type']
+            
+        # 1. Total count
+        total_count = qb.count_records(
+            'gold/house/financial/facts/fact_ptr_transactions',
+            filters=filters
         )
+        
+        # 2. Fetch records
+        result_df = qb.query_parquet(
+            'gold/house/financial/facts/fact_ptr_transactions',
+            filters=filters,
+            order_by='transaction_date DESC',
+            limit=limit,
+            offset=offset
+        )
+        
+        trades_data = clean_nan_values(result_df.to_dict('records'))
+        
+        # 3. Map to Pydantic
+        transactions = []
+        for row in trades_data:
+            try:
+                tx = Transaction(
+                    transaction_id=str(row.get('transaction_id') or row.get('doc_id', '')),
+                    disclosure_date=row.get('disclosure_date'),
+                    transaction_date=row.get('transaction_date'),
+                    ticker=row.get('ticker'),
+                    asset_description=row.get('asset_description') or row.get('asset_name', 'Unknown'),
+                    transaction_type=row.get('transaction_type').lower() if row.get('transaction_type') else 'purchase',
+                    amount_low=int(row.get('amount_low', 0)) if row.get('amount_low') is not None else 0,
+                    amount_high=int(row.get('amount_high', 0)) if row.get('amount_high') is not None else 0,
+                    bioguide_id=row.get('bioguide_id'),
+                    member_name=row.get('member_name') or row.get('full_name', 'Unknown'),
+                    first_name=row.get('first_name'),
+                    last_name=row.get('last_name'),
+                    party=row.get('party'),
+                    state=row.get('state'),
+                    chamber=row.get('chamber').lower() if row.get('chamber') else 'house',
+                    owner=row.get('owner')
+                )
+                transactions.append(tx)
+            except Exception as e:
+                logger.warning(f"Error mapping trade: {e}")
+                continue
+
+        # 4. Build pagination
+        has_next = (offset + len(transactions)) < total_count
+        has_prev = offset > 0
+        
+        pagination = PaginationMetadata(
+            total=total_count,
+            count=len(transactions),
+            limit=limit,
+            offset=offset,
+            has_next=has_next,
+            has_prev=has_prev
+        )
+        
+        paginated = PaginatedResponse(
+            items=transactions,
+            pagination=pagination
+        )
+        
+        return success_response(paginated.model_dump())
 
     except Exception as e:
         logger.error(f"Error retrieving member trades: {str(e)}", exc_info=True)

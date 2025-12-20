@@ -1,14 +1,11 @@
-"""
-Lambda handler: GET /v1/trades
-OPTIMIZED: DuckDB with connection pooling and comprehensive filtering
-"""
-
 import json
 import logging
 import os
 import duckdb
 from typing import List, Dict, Any
+from urllib.parse import urlencode
 from api.lib import ParquetQueryBuilder, success_response, error_response, clean_nan_values
+from api.lib.response_models import Transaction, PaginationMetadata, PaginatedResponse
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -18,13 +15,13 @@ S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized'
 # Global connection (reused across warm invocations)
 _conn = None
 
+
 def get_duckdb_connection():
     """Get or create DuckDB connection with S3 support."""
     global _conn
     if _conn is None:
         logger.info("Creating new DuckDB connection (cold start)")
         _conn = duckdb.connect(':memory:')
-        # Set home directory to /tmp for Lambda environment
         _conn.execute("SET home_directory='/tmp';")
         _conn.execute("INSTALL httpfs; LOAD httpfs;")
         _conn.execute("SET enable_http_metadata_cache=true;")
@@ -35,23 +32,11 @@ def get_duckdb_connection():
 def handler(event, context):
     """
     GET /v1/trades - Get all trades with filtering and pagination.
-
-    Query parameters:
-    - limit: Records per page (default 50, max 500)
-    - offset: Records to skip (default 0)
-    - ticker: Filter by stock ticker (e.g., 'AAPL')
-    - bioguide_id: Filter by member
-    - party: Filter by party ('D', 'R', 'I')
-    - transaction_type: Filter by type ('Purchase', 'Sale', 'Exchange')
-    - start_date: Filter by transaction_date >= start_date
-    - end_date: Filter by transaction_date <= end_date
-    - min_amount: Filter by amount >= min_amount (uses amount_low)
-    - max_amount: Filter by amount <= max_amount (uses amount_high)
     """
     try:
         query_params = event.get('queryStringParameters') or {}
 
-        # Pagination
+        # Pagination parameters
         limit = min(int(query_params.get('limit', 50)), 500)
         offset = int(query_params.get('offset', 0))
 
@@ -69,37 +54,25 @@ def handler(event, context):
 
         # Build WHERE clause
         where_clauses: List[str] = []
-
         if ticker:
             where_clauses.append(f"ticker = '{ticker.upper()}'")
-
         if bioguide_id:
             where_clauses.append(f"bioguide_id = '{bioguide_id}'")
-
         if party:
             where_clauses.append(f"party = '{party.upper()}'")
-
         if transaction_type:
             where_clauses.append(f"transaction_type = '{transaction_type}'")
-
         if start_date:
             where_clauses.append(f"transaction_date >= '{start_date}'")
-
         if end_date:
             where_clauses.append(f"transaction_date <= '{end_date}'")
-
         if min_amount:
             where_clauses.append(f"amount_low >= {min_amount}")
-
         if max_amount:
             where_clauses.append(f"amount_high <= {max_amount}")
 
         where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
-
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
-        
-        # Build filter SQL from where_sql (simplified for qb.query_parquet which handles it better)
-        # However, since we already have where_sql, we'll use a raw query which qb also supports
         
         # 1. Count total records
         count_sql = f"SELECT COUNT(*) FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', union_by_name=True) WHERE {where_sql}"
@@ -117,43 +90,80 @@ def handler(event, context):
         logger.info(f"Querying trades: limit={limit}, offset={offset}, total={total_count}")
         result_df = qb.conn.execute(fetch_sql).fetchdf()
 
-        # Clean NaN values before serialization
-        trades = clean_nan_values(result_df.to_dict('records'))
+        # 3. Map to Pydantic models
+        trades_data = clean_nan_values(result_df.to_dict('records'))
+        transactions = []
+        for row in trades_data:
+            try:
+                # Map DuckDB types/names to Pydantic Transaction fields
+                tx = Transaction(
+                    transaction_id=str(row.get('transaction_id') or row.get('doc_id', '')),
+                    disclosure_date=row.get('disclosure_date'),
+                    transaction_date=row.get('transaction_date'),
+                    ticker=row.get('ticker'),
+                    asset_description=row.get('asset_description') or row.get('description', 'Unknown'),
+                    transaction_type=row.get('transaction_type').lower() if row.get('transaction_type') else 'purchase',
+                    amount_low=int(row.get('amount_low', 0)) if row.get('amount_low') is not None else 0,
+                    amount_high=int(row.get('amount_high', 0)) if row.get('amount_high') is not None else 0,
+                    bioguide_id=row.get('bioguide_id'),
+                    member_name=row.get('member_name') or row.get('full_name', 'Unknown'),
+                    first_name=row.get('first_name'),
+                    last_name=row.get('last_name'),
+                    party=row.get('party'),
+                    state=row.get('state'),
+                    chamber=row.get('chamber').lower() if row.get('chamber') else 'house',
+                    owner=row.get('owner'),
+                    cap_gains_over_200=bool(row.get('cap_gains_over_200')) if row.get('cap_gains_over_200') is not None else None
+                )
+                transactions.append(tx)
+            except Exception as e:
+                logger.warning(f"Error mapping trade {row.get('transaction_id')}: {e}")
+                continue
 
-        # Build pagination metadata
-        has_next = (offset + limit) < total_count
+        # 4. Build pagination metadata
+        has_next = (offset + len(transactions)) < total_count
         has_prev = offset > 0
-
-        pagination = {
-            'total': total_count,
-            'limit': limit,
-            'offset': offset,
-            'has_next': has_next,
-            'has_prev': has_prev
-        }
-
+        
+        base_url = "/v1/trades"
+        other_params = {k: v for k, v in query_params.items() if k not in ['limit', 'offset']}
+        
+        next_url = None
         if has_next:
-            pagination['next_offset'] = offset + limit
-
+            next_params = {**other_params, 'limit': limit, 'offset': offset + limit}
+            next_url = f"{base_url}?{urlencode(next_params)}"
+            
+        prev_url = None
         if has_prev:
-            pagination['prev_offset'] = max(0, offset - limit)
+            prev_offset = max(0, offset - limit)
+            prev_params = {**other_params, 'limit': limit, 'offset': prev_offset}
+            prev_url = f"{base_url}?{urlencode(prev_params)}"
 
-        response = {
-            'trades': trades,
-            'pagination': pagination,
-            'filters': {
-                'ticker': ticker,
-                'bioguide_id': bioguide_id,
-                'party': party,
-                'transaction_type': transaction_type,
-                'start_date': start_date,
-                'end_date': end_date,
-                'min_amount': min_amount,
-                'max_amount': max_amount
-            }
+        pagination = PaginationMetadata(
+            total=total_count,
+            count=len(transactions),
+            limit=limit,
+            offset=offset,
+            has_next=has_next,
+            has_prev=has_prev,
+            next=next_url,
+            prev=prev_url
+        )
+        
+        # 5. Build Final Response
+        paginated = PaginatedResponse(
+            items=transactions,
+            pagination=pagination
+        )
+        
+        # Include metadata about filters used
+        metadata = {
+            'filters': {k: v for k, v in other_params.items() if v is not None}
         }
-
-        return success_response(response)
+        
+        return success_response(
+            paginated.model_dump(),
+            metadata=metadata
+        )
 
     except Exception as e:
         logger.error(f"Error retrieving trades: {str(e)}", exc_info=True)

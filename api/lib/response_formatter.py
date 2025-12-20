@@ -10,6 +10,12 @@ import math
 import logging
 from pathlib import Path
 
+try:
+    from pydantic import BaseModel
+    PYDANTIC_AVAILABLE = True
+except ImportError:
+    PYDANTIC_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -103,16 +109,37 @@ def success_response(
 ) -> Dict[str, Any]:
     """
     Build success response with consistent structure.
+
+    Args:
+        data: Response data (dict, list, or Pydantic model)
+        status_code: HTTP status code (default 200)
+        metadata: Optional metadata dict
+
+    Returns:
+        API Gateway response dict with CORS headers
+
+    Example:
+        # Legacy dict usage (still supported)
+        success_response({"member": {...}})
+
+        # New Pydantic model usage
+        from api.lib.response_models import Member, APIResponse
+        member = Member(bioguide_id="C001117", name="Crockett, Jasmine", ...)
+        success_response(member.model_dump())
     """
+    # Convert Pydantic models to dict
+    if PYDANTIC_AVAILABLE and isinstance(data, BaseModel):
+        data = data.model_dump(mode='json', exclude_none=False)
+
     body = {
         "success": True,
         "data": data,
         "version": _load_version()  # Load version from version.json
     }
-    
+
     if metadata:
         body["metadata"] = metadata
-    
+
     return {
         "statusCode": status_code,
         "headers": _get_cors_headers(),

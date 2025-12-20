@@ -8,16 +8,16 @@ import logging
 import requests
 from api.lib import (
     success_response,
-    error_response,
-    clean_nan_values
+    error_response
 )
+from api.lib.response_models import Committee
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 CONGRESS_API_KEY = os.environ.get('CONGRESS_GOV_API_KEY', '')
 CONGRESS_API_BASE = 'https://api.congress.gov/v3'
-DEFAULT_CACHE_SECONDS = 3600  # 1 hour cache
+DEFAULT_CACHE_SECONDS = 3600
 
 
 def handler(event, context):
@@ -73,35 +73,39 @@ def handler(event, context):
                 )
 
             data = resp.json()
-            committees = data.get('committees', [])
+            committees_data = data.get('committees', [])
             pagination_info = data.get('pagination', {})
 
-            # Clean and standardize committee data
-            cleaned_committees = []
-            for committee in committees:
-                # Filter out subcommittees if they have a parent (they should be loaded within the parent)
-                if committee.get('parent'):
+            # Map to Pydantic models
+            committees = []
+            for committee_data in committees_data:
+                # Skip subcommittees (loaded within parent)
+                if committee_data.get('parent'):
                     continue
-                    
-                cleaned_committees.append({
-                    'systemCode': committee.get('systemCode', ''),
-                    'name': committee.get('name', ''),
-                    'chamber': committee.get('chamber', ''),
-                    'type': committee.get('type', ''),
-                    'subcommitteeCount': committee.get('subcommitteeCount', 0),
-                    'url': committee.get('url', ''),
-                    'updateDate': committee.get('updateDate', '')
-                })
+                
+                try:
+                    committees.append(Committee(
+                        systemCode=committee_data.get('systemCode', ''),
+                        name=committee_data.get('name', ''),
+                        chamber=committee_data.get('chamber', ''),
+                        type=committee_data.get('type', ''),
+                        subcommitteeCount=committee_data.get('subcommitteeCount', 0),
+                        url=committee_data.get('url'),
+                        updateDate=committee_data.get('updateDate')
+                    ))
+                except Exception as e:
+                    logger.warning(f"Error mapping committee {committee_data.get('systemCode')}: {e}")
+                    continue
 
             result = {
-                'committees': cleaned_committees,
-                'count': len(cleaned_committees),
+                'committees': [c.model_dump() for c in committees],
+                'count': len(committees),
                 'pagination': pagination_info,
                 'raw_source': 'congress.gov'
             }
 
             return success_response(
-                clean_nan_values(result),
+                result,
                 status_code=200,
                 metadata={'cache_seconds': DEFAULT_CACHE_SECONDS}
             )

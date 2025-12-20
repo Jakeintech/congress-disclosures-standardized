@@ -178,8 +178,7 @@ export async function fetchBills(params: BillsParams = {}): Promise<Bill[]> {
 
     // Use type-safe parser with explicit typing
     return parseAPIResponse<Bill>(raw, {
-        expectPaginated: true,
-        dataKey: 'bills'
+        expectPaginated: true
     }) as Bill[];
 }
 
@@ -201,9 +200,12 @@ export async function fetchMembers(params: MembersParams = {}): Promise<{ data: 
     const url = `${API_BASE}/v1/congress/members?${searchParams.toString()}`;
     const raw = await fetchApi<any>(`${url}`);
 
+    const items = parseAPIResponse<CongressMember>(raw, { expectPaginated: true }) as CongressMember[];
+    const pagination = (raw.data?.pagination || raw.pagination || { total: items.length, count: items.length, limit: 50, offset: 0 }) as PaginationMeta;
+
     return {
-        data: (Array.isArray(raw) ? raw : raw.data) || [],
-        pagination: raw.pagination || { total: 0, count: 0, limit: 50, offset: 0 }
+        data: items,
+        pagination
     };
 }
 
@@ -211,9 +213,8 @@ export async function fetchMembers(params: MembersParams = {}): Promise<{ data: 
  * Fetch member profile
  */
 export async function fetchMemberProfile(bioguideId: string): Promise<MemberProfile> {
-    // Use /v1/congress/members endpoint which has the member data
-    const raw = await fetchApi<{ member?: MemberProfile }>(`${API_BASE}/v1/congress/members/${bioguideId}`);
-    return raw.member || (raw as unknown as MemberProfile);
+    const raw = await fetchApi<any>(`${API_BASE}/v1/congress/members/${bioguideId}`);
+    return parseAPIResponse<MemberProfile>(raw) as MemberProfile;
 }
 
 /**
@@ -241,9 +242,8 @@ export async function fetchTransactions(params: TransactionsParams = {}): Promis
     if (params.offset) searchParams.set('offset', params.offset.toString());
 
     const url = `${API_BASE}/v1/trades?${searchParams.toString()}`;
-    const raw = await fetchApi<{ data?: any[] }>(`${url}`);
-    const data = (Array.isArray(raw) ? raw : raw.data) || [];
-    return data;
+    const raw = await fetchApi<any>(`${url}`);
+    return parseAPIResponse<Transaction>(raw, { expectPaginated: true }) as Transaction[];
 }
 
 /**
@@ -525,11 +525,10 @@ export async function fetchBillText(billId: string) {
  */
 export async function fetchCommittees(congress = 119): Promise<Committee[]> {
     try {
-        const raw = await fetchApi<{ committees?: Committee[] } & ApiResponse<any>>(
+        const raw = await fetchApi<any>(
             `${API_BASE}/v1/congress/committees?congress=${congress}`
         );
-        // Standardized response is { committees: [...] }
-        return raw.committees || (raw as any).data?.committees || (Array.isArray(raw) ? raw : []);
+        return parseAPIResponse<Committee>(raw, { expectPaginated: true }) as Committee[];
     } catch (e) {
         console.warn("Failed to fetch committees", e);
         return [];

@@ -9,7 +9,13 @@ import logging
 from api.lib import (
     ParquetQueryBuilder,
     success_response,
-    error_response
+    error_response,
+    clean_nan_values
+)
+from api.lib.response_models import (
+    StockDetail,
+    StockStatistics,
+    Transaction
 )
 
 logger = logging.getLogger()
@@ -29,7 +35,7 @@ def handler(event, context):
         
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
-        # Get recent trades for this stock (limit reduced for performance)
+        # Get recent trades for this stock
         trades_df = qb.query_parquet(
             'gold/house/financial/facts/fact_ptr_transactions',
             filters={'ticker': ticker},
@@ -37,7 +43,7 @@ def handler(event, context):
             limit=50
         )
         
-        if len(trades_df) == 0:
+        if trades_df.empty:
             return error_response(f"No trades found for ticker: {ticker}", 404)
         
         # Calculate statistics
@@ -47,22 +53,48 @@ def handler(event, context):
         sale_count = len(trades_df[trades_df['transaction_type'] == 'Sale'])
         latest_trade = str(trades_df['transaction_date'].max())
         
-        # Get recent trades (last 20)
-        recent_trades = trades_df.head(20).to_dict('records')
+        stats = StockStatistics(
+            total_trades=total_trades,
+            unique_members=unique_members,
+            purchase_count=purchase_count,
+            sale_count=sale_count,
+            latest_trade_date=latest_trade
+        )
         
-        result = {
-            'ticker': ticker,
-            'statistics': {
-                'total_trades': total_trades,
-                'unique_members': unique_members,
-                'purchase_count': purchase_count,
-                'sale_count': sale_count,
-                'latest_trade_date': latest_trade
-            },
-            'recent_trades': recent_trades
-        }
+        # Get recent trades mapped to Pydantic
+        trades_data = clean_nan_values(trades_df.head(20).to_dict('records'))
+        recent_transactions = []
+        for row in trades_data:
+            try:
+                recent_transactions.append(Transaction(
+                    transaction_id=str(row.get('transaction_id') or row.get('doc_id', '')),
+                    disclosure_date=row['disclosure_date'],
+                    transaction_date=row['transaction_date'],
+                    ticker=row['ticker'],
+                    asset_description=row.get('asset_description') or row.get('description', 'Unknown'),
+                    transaction_type=row['transaction_type'].lower() if row.get('transaction_type') else 'purchase',
+                    amount_low=int(row.get('amount_low', 0)),
+                    amount_high=int(row.get('amount_high', 0)),
+                    bioguide_id=row['bioguide_id'],
+                    member_name=row.get('member_name') or row.get('full_name', 'Unknown'),
+                    first_name=row.get('first_name'),
+                    last_name=row.get('last_name'),
+                    party=row.get('party'),
+                    state=row.get('state'),
+                    chamber=row.get('chamber').lower() if row.get('chamber') else 'house'
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping trade in stock detail {row.get('transaction_id')}: {e}")
+                continue
+                
+        # Build Detail Object
+        detail = StockDetail(
+            ticker=ticker,
+            statistics=stats,
+            recent_trades=recent_transactions
+        )
         
-        return success_response(result)
+        return success_response(detail.model_dump())
     
     except Exception as e:
         logger.error(f"Error fetching stock: {e}", exc_info=True)

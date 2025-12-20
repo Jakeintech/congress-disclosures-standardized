@@ -1,0 +1,5743 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Congressional Trading API",
+    "description": "API for accessing standardized congressional financial disclosures and legislative data.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.congress-disclosures.com",
+      "description": "Production API"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development"
+    }
+  ],
+  "paths": {
+    "/v1/version": {
+      "get": {
+        "summary": "Get API version and build info",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/search": {
+      "get": {
+        "summary": "Search across all entities",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/congress/bills": {
+      "get": {
+        "summary": "List congressional bills",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillsPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/congress/bills/{bill_id}": {
+      "get": {
+        "summary": "Get bill details",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/actions": {
+      "get": {
+        "summary": "Get bill actions",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/amendments": {
+      "get": {
+        "summary": "Get bill amendments",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/cosponsors": {
+      "get": {
+        "summary": "Get bill cosponsors",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/subjects": {
+      "get": {
+        "summary": "Get bill subjects/topics",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/summaries": {
+      "get": {
+        "summary": "Get bill summaries",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/titles": {
+      "get": {
+        "summary": "Get bill titles",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/text": {
+      "get": {
+        "summary": "Get bill text versions",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/committees": {
+      "get": {
+        "summary": "Get bill committees",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/lobbying": {
+      "get": {
+        "summary": "Get lobbying activity for bill",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/bills/{bill_id}/related": {
+      "get": {
+        "summary": "Get related bills",
+        "tags": [
+          "Bills"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/committees": {
+      "get": {
+        "summary": "List congressional committees",
+        "tags": [
+          "Committees"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/congress/committees/{committee_code}": {
+      "get": {
+        "summary": "Get committee details",
+        "tags": [
+          "Committees"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "committee_code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/committees/{committee_code}/bills": {
+      "get": {
+        "summary": "Get bills by committee",
+        "tags": [
+          "Committees"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillsPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "committee_code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/committees/{committee_code}/members": {
+      "get": {
+        "summary": "Get committee members",
+        "tags": [
+          "Committees"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembersPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "committee_code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/congress/committees/{committee_code}/reports": {
+      "get": {
+        "summary": "Get committee reports",
+        "tags": [
+          "Committees"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "committee_code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/members": {
+      "get": {
+        "summary": "List congressional members",
+        "tags": [
+          "Members"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembersPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/members/{bioguide_id}": {
+      "get": {
+        "summary": "Get member details",
+        "tags": [
+          "Members"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bioguide_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/members/{bioguide_id}/filings": {
+      "get": {
+        "summary": "Get member's financial disclosure filings",
+        "tags": [
+          "Members"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilingsPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bioguide_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/members/{bioguide_id}/trades": {
+      "get": {
+        "summary": "Get member's stock trades",
+        "tags": [
+          "Members"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionsPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bioguide_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/members/{bioguide_id}/portfolio": {
+      "get": {
+        "summary": "Get member's current portfolio",
+        "tags": [
+          "Members"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bioguide_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/members/{bioguide_id}/assets": {
+      "get": {
+        "summary": "Get member's assets",
+        "tags": [
+          "Members"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bioguide_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/members/{bioguide_id}/lobbying": {
+      "get": {
+        "summary": "Get member's lobbying connections",
+        "tags": [
+          "Members"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "bioguide_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/filings": {
+      "get": {
+        "summary": "List financial disclosure filings",
+        "tags": [
+          "Filings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilingsPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/filings/{doc_id}": {
+      "get": {
+        "summary": "Get filing details",
+        "tags": [
+          "Filings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilingResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "doc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/filings/{doc_id}/assets": {
+      "get": {
+        "summary": "Get filing assets",
+        "tags": [
+          "Filings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "doc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/filings/{doc_id}/positions": {
+      "get": {
+        "summary": "Get filing positions",
+        "tags": [
+          "Filings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "doc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/filings/{doc_id}/transactions": {
+      "get": {
+        "summary": "Get filing transactions",
+        "tags": [
+          "Filings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionsPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "doc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/stocks": {
+      "get": {
+        "summary": "List stocks with trading activity",
+        "tags": [
+          "Trading"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StocksPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/stocks/{ticker}": {
+      "get": {
+        "summary": "Get stock details",
+        "tags": [
+          "Trading"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "ticker",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/stocks/{ticker}/activity": {
+      "get": {
+        "summary": "Get stock trading activity",
+        "tags": [
+          "Trading"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionsPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "ticker",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/stocks/{ticker}/legislative-exposure": {
+      "get": {
+        "summary": "Get stock's legislative exposure",
+        "tags": [
+          "Trading"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "ticker",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/trades": {
+      "get": {
+        "summary": "List all trades",
+        "tags": [
+          "Trading"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionsPaginatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/trending-stocks": {
+      "get": {
+        "summary": "Get trending stocks",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendingStocksResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/trading-timeline": {
+      "get": {
+        "summary": "Get trading timeline",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/summary": {
+      "get": {
+        "summary": "Get dashboard summary statistics",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/top-traders": {
+      "get": {
+        "summary": "Get top trading members",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopTradersResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/recent-activity": {
+      "get": {
+        "summary": "Get recent trading activity",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/sector-activity": {
+      "get": {
+        "summary": "Get trading by sector",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/pattern-insights": {
+      "get": {
+        "summary": "Get trading pattern insights",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/portfolio-reconciliation": {
+      "get": {
+        "summary": "Get portfolio reconciliation data",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/congressional-alpha": {
+      "get": {
+        "summary": "Get congressional alpha metrics",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/compliance": {
+      "get": {
+        "summary": "Get compliance metrics",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/analytics/conflict-detection": {
+      "get": {
+        "summary": "Get conflict of interest detection",
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/lobbying/clients/{client_id}": {
+      "get": {
+        "summary": "Get lobbying client details",
+        "tags": [
+          "Lobbying"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/lobbying/filings": {
+      "get": {
+        "summary": "List lobbying filings",
+        "tags": [
+          "Lobbying"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/lobbying/network": {
+      "get": {
+        "summary": "Get lobbying network graph",
+        "tags": [
+          "Lobbying"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkGraphResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/correlations/triple": {
+      "get": {
+        "summary": "Get member-stock-bill correlations",
+        "tags": [
+          "Lobbying"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/network-graph": {
+      "get": {
+        "summary": "Get network graph data",
+        "tags": [
+          "Lobbying"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkGraphResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "APIResponse": {
+        "description": "Standard API response wrapper",
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Response payload",
+            "title": "Data"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse",
+        "type": "object"
+      },
+      "APIResponse_Bill_": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Bill",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[Bill]",
+        "type": "object"
+      },
+      "APIResponse_DashboardSummary_": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DashboardSummary",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[DashboardSummary]",
+        "type": "object"
+      },
+      "APIResponse_Filing_": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Filing",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[Filing]",
+        "type": "object"
+      },
+      "APIResponse_List_ComplianceMetric__": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Response payload",
+            "items": {
+              "$ref": "#/components/schemas/ComplianceMetric"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[List[api.lib.response_models.ComplianceMetric]]",
+        "type": "object"
+      },
+      "APIResponse_List_Member__": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Response payload",
+            "items": {
+              "$ref": "#/components/schemas/Member"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[List[api.lib.response_models.Member]]",
+        "type": "object"
+      },
+      "APIResponse_List_TopTrader__": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Response payload",
+            "items": {
+              "$ref": "#/components/schemas/TopTrader"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[List[api.lib.response_models.TopTrader]]",
+        "type": "object"
+      },
+      "APIResponse_List_TrendingStock__": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Response payload",
+            "items": {
+              "$ref": "#/components/schemas/TrendingStock"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[List[api.lib.response_models.TrendingStock]]",
+        "type": "object"
+      },
+      "APIResponse_Member_": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Member",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[Member]",
+        "type": "object"
+      },
+      "APIResponse_NetworkGraphData_": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NetworkGraphData",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[NetworkGraphData]",
+        "type": "object"
+      },
+      "APIResponse_PaginatedResponse_Bill__": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Bill_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[PaginatedResponse[Bill]]",
+        "type": "object"
+      },
+      "APIResponse_PaginatedResponse_Filing__": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Filing_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[PaginatedResponse[Filing]]",
+        "type": "object"
+      },
+      "APIResponse_PaginatedResponse_Member__": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Member_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[PaginatedResponse[Member]]",
+        "type": "object"
+      },
+      "APIResponse_PaginatedResponse_Stock__": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Stock_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[PaginatedResponse[Stock]]",
+        "type": "object"
+      },
+      "APIResponse_PaginatedResponse_Transaction__": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Transaction_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[PaginatedResponse[Transaction]]",
+        "type": "object"
+      },
+      "APIResponse_Stock_": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Stock",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[Stock]",
+        "type": "object"
+      },
+      "APIResponse_Transaction_": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Transaction",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[Transaction]",
+        "type": "object"
+      },
+      "APIResponse_VersionData_": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VersionData",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "APIResponse[VersionData]",
+        "type": "object"
+      },
+      "Bill": {
+        "description": "Congressional bill",
+        "example": {
+          "bill_id": "119-hr-1234",
+          "bill_number": 1234,
+          "bill_type": "hr",
+          "congress": 119,
+          "cosponsors_count": 42,
+          "introduced_date": "2025-01-10",
+          "sponsor_bioguide_id": "C001117",
+          "sponsor_name": "Crockett, Jasmine",
+          "sponsor_party": "D",
+          "sponsor_state": "TX",
+          "title": "American Innovation Act of 2025"
+        },
+        "properties": {
+          "bill_id": {
+            "description": "Unique bill ID (e.g., '119-hr-1234')",
+            "title": "Bill Id",
+            "type": "string"
+          },
+          "congress": {
+            "description": "Congress number (e.g., 119)",
+            "title": "Congress",
+            "type": "integer"
+          },
+          "bill_type": {
+            "$ref": "#/components/schemas/BillType",
+            "description": "Bill type (hr, s, etc.)"
+          },
+          "bill_number": {
+            "description": "Bill number",
+            "title": "Bill Number",
+            "type": "integer"
+          },
+          "title": {
+            "description": "Bill title",
+            "title": "Title",
+            "type": "string"
+          },
+          "introduced_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Date introduced",
+            "title": "Introduced Date"
+          },
+          "sponsor_bioguide_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Sponsor's bioguide ID",
+            "title": "Sponsor Bioguide Id"
+          },
+          "sponsor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Sponsor's name",
+            "title": "Sponsor Name"
+          },
+          "sponsor_party": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Party"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Sponsor's party"
+          },
+          "sponsor_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Sponsor's state",
+            "title": "Sponsor State"
+          },
+          "cosponsors_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Number of cosponsors",
+            "title": "Cosponsors Count"
+          },
+          "actions_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Number of actions",
+            "title": "Actions Count"
+          },
+          "congress_gov_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Congress.gov URL",
+            "title": "Congress Gov Url"
+          }
+        },
+        "required": [
+          "bill_id",
+          "congress",
+          "bill_type",
+          "bill_number",
+          "title"
+        ],
+        "title": "Bill",
+        "type": "object"
+      },
+      "BillResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Bill",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "BillResponse",
+        "type": "object"
+      },
+      "BillType": {
+        "description": "Congressional bill type",
+        "enum": [
+          "hr",
+          "s",
+          "hjres",
+          "sjres",
+          "hconres",
+          "sconres",
+          "hres",
+          "sres"
+        ],
+        "title": "BillType",
+        "type": "string"
+      },
+      "BillsPaginatedResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Bill_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "BillsPaginatedResponse",
+        "type": "object"
+      },
+      "BuildInfo": {
+        "description": "Build information",
+        "properties": {
+          "timestamp": {
+            "description": "Build timestamp (ISO 8601)",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "date": {
+            "description": "Build date (YYYY-MM-DD)",
+            "title": "Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "date"
+        ],
+        "title": "BuildInfo",
+        "type": "object"
+      },
+      "Chamber": {
+        "description": "Congressional chamber",
+        "enum": [
+          "house",
+          "senate"
+        ],
+        "title": "Chamber",
+        "type": "string"
+      },
+      "ComplianceMetric": {
+        "description": "Compliance metrics for a member",
+        "properties": {
+          "bioguide_id": {
+            "title": "Bioguide Id",
+            "type": "string"
+          },
+          "member_name": {
+            "title": "Member Name",
+            "type": "string"
+          },
+          "total_filings": {
+            "title": "Total Filings",
+            "type": "integer"
+          },
+          "on_time_filings": {
+            "title": "On Time Filings",
+            "type": "integer"
+          },
+          "late_filings": {
+            "title": "Late Filings",
+            "type": "integer"
+          },
+          "compliance_rate": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Compliance Rate",
+            "type": "number"
+          },
+          "avg_days_late": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Avg Days Late"
+          }
+        },
+        "required": [
+          "bioguide_id",
+          "member_name",
+          "total_filings",
+          "on_time_filings",
+          "late_filings",
+          "compliance_rate"
+        ],
+        "title": "ComplianceMetric",
+        "type": "object"
+      },
+      "ComplianceResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Response payload",
+            "items": {
+              "$ref": "#/components/schemas/ComplianceMetric"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "ComplianceResponse",
+        "type": "object"
+      },
+      "DashboardResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DashboardSummary",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "DashboardResponse",
+        "type": "object"
+      },
+      "DashboardSummary": {
+        "description": "Dashboard summary statistics",
+        "properties": {
+          "total_members": {
+            "title": "Total Members",
+            "type": "integer"
+          },
+          "total_trades": {
+            "title": "Total Trades",
+            "type": "integer"
+          },
+          "total_filings": {
+            "title": "Total Filings",
+            "type": "integer"
+          },
+          "total_bills": {
+            "title": "Total Bills",
+            "type": "integer"
+          },
+          "avg_trades_per_member": {
+            "title": "Avg Trades Per Member",
+            "type": "number"
+          },
+          "last_updated": {
+            "format": "date-time",
+            "title": "Last Updated",
+            "type": "string"
+          }
+        },
+        "required": [
+          "total_members",
+          "total_trades",
+          "total_filings",
+          "total_bills",
+          "avg_trades_per_member",
+          "last_updated"
+        ],
+        "title": "DashboardSummary",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "description": "Error detail structure",
+        "example": {
+          "code": 404,
+          "details": {
+            "bioguide_id": "C999999"
+          },
+          "message": "Member not found"
+        },
+        "properties": {
+          "message": {
+            "description": "Human-readable error message",
+            "title": "Message",
+            "type": "string"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Error code (HTTP status or custom)",
+            "title": "Code"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional error context",
+            "title": "Details"
+          }
+        },
+        "required": [
+          "message",
+          "code"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "success": {
+            "default": false,
+            "title": "Success",
+            "type": "boolean"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "Filing": {
+        "description": "Financial disclosure filing",
+        "example": {
+          "bioguide_id": "C001117",
+          "doc_id": "10063228",
+          "filing_date": "2025-01-15",
+          "filing_type": "P",
+          "filing_year": 2025,
+          "has_structured_data": true,
+          "member_name": "Crockett, Jasmine",
+          "transaction_count": 12
+        },
+        "properties": {
+          "doc_id": {
+            "description": "Unique document ID",
+            "title": "Doc Id",
+            "type": "string"
+          },
+          "filing_type": {
+            "$ref": "#/components/schemas/FilingType",
+            "description": "Filing type (P, A, T, etc.)"
+          },
+          "filing_date": {
+            "description": "Date filed",
+            "format": "date",
+            "title": "Filing Date",
+            "type": "string"
+          },
+          "filing_year": {
+            "description": "Year filed",
+            "title": "Filing Year",
+            "type": "integer"
+          },
+          "bioguide_id": {
+            "description": "Member's bioguide ID",
+            "title": "Bioguide Id",
+            "type": "string"
+          },
+          "member_name": {
+            "description": "Member's full name",
+            "title": "Member Name",
+            "type": "string"
+          },
+          "pdf_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "URL to PDF filing",
+            "title": "Pdf Url"
+          },
+          "has_structured_data": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Whether structured extraction succeeded",
+            "title": "Has Structured Data"
+          },
+          "transaction_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Number of transactions in filing",
+            "title": "Transaction Count"
+          }
+        },
+        "required": [
+          "doc_id",
+          "filing_type",
+          "filing_date",
+          "filing_year",
+          "bioguide_id",
+          "member_name"
+        ],
+        "title": "Filing",
+        "type": "object"
+      },
+      "FilingResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Filing",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "FilingResponse",
+        "type": "object"
+      },
+      "FilingType": {
+        "description": "Filing disclosure type",
+        "enum": [
+          "P",
+          "A",
+          "T",
+          "X",
+          "D",
+          "W"
+        ],
+        "title": "FilingType",
+        "type": "string"
+      },
+      "FilingsPaginatedResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Filing_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "FilingsPaginatedResponse",
+        "type": "object"
+      },
+      "GitInfo": {
+        "description": "Git commit information",
+        "properties": {
+          "commit": {
+            "description": "Full git commit hash",
+            "title": "Commit",
+            "type": "string"
+          },
+          "commit_short": {
+            "description": "Short git commit hash (7 chars)",
+            "title": "Commit Short",
+            "type": "string"
+          },
+          "branch": {
+            "description": "Git branch name",
+            "title": "Branch",
+            "type": "string"
+          },
+          "dirty": {
+            "default": false,
+            "description": "Whether working tree had uncommitted changes",
+            "title": "Dirty",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "commit",
+          "commit_short",
+          "branch"
+        ],
+        "title": "GitInfo",
+        "type": "object"
+      },
+      "Member": {
+        "description": "Congressional member",
+        "example": {
+          "bioguide_id": "C001117",
+          "chamber": "house",
+          "district": "30",
+          "in_office": true,
+          "name": "Crockett, Jasmine",
+          "party": "D",
+          "state": "TX",
+          "total_trades": 42,
+          "total_value_high": 650000,
+          "total_value_low": 150000
+        },
+        "properties": {
+          "bioguide_id": {
+            "description": "Unique bioguide ID (e.g., 'C001117')",
+            "title": "Bioguide Id",
+            "type": "string"
+          },
+          "name": {
+            "description": "Full name (Last, First)",
+            "title": "Name",
+            "type": "string"
+          },
+          "party": {
+            "$ref": "#/components/schemas/Party"
+          },
+          "state": {
+            "description": "Two-letter state code",
+            "title": "State",
+            "type": "string"
+          },
+          "chamber": {
+            "$ref": "#/components/schemas/Chamber",
+            "description": "House or Senate"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "District number (House only)",
+            "title": "District"
+          },
+          "in_office": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Currently in office",
+            "title": "In Office"
+          },
+          "total_trades": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Total trades filed",
+            "title": "Total Trades"
+          },
+          "total_value_low": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Total value lower bound",
+            "title": "Total Value Low"
+          },
+          "total_value_high": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Total value upper bound",
+            "title": "Total Value High"
+          },
+          "trade_count_30d": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Trades in last 30 days",
+            "title": "Trade Count 30D"
+          },
+          "trade_count_90d": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Trades in last 90 days",
+            "title": "Trade Count 90D"
+          }
+        },
+        "required": [
+          "bioguide_id",
+          "name",
+          "party",
+          "state",
+          "chamber"
+        ],
+        "title": "Member",
+        "type": "object"
+      },
+      "MemberResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Member",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "MemberResponse",
+        "type": "object"
+      },
+      "MembersListResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Response payload",
+            "items": {
+              "$ref": "#/components/schemas/Member"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "MembersListResponse",
+        "type": "object"
+      },
+      "MembersPaginatedResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Member_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "MembersPaginatedResponse",
+        "type": "object"
+      },
+      "NetworkGraphData": {
+        "description": "Network graph structure",
+        "properties": {
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/NetworkNode"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/NetworkLink"
+            },
+            "title": "Links",
+            "type": "array"
+          },
+          "aggregates": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Aggregates"
+          }
+        },
+        "required": [
+          "nodes",
+          "links"
+        ],
+        "title": "NetworkGraphData",
+        "type": "object"
+      },
+      "NetworkGraphResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NetworkGraphData",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "NetworkGraphResponse",
+        "type": "object"
+      },
+      "NetworkLink": {
+        "description": "Link in network graph",
+        "properties": {
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          },
+          "value": {
+            "description": "Link weight/strength",
+            "title": "Value",
+            "type": "number"
+          },
+          "type": {
+            "description": "trades, sponsors, lobbies, etc.",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "value",
+          "type"
+        ],
+        "title": "NetworkLink",
+        "type": "object"
+      },
+      "NetworkNode": {
+        "description": "Node in network graph",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "type": {
+            "description": "member, stock, bill, or lobbyist",
+            "title": "Type",
+            "type": "string"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Group"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "type"
+        ],
+        "title": "NetworkNode",
+        "type": "object"
+      },
+      "PaginatedResponse": {
+        "description": "Paginated list response with metadata",
+        "example": {
+          "items": [
+            {
+              "id": 1
+            },
+            {
+              "id": 2
+            }
+          ],
+          "pagination": {
+            "count": 2,
+            "has_next": true,
+            "has_prev": false,
+            "limit": 20,
+            "offset": 0,
+            "total": 100
+          }
+        },
+        "properties": {
+          "items": {
+            "description": "List of items in current page",
+            "items": {},
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata",
+            "description": "Pagination metadata"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse",
+        "type": "object"
+      },
+      "PaginatedResponse_Bill_": {
+        "example": {
+          "items": [
+            {
+              "id": 1
+            },
+            {
+              "id": 2
+            }
+          ],
+          "pagination": {
+            "count": 2,
+            "has_next": true,
+            "has_prev": false,
+            "limit": 20,
+            "offset": 0,
+            "total": 100
+          }
+        },
+        "properties": {
+          "items": {
+            "description": "List of items in current page",
+            "items": {
+              "$ref": "#/components/schemas/Bill"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata",
+            "description": "Pagination metadata"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse[Bill]",
+        "type": "object"
+      },
+      "PaginatedResponse_Filing_": {
+        "example": {
+          "items": [
+            {
+              "id": 1
+            },
+            {
+              "id": 2
+            }
+          ],
+          "pagination": {
+            "count": 2,
+            "has_next": true,
+            "has_prev": false,
+            "limit": 20,
+            "offset": 0,
+            "total": 100
+          }
+        },
+        "properties": {
+          "items": {
+            "description": "List of items in current page",
+            "items": {
+              "$ref": "#/components/schemas/Filing"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata",
+            "description": "Pagination metadata"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse[Filing]",
+        "type": "object"
+      },
+      "PaginatedResponse_Member_": {
+        "example": {
+          "items": [
+            {
+              "id": 1
+            },
+            {
+              "id": 2
+            }
+          ],
+          "pagination": {
+            "count": 2,
+            "has_next": true,
+            "has_prev": false,
+            "limit": 20,
+            "offset": 0,
+            "total": 100
+          }
+        },
+        "properties": {
+          "items": {
+            "description": "List of items in current page",
+            "items": {
+              "$ref": "#/components/schemas/Member"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata",
+            "description": "Pagination metadata"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse[Member]",
+        "type": "object"
+      },
+      "PaginatedResponse_Stock_": {
+        "example": {
+          "items": [
+            {
+              "id": 1
+            },
+            {
+              "id": 2
+            }
+          ],
+          "pagination": {
+            "count": 2,
+            "has_next": true,
+            "has_prev": false,
+            "limit": 20,
+            "offset": 0,
+            "total": 100
+          }
+        },
+        "properties": {
+          "items": {
+            "description": "List of items in current page",
+            "items": {
+              "$ref": "#/components/schemas/Stock"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata",
+            "description": "Pagination metadata"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse[Stock]",
+        "type": "object"
+      },
+      "PaginatedResponse_Transaction_": {
+        "example": {
+          "items": [
+            {
+              "id": 1
+            },
+            {
+              "id": 2
+            }
+          ],
+          "pagination": {
+            "count": 2,
+            "has_next": true,
+            "has_prev": false,
+            "limit": 20,
+            "offset": 0,
+            "total": 100
+          }
+        },
+        "properties": {
+          "items": {
+            "description": "List of items in current page",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata",
+            "description": "Pagination metadata"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse[Transaction]",
+        "type": "object"
+      },
+      "PaginationMetadata": {
+        "description": "Pagination metadata for list responses",
+        "example": {
+          "count": 20,
+          "has_next": true,
+          "has_prev": false,
+          "limit": 20,
+          "next": "/v1/members?limit=20&offset=20",
+          "offset": 0,
+          "prev": null,
+          "total": 541
+        },
+        "properties": {
+          "total": {
+            "description": "Total number of records available",
+            "title": "Total",
+            "type": "integer"
+          },
+          "count": {
+            "description": "Number of records in current page",
+            "title": "Count",
+            "type": "integer"
+          },
+          "limit": {
+            "description": "Maximum records per page",
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "description": "Offset from start (0-indexed)",
+            "title": "Offset",
+            "type": "integer"
+          },
+          "has_next": {
+            "description": "Whether more pages exist",
+            "title": "Has Next",
+            "type": "boolean"
+          },
+          "has_prev": {
+            "description": "Whether previous pages exist",
+            "title": "Has Prev",
+            "type": "boolean"
+          },
+          "next": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "URL for next page",
+            "title": "Next"
+          },
+          "prev": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "URL for previous page",
+            "title": "Prev"
+          }
+        },
+        "required": [
+          "total",
+          "count",
+          "limit",
+          "offset",
+          "has_next",
+          "has_prev"
+        ],
+        "title": "PaginationMetadata",
+        "type": "object"
+      },
+      "Party": {
+        "description": "Political party",
+        "enum": [
+          "D",
+          "R",
+          "I",
+          "L"
+        ],
+        "title": "Party",
+        "type": "string"
+      },
+      "RuntimeInfo": {
+        "description": "Lambda runtime information",
+        "properties": {
+          "function_name": {
+            "description": "Lambda function name",
+            "title": "Function Name",
+            "type": "string"
+          },
+          "function_version": {
+            "description": "Lambda function version",
+            "title": "Function Version",
+            "type": "string"
+          },
+          "aws_request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "AWS request ID",
+            "title": "Aws Request Id"
+          },
+          "memory_limit_mb": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Memory limit in MB",
+            "title": "Memory Limit Mb"
+          }
+        },
+        "required": [
+          "function_name",
+          "function_version"
+        ],
+        "title": "RuntimeInfo",
+        "type": "object"
+      },
+      "Stock": {
+        "description": "Stock/asset information with trading activity",
+        "example": {
+          "name": "NVIDIA Corporation",
+          "purchase_count": 52,
+          "sale_count": 35,
+          "sector": "Technology",
+          "ticker": "NVDA",
+          "total_value_high": 2500000,
+          "total_value_low": 500000,
+          "trade_count": 87
+        },
+        "properties": {
+          "ticker": {
+            "description": "Stock ticker symbol",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Company/asset name",
+            "title": "Name"
+          },
+          "trade_count": {
+            "description": "Total trades of this stock",
+            "title": "Trade Count",
+            "type": "integer"
+          },
+          "purchase_count": {
+            "default": 0,
+            "description": "Number of purchases",
+            "title": "Purchase Count",
+            "type": "integer"
+          },
+          "sale_count": {
+            "default": 0,
+            "description": "Number of sales",
+            "title": "Sale Count",
+            "type": "integer"
+          },
+          "total_value_low": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Total value lower bound",
+            "title": "Total Value Low"
+          },
+          "total_value_high": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Total value upper bound",
+            "title": "Total Value High"
+          },
+          "bill_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Related bills count",
+            "title": "Bill Count"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Industry sector",
+            "title": "Sector"
+          }
+        },
+        "required": [
+          "ticker",
+          "trade_count"
+        ],
+        "title": "Stock",
+        "type": "object"
+      },
+      "StockResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Stock",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "StockResponse",
+        "type": "object"
+      },
+      "StocksPaginatedResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Stock_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "StocksPaginatedResponse",
+        "type": "object"
+      },
+      "TopTrader": {
+        "description": "Top trading member",
+        "properties": {
+          "bioguide_id": {
+            "title": "Bioguide Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "party": {
+            "$ref": "#/components/schemas/Party"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "chamber": {
+            "$ref": "#/components/schemas/Chamber"
+          },
+          "total_trades": {
+            "title": "Total Trades",
+            "type": "integer"
+          },
+          "total_value_low": {
+            "title": "Total Value Low",
+            "type": "integer"
+          },
+          "total_value_high": {
+            "title": "Total Value High",
+            "type": "integer"
+          },
+          "recent_trades_30d": {
+            "title": "Recent Trades 30D",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bioguide_id",
+          "name",
+          "party",
+          "state",
+          "chamber",
+          "total_trades",
+          "total_value_low",
+          "total_value_high",
+          "recent_trades_30d"
+        ],
+        "title": "TopTrader",
+        "type": "object"
+      },
+      "TopTradersResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Response payload",
+            "items": {
+              "$ref": "#/components/schemas/TopTrader"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "TopTradersResponse",
+        "type": "object"
+      },
+      "Transaction": {
+        "description": "Financial disclosure transaction",
+        "example": {
+          "amount_high": 15000,
+          "amount_low": 1001,
+          "asset_description": "NVIDIA Corporation",
+          "bioguide_id": "C001117",
+          "chamber": "house",
+          "disclosure_date": "2025-01-15",
+          "member_name": "Crockett, Jasmine",
+          "party": "D",
+          "state": "TX",
+          "ticker": "NVDA",
+          "transaction_date": "2025-01-10",
+          "transaction_type": "purchase"
+        },
+        "properties": {
+          "transaction_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Unique transaction ID",
+            "title": "Transaction Id"
+          },
+          "disclosure_date": {
+            "description": "Date transaction was disclosed",
+            "format": "date",
+            "title": "Disclosure Date",
+            "type": "string"
+          },
+          "transaction_date": {
+            "description": "Date transaction occurred",
+            "format": "date",
+            "title": "Transaction Date",
+            "type": "string"
+          },
+          "ticker": {
+            "description": "Stock ticker symbol",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "asset_description": {
+            "description": "Full asset description",
+            "title": "Asset Description",
+            "type": "string"
+          },
+          "transaction_type": {
+            "$ref": "#/components/schemas/TransactionType",
+            "description": "Purchase, sale, or exchange"
+          },
+          "amount_low": {
+            "description": "Minimum transaction amount",
+            "title": "Amount Low",
+            "type": "integer"
+          },
+          "amount_high": {
+            "description": "Maximum transaction amount",
+            "title": "Amount High",
+            "type": "integer"
+          },
+          "bioguide_id": {
+            "description": "Member's bioguide ID",
+            "title": "Bioguide Id",
+            "type": "string"
+          },
+          "member_name": {
+            "description": "Member's full name",
+            "title": "Member Name",
+            "type": "string"
+          },
+          "party": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Party"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Member's party"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Member's state",
+            "title": "State"
+          },
+          "chamber": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Chamber"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Member's chamber"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Asset owner (self, spouse, dependent)",
+            "title": "Owner"
+          },
+          "cap_gains_over_200": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Capital gains > $200",
+            "title": "Cap Gains Over 200"
+          }
+        },
+        "required": [
+          "disclosure_date",
+          "transaction_date",
+          "ticker",
+          "asset_description",
+          "transaction_type",
+          "amount_low",
+          "amount_high",
+          "bioguide_id",
+          "member_name"
+        ],
+        "title": "Transaction",
+        "type": "object"
+      },
+      "TransactionResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Transaction",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "TransactionResponse",
+        "type": "object"
+      },
+      "TransactionType": {
+        "description": "Financial transaction type",
+        "enum": [
+          "purchase",
+          "sale",
+          "exchange"
+        ],
+        "title": "TransactionType",
+        "type": "string"
+      },
+      "TransactionsPaginatedResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedResponse_Transaction_",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "TransactionsPaginatedResponse",
+        "type": "object"
+      },
+      "TrendingStock": {
+        "description": "Trending stock with recent activity",
+        "properties": {
+          "ticker": {
+            "title": "Ticker",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "trade_count_7d": {
+            "description": "Trades in last 7 days",
+            "title": "Trade Count 7D",
+            "type": "integer"
+          },
+          "trade_count_30d": {
+            "description": "Trades in last 30 days",
+            "title": "Trade Count 30D",
+            "type": "integer"
+          },
+          "purchase_count": {
+            "default": 0,
+            "title": "Purchase Count",
+            "type": "integer"
+          },
+          "sale_count": {
+            "default": 0,
+            "title": "Sale Count",
+            "type": "integer"
+          },
+          "net_sentiment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "bullish, bearish, or neutral",
+            "title": "Net Sentiment"
+          },
+          "unique_members": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Unique members trading",
+            "title": "Unique Members"
+          }
+        },
+        "required": [
+          "ticker",
+          "trade_count_7d",
+          "trade_count_30d"
+        ],
+        "title": "TrendingStock",
+        "type": "object"
+      },
+      "TrendingStocksResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Response payload",
+            "items": {
+              "$ref": "#/components/schemas/TrendingStock"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "TrendingStocksResponse",
+        "type": "object"
+      },
+      "VersionData": {
+        "description": "API version information",
+        "example": {
+          "api_version": "v1",
+          "build": {
+            "date": "2025-12-20",
+            "timestamp": "2025-12-20T10:30:00Z"
+          },
+          "git": {
+            "branch": "main",
+            "commit": "33a4c83f1e2a3b4c5d6e7f8g9h0i1j2k3l4m5n6",
+            "commit_short": "33a4c83",
+            "dirty": false
+          },
+          "runtime": {
+            "aws_request_id": "abc-123-def-456",
+            "function_name": "get_version",
+            "function_version": "$LATEST",
+            "memory_limit_mb": 512
+          },
+          "status": "healthy",
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "version": {
+            "description": "Version string (e.g., 'v20251220-33a4c83')",
+            "title": "Version",
+            "type": "string"
+          },
+          "git": {
+            "$ref": "#/components/schemas/GitInfo"
+          },
+          "build": {
+            "$ref": "#/components/schemas/BuildInfo",
+            "description": "Build timestamp information"
+          },
+          "api_version": {
+            "default": "v1",
+            "description": "API version",
+            "title": "Api Version",
+            "type": "string"
+          },
+          "runtime": {
+            "$ref": "#/components/schemas/RuntimeInfo"
+          },
+          "status": {
+            "default": "healthy",
+            "description": "API health status",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "git",
+          "build",
+          "runtime"
+        ],
+        "title": "VersionData",
+        "type": "object"
+      },
+      "VersionResponse": {
+        "example": {
+          "data": {
+            "example": "data"
+          },
+          "success": true,
+          "version": "v20251220-33a4c83"
+        },
+        "properties": {
+          "success": {
+            "description": "Whether the request succeeded",
+            "title": "Success",
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VersionData",
+            "description": "Response payload"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "API version (e.g., 'v20251220-33a4c83')",
+            "title": "Version"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Additional response metadata",
+            "title": "Metadata"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error details (if success=False)"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "VersionResponse",
+        "type": "object"
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+}

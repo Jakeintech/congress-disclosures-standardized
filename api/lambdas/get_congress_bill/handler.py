@@ -20,14 +20,22 @@ from api.lib import (
     error_response,
     clean_nan_values
 )
+from api.lib.response_models import (
+    BillDetail,
+    Bill,
+    Member,
+    BillAction,
+    BillIndustryTag,
+    BillTradeCorrelation,
+    BillCommittee,
+    RelatedBill,
+    BillTitle
+)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
-
-
-# Removed local clean_nan, using api.lib.clean_nan_values
 
 
 def get_cosponsors(qb, bill_id, congress):
@@ -37,7 +45,7 @@ def get_cosponsors(qb, bill_id, congress):
             cosponsors_df = qb.query_parquet(
                 'gold/congress/fact_member_bill_role',
                 filters={'bill_id': bill_id},
-                limit=500  # Max 500 cosponsors
+                limit=500
             )
         except Exception as e:
             logger.warning(f"Cosponsors table not found or query failed: {e}")
@@ -58,23 +66,25 @@ def get_cosponsors(qb, bill_id, congress):
         if not members_df.empty and 'bioguide_id' in members_df.columns:
             members_dict = {row['bioguide_id']: row for _, row in members_df.iterrows()}
 
-        # Build cosponsor list with member details
+        # Build cosponsor list as Member models
         cosponsors = []
         for _, cosponsor in cosponsors_df.iterrows():
             bioguide_id = cosponsor['bioguide_id']
-            member = members_dict.get(bioguide_id, {})
+            member_data = members_dict.get(bioguide_id, {})
 
-            cosponsors.append({
-                'bioguide_id': bioguide_id,
-                'name': member.get('name', 'Unknown'),
-                'party': member.get('party', 'Unknown'),
-                'state': member.get('state', 'Unknown'),
-                'sponsored_date': str(cosponsor.get('action_date', '')),
-                'is_original': False  # TODO: Add is_original_cosponsor field
-            })
-
-        # Sort by sponsored date
-        cosponsors.sort(key=lambda x: x['sponsored_date'], reverse=True)
+            try:
+                cosponsors.append(Member(
+                    bioguide_id=bioguide_id,
+                    name=member_data.get('name', 'Unknown'),
+                    first_name=member_data.get('first_name'),
+                    last_name=member_data.get('last_name'),
+                    party=member_data.get('party', 'Unknown'),
+                    state=member_data.get('state', 'Unknown'),
+                    chamber=member_data.get('chamber', 'house')
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping cosponsor {bioguide_id}: {e}")
+                continue
 
         return cosponsors
 
@@ -108,13 +118,17 @@ def get_recent_actions(qb, bill_id, limit=10, include_all=False):
 
         actions = []
         for _, action in actions_df.iterrows():
-            actions.append({
-                'action_date': str(action.get('action_date', '')),
-                'action_text': action.get('action_text', ''),
-                'chamber': action.get('chamber', ''),
-                'action_code': action.get('action_code', ''),
-                'action_type': action.get('action_type', '')
-            })
+            try:
+                actions.append(BillAction(
+                    action_date=str(action.get('action_date', '')),
+                    action_text=action.get('action_text', ''),
+                    chamber=action.get('chamber'),
+                    action_code=action.get('action_code'),
+                    action_type=action.get('action_type')
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping action: {e}")
+                continue
 
         return actions
 
@@ -148,7 +162,7 @@ def get_industry_tags(qb, bill_id):
             if industry not in industry_tags:
                 industry_tags[industry] = {
                     'industry': industry,
-                    'confidence': tag.get('confidence_score', 0.0),
+                    'confidence': float(tag.get('confidence_score', 0.0)),
                     'tickers': [],
                     'keywords': tag.get('matched_keywords', '').split(',') if tag.get('matched_keywords') else []
                 }
@@ -161,12 +175,19 @@ def get_industry_tags(qb, bill_id):
 
         # Convert to list and dedupe tickers
         result = []
-        for tag in industry_tags.values():
-            tag['tickers'] = list(set(tag['tickers']))
-            tag['keywords'] = list(set(tag['keywords']))[:10]  # Limit keywords
-            result.append(tag)
+        for tag_data in industry_tags.values():
+            try:
+                result.append(BillIndustryTag(
+                    industry=tag_data['industry'],
+                    confidence=tag_data['confidence'],
+                    tickers=list(set(tag_data['tickers'])),
+                    keywords=list(set(tag_data['keywords']))[:10]
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping industry tag: {e}")
+                continue
 
-        return sorted(result, key=lambda x: x['confidence'], reverse=True)
+        return sorted(result, key=lambda x: x.confidence, reverse=True)
 
     except Exception as e:
         logger.error(f"Error fetching industry tags: {e}")
@@ -207,27 +228,33 @@ def get_trade_correlations(qb, bill_id, limit=20):
         correlations = []
         for _, corr in corr_df.iterrows():
             bioguide_id = corr['bioguide_id']
-            member = members_dict.get(bioguide_id, {})
+            member_data = members_dict.get(bioguide_id, {})
 
-            correlations.append({
-                'member': {
-                    'bioguide_id': bioguide_id,
-                    'name': member.get('name', 'Unknown'),
-                    'party': member.get('party', 'Unknown'),
-                    'state': member.get('state', 'Unknown')
-                },
-                'ticker': corr.get('ticker', ''),
-                'trade_date': str(corr.get('trade_date', '')),
-                'trade_type': corr.get('trade_type', ''),
-                'amount_range': corr.get('amount_range', ''),
-                'bill_action_date': str(corr.get('bill_action_date', '')),
-                'days_offset': int(corr.get('days_offset', 0)),
-                'correlation_score': int(corr.get('correlation_score', 0)),
-                'role': corr.get('member_role', ''),
-                'committee_overlap': bool(corr.get('committee_overlap', False)),
-                'match_type': corr.get('match_type', ''),
-                'matched_industries': corr.get('matched_industries', '').split(',') if corr.get('matched_industries') else []
-            })
+            try:
+                member = Member(
+                    bioguide_id=bioguide_id,
+                    name=member_data.get('name', 'Unknown'),
+                    party=member_data.get('party', 'Unknown'),
+                    state=member_data.get('state', 'Unknown'),
+                    chamber=member_data.get('chamber', 'house')
+                )
+                
+                correlations.append(BillTradeCorrelation(
+                    member=member,
+                    ticker=corr.get('ticker', ''),
+                    trade_date=str(corr.get('trade_date', '')),
+                    trade_type=corr.get('trade_type', ''),
+                    amount_range=corr.get('amount_range'),
+                    bill_action_date=str(corr.get('bill_action_date', '')),
+                    days_offset=int(corr.get('days_offset', 0)),
+                    correlation_score=int(corr.get('correlation_score', 0)),
+                    role=corr.get('member_role'),
+                    committee_overlap=bool(corr.get('committee_overlap', False)),
+                    match_type=corr.get('match_type')
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping trade correlation for {bioguide_id}: {e}")
+                continue
 
         return correlations
 
@@ -262,12 +289,16 @@ def get_committees(qb, bill_id):
 
         committees = []
         for _, row in committees_df.iterrows():
-            committees.append({
-                'system_code': row.get('system_code', ''),
-                'name': row.get('name', ''),
-                'chamber': row.get('chamber', ''),
-                'activity': row.get('activity', []) # list
-            })
+            try:
+                committees.append(BillCommittee(
+                    system_code=row.get('system_code', ''),
+                    name=row.get('name', ''),
+                    chamber=row.get('chamber', ''),
+                    activity=row.get('activity', []) if isinstance(row.get('activity'), list) else []
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping committee: {e}")
+                continue
         return committees
     except Exception as e:
         logger.warning(f"Error fetching committees: {e}")
@@ -279,7 +310,7 @@ def get_related_bills(qb, bill_id):
         filters = {'bill_id': bill_id}
         try:
             related_df = qb.query_parquet(
-                'silver/congress/related_bills', # Assuming Silver for now
+                'silver/congress/related_bills',
                 filters=filters
             )
         except Exception as e:
@@ -291,12 +322,16 @@ def get_related_bills(qb, bill_id):
             
         related = []
         for _, row in related_df.iterrows():
-            related.append({
-                'related_bill_id': row.get('related_bill_id', ''),
-                'title': row.get('title', ''),
-                'type': row.get('relationship_type', ''),
-                'identified_by': row.get('identified_by', '')
-            })
+            try:
+                related.append(RelatedBill(
+                    related_bill_id=row.get('related_bill_id', ''),
+                    title=row.get('title', ''),
+                    type=row.get('relationship_type', ''),
+                    identified_by=row.get('identified_by')
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping related bill: {e}")
+                continue
         return related
     except Exception as e:
         logger.warning(f"Error fetching related bills: {e}")
@@ -320,12 +355,15 @@ def get_titles(qb, bill_id):
             
         titles = []
         for _, row in titles_df.iterrows():
-            titles.append({
-                'title': row.get('title', ''),
-                'type': row.get('title_type', ''),
-                'chamber': row.get('chamber', ''),
-                'is_for_portion': row.get('is_for_portion', False)
-            })
+            try:
+                titles.append(BillTitle(
+                    title=row.get('title', ''),
+                    type=row.get('title_type', ''),
+                    chamber=row.get('chamber')
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping title: {e}")
+                continue
         return titles
     except Exception as e:
         logger.warning(f"Error fetching titles: {e}")
@@ -430,9 +468,23 @@ def handler(event, context):
         bill = bills_df.iloc[0].to_dict()
         bill['bill_id'] = bill_id
 
+        # Map bill to Pydantic model
+        bill_model = Bill(
+            bill_id=bill_id,
+            congress=int(bill['congress']),
+            bill_type=bill['bill_type'],
+            bill_number=int(bill['bill_number']),
+            title=bill.get('title') or bill.get('short_title', 'Untitled Bill'),
+            introduced_date=bill.get('introduced_date'),
+            sponsor_bioguide_id=bill.get('sponsor_bioguide_id'),
+            sponsor_name=bill.get('sponsor_name'),
+            sponsor_party=bill.get('sponsor_party'),
+            sponsor_state=bill.get('sponsor_state')
+        )
+
         # Get sponsor details
         sponsor_bioguide = bill.get('sponsor_bioguide_id')
-        sponsor = {'bioguide_id': sponsor_bioguide, 'name': 'Unknown', 'party': 'Unknown', 'state': 'Unknown'}
+        sponsor_model = None
 
         if sponsor_bioguide:
             try:
@@ -449,12 +501,15 @@ def handler(event, context):
                     sponsor_row = sponsor_df[sponsor_df['bioguide_id'] == sponsor_bioguide]
                     if not sponsor_row.empty:
                         s = sponsor_row.iloc[0]
-                        sponsor = {
-                            'bioguide_id': sponsor_bioguide,
-                            'name': s.get('name', 'Unknown'),
-                            'party': s.get('party', 'Unknown'),
-                            'state': s.get('state', 'Unknown')
-                        }
+                        sponsor_model = Member(
+                            bioguide_id=sponsor_bioguide,
+                            name=s.get('name', 'Unknown'),
+                            first_name=s.get('first_name'),
+                            last_name=s.get('last_name'),
+                            party=s.get('party', 'Unknown'),
+                            state=s.get('state', 'Unknown'),
+                            chamber=s.get('chamber', 'house')
+                        )
             except Exception as e:
                 logger.error(f"Error fetching sponsor: {e}")
 
@@ -487,35 +542,28 @@ def handler(event, context):
         bill_type_url = bill_type_map.get(bill_type, bill_type)
         congress_gov_url = f"https://www.congress.gov/bill/{congress}th-congress/{bill_type_url}/{bill_number}"
 
-        # Build response
-        response_data = {
-            'bill': bill,
-            'sponsor': sponsor,
-            'cosponsors': cosponsors,
-            'cosponsors_count': cosponsors_count,
-            'actions_recent': actions_recent,
-            'actions_count_total': actions_count_total,
-            'industry_tags': industry_tags,
-            'trade_correlations': trade_correlations,
-            'trade_correlations_count': trade_correlations_count,
-            'summary': bill.get('summary'),
-            'text_versions': [
-                {'format': 'txt', 'url': bill.get('text_url')},
-                {'format': 'pdf', 'url': bill.get('pdf_url')}
-            ] if (bill.get('text_url') and not pd.isna(bill.get('text_url'))) or \
-                 (bill.get('pdf_url') and not pd.isna(bill.get('pdf_url'))) else [],
-            'committees': get_committees(qb, bill_id),
-            'related_bills': get_related_bills(qb, bill_id),
-            'subjects': bill.get('subjects', []), # Assuming subjects might be in dim_bill
-            'titles': get_titles(qb, bill_id),
-            'congress_gov_url': congress_gov_url
-        }
+        # Build BillDetail response
+        bill_detail = BillDetail(
+            bill=bill_model,
+            sponsor=sponsor_model,
+            cosponsors=cosponsors,
+            cosponsors_count=cosponsors_count,
+            actions_recent=actions_recent,
+            actions_count_total=actions_count_total,
+            industry_tags=industry_tags,
+            trade_correlations=trade_correlations,
+            trade_correlations_count=trade_correlations_count,
+            committees=get_committees(qb, bill_id),
+            related_bills=get_related_bills(qb, bill_id),
+            titles=get_titles(qb, bill_id),
+            congress_gov_url=congress_gov_url
+        )
 
         # Determine cache duration (archived congresses get longer cache)
-        cache_max_age = 86400 if congress <= 118 else 300  # 24h for archived, 5min for current
+        cache_max_age = 86400 if congress <= 118 else 300
 
         return success_response(
-            data=clean_nan_values(response_data),
+            data=bill_detail.model_dump(),
             metadata={
                 'bill_id': bill_id,
                 'cached': congress <= 118,

@@ -8,13 +8,14 @@ Supports industry filters, trade correlation filters, and multiple sort options.
 import os
 import json
 import logging
+from urllib.parse import urlencode
 from api.lib import (
     ParquetQueryBuilder,
     success_response,
     error_response,
-    parse_pagination_params,
-    build_pagination_response
+    parse_pagination_params
 )
+from api.lib.response_models import Bill, PaginationMetadata, PaginatedResponse
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -126,22 +127,6 @@ def enrich_bills_with_aggregates(qb, bills_df):
 def handler(event, context):
     """
     GET /v1/congress/bills
-
-    Query parameters:
-    - limit: Records per page (default 50, max 500)
-    - offset: Records to skip (default 0)
-    - congress: Filter by congress number (e.g., '118', '119')
-    - bill_type: Filter by bill type (e.g., 'hr', 's', 'hres')
-    - sponsor: Filter by sponsor name (partial match)
-    - industry: Filter by industry tag (e.g., 'Defense', 'Healthcare')
-    - has_trade_correlations: Boolean, only show bills with correlations (true/false)
-    - min_cosponsors: Minimum number of cosponsors (integer)
-    - sponsor_bioguide: Filter by sponsor bioguide_id
-    - cosponsor_bioguide: Filter by cosponsor bioguide_id
-    - sort_by: Sort field (latest_action_date, cosponsors_count, trade_correlation_score, introduced_date)
-    - sort_order: Sort direction (asc/desc, default desc)
-
-    Returns paginated list of bills with enriched data.
     """
     try:
         query_params = event.get('queryStringParameters') or {}
@@ -163,8 +148,6 @@ def handler(event, context):
         logger.info(f"Fetching bills: limit={limit}, offset={offset}, filters={filters}, sort_by={sort_by}")
 
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
-
-        # Build S3 prefix for partition pruning
         s3_prefix = 'gold/congress/dim_bill'
 
         # Determine base ordering
@@ -173,59 +156,42 @@ def handler(event, context):
         else:
             base_order = 'congress DESC, bill_number DESC'
 
-        # Query bills (get more than needed for post-filtering)
-        query_limit = min(limit * 3, 1500)  # Get extra for filtering
-
+        # Query bills
+        query_limit = min(limit * 3, 1500)
         try:
             bills_df = qb.query_parquet(
                 s3_prefix,
                 filters=filters if filters else None,
                 order_by=base_order,
                 limit=query_limit,
-                offset=0  # Don't apply offset yet, do it after enrichment
+                offset=0 
             )
         except Exception as e:
-            # Handle missing dim_bill data gracefully (e.g., during initial setup)
             logger.warning(f"No bills data available: {e}")
             bills_df = None
 
         if bills_df is None or bills_df.empty:
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Cache-Control': 'public, max-age=300'
-                },
-                'body': json.dumps({
-                    'bills': [],
-                    'total_count': 0,
-                    'limit': limit,
-                    'offset': offset,
-                    'has_next': False,
-                    'has_previous': False
-                })
-            }
+            return success_response({
+                'items': [],
+                'pagination': {
+                    'total': 0, 'count': 0, 'limit': limit, 'offset': offset,
+                    'has_next': False, 'has_prev': False, 'next': None, 'prev': None
+                }
+            })
 
-        # Filter by sponsor name if specified (text search)
+        # Apply post-query filters
         if 'sponsor' in query_params:
             sponsor_filter = query_params['sponsor'].lower()
             if 'sponsor_name' in bills_df.columns:
-                bills_df = bills_df[
-                    bills_df['sponsor_name'].str.lower().str.contains(sponsor_filter, na=False)
-                ]
+                bills_df = bills_df[bills_df['sponsor_name'].str.lower().str.contains(sponsor_filter, na=False)]
 
-        # Enrich bills with aggregates
         bills_df = enrich_bills_with_aggregates(qb, bills_df)
 
-        # Apply post-enrichment filters
         if 'industry' in query_params:
             industry_filter = query_params['industry']
-            bills_df = bills_df[
-                bills_df['top_industry_tags'].apply(
-                    lambda tags: industry_filter in tags if isinstance(tags, list) else False
-                )
-            ]
+            bills_df = bills_df[bills_df['top_industry_tags'].apply(
+                lambda tags: industry_filter in tags if isinstance(tags, list) else False
+            )]
 
         if 'has_trade_correlations' in query_params:
             has_corr = query_params['has_trade_correlations'].lower() == 'true'
@@ -236,50 +202,88 @@ def handler(event, context):
             min_cosponsors = int(query_params['min_cosponsors'])
             bills_df = bills_df[bills_df['cosponsors_count'] >= min_cosponsors]
 
-        if 'cosponsor_bioguide' in query_params:
-            # Need to query fact table for this
-            cosponsor_bioguide = query_params['cosponsor_bioguide']
-            try:
-                cosponsor_bills_df = qb.query_parquet(
-                    'gold/congress/fact_member_bill_role',
-                    filters={'bioguide_id': cosponsor_bioguide, 'is_cosponsor': True},
-                    limit=1000
-                )
-                if not cosponsor_bills_df.empty:
-                    cosponsor_bill_ids = cosponsor_bills_df['bill_id'].unique()
-                    bills_df = bills_df[bills_df['bill_id'].isin(cosponsor_bill_ids)]
-            except Exception as e:
-                logger.warning(f"Could not filter by cosponsor: {e}")
-
-        # Apply sorting
+        # Apply final sorting
         if sort_by == 'latest_action_date':
             bills_df = bills_df.sort_values('latest_action_date', ascending=(sort_order == 'asc'))
         elif sort_by == 'cosponsors_count':
             bills_df = bills_df.sort_values('cosponsors_count', ascending=(sort_order == 'asc'))
         elif sort_by == 'trade_correlation_score':
             bills_df = bills_df.sort_values('trade_correlations_count', ascending=(sort_order == 'asc'))
-        elif sort_by == 'introduced_date':
-            # Already sorted in base query
-            pass
 
-        # Get total count before pagination
         total_count = len(bills_df)
+        paged_df = bills_df.iloc[offset:offset + limit]
+        bills_data = paged_df.to_dict('records')
 
-        # Apply pagination
-        bills_df = bills_df.iloc[offset:offset + limit]
+        # Map to Pydantic
+        bills = []
+        for row in bills_data:
+            try:
+                bills.append(Bill(
+                    bill_id=row['bill_id'],
+                    congress=int(row['congress']),
+                    bill_type=row['bill_type'],
+                    bill_number=int(row['bill_number']),
+                    title=row.get('title') or row.get('short_title', 'Untitled Bill'),
+                    introduced_date=row.get('introduced_date'),
+                    sponsor_bioguide_id=row.get('sponsor_bioguide_id'),
+                    sponsor_name=row.get('sponsor_name'),
+                    sponsor_party=row.get('sponsor_party'),
+                    sponsor_state=row.get('sponsor_state'),
+                    cosponsors_count=int(row.get('cosponsors_count', 0)),
+                    trade_correlations_count=int(row.get('trade_correlations_count', 0)),
+                    top_industry_tags=row.get('top_industry_tags'),
+                    latest_action_date=row.get('latest_action_date'),
+                    latest_action_text=row.get('latest_action_text'),
+                    days_since_action=row.get('days_since_action'),
+                    congress_gov_url=row.get('congress_gov_url')
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping bill {row.get('bill_id')}: {e}")
+                continue
 
-        bills_list = bills_df.to_dict('records')
+        # Pagination metadata
+        has_next = (offset + len(bills)) < total_count
+        has_prev = offset > 0
+        
+        base_url = "/v1/congress/bills"
+        other_params = {k: v for k, v in query_params.items() if k not in ['limit', 'offset']}
+        
+        next_url = None
+        if has_next:
+            next_params = {**other_params, 'limit': limit, 'offset': offset + limit}
+            next_url = f"{base_url}?{urlencode(next_params)}"
+            
+        prev_url = None
+        if has_prev:
+            prev_offset = max(0, offset - limit)
+            prev_params = {**other_params, 'limit': limit, 'offset': prev_offset}
+            prev_url = f"{base_url}?{urlencode(prev_params)}"
 
-        response = build_pagination_response(
-            data=bills_list,
-            total_count=total_count,
+        pagination = PaginationMetadata(
+            total=total_count,
+            count=len(bills),
             limit=limit,
             offset=offset,
-            base_url='/v1/congress/bills',
-            query_params={k: v for k, v in query_params.items() if k not in ['limit', 'offset']}
+            has_next=has_next,
+            has_prev=has_prev,
+            next=next_url,
+            prev=prev_url
         )
+        
+        paginated = PaginatedResponse(
+            items=bills,
+            pagination=pagination
+        )
+        
+        return success_response(paginated.model_dump(), metadata={'cache_seconds': 300})
 
-        return success_response(response, metadata={'cache_seconds': 300})
+    except Exception as e:
+        logger.error(f"Error fetching bills: {e}", exc_info=True)
+        return error_response(
+            message="Failed to retrieve bills",
+            status_code=500,
+            details=str(e)
+        )
 
     except Exception as e:
         logger.error(f"Error fetching bills: {e}", exc_info=True)

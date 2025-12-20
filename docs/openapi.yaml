@@ -1,2083 +1,3686 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
-  title: Congressional Trading Data API
+  title: Congressional Trading API
+  description: API for accessing standardized congressional financial disclosures
+    and legislative data.
   version: 1.0.0
-  description: |
-    Public REST API for querying U.S. House of Representatives financial disclosure data.
-    
-    This API provides access to congressional trading data, member portfolios, and filing information
-    from the standardized Gold Layer. All data is sourced from official House disclosures.
-    
-    **Features:**
-    - No authentication required (public access)
-    - Rate limited to 1000 requests/hour per IP
-    - Fast DuckDB-powered Parquet queries
-    - Comprehensive filtering and pagination
-    
-    **Data Sources:**
-    - Official House Financial Disclosures
-    - Updated daily from https://disclosures-clerk.house.gov/
-  contact:
-    name: Congress Disclosures Standardized
-    url: https://github.com/Jakeintech/congress-disclosures-standardized
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
-
 servers:
-  - url: https://yvpi88rhwl.execute-api.us-east-1.amazonaws.com
-    description: Production API Gateway
-
-tags:
-  - name: Members
-    description: Member profiles and information
-  - name: Trading
-    description: Stock trading transactions
-  - name: Analytics
-    description: Aggregated statistics and insights
-  - name: Search
-    description: Search and discovery
-  - name: Filings
-    description: Financial disclosure filings
-  - name: Congress
-    description: Congress.gov legislative data (bills, votes, members)
-  - name: System
-    description: System status and metrics
-
+- url: https://api.congress-disclosures.com
+  description: Production API
+- url: http://localhost:3000
+  description: Local development
 paths:
-  # ============================================================================
-  # System Endpoints
-  # ============================================================================
-
-  /v1/costs:
-    get:
-      tags: [System]
-      summary: Get AWS costs
-      description: Get daily and total AWS costs for the last 30 days
-      responses:
-        '200':
-          description: Cost data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CostResponse'
-
   /v1/version:
     get:
-      tags: [System]
-      summary: Get API version
-      description: |
-        Returns API version information including Git commit hash, build timestamp,
-        and deployment metadata. Use this endpoint to verify which version of the API
-        is currently running.
+      summary: Get API version and build info
+      tags:
+      - System
       responses:
         '200':
-          description: Version information
+          description: Successful response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-                    properties:
-                      version:
-                        type: string
-                        description: Human-readable version string (date + Git hash)
-                        example: "v20251220-33a4c83"
-                      git:
-                        type: object
-                        properties:
-                          commit:
-                            type: string
-                            description: Full Git commit hash
-                            example: "33a4c83d220eba54d3befffc007e4f9f904bd96b"
-                          commit_short:
-                            type: string
-                            description: Short Git commit hash (7 chars)
-                            example: "33a4c83"
-                          branch:
-                            type: string
-                            description: Git branch name
-                            example: "main"
-                          dirty:
-                            type: boolean
-                            description: Whether working directory had uncommitted changes
-                            example: false
-                      build:
-                        type: object
-                        properties:
-                          timestamp:
-                            type: string
-                            format: date-time
-                            description: Build timestamp (ISO 8601 UTC)
-                            example: "2025-12-20T01:40:23.727620+00:00"
-                          date:
-                            type: string
-                            description: Build date (YYYYMMDD)
-                            example: "20251220"
-                      api_version:
-                        type: string
-                        description: API version identifier
-                        example: "v1"
-                      runtime:
-                        type: object
-                        properties:
-                          function_name:
-                            type: string
-                            example: "congress-disclosures-api-get_version"
-                          function_version:
-                            type: string
-                            example: "$LATEST"
-                          aws_request_id:
-                            type: string
-                            example: "12345678-1234-1234-1234-123456789abc"
-                          memory_limit_mb:
-                            type: integer
-                            example: 512
-                      status:
-                        type: string
-                        example: "healthy"
-
-  /v1/storage/{layer}:
+                $ref: '#/components/schemas/VersionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/search:
     get:
-      tags: [System]
-      summary: List S3 objects
-      description: List objects in a specific data layer (Bronze, Silver, Gold)
-      parameters:
-        - name: layer
-          in: path
-          required: true
-          description: Data layer to query
-          schema:
-            type: string
-            enum: [bronze, silver, gold]
-          example: gold
-        - name: prefix
-          in: query
-          description: S3 prefix filter
-          schema:
-            type: string
-          example: "house/financial/facts/"
-        - $ref: '#/components/parameters/Limit'
+      summary: Search across all entities
+      tags:
+      - System
       responses:
         '200':
-          description: List of S3 objects
+          description: Successful response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      objects:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            key:
-                              type: string
-                            size:
-                              type: integer
-                            last_modified:
-                              type: string
-                              format: date-time
-                      count:
-                        type: integer
-                      truncated:
-                        type: boolean
-
-  # ============================================================================
-  # Member Endpoints
-  # ============================================================================
-  
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/congress/bills:
+    get:
+      summary: List congressional bills
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillsPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/congress/bills/{bill_id}:
+    get:
+      summary: Get bill details
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/actions:
+    get:
+      summary: Get bill actions
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/amendments:
+    get:
+      summary: Get bill amendments
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/cosponsors:
+    get:
+      summary: Get bill cosponsors
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/subjects:
+    get:
+      summary: Get bill subjects/topics
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/summaries:
+    get:
+      summary: Get bill summaries
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/titles:
+    get:
+      summary: Get bill titles
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/text:
+    get:
+      summary: Get bill text versions
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/committees:
+    get:
+      summary: Get bill committees
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/lobbying:
+    get:
+      summary: Get lobbying activity for bill
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/bills/{bill_id}/related:
+    get:
+      summary: Get related bills
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/committees:
+    get:
+      summary: List congressional committees
+      tags:
+      - Committees
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/congress/committees/{committee_code}:
+    get:
+      summary: Get committee details
+      tags:
+      - Committees
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: committee_code
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/committees/{committee_code}/bills:
+    get:
+      summary: Get bills by committee
+      tags:
+      - Committees
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillsPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: committee_code
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/committees/{committee_code}/members:
+    get:
+      summary: Get committee members
+      tags:
+      - Committees
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MembersPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: committee_code
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/congress/committees/{committee_code}/reports:
+    get:
+      summary: Get committee reports
+      tags:
+      - Committees
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: committee_code
+        in: path
+        required: true
+        schema:
+          type: string
   /v1/members:
     get:
-      tags: [Members]
-      summary: List all members
-      description: Get paginated list of House members with optional filtering
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: state
-          in: query
-          description: Filter by state (e.g., CA, NY)
-          schema:
-            type: string
-            pattern: '^[A-Z]{2}$'
-        - name: district
-          in: query
-          description: Filter by district number
-          schema:
-            type: string
-        - name: party
-          in: query
-          description: Filter by political party
-          schema:
-            type: string
-            enum: [D, R, I]
+      summary: List congressional members
+      tags:
+      - Members
       responses:
         '200':
-          description: Successful response with paginated members
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemberListResponse'
-              example:
-                success: true
-                data:
-                  - bioguide_id: P000197
-                    first_name: Nancy
-                    last_name: Pelosi
-                    party: D
-                    state: CA
-                    district: "11"
-                pagination:
-                  total: 435
-                  count: 50
-                  limit: 50
-                  offset: 0
-                  has_next: true
-                  next: /v1/members?limit=50&offset=50
-
+                $ref: '#/components/schemas/MembersPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/members/{bioguide_id}:
     get:
-      tags: [Members]
-      summary: Get member profile
-      description: Get detailed profile for a specific member including trading stats
-      parameters:
-        - name: bioguide_id
-          in: path
-          required: true
-          description: Member's bioguide ID
-          schema:
-            type: string
-          example: P000197
+      summary: Get member details
+      tags:
+      - Members
       responses:
         '200':
-          description: Member profile
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemberProfile'
+                $ref: '#/components/schemas/MemberResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bioguide_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/members/{bioguide_id}/filings:
+    get:
+      summary: Get member's financial disclosure filings
+      tags:
+      - Members
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilingsPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bioguide_id
+        in: path
+        required: true
+        schema:
+          type: string
   /v1/members/{bioguide_id}/trades:
     get:
-      tags: [Members]
-      summary: Get member's trades
-      description: Get all trading transactions for a specific member
-      parameters:
-        - name: bioguide_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - $ref: '#/components/parameters/StartDate'
-        - $ref: '#/components/parameters/EndDate'
-        - name: ticker
-          in: query
-          schema:
-            type: string
-        - name: transaction_type
-          in: query
-          schema:
-            type: string
-            enum: [Purchase, Sale, Exchange]
+      summary: Get member's stock trades
+      tags:
+      - Members
       responses:
         '200':
-          description: Paginated list of trades
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TradeListResponse'
-
-  /v1/members/{bioguide_id}/portfolio:
-    get:
-      tags: [Members]
-      summary: Get member's portfolio
-      description: Get current asset holdings for a member
-      parameters:
-        - name: bioguide_id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Portfolio holdings
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PortfolioResponse'
-
-  /v1/members/{name}/filings:
-    get:
-      tags: [Members]
-      summary: Get member filings by name
-      description: |
-        Get all financial disclosure filings for a member using fuzzy name matching.
-        This endpoint performs case-insensitive partial name matching, useful when
-        the exact bioguide_id is unknown.
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: Member name (fuzzy match, case-insensitive)
-          schema:
-            type: string
-          example: "Pelosi"
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: filing_year
-          in: query
-          description: Filter by filing year
-          schema:
-            type: integer
-          example: 2025
-        - name: filing_type
-          in: query
-          description: Filter by filing type
-          schema:
-            type: string
-            enum: [P, A, T, X, D, W]
-          example: "P"
-      responses:
-        '200':
-          description: List of filings for matched member(s)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Filing'
-                  pagination:
-                    $ref: '#/components/schemas/Pagination'
-
-  /v1/members/{name}/transactions:
-    get:
-      tags: [Members, Trading]
-      summary: Get member transactions by name
-      description: |
-        Get all trading transactions for a member using fuzzy name matching.
-        Returns PTR (Periodic Transaction Report) transactions.
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: Member name (fuzzy match, case-insensitive)
-          schema:
-            type: string
-          example: "Pelosi"
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: ticker
-          in: query
-          description: Filter by stock ticker
-          schema:
-            type: string
-          example: "AAPL"
-        - name: transaction_type
-          in: query
-          description: Filter by transaction type
-          schema:
-            type: string
-            enum: [Purchase, Sale, Exchange]
-        - $ref: '#/components/parameters/StartDate'
-        - $ref: '#/components/parameters/EndDate'
-      responses:
-        '200':
-          description: List of transactions
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TradeListResponse'
-
-  /v1/members/{name}/assets:
-    get:
-      tags: [Members]
-      summary: Get member assets by name
-      description: |
-        Get all asset holdings from Annual Reports (Type A) for a member
-        using fuzzy name matching. Returns Schedule A asset disclosures.
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: Member name (fuzzy match, case-insensitive)
-          schema:
-            type: string
-          example: "Pelosi"
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: filing_year
-          in: query
-          description: Filter by year of annual report
-          schema:
-            type: integer
-          example: 2025
-        - name: asset_type
-          in: query
-          description: Filter by asset type
-          schema:
-            type: string
-          example: "Stock"
-      responses:
-        '200':
-          description: List of assets
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        asset_name:
-                          type: string
-                        asset_type:
-                          type: string
-                        value_low:
-                          type: number
-                        value_high:
-                          type: number
-                        filing_date:
-                          type: string
-                          format: date
-                        doc_id:
-                          type: string
-                  pagination:
-                    $ref: '#/components/schemas/Pagination'
-
-  # ============================================================================
-  # Trading Endpoints
-  # ============================================================================
-
-  /v1/trades:
-    get:
-      tags: [Trading]
-      summary: List all trades
-      description: Get all trading transactions with comprehensive filtering
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: ticker
-          in: query
-          description: Filter by stock ticker
-          schema:
-            type: string
-        - name: bioguide_id
-          in: query
-          description: Filter by member
-          schema:
-            type: string
-        - name: transaction_type
-          in: query
-          schema:
-            type: string
-            enum: [Purchase, Sale, Exchange]
-        - $ref: '#/components/parameters/StartDate'
-        - $ref: '#/components/parameters/EndDate'
-        - name: min_amount
-          in: query
-          description: Minimum transaction amount
-          schema:
-            type: number
-        - name: max_amount
-          in: query
-          description: Maximum transaction amount
-          schema:
-            type: number
-      responses:
-        '200':
-          description: Paginated trades
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TradeListResponse'
-              example:
-                success: true
-                data:
-                  - transaction_id: "12345"
-                    bioguide_id: P000197
-                    ticker: AAPL
-                    transaction_type: Purchase
-                    transaction_date: "2025-01-15"
-                    amount: 50000
-                pagination:
-                  total: 1500
-                  count: 50
-                  limit: 50
-                  offset: 0
-
-  /v1/stocks/{ticker}:
-    get:
-      tags: [Trading]
-      summary: Get stock summary
-      description: Get trading statistics and recent activity for a specific stock
-      parameters:
-        - name: ticker
-          in: path
-          required: true
-          description: Stock ticker symbol
-          schema:
-            type: string
-          example: AAPL
-      responses:
-        '200':
-          description: Stock summary
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StockSummary'
+                $ref: '#/components/schemas/TransactionsPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-
-  /v1/stocks/{ticker}/activity:
-    get:
-      tags: [Trading]
-      summary: Get stock trading activity
-      description: Get all congressional trades for a specific stock
+        '500':
+          $ref: '#/components/responses/InternalError'
       parameters:
-        - name: ticker
-          in: path
-          required: true
-          schema:
-            type: string
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - $ref: '#/components/parameters/StartDate'
-        - $ref: '#/components/parameters/EndDate'
+      - name: bioguide_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/members/{bioguide_id}/portfolio:
+    get:
+      summary: Get member's current portfolio
+      tags:
+      - Members
       responses:
         '200':
-          description: Stock trading activity
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TradeListResponse'
-
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bioguide_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/members/{bioguide_id}/assets:
+    get:
+      summary: Get member's assets
+      tags:
+      - Members
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bioguide_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/members/{bioguide_id}/lobbying:
+    get:
+      summary: Get member's lobbying connections
+      tags:
+      - Members
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: bioguide_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/filings:
+    get:
+      summary: List financial disclosure filings
+      tags:
+      - Filings
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilingsPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/filings/{doc_id}:
+    get:
+      summary: Get filing details
+      tags:
+      - Filings
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: doc_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/filings/{doc_id}/assets:
+    get:
+      summary: Get filing assets
+      tags:
+      - Filings
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: doc_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/filings/{doc_id}/positions:
+    get:
+      summary: Get filing positions
+      tags:
+      - Filings
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: doc_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/filings/{doc_id}/transactions:
+    get:
+      summary: Get filing transactions
+      tags:
+      - Filings
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: doc_id
+        in: path
+        required: true
+        schema:
+          type: string
   /v1/stocks:
     get:
-      tags: [Trading]
-      summary: List all stocks
-      description: Get list of all stocks with congressional trading activity
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: min_trades
-          in: query
-          description: Minimum number of trades
-          schema:
-            type: integer
+      summary: List stocks with trading activity
+      tags:
+      - Trading
       responses:
         '200':
-          description: List of stocks
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StockListResponse'
-
-  # ============================================================================
-  # Analytics Endpoints
-  # ============================================================================
-
-  /v1/analytics/summary:
+                $ref: '#/components/schemas/StocksPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/stocks/{ticker}:
     get:
-      tags: [Analytics]
-      summary: Get platform summary
-      description: Get high-level statistics for the entire platform
+      summary: Get stock details
+      tags:
+      - Trading
       responses:
         '200':
-          description: Platform summary
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SummaryResponse'
-              example:
-                success: true
-                data:
-                  members:
-                    total: 435
-                  trades:
-                    total: 15000
-                    unique_stocks: 2500
-                    latest_transaction: "2025-12-01"
-                  filings:
-                    total: 5000
-                    latest_filing: "2025-12-01"
-                    coverage_years: [2020, 2021, 2022, 2023, 2024, 2025]
-
-  /v1/analytics/top-traders:
-    get:
-      tags: [Analytics]
-      summary: Get top traders
-      description: Get members with highest trading volume
+                $ref: '#/components/schemas/StockResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
       parameters:
-        - name: limit
-          in: query
-          description: Number of results (max 100)
-          schema:
-            type: integer
-            default: 20
-            maximum: 100
-        - name: year
-          in: query
-          description: Filter by year
-          schema:
-            type: integer
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/stocks/{ticker}/activity:
+    get:
+      summary: Get stock trading activity
+      tags:
+      - Trading
       responses:
         '200':
-          description: Top traders
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TopTradersResponse'
-
+                $ref: '#/components/schemas/TransactionsPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/stocks/{ticker}/legislative-exposure:
+    get:
+      summary: Get stock's legislative exposure
+      tags:
+      - Trading
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/trades:
+    get:
+      summary: List all trades
+      tags:
+      - Trading
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsPaginatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/analytics/trending-stocks:
     get:
-      tags: [Analytics]
       summary: Get trending stocks
-      description: Get stocks with most recent congressional trading activity
-      parameters:
-        - name: days
-          in: query
-          description: Time window in days
-          schema:
-            type: integer
-            default: 30
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-            maximum: 100
+      tags:
+      - Analytics
       responses:
         '200':
-          description: Trending stocks
+          description: Successful response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TrendingStocksResponse'
-
-  /v1/analytics/sector-activity:
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/trading-timeline:
     get:
-      tags: [Analytics]
-      summary: Get sector activity
-      description: Get trading activity breakdown by market sector
+      summary: Get trading timeline
+      tags:
+      - Analytics
       responses:
         '200':
-          description: Sector statistics
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SectorActivityResponse'
-
-  /v1/analytics/compliance:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/summary:
     get:
-      tags: [Analytics]
-      summary: Get compliance metrics
-      description: Get filing compliance statistics for members
+      summary: Get dashboard summary statistics
+      tags:
+      - Analytics
       responses:
         '200':
-          description: Compliance metrics
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/top-traders:
+    get:
+      summary: Get top trading members
+      tags:
+      - Analytics
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopTradersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/recent-activity:
+    get:
+      summary: Get recent trading activity
+      tags:
+      - Analytics
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/sector-activity:
+    get:
+      summary: Get trading by sector
+      tags:
+      - Analytics
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/pattern-insights:
+    get:
+      summary: Get trading pattern insights
+      tags:
+      - Analytics
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/portfolio-reconciliation:
+    get:
+      summary: Get portfolio reconciliation data
+      tags:
+      - Analytics
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/congressional-alpha:
+    get:
+      summary: Get congressional alpha metrics
+      tags:
+      - Analytics
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/compliance:
+    get:
+      summary: Get compliance metrics
+      tags:
+      - Analytics
+      responses:
+        '200':
+          description: Successful response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ComplianceResponse'
-
-  /v1/analytics/trading-timeline:
-    get:
-      tags: [Analytics]
-      summary: Get trading timeline
-      description: Get daily trading volume over time
-      parameters:
-        - $ref: '#/components/parameters/StartDate'
-        - $ref: '#/components/parameters/EndDate'
-      responses:
-        '200':
-          description: Trading timeline
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TimelineResponse'
-
-  # ============================================================================
-  # Search & Filing Endpoints
-  # ============================================================================
-
-  /v1/search:
-    get:
-      tags: [Search]
-      summary: Search across all data
-      description: Unified search across members, stocks, and trades
-      parameters:
-        - name: q
-          in: query
-          required: true
-          description: Search query (minimum 2 characters)
-          schema:
-            type: string
-            minLength: 2
-      responses:
-        '200':
-          description: Search results
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SearchResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
-
-  /v1/filings:
-    get:
-      tags: [Filings]
-      summary: List filings
-      description: Get list of financial disclosure filings
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: bioguide_id
-          in: query
-          schema:
-            type: string
-        - name: filing_type
-          in: query
-          schema:
-            type: string
-            enum: [A, N, T, P]
-        - $ref: '#/components/parameters/StartDate'
-        - $ref: '#/components/parameters/EndDate'
-      responses:
-        '200':
-          description: Paginated filings
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FilingListResponse'
-
-  /v1/filings/{doc_id}:
-    get:
-      tags: [Filings]
-      summary: Get filing details
-      description: Get complete filing information including extracted data
-      parameters:
-        - name: doc_id
-          in: path
-          required: true
-          description: Document ID
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Filing details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FilingDetail'
         '404':
           $ref: '#/components/responses/NotFound'
-
-  /v1/filings/{doc_id}/transactions:
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/analytics/conflict-detection:
     get:
-      tags: [Filings]
-      summary: Get filing transactions
-      description: Get all transactions listed in a specific filing (Type P)
-      parameters:
-        - name: doc_id
-          in: path
-          required: true
-          description: Document ID
-          schema:
-            type: string
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: ticker
-          in: query
-          schema:
-            type: string
-        - name: asset_type
-          in: query
-          schema:
-            type: string
-        - name: transaction_type
-          in: query
-          schema:
-            type: string
-            enum: [Purchase, Sale, Exchange]
+      summary: Get conflict of interest detection
+      tags:
+      - Analytics
       responses:
         '200':
-          description: List of transactions
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FilingTransactionListResponse'
-
-  /v1/filings/{doc_id}/assets:
-    get:
-      tags: [Filings]
-      summary: Get filing assets
-      description: Get all asset holdings listed in a specific filing (Type A/B/C Schedule A)
-      parameters:
-        - name: doc_id
-          in: path
-          required: true
-          description: Document ID
-          schema:
-            type: string
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: asset_type
-          in: query
-          schema:
-            type: string
-        - name: owner
-          in: query
-          description: Filter by owner code (Self, SP, DC, JT)
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of asset holdings
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AssetHoldingListResponse'
-
-  /v1/filings/{doc_id}/positions:
-    get:
-      tags: [Filings]
-      summary: Get filing positions
-      description: Get all positions listed in a specific filing (Type A/B/C Schedule E)
-      parameters:
-        - name: doc_id
-          in: path
-          required: true
-          description: Document ID
-          schema:
-            type: string
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-      responses:
-        '200':
-          description: List of positions held
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PositionListResponse'
-
-  # ============================================================================
-  # Congress.gov API Endpoints
-  # ============================================================================
-
-  /v1/congress/bills:
-    get:
-      tags: [Congress]
-      summary: List Congress bills
-      description: Get paginated list of bills with optional filtering by congress and bill type
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: congress
-          in: query
-          description: Filter by congress number (e.g., 118, 119)
-          schema:
-            type: integer
-        - name: bill_type
-          in: query
-          description: Filter by bill type
-          schema:
-            type: string
-            enum: [hr, s, hres, sres, hjres, sjres, hconres, sconres]
-        - name: sponsor
-          in: query
-          description: Filter by sponsor name (partial match)
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Paginated list of bills
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BillListResponse'
-
-  /v1/congress/bills/{bill_id}:
-    get:
-      tags: [Congress]
-      summary: Get bill details
-      description: Get detailed information about a specific bill
-      parameters:
-        - name: bill_id
-          in: path
-          required: true
-          description: Bill ID in format congress-type-number (e.g., 118-hr-1)
-          schema:
-            type: string
-          example: "118-hr-1"
-      responses:
-        '200':
-          description: Bill details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BillDetail'
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-
-  /v1/congress/members:
-    get:
-      tags: [Congress]
-      summary: List Congress members
-      description: Get paginated list of Congress members with optional filtering
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: chamber
-          in: query
-          description: Filter by chamber
-          schema:
-            type: string
-            enum: [House, Senate]
-        - name: state
-          in: query
-          description: Filter by state
-          schema:
-            type: string
-        - name: party
-          in: query
-          description: Filter by party
-          schema:
-            type: string
-            enum: [D, R, I]
-      responses:
-        '200':
-          description: Paginated list of Congress members
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CongressMemberListResponse'
-
-  /v1/congress/members/{bioguide_id}:
-    get:
-      tags: [Congress]
-      summary: Get Congress member details
-      description: Get detailed profile including legislative stats
-      parameters:
-        - name: bioguide_id
-          in: path
-          required: true
-          description: Member's bioguide ID
-          schema:
-            type: string
-          example: "P000197"
-      responses:
-        '200':
-          description: Congress member profile
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CongressMemberDetail'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /v1/analytics/members/{bioguide_id}/legislation-trades:
-    get:
-      tags: [Congress, Analytics]
-      summary: Get member legislation with trade windows
-      description: Get member's sponsored bills with correlated trading activity
-      parameters:
-        - name: bioguide_id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Legislation and trade correlation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LegislationTradesResponse'
-
-  /v1/analytics/stocks/{ticker}/legislative-exposure:
-    get:
-      tags: [Congress, Analytics]
-      summary: Get stock legislative exposure
-      description: Get congressional activity and trading for a stock
-      parameters:
-        - name: ticker
-          in: path
-          required: true
-          schema:
-            type: string
-          example: "AAPL"
-      responses:
-        '200':
-          description: Stock legislative exposure
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LegislativeExposureResponse'
-
-  # ============================================================================
-  # Lobbying Disclosure Endpoints
-  # ============================================================================
-
-  /v1/lobbying/filings:
-    get:
-      tags: [Lobbying]
-      summary: List lobbying filings
-      description: Get paginated list of LDA lobbying filings with filtering
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: filing_year
-          in: query
-          description: Filter by filing year
-          schema:
-            type: integer
-          example: 2025
-        - name: client_id
-          in: query
-          description: Filter by client ID
-          schema:
-            type: integer
-        - name: registrant_id
-          in: query
-          description: Filter by registrant ID
-          schema:
-            type: integer
-        - name: issue_code
-          in: query
-          description: Filter by general issue code (e.g., HCR, ENV)
-          schema:
-            type: string
-        - name: min_income
-          in: query
-          description: Minimum income amount
-          schema:
-            type: number
-        - name: sort_by
-          in: query
-          description: Sort field
-          schema:
-            type: string
-            enum: [income, dt_posted]
-            default: income
-      responses:
-        '200':
-          description: Paginated lobbying filings
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LobbyingFilingsResponse'
-
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/lobbying/clients/{client_id}:
     get:
-      tags: [Lobbying]
       summary: Get lobbying client details
-      description: Get comprehensive profile of a lobbying client
-      parameters:
-        - name: client_id
-          in: path
-          required: true
-          description: Client ID
-          schema:
-            type: integer
+      tags:
+      - Lobbying
       responses:
         '200':
-          description: Client profile with lobbying history
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LobbyingClientResponse'
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: client_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/lobbying/filings:
+    get:
+      summary: List lobbying filings
+      tags:
+      - Lobbying
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/lobbying/network:
     get:
-      tags: [Lobbying]
-      summary: Get lobbying network data
-      description: Get network graph showing connections between members, bills, clients, and lobbyists
-      parameters:
-        - name: year
-          in: query
-          description: Filter by year
-          schema:
-            type: integer
-          example: 2025
-        - name: congress
-          in: query
-          description: Filter by congress session
-          schema:
-            type: integer
-          example: 118
-        - name: limit
-          in: query
-          description: Max nodes to return
-          schema:
-            type: integer
-            default: 500
-            maximum: 1000
+      summary: Get lobbying network graph
+      tags:
+      - Lobbying
       responses:
         '200':
-          description: Network graph data
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LobbyingNetworkResponse'
-
-  /v1/lobbying/network-graph:
-    get:
-      tags: [Lobbying]
-      summary: Get lobbying network graph (alias)
-      description: Alias for /v1/lobbying/network
-      parameters:
-        - name: year
-          in: query
-          schema:
-            type: integer
-        - name: congress
-          in: query
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Network graph data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LobbyingNetworkResponse'
-
-  /v1/congress/bills/{bill_id}/lobbying:
-    get:
-      tags: [Lobbying, Congress]
-      summary: Get lobbying activity for a bill
-      description: Get all lobbying activity related to a specific bill
-      parameters:
-        - name: bill_id
-          in: path
-          required: true
-          description: Bill ID in format congress-type-number
-          schema:
-            type: string
-          example: "118-hr-1"
-      responses:
-        '200':
-          description: Bill lobbying activity
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BillLobbyingResponse'
-
-  /v1/members/{bioguide_id}/lobbying:
-    get:
-      tags: [Lobbying, Members]
-      summary: Get member lobbying connections
-      description: Get lobbying activity and contributions related to a member
-      parameters:
-        - name: bioguide_id
-          in: path
-          required: true
-          description: Member's bioguide ID
-          schema:
-            type: string
-          example: "P000197"
-      responses:
-        '200':
-          description: Member lobbying connections
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MemberLobbyingResponse'
-
+                $ref: '#/components/schemas/NetworkGraphResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/correlations/triple:
     get:
-      tags: [Lobbying, Analytics]
-      summary: Get triple correlations (STAR API)
-      description: |
-        Get correlations showing connections between stock trades, bill activity, and lobbying.
-        This is the flagship Influence Tracker API showing potential influence chains.
-      parameters:
-        - name: year
-          in: query
-          description: Filter by year
-          schema:
-            type: integer
-          example: 2025
-        - name: min_score
-          in: query
-          description: Minimum correlation score (0-100)
-          schema:
-            type: integer
-            default: 50
-        - name: member_bioguide
-          in: query
-          description: Filter by member bioguide ID
-          schema:
-            type: string
-        - name: ticker
-          in: query
-          description: Filter by stock ticker
-          schema:
-            type: string
-        - name: bill_id
-          in: query
-          description: Filter by bill ID
-          schema:
-            type: string
-        - $ref: '#/components/parameters/Limit'
+      summary: Get member-stock-bill correlations
+      tags:
+      - Lobbying
       responses:
         '200':
-          description: Triple correlations
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TripleCorrelationsResponse'
-
-  # ============================================================================
-  # Member Analytics Endpoints
-  # ============================================================================
-
-  /v1/members/{name}/filings:
-    get:
-      tags: [Members]
-      summary: Get all filings for a member
-      description: |
-        Get all financial disclosure filings for a specific congress member.
-        Supports case-insensitive partial name matching.
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: Member name (case-insensitive, partial match supported)
-          schema:
-            type: string
-          example: pelosi
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: filing_type
-          in: query
-          description: Filter by filing type
-          schema:
-            type: string
-            enum: [type_p, type_a, type_b, type_c, type_t]
-        - name: year
-          in: query
-          description: Filter by filing year
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: List of member's filings
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FilingListResponse'
-
-  /v1/members/{name}/transactions:
-    get:
-      tags: [Members]
-      summary: Get all transactions for a member
-      description: |
-        Get all PTR (Periodic Transaction Report) transactions for a specific member.
-        Supports case-insensitive partial name matching.
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: Member name (case-insensitive, partial match supported)
-          schema:
-            type: string
-          example: pelosi
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: year
-          in: query
-          description: Filter by transaction year
-          schema:
-            type: integer
-        - name: ticker
-          in: query
-          description: Filter by stock ticker
-          schema:
-            type: string
-        - name: transaction_type
-          in: query
-          description: Filter by transaction type
-          schema:
-            type: string
-            enum: [Purchase, Sale, Exchange]
-      responses:
-        '200':
-          description: List of member's transactions
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransactionListResponse'
-
-  /v1/members/{name}/assets:
-    get:
-      tags: [Members]
-      summary: Get member's current portfolio
-      description: |
-        Get current asset holdings from the member's most recent annual financial disclosure.
-        Automatically finds the latest Type A/B/C filing and returns Schedule A assets.
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: Member name (case-insensitive, partial match supported)
-          schema:
-            type: string
-          example: pelosi
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-        - name: asset_type
-          in: query
-          description: Filter by asset type
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Member's current portfolio
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MemberPortfolioResponse'
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
-          description: No annual filings found for member
-
-# ============================================================================
-# Components
-# ============================================================================
-
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /v1/network-graph:
+    get:
+      summary: Get network graph data
+      tags:
+      - Lobbying
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkGraphResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 components:
-  parameters:
-    Limit:
-      name: limit
-      in: query
-      description: Number of results per page (max 500)
-      schema:
-        type: integer
-        default: 50
-        minimum: 1
-        maximum: 500
-
-    Offset:
-      name: offset
-      in: query
-      description: Number of results to skip
-      schema:
-        type: integer
-        default: 0
-        minimum: 0
-
-    StartDate:
-      name: start_date
-      in: query
-      description: Start date (YYYY-MM-DD)
-      schema:
-        type: string
-        format: date
-
-    EndDate:
-      name: end_date
-      in: query
-      description: End date (YYYY-MM-DD)
-      schema:
-        type: string
-        format: date
-
   schemas:
-    Member:
-      type: object
-      properties:
-        bioguide_id:
-          type: string
-        first_name:
-          type: string
-        last_name:
-          type: string
-        party:
-          type: string
-          enum: [D, R, I]
-        state:
-          type: string
-        district:
-          type: string
-
-    Trade:
-      type: object
-      properties:
-        transaction_id:
-          type: string
-        bioguide_id:
-          type: string
-        ticker:
-          type: string
-        transaction_type:
-          type: string
-          enum: [Purchase, Sale, Exchange]
-        transaction_date:
-          type: string
-          format: date
-        amount:
-          type: number
-        filing_date:
-          type: string
-          format: date
-
-    MemberProfile:
-      allOf:
-        - $ref: '#/components/schemas/Member'
-        - type: object
-          properties:
-            trading_stats:
-              type: object
-              properties:
-                total_trades:
-                  type: integer
-                unique_stocks:
-                  type: integer
-                latest_trade_date:
-                  type: string
-                  format: date
-            recent_filings:
-              type: array
-              items:
-                type: object
-
-    StockSummary:
-      type: object
-      properties:
-        ticker:
-          type: string
-        statistics:
-          type: object
-          properties:
-            total_trades:
-              type: integer
-            unique_members:
-              type: integer
-            purchase_count:
-              type: integer
-            sale_count:
-              type: integer
-            latest_trade_date:
-              type: string
-              format: date
-        recent_trades:
-          type: array
-          items:
-            $ref: '#/components/schemas/Trade'
-
-    Pagination:
-      type: object
-      properties:
-        total:
-          type: integer
-        count:
-          type: integer
-        limit:
-          type: integer
-        offset:
-          type: integer
-        has_next:
-          type: boolean
-        has_prev:
-          type: boolean
-        next:
-          type: string
-          nullable: true
-        prev:
-          type: string
-          nullable: true
-
-    MemberListResponse:
-      type: object
+    APIResponse:
+      description: Standard API response wrapper
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
       properties:
         success:
+          description: Whether the request succeeded
+          title: Success
           type: boolean
         data:
+          description: Response payload
+          title: Data
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse
+      type: object
+    APIResponse_Bill_:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Bill'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[Bill]
+      type: object
+    APIResponse_DashboardSummary_:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/DashboardSummary'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[DashboardSummary]
+      type: object
+    APIResponse_Filing_:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Filing'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[Filing]
+      type: object
+    APIResponse_List_ComplianceMetric__:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          description: Response payload
+          items:
+            $ref: '#/components/schemas/ComplianceMetric'
+          title: Data
           type: array
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[List[api.lib.response_models.ComplianceMetric]]
+      type: object
+    APIResponse_List_Member__:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          description: Response payload
           items:
             $ref: '#/components/schemas/Member'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    TradeListResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
+          title: Data
           type: array
-          items:
-            $ref: '#/components/schemas/Trade'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    StockListResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: array
-          items:
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
             type: object
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    PortfolioResponse:
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[List[api.lib.response_models.Member]]
       type: object
+    APIResponse_List_TopTrader__:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
       properties:
         success:
+          description: Whether the request succeeded
+          title: Success
           type: boolean
         data:
-          type: object
-          properties:
-            bioguide_id:
-              type: string
-            holdings:
-              type: array
-              items:
-                type: object
-
-    SummaryResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: object
-
-    TopTradersResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: object
-          properties:
-            top_traders:
-              type: array
-              items:
-                type: object
-            count:
-              type: integer
-
-    TrendingStocksResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: object
-
-    SectorActivityResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: object
-
-    ComplianceResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: object
-
-    TimelineResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: object
-
-    SearchResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: object
-          properties:
-            query:
-              type: string
-            results:
-              type: object
-              properties:
-                members:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Member'
-                stocks:
-                  type: array
-                  items:
-                    type: object
-
-    FilingListResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: array
+          description: Response payload
           items:
+            $ref: '#/components/schemas/TopTrader'
+          title: Data
+          type: array
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
             type: object
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    FilingTransactionListResponse:
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[List[api.lib.response_models.TopTrader]]
       type: object
+    APIResponse_List_TrendingStock__:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
       properties:
         success:
+          description: Whether the request succeeded
+          title: Success
           type: boolean
         data:
-          type: array
+          description: Response payload
           items:
+            $ref: '#/components/schemas/TrendingStock'
+          title: Data
+          type: array
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
             type: object
-            properties:
-              doc_id:
-                type: string
-              transaction_date:
-                type: string
-                format: date
-              ticker:
-                type: string
-              asset_description:
-                type: string
-              asset_type:
-                type: string
-              transaction_type:
-                type: string
-              amount:
-                type: string
-              cap_gains_over_200:
-                type: boolean
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-        filings:
-          type: array
-          items:
-            $ref: '#/components/schemas/Filing'
-
-    AssetHoldingListResponse:
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[List[api.lib.response_models.TrendingStock]]
       type: object
+    APIResponse_Member_:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
       properties:
         success:
+          description: Whether the request succeeded
+          title: Success
           type: boolean
         data:
-          type: array
-          items:
+          $ref: '#/components/schemas/Member'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
             type: object
-            properties:
-              holding_key:
-                type: string
-              doc_id:
-                type: string
-              filing_year:
-                type: integer
-              filer_name:
-                type: string
-              state_district:
-                type: string
-              asset_name:
-                type: string
-              ticker:
-                type: string
-              asset_type:
-                type: string
-              owner:
-                type: string
-                description: Owner code (Self, SP, DC, JT)
-              value_range:
-                type: string
-                description: Disclosure value category (A-J)
-              income_type:
-                type: string
-              income_amount:
-                type: string
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    PositionListResponse:
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[Member]
       type: object
+    APIResponse_NetworkGraphData_:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
       properties:
         success:
+          description: Whether the request succeeded
+          title: Success
           type: boolean
         data:
-          type: array
-          items:
+          $ref: '#/components/schemas/NetworkGraphData'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
             type: object
-            properties:
-              position_key:
-                type: string
-              doc_id:
-                type: string
-              filing_year:
-                type: integer
-              filer_name:
-                type: string
-              state_district:
-                type: string
-              position_title:
-                type: string
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    TransactionListResponse:
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[NetworkGraphData]
       type: object
+    APIResponse_PaginatedResponse_Bill__:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
       properties:
         success:
+          description: Whether the request succeeded
+          title: Success
           type: boolean
         data:
-          type: array
-          items:
+          $ref: '#/components/schemas/PaginatedResponse_Bill_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
             type: object
-            properties:
-              transaction_key:
-                type: string
-              doc_id:
-                type: string
-              filing_year:
-                type: integer
-              filer_name:
-                type: string
-              state_district:
-                type: string
-              asset_name:
-                type: string
-              ticker:
-                type: string
-              asset_type:
-                type: string
-              transaction_type:
-                type: string
-                enum: [Purchase, Sale, Exchange]
-              transaction_date:
-                type: string
-                format: date
-              notification_date:
-                type: string
-                format: date
-              amount_range:
-                type: string
-              amount_low:
-                type: integer
-              amount_high:
-                type: integer
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    MemberPortfolioResponse:
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[PaginatedResponse[Bill]]
       type: object
+    APIResponse_PaginatedResponse_Filing__:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
       properties:
         success:
+          description: Whether the request succeeded
+          title: Success
           type: boolean
-        member:
-          type: string
-          description: Member name from filing
-        filing_doc_id:
-          type: string
-          description: Document ID of the latest annual filing
-        filing_year:
-          type: integer
-          description: Year of the latest annual filing
         data:
-          type: array
-          items:
+          $ref: '#/components/schemas/PaginatedResponse_Filing_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
             type: object
-            properties:
-              holding_key:
-                type: string
-              asset_name:
-                type: string
-              ticker:
-                type: string
-              asset_type:
-                type: string
-              owner:
-                type: string
-              value_range:
-                type: string
-              income_type:
-                type: string
-              income_amount:
-                type: string
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    S3Object:
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[PaginatedResponse[Filing]]
       type: object
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-          enum: [file, folder]
-        key:
-          type: string
-        size:
-          type: integer
-        lastModified:
-          type: string
-          format: date-time
-        url:
-          type: string
-
-    S3ObjectList:
-      type: object
-      properties:
-        layer:
-          type: string
-        prefix:
-          type: string
-        bucket:
-          type: string
-        folders:
-          type: array
-          items:
-            $ref: '#/components/schemas/S3Object'
-        files:
-          type: array
-          items:
-            $ref: '#/components/schemas/S3Object'
-        truncated:
-          type: boolean
-        keyCount:
-          type: integer
-        nextContinuationToken:
-          type: string
-
-    CostResponse:
-      type: object
-      properties:
-        start_date:
-          type: string
-          format: date
-        end_date:
-          type: string
-          format: date
-        last_updated:
-          type: string
-          format: date-time
-        total_period_cost:
-          type: number
-        daily_costs:
-          type: array
-          items:
-            type: object
-            properties:
-              date:
-                type: string
-                format: date
-              total_cost:
-                type: number
-              services:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    service:
-                      type: string
-                    cost:
-                      type: number
-
-    FilingDetail:
-      type: object
+    APIResponse_PaginatedResponse_Member__:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
       properties:
         success:
+          description: Whether the request succeeded
+          title: Success
           type: boolean
         data:
-          type: object
-
-    # Congress.gov Schemas
-    BillListResponse:
+          $ref: '#/components/schemas/PaginatedResponse_Member_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[PaginatedResponse[Member]]
       type: object
-      properties:
+    APIResponse_PaginatedResponse_Stock__:
+      example:
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Bill'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/PaginatedResponse_Stock_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[PaginatedResponse[Stock]]
+      type: object
+    APIResponse_PaginatedResponse_Transaction__:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/PaginatedResponse_Transaction_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[PaginatedResponse[Transaction]]
+      type: object
+    APIResponse_Stock_:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Stock'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[Stock]
+      type: object
+    APIResponse_Transaction_:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Transaction'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[Transaction]
+      type: object
+    APIResponse_VersionData_:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/VersionData'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: APIResponse[VersionData]
+      type: object
     Bill:
-      type: object
+      description: Congressional bill
+      example:
+        bill_id: 119-hr-1234
+        bill_number: 1234
+        bill_type: hr
+        congress: 119
+        cosponsors_count: 42
+        introduced_date: '2025-01-10'
+        sponsor_bioguide_id: C001117
+        sponsor_name: Crockett, Jasmine
+        sponsor_party: D
+        sponsor_state: TX
+        title: American Innovation Act of 2025
       properties:
         bill_id:
+          description: Unique bill ID (e.g., '119-hr-1234')
+          title: Bill Id
           type: string
-          example: "118-hr-1"
         congress:
+          description: Congress number (e.g., 119)
+          title: Congress
           type: integer
         bill_type:
-          type: string
+          $ref: '#/components/schemas/BillType'
+          description: Bill type (hr, s, etc.)
         bill_number:
+          description: Bill number
+          title: Bill Number
           type: integer
         title:
-          type: string
-        sponsor_name:
-          type: string
-        policy_area:
+          description: Bill title
+          title: Title
           type: string
         introduced_date:
-          type: string
-          format: date
-
-    BillDetail:
+          anyOf:
+          - format: date
+            type: string
+          - type: 'null'
+          default: null
+          description: Date introduced
+          title: Introduced Date
+        sponsor_bioguide_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Sponsor's bioguide ID
+          title: Sponsor Bioguide Id
+        sponsor_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Sponsor's name
+          title: Sponsor Name
+        sponsor_party:
+          anyOf:
+          - $ref: '#/components/schemas/Party'
+          - type: 'null'
+          default: null
+          description: Sponsor's party
+        sponsor_state:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Sponsor's state
+          title: Sponsor State
+        cosponsors_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Number of cosponsors
+          title: Cosponsors Count
+        actions_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Number of actions
+          title: Actions Count
+        congress_gov_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Congress.gov URL
+          title: Congress Gov Url
+      required:
+      - bill_id
+      - congress
+      - bill_type
+      - bill_number
+      - title
+      title: Bill
       type: object
-      properties:
-        bill:
-          $ref: '#/components/schemas/Bill'
-
-    CongressMemberListResponse:
-      type: object
-      properties:
+    BillResponse:
+      example:
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/CongressMember'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    CongressMember:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Bill'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: BillResponse
       type: object
+    BillType:
+      description: Congressional bill type
+      enum:
+      - hr
+      - s
+      - hjres
+      - sjres
+      - hconres
+      - sconres
+      - hres
+      - sres
+      title: BillType
+      type: string
+    BillsPaginatedResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/PaginatedResponse_Bill_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: BillsPaginatedResponse
+      type: object
+    BuildInfo:
+      description: Build information
+      properties:
+        timestamp:
+          description: Build timestamp (ISO 8601)
+          title: Timestamp
+          type: string
+        date:
+          description: Build date (YYYY-MM-DD)
+          title: Date
+          type: string
+      required:
+      - timestamp
+      - date
+      title: BuildInfo
+      type: object
+    Chamber:
+      description: Congressional chamber
+      enum:
+      - house
+      - senate
+      title: Chamber
+      type: string
+    ComplianceMetric:
+      description: Compliance metrics for a member
       properties:
         bioguide_id:
+          title: Bioguide Id
+          type: string
+        member_name:
+          title: Member Name
           type: string
         first_name:
           type: string
+          nullable: true
         last_name:
           type: string
-        party:
-          type: string
-        state:
-          type: string
-        chamber:
-          type: string
-          enum: [house, senate]
-
-    CongressMemberDetail:
-      type: object
-      properties:
-        member:
-          allOf:
-            - $ref: '#/components/schemas/CongressMember'
-            - type: object
-              properties:
-                bills_sponsored:
-                  type: integer
-                bills_cosponsored:
-                  type: integer
-                fd_transaction_count:
-                  type: integer
-
-    LegislationTradesResponse:
-      type: object
-      properties:
-        member:
-          $ref: '#/components/schemas/CongressMember'
-        bills_count:
+          nullable: true
+        total_filings:
+          title: Total Filings
           type: integer
-        bills:
-          type: array
-          items:
-            type: object
-            properties:
-              bill_id:
-                type: string
-              role:
-                type: string
-              trade_windows:
-                type: array
-                items:
-                  type: object
-        trades_in_windows:
+        on_time_filings:
+          title: On Time Filings
           type: integer
-
-    LegislativeExposureResponse:
+        late_filings:
+          title: Late Filings
+          type: integer
+        compliance_rate:
+          maximum: 1.0
+          minimum: 0.0
+          title: Compliance Rate
+          type: number
+        avg_days_late:
+          anyOf:
+          - type: number
+          - type: 'null'
+          default: null
+          title: Avg Days Late
+      required:
+      - bioguide_id
+      - member_name
+      - total_filings
+      - on_time_filings
+      - late_filings
+      - compliance_rate
+      title: ComplianceMetric
       type: object
-      properties:
-        ticker:
-          type: string
-        legislative_activity:
-          type: object
-          properties:
-            exposure_score:
-              type: integer
-            members_trading:
-              type: integer
-            total_transactions:
-              type: integer
-        trading_activity:
-          type: object
-
-    Error:
-      type: object
+    ComplianceResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
       properties:
         success:
+          description: Whether the request succeeded
+          title: Success
           type: boolean
-          example: false
+        data:
+          description: Response payload
+          items:
+            $ref: '#/components/schemas/ComplianceMetric'
+          title: Data
+          type: array
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
         error:
-          type: object
-          properties:
-            message:
-              type: string
-            code:
-              type: integer
-            details:
-              type: object
-
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: ComplianceResponse
+      type: object
+    DashboardResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/DashboardSummary'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: DashboardResponse
+      type: object
+    DashboardSummary:
+      description: Dashboard summary statistics
+      properties:
+        total_members:
+          title: Total Members
+          type: integer
+        total_trades:
+          title: Total Trades
+          type: integer
+        total_filings:
+          title: Total Filings
+          type: integer
+        total_bills:
+          title: Total Bills
+          type: integer
+        avg_trades_per_member:
+          title: Avg Trades Per Member
+          type: number
+        last_updated:
+          format: date-time
+          title: Last Updated
+          type: string
+      required:
+      - total_members
+      - total_trades
+      - total_filings
+      - total_bills
+      - avg_trades_per_member
+      - last_updated
+      title: DashboardSummary
+      type: object
+    ErrorDetail:
+      description: Error detail structure
+      example:
+        code: 404
+        details:
+          bioguide_id: C999999
+        message: Member not found
+      properties:
+        message:
+          description: Human-readable error message
+          title: Message
+          type: string
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          description: Error code (HTTP status or custom)
+          title: Code
+        details:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional error context
+          title: Details
+      required:
+      - message
+      - code
+      title: ErrorDetail
+      type: object
+    ErrorResponse:
+      properties:
+        success:
+          default: false
+          title: Success
+          type: boolean
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+      required:
+      - error
+      title: ErrorResponse
+      type: object
+    Filing:
+      description: Financial disclosure filing
+      example:
+        bioguide_id: C001117
+        doc_id: '10063228'
+        filing_date: '2025-01-15'
+        filing_type: P
+        filing_year: 2025
+        has_structured_data: true
+        member_name: Crockett, Jasmine
+        transaction_count: 12
+      properties:
+        doc_id:
+          description: Unique document ID
+          title: Doc Id
+          type: string
+        filing_type:
+          $ref: '#/components/schemas/FilingType'
+          description: Filing type (P, A, T, etc.)
+        filing_date:
+          description: Date filed
+          format: date
+          title: Filing Date
+          type: string
+        filing_year:
+          description: Year filed
+          title: Filing Year
+          type: integer
+        bioguide_id:
+          description: Member's bioguide ID
+          title: Bioguide Id
+          type: string
+        member_name:
+          description: Member's full name
+          title: Member Name
+          type: string
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+        pdf_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: URL to PDF filing
+          title: Pdf Url
+        has_structured_data:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          default: null
+          description: Whether structured extraction succeeded
+          title: Has Structured Data
+        transaction_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Number of transactions in filing
+          title: Transaction Count
+      required:
+      - doc_id
+      - filing_type
+      - filing_date
+      - filing_year
+      - bioguide_id
+      - member_name
+      title: Filing
+      type: object
+    FilingResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Filing'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: FilingResponse
+      type: object
+    FilingType:
+      description: Filing disclosure type
+      enum:
+      - P
+      - A
+      - T
+      - X
+      - D
+      - W
+      title: FilingType
+      type: string
+    FilingsPaginatedResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/PaginatedResponse_Filing_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: FilingsPaginatedResponse
+      type: object
+    GitInfo:
+      description: Git commit information
+      properties:
+        commit:
+          description: Full git commit hash
+          title: Commit
+          type: string
+        commit_short:
+          description: Short git commit hash (7 chars)
+          title: Commit Short
+          type: string
+        branch:
+          description: Git branch name
+          title: Branch
+          type: string
+        dirty:
+          default: false
+          description: Whether working tree had uncommitted changes
+          title: Dirty
+          type: boolean
+      required:
+      - commit
+      - commit_short
+      - branch
+      title: GitInfo
+      type: object
+    Member:
+      description: Congressional member
+      example:
+        bioguide_id: C001117
+        chamber: house
+        district: '30'
+        in_office: true
+        name: Crockett, Jasmine
+        party: D
+        state: TX
+        total_trades: 42
+        total_value_high: 650000
+        total_value_low: 150000
+      properties:
+        bioguide_id:
+          description: Unique bioguide ID (e.g., 'C001117')
+          title: Bioguide Id
+          type: string
+        name:
+          description: Full name (Last, First)
+          title: Name
+          type: string
+        first_name:
+          description: First name
+          title: First Name
+          type: string
+          nullable: true
+        last_name:
+          description: Last name
+          title: Last Name
+          type: string
+          nullable: true
+        party:
+          $ref: '#/components/schemas/Party'
+        state:
+          description: Two-letter state code
+          title: State
+          type: string
+        chamber:
+          $ref: '#/components/schemas/Chamber'
+          description: House or Senate
+        district:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: District number (House only)
+          title: District
+        in_office:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          default: null
+          description: Currently in office
+          title: In Office
+        total_trades:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Total trades filed
+          title: Total Trades
+        total_value_low:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Total value lower bound
+          title: Total Value Low
+        total_value_high:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Total value upper bound
+          title: Total Value High
+        trade_count_30d:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Trades in last 30 days
+          title: Trade Count 30D
+        trade_count_90d:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Trades in last 90 days
+          title: Trade Count 90D
+      required:
+      - bioguide_id
+      - name
+      - party
+      - state
+      - chamber
+      title: Member
+      type: object
+    MemberResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Member'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: MemberResponse
+      type: object
+    MembersListResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          description: Response payload
+          items:
+            $ref: '#/components/schemas/Member'
+          title: Data
+          type: array
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: MembersListResponse
+      type: object
+    MembersPaginatedResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/PaginatedResponse_Member_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: MembersPaginatedResponse
+      type: object
+    NetworkGraphData:
+      description: Network graph structure
+      properties:
+        nodes:
+          items:
+            $ref: '#/components/schemas/NetworkNode'
+          title: Nodes
+          type: array
+        links:
+          items:
+            $ref: '#/components/schemas/NetworkLink'
+          title: Links
+          type: array
+        aggregates:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          title: Aggregates
+      required:
+      - nodes
+      - links
+      title: NetworkGraphData
+      type: object
+    NetworkGraphResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/NetworkGraphData'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: NetworkGraphResponse
+      type: object
+    NetworkLink:
+      description: Link in network graph
+      properties:
+        source:
+          title: Source
+          type: string
+        target:
+          title: Target
+          type: string
+        value:
+          description: Link weight/strength
+          title: Value
+          type: number
+        type:
+          description: trades, sponsors, lobbies, etc.
+          title: Type
+          type: string
+      required:
+      - source
+      - target
+      - value
+      - type
+      title: NetworkLink
+      type: object
+    NetworkNode:
+      description: Node in network graph
+      properties:
+        id:
+          title: Id
+          type: string
+        label:
+          title: Label
+          type: string
+        type:
+          description: member, stock, bill, or lobbyist
+          title: Type
+          type: string
+        group:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: Group
+      required:
+      - id
+      - label
+      - type
+      title: NetworkNode
+      type: object
+    PaginatedResponse:
+      description: Paginated list response with metadata
+      example:
+        items:
+        - id: 1
+        - id: 2
+        pagination:
+          count: 2
+          has_next: true
+          has_prev: false
+          limit: 20
+          offset: 0
+          total: 100
+      properties:
+        items:
+          description: List of items in current page
+          items: {}
+          title: Items
+          type: array
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+          description: Pagination metadata
+      required:
+      - items
+      - pagination
+      title: PaginatedResponse
+      type: object
+    PaginatedResponse_Bill_:
+      example:
+        items:
+        - id: 1
+        - id: 2
+        pagination:
+          count: 2
+          has_next: true
+          has_prev: false
+          limit: 20
+          offset: 0
+          total: 100
+      properties:
+        items:
+          description: List of items in current page
+          items:
+            $ref: '#/components/schemas/Bill'
+          title: Items
+          type: array
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+          description: Pagination metadata
+      required:
+      - items
+      - pagination
+      title: PaginatedResponse[Bill]
+      type: object
+    PaginatedResponse_Filing_:
+      example:
+        items:
+        - id: 1
+        - id: 2
+        pagination:
+          count: 2
+          has_next: true
+          has_prev: false
+          limit: 20
+          offset: 0
+          total: 100
+      properties:
+        items:
+          description: List of items in current page
+          items:
+            $ref: '#/components/schemas/Filing'
+          title: Items
+          type: array
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+          description: Pagination metadata
+      required:
+      - items
+      - pagination
+      title: PaginatedResponse[Filing]
+      type: object
+    PaginatedResponse_Member_:
+      example:
+        items:
+        - id: 1
+        - id: 2
+        pagination:
+          count: 2
+          has_next: true
+          has_prev: false
+          limit: 20
+          offset: 0
+          total: 100
+      properties:
+        items:
+          description: List of items in current page
+          items:
+            $ref: '#/components/schemas/Member'
+          title: Items
+          type: array
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+          description: Pagination metadata
+      required:
+      - items
+      - pagination
+      title: PaginatedResponse[Member]
+      type: object
+    PaginatedResponse_Stock_:
+      example:
+        items:
+        - id: 1
+        - id: 2
+        pagination:
+          count: 2
+          has_next: true
+          has_prev: false
+          limit: 20
+          offset: 0
+          total: 100
+      properties:
+        items:
+          description: List of items in current page
+          items:
+            $ref: '#/components/schemas/Stock'
+          title: Items
+          type: array
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+          description: Pagination metadata
+      required:
+      - items
+      - pagination
+      title: PaginatedResponse[Stock]
+      type: object
+    PaginatedResponse_Transaction_:
+      example:
+        items:
+        - id: 1
+        - id: 2
+        pagination:
+          count: 2
+          has_next: true
+          has_prev: false
+          limit: 20
+          offset: 0
+          total: 100
+      properties:
+        items:
+          description: List of items in current page
+          items:
+            $ref: '#/components/schemas/Transaction'
+          title: Items
+          type: array
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+          description: Pagination metadata
+      required:
+      - items
+      - pagination
+      title: PaginatedResponse[Transaction]
+      type: object
+    PaginationMetadata:
+      description: Pagination metadata for list responses
+      example:
+        count: 20
+        has_next: true
+        has_prev: false
+        limit: 20
+        next: /v1/members?limit=20&offset=20
+        offset: 0
+        prev: null
+        total: 541
+      properties:
+        total:
+          description: Total number of records available
+          title: Total
+          type: integer
+        count:
+          description: Number of records in current page
+          title: Count
+          type: integer
+        limit:
+          description: Maximum records per page
+          title: Limit
+          type: integer
+        offset:
+          description: Offset from start (0-indexed)
+          title: Offset
+          type: integer
+        has_next:
+          description: Whether more pages exist
+          title: Has Next
+          type: boolean
+        has_prev:
+          description: Whether previous pages exist
+          title: Has Prev
+          type: boolean
+        next:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: URL for next page
+          title: Next
+        prev:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: URL for previous page
+          title: Prev
+      required:
+      - total
+      - count
+      - limit
+      - offset
+      - has_next
+      - has_prev
+      title: PaginationMetadata
+      type: object
+    Party:
+      description: Political party
+      enum:
+      - D
+      - R
+      - I
+      - L
+      title: Party
+      type: string
+    RuntimeInfo:
+      description: Lambda runtime information
+      properties:
+        function_name:
+          description: Lambda function name
+          title: Function Name
+          type: string
+        function_version:
+          description: Lambda function version
+          title: Function Version
+          type: string
+        aws_request_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: AWS request ID
+          title: Aws Request Id
+        memory_limit_mb:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Memory limit in MB
+          title: Memory Limit Mb
+      required:
+      - function_name
+      - function_version
+      title: RuntimeInfo
+      type: object
+    Stock:
+      description: Stock/asset information with trading activity
+      example:
+        name: NVIDIA Corporation
+        purchase_count: 52
+        sale_count: 35
+        sector: Technology
+        ticker: NVDA
+        total_value_high: 2500000
+        total_value_low: 500000
+        trade_count: 87
+      properties:
+        ticker:
+          description: Stock ticker symbol
+          title: Ticker
+          type: string
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Company/asset name
+          title: Name
+        trade_count:
+          description: Total trades of this stock
+          title: Trade Count
+          type: integer
+        purchase_count:
+          default: 0
+          description: Number of purchases
+          title: Purchase Count
+          type: integer
+        sale_count:
+          default: 0
+          description: Number of sales
+          title: Sale Count
+          type: integer
+        total_value_low:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Total value lower bound
+          title: Total Value Low
+        total_value_high:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Total value upper bound
+          title: Total Value High
+        bill_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Related bills count
+          title: Bill Count
+        sector:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Industry sector
+          title: Sector
+      required:
+      - ticker
+      - trade_count
+      title: Stock
+      type: object
+    StockResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Stock'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: StockResponse
+      type: object
+    StocksPaginatedResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/PaginatedResponse_Stock_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: StocksPaginatedResponse
+      type: object
+    TopTrader:
+      description: Top trading member
+      properties:
+        bioguide_id:
+          title: Bioguide Id
+          type: string
+        name:
+          title: Name
+          type: string
+        party:
+          $ref: '#/components/schemas/Party'
+        state:
+          title: State
+          type: string
+        chamber:
+          $ref: '#/components/schemas/Chamber'
+        total_trades:
+          title: Total Trades
+          type: integer
+        total_value_low:
+          title: Total Value Low
+          type: integer
+        total_value_high:
+          title: Total Value High
+          type: integer
+        recent_trades_30d:
+          title: Recent Trades 30D
+          type: integer
+      required:
+      - bioguide_id
+      - name
+      - party
+      - state
+      - chamber
+      - total_trades
+      - total_value_low
+      - total_value_high
+      - recent_trades_30d
+      title: TopTrader
+      type: object
+    TopTradersResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          description: Response payload
+          items:
+            $ref: '#/components/schemas/TopTrader'
+          title: Data
+          type: array
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: TopTradersResponse
+      type: object
+    Transaction:
+      description: Financial disclosure transaction
+      example:
+        amount_high: 15000
+        amount_low: 1001
+        asset_description: NVIDIA Corporation
+        bioguide_id: C001117
+        chamber: house
+        disclosure_date: '2025-01-15'
+        member_name: Crockett, Jasmine
+        party: D
+        state: TX
+        ticker: NVDA
+        transaction_date: '2025-01-10'
+        transaction_type: purchase
+      properties:
+        transaction_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Unique transaction ID
+          title: Transaction Id
+        disclosure_date:
+          description: Date transaction was disclosed
+          format: date
+          title: Disclosure Date
+          type: string
+        transaction_date:
+          description: Date transaction occurred
+          format: date
+          title: Transaction Date
+          type: string
+        ticker:
+          description: Stock ticker symbol
+          title: Ticker
+          type: string
+        asset_description:
+          description: Full asset description
+          title: Asset Description
+          type: string
+        transaction_type:
+          $ref: '#/components/schemas/TransactionType'
+          description: Purchase, sale, or exchange
+        amount_low:
+          description: Minimum transaction amount
+          title: Amount Low
+          type: integer
+        amount_high:
+          description: Maximum transaction amount
+          title: Amount High
+          type: integer
+        bioguide_id:
+          description: Member's bioguide ID
+          title: Bioguide Id
+          type: string
+        member_name:
+          description: Member's full name
+          title: Member Name
+          type: string
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+        party:
+          anyOf:
+          - $ref: '#/components/schemas/Party'
+          - type: 'null'
+          default: null
+          description: Member's party
+        state:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Member's state
+          title: State
+        chamber:
+          anyOf:
+          - $ref: '#/components/schemas/Chamber'
+          - type: 'null'
+          default: null
+          description: Member's chamber
+        owner:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Asset owner (self, spouse, dependent)
+          title: Owner
+        cap_gains_over_200:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          default: null
+          description: Capital gains > $200
+          title: Cap Gains Over 200
+      required:
+      - disclosure_date
+      - transaction_date
+      - ticker
+      - asset_description
+      - transaction_type
+      - amount_low
+      - amount_high
+      - bioguide_id
+      - member_name
+      title: Transaction
+      type: object
+    TransactionResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Transaction'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: TransactionResponse
+      type: object
+    TransactionType:
+      description: Financial transaction type
+      enum:
+      - purchase
+      - sale
+      - exchange
+      title: TransactionType
+      type: string
+    TransactionsPaginatedResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/PaginatedResponse_Transaction_'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: TransactionsPaginatedResponse
+      type: object
+    TrendingStock:
+      description: Trending stock with recent activity
+      properties:
+        ticker:
+          title: Ticker
+          type: string
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: Name
+        trade_count_7d:
+          description: Trades in last 7 days
+          title: Trade Count 7D
+          type: integer
+        trade_count_30d:
+          description: Trades in last 30 days
+          title: Trade Count 30D
+          type: integer
+        purchase_count:
+          default: 0
+          title: Purchase Count
+          type: integer
+        sale_count:
+          default: 0
+          title: Sale Count
+          type: integer
+        net_sentiment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: bullish, bearish, or neutral
+          title: Net Sentiment
+        unique_members:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          description: Unique members trading
+          title: Unique Members
+      required:
+      - ticker
+      - trade_count_7d
+      - trade_count_30d
+      title: TrendingStock
+      type: object
+    TrendingStocksResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          description: Response payload
+          items:
+            $ref: '#/components/schemas/TrendingStock'
+          title: Data
+          type: array
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: TrendingStocksResponse
+      type: object
+    VersionData:
+      description: API version information
+      example:
+        api_version: v1
+        build:
+          date: '2025-12-20'
+          timestamp: '2025-12-20T10:30:00Z'
+        git:
+          branch: main
+          commit: 33a4c83f1e2a3b4c5d6e7f8g9h0i1j2k3l4m5n6
+          commit_short: 33a4c83
+          dirty: false
+        runtime:
+          aws_request_id: abc-123-def-456
+          function_name: get_version
+          function_version: $LATEST
+          memory_limit_mb: 512
+        status: healthy
+        version: v20251220-33a4c83
+      properties:
+        version:
+          description: Version string (e.g., 'v20251220-33a4c83')
+          title: Version
+          type: string
+        git:
+          $ref: '#/components/schemas/GitInfo'
+        build:
+          $ref: '#/components/schemas/BuildInfo'
+          description: Build timestamp information
+        api_version:
+          default: v1
+          description: API version
+          title: Api Version
+          type: string
+        runtime:
+          $ref: '#/components/schemas/RuntimeInfo'
+        status:
+          default: healthy
+          description: API health status
+          title: Status
+          type: string
+      required:
+      - version
+      - git
+      - build
+      - runtime
+      title: VersionData
+      type: object
+    VersionResponse:
+      example:
+        data:
+          example: data
+        success: true
+        version: v20251220-33a4c83
+      properties:
+        success:
+          description: Whether the request succeeded
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/VersionData'
+          description: Response payload
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: API version (e.g., 'v20251220-33a4c83')
+          title: Version
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          default: null
+          description: Additional response metadata
+          title: Metadata
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+          default: null
+          description: Error details (if success=False)
+      required:
+      - success
+      - data
+      title: VersionResponse
+      type: object
   responses:
     BadRequest:
-      description: Bad request
+      description: Bad Request
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            success: false
-            error:
-              message: Invalid request parameters
-              code: 400
-
+            $ref: '#/components/schemas/ErrorResponse'
     NotFound:
-      description: Resource not found
+      description: Not Found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            success: false
-            error:
-              message: Resource not found
-              code: 404
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

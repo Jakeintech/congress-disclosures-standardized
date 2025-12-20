@@ -11,6 +11,12 @@ import os
 from pathlib import Path
 
 from api.lib import success_response, error_response
+from api.lib.response_models import (
+    VersionData,
+    GitInfo,
+    BuildInfo,
+    RuntimeInfo
+)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -70,27 +76,33 @@ def handler(event, context):
     """
     try:
         # Load version from bundled file
-        version_data = load_version_file()
+        version_file_data = load_version_file()
 
-        # Add runtime information
-        runtime_info = {
-            "function_name": context.function_name if context else "local",
-            "function_version": context.function_version if context else "local",
-            "aws_request_id": context.aws_request_id if context else None,
-            "memory_limit_mb": context.memory_limit_in_mb if context else None,
-        }
+        # Build Pydantic models for type safety
+        git_info = GitInfo(**version_file_data.get('git', {}))
+        build_info = BuildInfo(**version_file_data.get('build', {}))
+        runtime_info = RuntimeInfo(
+            function_name=context.function_name if context else "local",
+            function_version=context.function_version if context else "local",
+            aws_request_id=context.aws_request_id if context else None,
+            memory_limit_mb=context.memory_limit_in_mb if context else None,
+        )
 
-        # Combine version data with runtime info
-        response = {
-            **version_data,
-            "runtime": runtime_info,
-            "status": "healthy"
-        }
+        # Create type-safe version response
+        version_response = VersionData(
+            version=version_file_data.get('version', 'unknown'),
+            git=git_info,
+            build=build_info,
+            api_version=version_file_data.get('api_version', 'v1'),
+            runtime=runtime_info,
+            status="healthy"
+        )
 
-        logger.info(f"Version: {version_data.get('version', 'unknown')}")
+        logger.info(f"Version: {version_response.version}")
 
+        # Convert Pydantic model to dict for response_formatter
         return success_response(
-            response,
+            version_response.model_dump(),
             metadata={
                 "cache_seconds": 60  # Cache for 1 minute
             }

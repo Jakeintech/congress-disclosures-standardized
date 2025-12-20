@@ -15,12 +15,14 @@ echo "Generating version.json..."
 python3 scripts/generate_version.py --output build/version.json --pretty || echo '{"version": "unknown"}' > build/version.json
 echo "✓ Version generated"
 
-# Dynamically find all subdirectories in api/lambdas that contain a handler.py
-# This ensures ALL defined Lambdas are packaged
 echo "Finding API functions..."
-FUNCTIONS=($(find "$API_LAMBDA_DIR" -maxdepth 2 -name "handler.py" -exec dirname {} \; | xargs -n 1 basename | sort))
-
-echo "Found ${#FUNCTIONS[@]} API functions to package."
+if [ -n "$1" ]; then
+    FUNCTIONS=("$1")
+    echo "Using provided function: $1"
+else
+    FUNCTIONS=($(find "$API_LAMBDA_DIR" -maxdepth 2 -name "handler.py" -exec dirname {} \; | xargs -n 1 basename | sort))
+    echo "Found ${#FUNCTIONS[@]} API functions to package."
+fi
 
 for func in "${FUNCTIONS[@]}"; do
     echo "Processing $func..."
@@ -28,6 +30,9 @@ for func in "${FUNCTIONS[@]}"; do
     PKG_DIR="$BUILD_DIR/$func"
     rm -rf "$PKG_DIR"
     mkdir -p "$PKG_DIR"
+    
+    # Note: Dependencies like pydantic are now provided by Lambda Layer
+    # arn:aws:lambda:us-east-1:464813693153:layer:pydantic-2-10-4:1
     
     # Copy handler
     cp "$API_LAMBDA_DIR/$func/handler.py" "$PKG_DIR/"

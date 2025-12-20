@@ -6,13 +6,14 @@ List all stocks with trading activity.
 
 import os
 import logging
+from urllib.parse import urlencode
 from api.lib import (
     ParquetQueryBuilder,
     success_response,
     error_response,
-    parse_pagination_params,
-    build_pagination_response
+    parse_pagination_params
 )
+from api.lib.response_models import Stock, PaginationMetadata, PaginatedResponse
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -53,19 +54,61 @@ def handler(event, context):
         total_count = len(stocks_df)
         
         # Apply pagination
-        stocks_df = stocks_df.iloc[offset:offset + limit]
-        stocks_list = stocks_df.to_dict('records')
+        paged_df = stocks_df.iloc[offset:offset + limit]
+        stocks_data = paged_df.to_dict('records')
         
-        response = build_pagination_response(
-            data=stocks_list,
-            total_count=total_count,
+        # Map to Pydantic models
+        stocks = []
+        for row in stocks_data:
+            try:
+                stocks.append(Stock(
+                    ticker=row['ticker'],
+                    trade_count=int(row['total_trades']),
+                    purchase_count=int(row.get('purchase_count', 0)),
+                    sale_count=int(row.get('sale_count', 0))
+                    # Note: company name and sector might require a join with dim_assets/dim_stocks
+                    # which is not currently in the handler. To be consistent with existing API
+                    # we only return what was aggregated.
+                ))
+            except Exception as e:
+                logger.warning(f"Error mapping stock {row.get('ticker')}: {e}")
+                continue
+
+        # Build pagination metadata
+        has_next = (offset + len(stocks)) < total_count
+        has_prev = offset > 0
+        
+        base_url = "/v1/stocks"
+        other_params = {k: v for k, v in query_params.items() if k not in ['limit', 'offset']}
+        
+        next_url = None
+        if has_next:
+            next_params = {**other_params, 'limit': limit, 'offset': offset + limit}
+            next_url = f"{base_url}?{urlencode(next_params)}"
+            
+        prev_url = None
+        if has_prev:
+            prev_offset = max(0, offset - limit)
+            prev_params = {**other_params, 'limit': limit, 'offset': prev_offset}
+            prev_url = f"{base_url}?{urlencode(prev_params)}"
+
+        pagination = PaginationMetadata(
+            total=total_count,
+            count=len(stocks),
             limit=limit,
             offset=offset,
-            base_url='/v1/stocks',
-            query_params={k: v for k, v in query_params.items() if k not in ['limit', 'offset']}
+            has_next=has_next,
+            has_prev=has_prev,
+            next=next_url,
+            prev=prev_url
         )
         
-        return success_response(response)
+        paginated = PaginatedResponse(
+            items=stocks,
+            pagination=pagination
+        )
+        
+        return success_response(paginated.model_dump())
     
     except Exception as e:
         logger.error(f"Error: {e}", exc_info=True)

@@ -10,6 +10,7 @@
     "test": "vitest",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
+    "test:components": "vitest run src/components",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },

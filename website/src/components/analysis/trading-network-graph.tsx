@@ -248,11 +248,32 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                 setSelectedEdge(d);
             });
 
-        // Draw edge labels
+
+        // Draw edge labels with deduplication
+        // Group edges by source-target pair to prevent overlapping labels
+        const edgeGroupMap = new Map<string, any[]>();
+        links.forEach((link: any) => {
+            const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+            const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+            const key = `${sourceId}-${targetId}`;
+
+            if (!edgeGroupMap.has(key)) {
+                edgeGroupMap.set(key, []);
+            }
+            edgeGroupMap.get(key)!.push(link);
+        });
+
+        // For each group, keep only the highest-value edge for labeling
+        const representativeEdges = Array.from(edgeGroupMap.values()).map(group => {
+            return group.reduce((max, edge) =>
+                (edge.value || 0) > (max.value || 0) ? edge : max
+            );
+        });
+
         const edgeLabels = g.append('g')
             .attr('class', 'edge-labels')
             .selectAll('g')
-            .data(links)
+            .data(representativeEdges)
             .join('g')
             .attr('class', 'edge-label-group')
             .style('pointer-events', 'none');
@@ -265,10 +286,14 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             .attr('stroke', (d: any) => getEdgeColor(d.type))
             .attr('stroke-width', 1.5)
             .style('opacity', (d: any) => {
-                if (!edgeLabelsVisible && hoveredEdge !== d) return 0;
+                // Show label only if:
+                // 1. It's the hovered edge, OR
+                // 2. Edge labels are toggled on AND zoom >= 2.0 AND value >= $100K
                 if (hoveredEdge === d) return 1;
-                if (currentZoom < 1.5 && d.value < 50000) return 0;
-                return edgeLabelsVisible ? 0.95 : 0;
+                if (!edgeLabelsVisible) return 0;
+                if (currentZoom < 2.0) return 0;
+                if ((d.value || 0) < 100000) return 0;
+                return 0.95;
             })
             .style('transition', 'opacity 0.3s ease');
 
@@ -280,10 +305,11 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             .style('font-weight', '600')
             .style('fill', '#fff')
             .style('opacity', (d: any) => {
-                if (!edgeLabelsVisible && hoveredEdge !== d) return 0;
                 if (hoveredEdge === d) return 1;
-                if (currentZoom < 1.5 && d.value < 50000) return 0;
-                return edgeLabelsVisible ? 1 : 0;
+                if (!edgeLabelsVisible) return 0;
+                if (currentZoom < 2.0) return 0;
+                if ((d.value || 0) < 100000) return 0;
+                return 1;
             })
             .style('transition', 'opacity 0.3s ease')
             .text((d: any) => getRelationshipLabel(d.type));
@@ -401,9 +427,15 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             .style('opacity', labelsVisible ? 1 : 0)
             .style('transition', 'opacity 0.3s ease');
 
-        // Tooltip
+        // Tooltip - use singleton pattern to prevent multiple instances
+        // Check if tooltip already exists
+        const existingTooltip = document.querySelector('.network-graph-tooltip');
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
+
         const tooltip = d3.select('body').append('div')
-            .attr('class', 'absolute hidden bg-gray-900/95 backdrop-blur-sm text-white text-sm p-3 rounded-lg shadow-xl z-50 border border-gray-700')
+            .attr('class', 'network-graph-tooltip absolute hidden bg-gray-900/95 backdrop-blur-sm text-white text-sm p-3 rounded-lg shadow-xl z-50 border border-gray-700')
             .style('pointer-events', 'none')
             .style('max-width', '300px');
 

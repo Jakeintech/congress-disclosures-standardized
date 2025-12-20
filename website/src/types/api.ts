@@ -304,7 +304,7 @@ export interface PaginatedRelatedBills {
 }
 
 export interface PaginatedBillCommittees {
-  committees: any[];
+  committees: Committee[];
   count: number;
 }
 

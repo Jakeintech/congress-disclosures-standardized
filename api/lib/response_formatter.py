@@ -4,9 +4,40 @@ Response formatting utilities for Congressional Trading API
 Provides consistent JSON response structure with CORS headers.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Union
 import json
 import math
+
+
+def clean_nan_values(data: Union[Dict, List, Any]) -> Union[Dict, List, Any]:
+    """
+    Recursively clean NaN/Inf values from data structures.
+    This should be called on dataframe.to_dict('records') output before serialization.
+    
+    Args:
+        data: Dict, list, or scalar value to clean
+        
+    Returns:
+        Cleaned data with NaN/Inf replaced by None
+    """
+    if isinstance(data, dict):
+        return {k: clean_nan_values(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [clean_nan_values(item) for item in data]
+    elif isinstance(data, float):
+        if math.isnan(data) or math.isinf(data):
+            return None
+        return data
+    elif hasattr(data, '__class__') and 'numpy' in str(data.__class__):
+        # Handle numpy types
+        try:
+            float_val = float(data)
+            if math.isnan(float_val) or math.isinf(float_val):
+                return None
+            return float_val
+        except (TypeError, ValueError):
+            return data
+    return data
 
 class NaNToNoneEncoder(json.JSONEncoder):
     """Encodes NaN/Inf floats as null for valid JSON output."""

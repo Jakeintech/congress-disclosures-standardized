@@ -145,6 +145,8 @@ export async function fetchBillDetail(billId: string) {
         text_versions: result.text_versions,
         subjects: result.subjects,
         titles: result.titles,
+        committees: result.committees,
+        related_bills: result.related_bills,
         congress_gov_url: result.congress_gov_url || `https://www.congress.gov/bill/${result.bill?.congress}th-congress/${result.bill?.bill_type === 'hr' ? 'house-bill' : 'senate-bill'}/${result.bill?.bill_number}`
     };
 }
@@ -674,5 +676,20 @@ export async function fetchBillActions(billId: string): Promise<PaginatedBillAct
     } catch (e) {
         console.warn("Failed to fetch bill actions", e);
         return { actions: [], count: 0 };
+    }
+}
+
+/**
+ * Fetch recent activity across trades, bills, and lobbying
+ */
+export async function fetchRecentActivity(): Promise<any[]> {
+    try {
+        const raw = await fetchApi<{ activity?: any[] }>(
+            `${API_BASE}/v1/analytics/activity`
+        );
+        return raw.activity || [];
+    } catch (e) {
+        console.warn("Failed to fetch recent activity", e);
+        return [];
     }
 }

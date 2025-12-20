@@ -25,6 +25,12 @@ resource "aws_lambda_layer_version" "api_duckdb_layer" {
 # API Lambda Functions
 # ============================================================================
 
+# Data source for Congress API key
+data "aws_ssm_parameter" "congress_api_key" {
+  name            = local.ssm_congress_api_key_param
+  with_decryption = true
+}
+
 # Common Lambda configuration for API handlers
 locals {
   api_lambda_config = {
@@ -38,7 +44,7 @@ locals {
     environment_variables = {
       S3_BUCKET_NAME        = aws_s3_bucket.data_lake.id
       LOG_LEVEL             = "INFO"
-      CONGRESS_GOV_API_KEY  = var.congress_gov_api_key
+      CONGRESS_GOV_API_KEY  = data.aws_ssm_parameter.congress_api_key.value
     }
   }
 
@@ -67,6 +73,7 @@ locals {
     "get_trading_timeline"  = { route = "GET /v1/analytics/trading-timeline" }
     "get_summary"           = { route = "GET /v1/analytics/summary" }
     "get_network_graph"     = { route = "GET /v1/analytics/network-graph" }
+    "get_recent_activity"   = { route = "GET /v1/analytics/activity" }
 
     # Advanced Analytics (God Mode) endpoints
     "get_congressional_alpha"      = { route = "GET /v1/analytics/alpha" }
@@ -99,9 +106,9 @@ locals {
 
     # Committee endpoints
     "get_congress_committees" = { route = "GET /v1/congress/committees" }
-    "get_congress_committee"  = { route = "GET /v1/congress/committees/{code}" }
-    "get_committee_bills"     = { route = "GET /v1/congress/committees/{code}/bills" }
-    "get_committee_members"   = { route = "GET /v1/congress/committees/{code}/members" }
+    "get_congress_committee"  = { route = "GET /v1/congress/committees/{chamber}/{code}" }
+    "get_committee_bills"     = { route = "GET /v1/congress/committees/{chamber}/{code}/bills" }
+    "get_committee_members"   = { route = "GET /v1/congress/committees/{chamber}/{code}/members" }
 
     # Cross-domain Analytics endpoints (shortened names for 64 char limit)
     "get_member_leg_trades"   = { route = "GET /v1/analytics/members/{bioguide_id}/legislation-trades" }

@@ -13,6 +13,7 @@ import { TopStocksChart } from '@/components/dashboard/top-stocks-chart';
 import { StockLogo } from '@/components/ui/stock-logo';
 import { useDashboardSummary, useTrendingStocks, useTopTraders } from '@/hooks/use-api';
 import { DataContainer } from '@/components/ui/data-container';
+import { RecentActivityFeed } from '@/components/dashboard/recent-activity-feed';
 
 interface DashboardData {
   totalMembers?: number;
@@ -152,6 +153,11 @@ function DashboardPage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <TradingVolumeChart loading={loading} />
               <TopStocksChart data={trendingStocks} loading={loading} />
+            </div>
+
+            {/* Recent Activity Section */}
+            <div>
+              <RecentActivityFeed />
             </div>
 
             {/* Two Column Layout */}

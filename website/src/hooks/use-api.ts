@@ -28,6 +28,7 @@ import {
     fetchMembers,
     fetchLobbyingNetwork,
     fetchTripleCorrelations,
+    fetchRecentActivity,
 } from '@/lib/api';
 import type {
     BillsParams,
@@ -40,6 +41,7 @@ import type {
     BillTitle,
     Amendment,
     RelatedBill,
+    Committee,
 } from '@/types/api';
 
 /**
@@ -244,11 +246,12 @@ export function useBillSummaries(billId: string, initialData?: BillSummary[]) {
 /**
  * Hook to fetch bill committees.
  */
-export function useBillCommittees(billId: string) {
+export function useBillCommittees(billId: string, initialData?: Committee[]) {
     return useQuery({
         queryKey: ['bill-committees', billId],
         queryFn: () => fetchBillCommittees(billId),
         enabled: !!billId,
+        initialData: initialData ? { committees: initialData, count: initialData.length } : undefined,
     });
 }
 
@@ -336,5 +339,16 @@ export function useTripleCorrelations(params: {
     return useQuery({
         queryKey: ['triple-correlations', params],
         queryFn: () => fetchTripleCorrelations(params),
+    });
+}
+
+/**
+ * Hook to fetch recent activity feed.
+ */
+export function useRecentActivity() {
+    return useQuery({
+        queryKey: ['recent-activity'],
+        queryFn: () => fetchRecentActivity(),
+        refetchInterval: 30000, // Refetch every 30 seconds for live feel
     });
 }

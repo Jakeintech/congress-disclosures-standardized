@@ -121,6 +121,8 @@ locals {
     LAMBDA_HOUSE_FD_INDEX_TO_SILVER   = aws_lambda_function.index_to_silver.function_name
     LAMBDA_HOUSE_FD_EXTRACT_DOCUMENT  = aws_lambda_function.extract_document.function_name
     LAMBDA_HOUSE_FD_EXTRACT_STRUCTURED = "${local.name_prefix}-extract-structured-code"
+    LAMBDA_CONSOLIDATE_TABULAR        = "${local.name_prefix}-consolidate-tabular"
+    LAMBDA_CONSOLIDATE_CACHE          = "${local.name_prefix}-consolidate-cache"
     
     # ============================================================
     # CONGRESS PIPELINE LAMBDAS

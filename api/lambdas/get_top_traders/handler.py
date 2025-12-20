@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import duckdb
-from api.lib import success_response, error_response
+from api.lib import success_response, error_response, clean_nan_values
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -68,16 +68,16 @@ def handler(event, context):
                     state,
                     chamber,
                     COUNT(*) AS total_transactions,
-                    SUM((amount_low + amount_high) / 2.0) AS total_volume,
+                    COALESCE(SUM((amount_low + amount_high) / 2.0), 0) AS total_volume,
                     SUM(CASE WHEN transaction_type = 'Purchase' THEN 1 ELSE 0 END) AS purchases,
                     SUM(CASE WHEN transaction_type = 'Sale' THEN 1 ELSE 0 END) AS sales,
-                    SUM(CASE WHEN transaction_type = 'Purchase' THEN (amount_low + amount_high) / 2.0 ELSE 0 END) AS buy_volume,
-                    SUM(CASE WHEN transaction_type = 'Sale' THEN (amount_low + amount_high) / 2.0 ELSE 0 END) AS sell_volume,
+                    COALESCE(SUM(CASE WHEN transaction_type = 'Purchase' THEN (amount_low + amount_high) / 2.0 ELSE 0 END), 0) AS buy_volume,
+                    COALESCE(SUM(CASE WHEN transaction_type = 'Sale' THEN (amount_low + amount_high) / 2.0 ELSE 0 END), 0) AS sell_volume,
                     COUNT(DISTINCT ticker) AS unique_stocks,
                     MIN(transaction_date) AS first_trade_date,
                     MAX(transaction_date) AS last_trade_date,
                     -- Compliance metrics
-                    AVG(CASE WHEN CAST((CAST(filing_date AS DATE) - CAST(transaction_date AS DATE)) AS INTEGER) <= 45 THEN 1.0 ELSE 0.0 END) AS compliance_rate
+                    COALESCE(AVG(CASE WHEN CAST((CAST(filing_date AS DATE) - CAST(transaction_date AS DATE)) AS INTEGER) <= 45 THEN 1.0 ELSE 0.0 END), 0) AS compliance_rate
                 FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
                 WHERE {where_sql}
                     AND bioguide_id IS NOT NULL
@@ -87,7 +87,7 @@ def handler(event, context):
                 SELECT
                     *,
                     ROW_NUMBER() OVER (ORDER BY {sort_col} DESC) AS rank,
-                    buy_volume - sell_volume AS net_volume,
+                    COALESCE(buy_volume - sell_volume, 0) AS net_volume,
                     CASE
                         WHEN total_volume > 0 THEN (buy_volume - sell_volume) / total_volume
                         ELSE 0
@@ -102,14 +102,15 @@ def handler(event, context):
         logger.info(f"Querying top traders: days={days}, limit={limit}, metric={metric}")
         result_df = conn.execute(query).fetchdf()
 
-        traders = result_df.to_dict('records')
+        # Clean NaN values before serialization
+        traders = clean_nan_values(result_df.to_dict('records'))
 
         # Get party breakdown
         party_query = f"""
             SELECT
                 party,
                 COUNT(DISTINCT bioguide_id) AS member_count,
-                SUM((amount_low + amount_high) / 2.0) AS total_volume
+                COALESCE(SUM((amount_low + amount_high) / 2.0), 0) AS total_volume
             FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
             WHERE {where_sql}
                 AND bioguide_id IS NOT NULL
@@ -117,7 +118,7 @@ def handler(event, context):
             ORDER BY total_volume DESC
         """
 
-        party_stats = conn.execute(party_query).fetchdf().to_dict('records')
+        party_stats = clean_nan_values(conn.execute(party_query).fetchdf().to_dict('records'))
 
         response = {
             'days': days,

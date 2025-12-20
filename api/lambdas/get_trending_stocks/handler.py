@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import duckdb
-from api.lib import success_response, error_response
+from api.lib import success_response, error_response, clean_nan_values
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -52,12 +52,12 @@ def handler(event, context):
             SELECT
                 ticker,
                 name,
-                trade_count AS total_transactions,
-                total_volume_usd AS total_volume,
-                buy_count,
-                sell_count,
-                net_sentiment AS sentiment_score,
-                unique_members,
+                COALESCE(trade_count, 0) AS total_transactions,
+                COALESCE(total_volume_usd, 0) AS total_volume,
+                COALESCE(buy_count, 0) AS buy_count,
+                COALESCE(sell_count, 0) AS sell_count,
+                COALESCE(net_sentiment, 0) AS sentiment_score,
+                COALESCE(unique_members, 0) AS unique_members,
                 period_start,
                 period_end
             FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet')
@@ -71,7 +71,8 @@ def handler(event, context):
         # Note: top_movers feature requires historical window data which isn't currently stored
         top_movers = []
 
-        stocks = result_df.to_dict('records')
+        # Clean NaN values before serialization
+        stocks = clean_nan_values(result_df.to_dict('records'))
 
         response = {
             'time_window': time_window,

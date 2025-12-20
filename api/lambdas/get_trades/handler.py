@@ -8,6 +8,7 @@ import logging
 import os
 import duckdb
 from typing import List, Dict, Any
+from api.lib import success_response, error_response, clean_nan_values
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -115,9 +116,9 @@ def handler(event, context):
                 ticker,
                 asset_description AS asset_name,
                 transaction_type,
-                amount_low,
-                amount_high,
-                (amount_low + amount_high) / 2.0 AS amount_midpoint,
+                COALESCE(amount_low, 0) AS amount_low,
+                COALESCE(amount_high, 0) AS amount_high,
+                COALESCE((amount_low + amount_high) / 2.0, 0) AS amount_midpoint,
                 comment,
                 bioguide_id,
                 filer_name AS full_name,
@@ -135,7 +136,8 @@ def handler(event, context):
         logger.info(f"Querying trades: limit={limit}, offset={offset}, total={total_count}")
         result_df = conn.execute(query).fetchdf()
 
-        trades = result_df.to_dict('records')
+        # Clean NaN values before serialization
+        trades = clean_nan_values(result_df.to_dict('records'))
 
         # Build pagination metadata
         has_next = (offset + limit) < total_count
@@ -170,26 +172,12 @@ def handler(event, context):
             }
         }
 
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'public, max-age=300'  # Cache for 5 minutes
-            },
-            'body': json.dumps(response, default=str)
-        }
+        return success_response(response)
 
     except Exception as e:
         logger.error(f"Error retrieving trades: {str(e)}", exc_info=True)
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'error': 'Failed to retrieve trades',
-                'details': str(e)
-            })
-        }
+        return error_response(
+            message="Failed to retrieve trades",
+            status_code=500,
+            details=str(e)
+        )

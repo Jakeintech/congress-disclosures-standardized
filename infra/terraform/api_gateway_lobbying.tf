@@ -59,6 +59,12 @@ resource "aws_apigatewayv2_route" "get_bill_lob_activity" {
   target    = "integrations/${aws_apigatewayv2_integration.get_bill_lob_activity.id}"
 }
 
+resource "aws_apigatewayv2_route" "get_bill_lob_activity_standardized" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{congress}/{type}/{number}/lobbying"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_lob_activity.id}"
+}
+
 resource "aws_apigatewayv2_integration" "get_bill_lob_activity" {
   api_id           = aws_apigatewayv2_api.congress_api.id
   integration_type = "AWS_PROXY"

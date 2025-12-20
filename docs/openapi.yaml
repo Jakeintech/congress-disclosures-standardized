@@ -66,7 +66,7 @@ paths:
           $ref: '#/components/responses/InternalError'
   /v1/congress/bills/{bill_id}:
     get:
-      summary: Get bill details
+      summary: Get bill details (Legacy ID format)
       tags:
       - Bills
       responses:
@@ -88,9 +88,47 @@ paths:
         required: true
         schema:
           type: string
+          example: "118-hr-1"
+  /v1/congress/bills/{congress}/{type}/{number}:
+    get:
+      summary: Get bill details (Standardized format)
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: congress
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 118
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+          example: "hr"
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 1
   /v1/congress/bills/{bill_id}/actions:
     get:
-      summary: Get bill actions
+      summary: Get bill actions (Legacy ID format)
       tags:
       - Bills
       responses:
@@ -112,6 +150,40 @@ paths:
         required: true
         schema:
           type: string
+  /v1/congress/bills/{congress}/{type}/{number}/actions:
+    get:
+      summary: Get bill actions (Standardized format)
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: congress
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
   /v1/congress/bills/{bill_id}/amendments:
     get:
       summary: Get bill amendments
@@ -138,7 +210,7 @@ paths:
           type: string
   /v1/congress/bills/{bill_id}/cosponsors:
     get:
-      summary: Get bill cosponsors
+      summary: Get bill cosponsors (Legacy ID format)
       tags:
       - Bills
       responses:
@@ -160,6 +232,40 @@ paths:
         required: true
         schema:
           type: string
+  /v1/congress/bills/{congress}/{type}/{number}/cosponsors:
+    get:
+      summary: Get bill cosponsors (Standardized format)
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: congress
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
   /v1/congress/bills/{bill_id}/subjects:
     get:
       summary: Get bill subjects/topics
@@ -258,7 +364,7 @@ paths:
           type: string
   /v1/congress/bills/{bill_id}/committees:
     get:
-      summary: Get bill committees
+      summary: Get bill committees (Legacy ID format)
       tags:
       - Bills
       responses:
@@ -280,9 +386,43 @@ paths:
         required: true
         schema:
           type: string
+  /v1/congress/bills/{congress}/{type}/{number}/committees:
+    get:
+      summary: Get bill committees (Standardized format)
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: congress
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
   /v1/congress/bills/{bill_id}/lobbying:
     get:
-      summary: Get lobbying activity for bill
+      summary: Get lobbying activity for bill (Legacy ID format)
       tags:
       - Bills
       responses:
@@ -304,6 +444,40 @@ paths:
         required: true
         schema:
           type: string
+  /v1/congress/bills/{congress}/{type}/{number}/lobbying:
+    get:
+      summary: Get lobbying activity for bill (Standardized format)
+      tags:
+      - Bills
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: congress
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
   /v1/congress/bills/{bill_id}/related:
     get:
       summary: Get related bills

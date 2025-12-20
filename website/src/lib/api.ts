@@ -112,7 +112,8 @@ export async function fetchBillDetail(billId: string) {
     }
 
     // Fallback to API
-    const rawData = await fetchApi<{ data?: any }>(`${API_BASE}/v1/congress/bills/${billId}`);
+    const url = `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}`;
+    const rawData = await fetchApi<{ data?: any }>(url);
     const result = rawData.data || rawData;
 
     // Sanitize response to ensure no missing fields crash the UI
@@ -283,7 +284,7 @@ export async function fetchTopTraders(limit = 10): Promise<TopTrader[]> {
  */
 export async function fetchBillLobbyingActivity(billId: string): Promise<LobbyingActivity | null> {
     const raw = await fetchApi<{ data?: LobbyingActivity }>(
-        `${API_BASE}/v1/lobbying/bills/${billId}/lobbying-activity`
+        `${API_BASE}/v1/congress/bills/${billId}/lobbying`
     );
     return raw.data || (raw as unknown as LobbyingActivity) || null;
 }
@@ -496,6 +497,7 @@ export async function fetchMemberAssets(bioguideId: string): Promise<PortfolioHo
  */
 export async function fetchBillText(billId: string) {
     try {
+        const [congress, billType, billNumber] = billId.toLowerCase().split('-');
         const raw = await fetchApi<{
             data?: {
                 text_url?: string,
@@ -509,7 +511,7 @@ export async function fetchBillText(billId: string) {
                 content_url?: string
             }
         }>(
-            `${API_BASE}/v1/congress/bills/${billId}/text`
+            `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}/text`
         );
         const result = raw.data || raw;
         // @ts-ignore - handling both wrapped and unwrapped
@@ -600,9 +602,10 @@ export async function fetchCommitteeReports(chamber: string, committeeCode: stri
  * Fetch bill committees
  */
 export async function fetchBillCommittees(billId: string): Promise<PaginatedBillCommittees> {
+    const [congress, billType, billNumber] = billId.toLowerCase().split('-');
     try {
         const raw = await fetchApi<{ data?: PaginatedBillCommittees } & Partial<PaginatedBillCommittees>>(
-            `${API_BASE}/v1/congress/bills/${billId}/committees`
+            `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}/committees`
         );
         if (raw.data) return raw.data;
         if (raw.committees) return { committees: raw.committees, count: raw.count || 0 };
@@ -617,9 +620,10 @@ export async function fetchBillCommittees(billId: string): Promise<PaginatedBill
  * Fetch bill cosponsors
  */
 export async function fetchBillCosponsors(billId: string): Promise<PaginatedBillCosponsors> {
+    const [congress, billType, billNumber] = billId.toLowerCase().split('-');
     try {
         const raw = await fetchApi<{ data?: PaginatedBillCosponsors } & Partial<PaginatedBillCosponsors>>(
-            `${API_BASE}/v1/congress/bills/${billId}/cosponsors`
+            `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}/cosponsors`
         );
         if (raw.data) return raw.data;
         if (raw.cosponsors) return { cosponsors: raw.cosponsors, count: raw.count || 0 };
@@ -634,9 +638,10 @@ export async function fetchBillCosponsors(billId: string): Promise<PaginatedBill
  * Fetch bill subjects
  */
 export async function fetchBillSubjects(billId: string): Promise<PaginatedBillSubjects> {
+    const [congress, billType, billNumber] = billId.toLowerCase().split('-');
     try {
         const raw = await fetchApi<{ data?: PaginatedBillSubjects } & Partial<PaginatedBillSubjects>>(
-            `${API_BASE}/v1/congress/bills/${billId}/subjects`
+            `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}/subjects`
         );
         if (raw.data) return raw.data;
         if (raw.subjects) return { subjects: raw.subjects, count: raw.count || 0 };
@@ -651,9 +656,10 @@ export async function fetchBillSubjects(billId: string): Promise<PaginatedBillSu
  * Fetch bill summaries
  */
 export async function fetchBillSummaries(billId: string): Promise<PaginatedBillSummaries> {
+    const [congress, billType, billNumber] = billId.toLowerCase().split('-');
     try {
         const raw = await fetchApi<{ data?: PaginatedBillSummaries } & Partial<PaginatedBillSummaries>>(
-            `${API_BASE}/v1/congress/bills/${billId}/summaries`
+            `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}/summaries`
         );
         if (raw.data) return raw.data;
         if (raw.summaries) return { summaries: raw.summaries, count: raw.count || 0 };
@@ -668,9 +674,10 @@ export async function fetchBillSummaries(billId: string): Promise<PaginatedBillS
  * Fetch bill titles
  */
 export async function fetchBillTitles(billId: string): Promise<PaginatedBillTitles> {
+    const [congress, billType, billNumber] = billId.toLowerCase().split('-');
     try {
         const raw = await fetchApi<{ data?: PaginatedBillTitles } & Partial<PaginatedBillTitles>>(
-            `${API_BASE}/v1/congress/bills/${billId}/titles`
+            `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}/titles`
         );
         if (raw.data) return raw.data;
         if (raw.titles) return { titles: raw.titles, count: raw.count || 0 };
@@ -685,9 +692,10 @@ export async function fetchBillTitles(billId: string): Promise<PaginatedBillTitl
  * Fetch bill amendments
  */
 export async function fetchBillAmendments(billId: string): Promise<PaginatedBillAmendments> {
+    const [congress, billType, billNumber] = billId.toLowerCase().split('-');
     try {
         const raw = await fetchApi<{ data?: PaginatedBillAmendments } & Partial<PaginatedBillAmendments>>(
-            `${API_BASE}/v1/congress/bills/${billId}/amendments`
+            `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}/amendments`
         );
         if (raw.data) return raw.data;
         if (raw.amendments) return { amendments: raw.amendments, count: raw.count || 0 };
@@ -702,9 +710,10 @@ export async function fetchBillAmendments(billId: string): Promise<PaginatedBill
  * Fetch related bills
  */
 export async function fetchBillRelated(billId: string): Promise<PaginatedRelatedBills> {
+    const [congress, billType, billNumber] = billId.toLowerCase().split('-');
     try {
         const raw = await fetchApi<{ data?: PaginatedRelatedBills } & Partial<PaginatedRelatedBills>>(
-            `${API_BASE}/v1/congress/bills/${billId}/related`
+            `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}/related`
         );
         if (raw.data) return raw.data;
         if (raw.relatedBills) return { relatedBills: raw.relatedBills, count: raw.count || 0 };
@@ -719,9 +728,10 @@ export async function fetchBillRelated(billId: string): Promise<PaginatedRelated
  * Fetch bill actions
  */
 export async function fetchBillActions(billId: string): Promise<PaginatedBillActions> {
+    const [congress, billType, billNumber] = billId.toLowerCase().split('-');
     try {
         const raw = await fetchApi<{ data?: PaginatedBillActions } & Partial<PaginatedBillActions>>(
-            `${API_BASE}/v1/congress/bills/${billId}/actions`
+            `${API_BASE}/v1/congress/bills/${congress}/${billType}/${billNumber}/actions`
         );
         if (raw.data) return raw.data;
         if (raw.actions) return { actions: raw.actions, count: raw.count || 0 };

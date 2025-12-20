@@ -479,7 +479,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get bill details */
+        /** Get bill details (Legacy ID format) */
         get: {
             parameters: {
                 query?: never;
@@ -520,7 +520,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get bill actions */
+        /** Get bill actions (Legacy ID format) */
         get: {
             parameters: {
                 query?: never;
@@ -602,7 +602,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get bill committees */
+        /** Get bill committees (Legacy ID format) */
         get: {
             parameters: {
                 query?: never;
@@ -643,7 +643,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get bill cosponsors */
+        /** Get bill cosponsors (Legacy ID format) */
         get: {
             parameters: {
                 query?: never;
@@ -684,7 +684,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get lobbying activity for bill */
+        /** Get lobbying activity for bill (Legacy ID format) */
         get: {
             parameters: {
                 query?: never;
@@ -896,6 +896,221 @@ export interface paths {
                 header?: never;
                 path: {
                     bill_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/congress/bills/{congress}/{type}/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get bill details (Standardized format) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    congress: number;
+                    number: number;
+                    type: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BillResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/congress/bills/{congress}/{type}/{number}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get bill actions (Standardized format) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    congress: number;
+                    number: number;
+                    type: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/congress/bills/{congress}/{type}/{number}/committees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get bill committees (Standardized format) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    congress: number;
+                    number: number;
+                    type: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/congress/bills/{congress}/{type}/{number}/cosponsors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get bill cosponsors (Standardized format) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    congress: number;
+                    number: number;
+                    type: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/congress/bills/{congress}/{type}/{number}/lobbying": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get lobbying activity for bill (Standardized format) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    congress: number;
+                    number: number;
+                    type: string;
                 };
                 cookie?: never;
             };

@@ -12,6 +12,12 @@ resource "aws_apigatewayv2_integration" "get_congress_bill" {
   integration_uri    = aws_lambda_function.api["get_congress_bill"].invoke_arn
 }
 
+resource "aws_apigatewayv2_route" "get_congress_bill_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}"
+  target    = "integrations/${aws_apigatewayv2_integration.get_congress_bill.id}"
+}
+
 # GET /v1/congress/members
 resource "aws_apigatewayv2_route" "get_congress_members" {
   api_id    = aws_apigatewayv2_api.congress_api.id
@@ -82,6 +88,12 @@ resource "aws_apigatewayv2_integration" "get_bill_actions" {
   integration_uri    = aws_lambda_function.api["get_bill_actions"].invoke_arn
 }
 
+resource "aws_apigatewayv2_route" "get_bill_actions_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/actions"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_actions.id}"
+}
+
 # GET /v1/congress/bills/{congress}/{type}/{number}/text
 resource "aws_apigatewayv2_route" "get_bill_text" {
   api_id    = aws_apigatewayv2_api.congress_api.id
@@ -94,6 +106,12 @@ resource "aws_apigatewayv2_integration" "get_bill_text" {
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
   integration_uri    = aws_lambda_function.api["get_bill_text"].invoke_arn
+}
+
+resource "aws_apigatewayv2_route" "get_bill_text_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/text"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_text.id}"
 }
 
 # GET /v1/congress/bills/{congress}/{type}/{number}/committees
@@ -110,6 +128,12 @@ resource "aws_apigatewayv2_integration" "get_bill_committees" {
   integration_uri    = aws_lambda_function.api["get_bill_committees"].invoke_arn
 }
 
+resource "aws_apigatewayv2_route" "get_bill_committees_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/committees"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_committees.id}"
+}
+
 # GET /v1/congress/bills/{congress}/{type}/{number}/cosponsors
 resource "aws_apigatewayv2_route" "get_bill_cosponsors" {
   api_id    = aws_apigatewayv2_api.congress_api.id
@@ -124,6 +148,12 @@ resource "aws_apigatewayv2_integration" "get_bill_cosponsors" {
   integration_uri    = aws_lambda_function.api["get_bill_cosponsors"].invoke_arn
 }
 
+resource "aws_apigatewayv2_route" "get_bill_cosponsors_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/cosponsors"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_cosponsors.id}"
+}
+
 # GET /v1/congress/bills/{congress}/{type}/{number}/subjects
 resource "aws_apigatewayv2_route" "get_bill_subjects" {
   api_id    = aws_apigatewayv2_api.congress_api.id
@@ -134,8 +164,13 @@ resource "aws_apigatewayv2_route" "get_bill_subjects" {
 resource "aws_apigatewayv2_integration" "get_bill_subjects" {
   api_id             = aws_apigatewayv2_api.congress_api.id
   integration_type   = "AWS_PROXY"
-  integration_method = "POST"
   integration_uri    = aws_lambda_function.api["get_bill_subjects"].invoke_arn
+}
+
+resource "aws_apigatewayv2_route" "get_bill_subjects_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/subjects"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_subjects.id}"
 }
 
 # GET /v1/congress/bills/{congress}/{type}/{number}/summaries
@@ -152,6 +187,12 @@ resource "aws_apigatewayv2_integration" "get_bill_summaries" {
   integration_uri    = aws_lambda_function.api["get_bill_summaries"].invoke_arn
 }
 
+resource "aws_apigatewayv2_route" "get_bill_summaries_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/summaries"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_summaries.id}"
+}
+
 # GET /v1/congress/bills/{congress}/{type}/{number}/titles
 resource "aws_apigatewayv2_route" "get_bill_titles" {
   api_id    = aws_apigatewayv2_api.congress_api.id
@@ -164,6 +205,12 @@ resource "aws_apigatewayv2_integration" "get_bill_titles" {
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
   integration_uri    = aws_lambda_function.api["get_bill_titles"].invoke_arn
+}
+
+resource "aws_apigatewayv2_route" "get_bill_titles_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/titles"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_titles.id}"
 }
 
 # GET /v1/congress/bills/{congress}/{type}/{number}/amendments
@@ -180,6 +227,12 @@ resource "aws_apigatewayv2_integration" "get_bill_amendments" {
   integration_uri    = aws_lambda_function.api["get_bill_amendments"].invoke_arn
 }
 
+resource "aws_apigatewayv2_route" "get_bill_amendments_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/amendments"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_amendments.id}"
+}
+
 # GET /v1/congress/bills/{congress}/{type}/{number}/related
 resource "aws_apigatewayv2_route" "get_bill_related" {
   api_id    = aws_apigatewayv2_api.congress_api.id
@@ -192,6 +245,12 @@ resource "aws_apigatewayv2_integration" "get_bill_related" {
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
   integration_uri    = aws_lambda_function.api["get_bill_related"].invoke_arn
+}
+
+resource "aws_apigatewayv2_route" "get_bill_related_alias" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills/{bill_id}/related"
+  target    = "integrations/${aws_apigatewayv2_integration.get_bill_related.id}"
 }
 
 # GET /v1/congress/committees

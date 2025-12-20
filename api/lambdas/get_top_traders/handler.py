@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import duckdb
-from api.lib import success_response, error_response, clean_nan_values
+from api.lib import ParquetQueryBuilder, success_response, error_response, clean_nan_values
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -42,7 +42,7 @@ def handler(event, context):
         party = query_params.get('party')  # Optional: 'D', 'R', or 'I'
         metric = query_params.get('metric', 'volume')  # 'volume' or 'transactions'
 
-        conn = get_duckdb_connection()
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
 
         # Build WHERE clause
         where_clauses = []
@@ -78,7 +78,7 @@ def handler(event, context):
                     MAX(transaction_date) AS last_trade_date,
                     -- Compliance metrics
                     COALESCE(AVG(CASE WHEN CAST((CAST(filing_date AS DATE) - CAST(transaction_date AS DATE)) AS INTEGER) <= 45 THEN 1.0 ELSE 0.0 END), 0) AS compliance_rate
-                FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
+                FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', union_by_name=True)
                 WHERE {where_sql}
                     AND bioguide_id IS NOT NULL
                 GROUP BY bioguide_id, filer_name, party, state, chamber
@@ -100,7 +100,7 @@ def handler(event, context):
         """
 
         logger.info(f"Querying top traders: days={days}, limit={limit}, metric={metric}")
-        result_df = conn.execute(query).fetchdf()
+        result_df = qb.conn.execute(query).fetchdf()
 
         # Clean NaN values before serialization
         traders = clean_nan_values(result_df.to_dict('records'))
@@ -111,14 +111,14 @@ def handler(event, context):
                 party,
                 COUNT(DISTINCT bioguide_id) AS member_count,
                 COALESCE(SUM((amount_low + amount_high) / 2.0), 0) AS total_volume
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
+            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', union_by_name=True)
             WHERE {where_sql}
                 AND bioguide_id IS NOT NULL
             GROUP BY party
             ORDER BY total_volume DESC
         """
 
-        party_stats = clean_nan_values(conn.execute(party_query).fetchdf().to_dict('records'))
+        party_stats = clean_nan_values(qb.conn.execute(party_query).fetchdf().to_dict('records'))
 
         response = {
             'days': days,

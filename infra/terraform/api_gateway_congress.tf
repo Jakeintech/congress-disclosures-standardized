@@ -262,3 +262,16 @@ resource "aws_apigatewayv2_integration" "get_committee_reports" {
   integration_method = "POST"
   integration_uri    = aws_lambda_function.api["get_committee_reports"].invoke_arn
 }
+# GET /v1/congress/bills (plural list)
+resource "aws_apigatewayv2_route" "get_congress_bills" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/congress/bills"
+  target    = "integrations/${aws_apigatewayv2_integration.get_congress_bills.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_congress_bills" {
+  api_id             = aws_apigatewayv2_api.congress_api.id
+  integration_type   = "AWS_PROXY"
+  integration_method = "POST"
+  integration_uri    = aws_lambda_function.api["get_congress_bills"].invoke_arn
+}

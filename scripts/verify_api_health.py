@@ -129,6 +129,7 @@ def check_endpoint(endpoint):
 
 def main():
     """Main entry point with argument parsing."""
+    global API_BASE
     parser = argparse.ArgumentParser(description='API Health Check')
     parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
     parser.add_argument('--endpoint', '-e', help='Test single endpoint')
@@ -137,7 +138,6 @@ def main():
 
     args = parser.parse_args()
 
-    global API_BASE
     API_BASE = args.base_url
 
     # Determine which endpoints to test

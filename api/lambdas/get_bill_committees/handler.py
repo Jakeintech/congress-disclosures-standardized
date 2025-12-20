@@ -21,6 +21,14 @@ def handler(event, context):
         path_params = event.get('pathParameters') or {}
         bill_id = path_params.get('bill_id', '')
 
+        # Fallback for direct path params
+        if not bill_id:
+            congress_str = path_params.get('congress')
+            bill_type = path_params.get('type')
+            bill_number_str = path_params.get('number')
+            if congress_str and bill_type and bill_number_str:
+                bill_id = f"{congress_str}-{bill_type}-{bill_number_str}"
+
         if not bill_id:
             return error_response(message="Missing bill_id", status_code=400)
 

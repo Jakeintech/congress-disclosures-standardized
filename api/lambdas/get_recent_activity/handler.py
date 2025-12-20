@@ -10,6 +10,7 @@ import duckdb
 import pandas as pd
 from datetime import datetime
 from api.lib import (
+    ParquetQueryBuilder,
     success_response,
     error_response,
     clean_nan_values
@@ -22,14 +23,9 @@ S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized'
 
 def handler(event, context):
     try:
-        # Connect to DuckDB
-        db = duckdb.connect(':memory:')
-        
-        # Configure S3 access and home directory for Lambda (MUST BE BEFORE INSTALL)
-        db.execute("SET home_directory='/tmp';")
-        db.execute("SET s3_region='us-east-1';")
-        
-        db.execute("INSTALL httpfs; LOAD httpfs;")
+        # Connect to DuckDB via ParquetQueryBuilder
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
+        db = qb.conn
         
         # Define paths
         year = datetime.now().year
@@ -54,7 +50,7 @@ def handler(event, context):
                     transaction_type as action,
                     amount as detail,
                     bioguide_id as actor_id
-                FROM read_parquet('{trades_path}')
+                FROM read_parquet('{trades_path}', union_by_name=True)
                 ORDER BY transaction_date DESC
                 LIMIT 10
             """).df()
@@ -73,7 +69,7 @@ def handler(event, context):
                     'updated' as action,
                     bill_number as detail,
                     bill_id as subject_id
-                FROM read_parquet('{bills_path}')
+                FROM read_parquet('{bills_path}', union_by_name=True)
                 ORDER BY update_date DESC
                 LIMIT 10
             """).df()
@@ -92,7 +88,7 @@ def handler(event, context):
                     'filed' as action,
                     filing_type as detail,
                     filing_id as subject_id
-                FROM read_parquet('{lobbying_path}')
+                FROM read_parquet('{lobbying_path}', union_by_name=True)
                 ORDER BY filing_date DESC
                 LIMIT 10
             """).df()

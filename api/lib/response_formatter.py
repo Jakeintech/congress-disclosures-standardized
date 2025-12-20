@@ -68,11 +68,25 @@ def clean_nan_values(data: Union[Dict, List, Any]) -> Union[Dict, List, Any]:
     
     # Robust numeric check
     try:
-        # Check for NaN/Inf in any numeric type
-        if data is not None and isinstance(data, (float, int)) or (hasattr(data, '__class__') and 'numpy' in str(data.__class__)):
-            if math.isnan(float(data)) or math.isinf(float(data)):
+        # Handle string representations of NaN/Inf that might leak from data layer
+        if isinstance(data, str):
+            data_lower = data.lower().strip()
+            if data_lower in ('nan', 'inf', 'infinity', '-inf', '-infinity', 'none', 'null'):
                 return None
-    except (TypeError, ValueError):
+                
+        # Check for NaN/Inf in any numeric type (including numpy)
+        # We check for __class__ name to avoid direct numpy dependency if not present
+        class_name = str(data.__class__).lower()
+        if 'numpy' in class_name or 'pandas' in class_name:
+            import numpy as np
+            if np.isnan(data) or np.isinf(data):
+                return None
+        
+        if data is not None and isinstance(data, (float, int)):
+            val = float(data)
+            if math.isnan(val) or math.isinf(val):
+                return None
+    except (TypeError, ValueError, ImportError):
         pass
     return data
 

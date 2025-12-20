@@ -257,6 +257,10 @@ package-lda-ingest: ## Package lda_ingest_filings Lambda
 	@cd $(LAMBDA_DIR)/lda_ingest_filings/package && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/lda_ingest_filings/function.zip"
 
+package-api: ## Package all API Lambda functions
+	@echo "Packaging all API Lambdas..."
+	@bash scripts/package_api_lambdas.sh
+
 package-congress-fetch: ## Package congress_api_fetch_entity Lambda
 	@echo "Packaging congress_api_fetch_entity..."
 	@rm -rf $(LAMBDA_DIR)/congress_api_fetch_entity/package $(LAMBDA_DIR)/congress_api_fetch_entity/function.zip

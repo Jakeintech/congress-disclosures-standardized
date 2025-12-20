@@ -38,10 +38,20 @@ def handler(event, context):
     try:
         # Extract bill_id from path
         path_params = event.get('pathParameters') or {}
-        bill_id = path_params.get('bill_id', '')
+        
+        # Priority 1: Direct components from route {congress}/{type}/{number}
+        congress_val = path_params.get('congress')
+        type_val = path_params.get('type')
+        number_val = path_params.get('number')
+        
+        if congress_val and type_val and number_val:
+            bill_id = f"{congress_val}-{type_val}-{number_val}"
+        else:
+            # Priority 2: Full bill_id if provided
+            bill_id = path_params.get('bill_id', '')
 
         if not bill_id:
-            return error_response(message="Missing bill_id", status_code=400)
+            return error_response(message="Missing bill_id (or congress/type/number)", status_code=400)
 
         if not CONGRESS_API_KEY:
             return error_response(message="Congress API key not configured", status_code=500)

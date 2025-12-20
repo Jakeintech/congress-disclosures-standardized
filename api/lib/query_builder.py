@@ -31,21 +31,23 @@ class ParquetQueryBuilder:
         self.conn = duckdb.connect(database=':memory:')
         
         # Set home directory to /tmp for Lambda (only writable directory)
-        home_dir = os.environ.get('DUCKDB_HOME', '/tmp')
-        self.conn.execute(f"SET home_directory='{home_dir}';")
+        self.conn.execute("SET home_directory='/tmp';")
         
         # Install and load httpfs extension for S3 access if needed
         if s3_bucket:
-            self.conn.execute("INSTALL httpfs;")
-            self.conn.execute("LOAD httpfs;")
+            self.conn.execute("INSTALL httpfs; LOAD httpfs;")
+            
+            # Performance & Robustness settings
             self.conn.execute("SET enable_http_metadata_cache=true;")
+            self.conn.execute("SET s3_use_ssl=true;")
             
             # Set S3 region
             region = os.environ.get('AWS_REGION', 'us-east-1')
             self.conn.execute(f"SET s3_region='{region}';")
             
-            # Use SSL
-            self.conn.execute("SET s3_use_ssl=true;")
+            # Note: parameters like union_by_name and binary_as_string will be 
+            # passed directly to read_parquet() for better version compatibility.
+
     
     def query_parquet(
         self,
@@ -90,7 +92,8 @@ class ParquetQueryBuilder:
         
         # Build SQL query
         select_clause = ", ".join(columns) if columns else "*"
-        query = f"SELECT {select_clause} FROM read_parquet('{parquet_path}')"
+        # Enable union_by_name=True to handle schema evolution across multiple Parquet files
+        query = f"SELECT {select_clause} FROM read_parquet('{parquet_path}', union_by_name=True)"
         
         # Add WHERE clause if filters provided
         if filters:
@@ -111,11 +114,14 @@ class ParquetQueryBuilder:
         logger.info(f"Executing query: {query}")
         
         try:
+            # Log DuckDB version and connection info for debugging
+            logger.info(f"DuckDB Version: {duckdb.__version__}")
             result = self.conn.execute(query).df()
             logger.info(f"Query returned {len(result)} rows")
             return result
         except Exception as e:
             logger.error(f"Query failed: {e}")
+            logger.error(f"Failed query: {query}")
             raise
     
     def _build_where_clause(self, filters: Dict[str, Any]) -> str:
@@ -266,7 +272,8 @@ class ParquetQueryBuilder:
         agg_exprs = [f"{expr} AS {col}" for col, expr in aggregations.items()]
         select_clause = ", ".join(group_by + agg_exprs)
         
-        query = f"SELECT {select_clause} FROM read_parquet('{parquet_path}')"
+        # Enable union_by_name=True to handle schema evolution
+        query = f"SELECT {select_clause} FROM read_parquet('{parquet_path}', union_by_name=True)"
         
         # Add WHERE clause if filters provided
         if filters:
@@ -311,7 +318,8 @@ class ParquetQueryBuilder:
         else:
             parquet_path = f"data/{table_path}/**/*.parquet"
         
-        query = f"SELECT COUNT(*) as count FROM read_parquet('{parquet_path}')"
+        # Enable union_by_name=True to handle schema evolution
+        query = f"SELECT COUNT(*) as count FROM read_parquet('{parquet_path}', union_by_name=True)"
         
         if filters:
             where_clause = self._build_where_clause(filters)

@@ -8,7 +8,7 @@ import logging
 import os
 import duckdb
 from typing import List, Dict, Any
-from api.lib import success_response, error_response, clean_nan_values
+from api.lib import ParquetQueryBuilder, success_response, error_response, clean_nan_values
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -96,45 +96,26 @@ def handler(event, context):
 
         where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
-        # Count total matching records
-        count_query = f"""
-            SELECT COUNT(*) AS total
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
-            WHERE {where_sql}
-        """
-
+        qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
+        
+        # Build filter SQL from where_sql (simplified for qb.query_parquet which handles it better)
+        # However, since we already have where_sql, we'll use a raw query which qb also supports
+        
+        # 1. Count total records
+        count_sql = f"SELECT COUNT(*) FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', union_by_name=True) WHERE {where_sql}"
         logger.info(f"Counting trades with filters: {where_sql}")
-        total_count = conn.execute(count_query).fetchone()[0]
-
-        # Query trades with member information
-        query = f"""
-            SELECT
-                transaction_key,
-                doc_id,
-                transaction_date,
-                filing_date AS disclosure_date,
-                ticker,
-                asset_description AS asset_name,
-                transaction_type,
-                COALESCE(amount_low, 0) AS amount_low,
-                COALESCE(amount_high, 0) AS amount_high,
-                COALESCE((amount_low + amount_high) / 2.0, 0) AS amount_midpoint,
-                comment,
-                bioguide_id,
-                filer_name AS full_name,
-                party,
-                state,
-                chamber,
-                -- Compliance metric (date diff in days)
-                CAST((CAST(filing_date AS DATE) - CAST(transaction_date AS DATE)) AS INTEGER) AS disclosure_delay_days
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet')
+        total_count = qb.conn.execute(count_sql).fetchone()[0]
+        
+        # 2. Get paginated results
+        fetch_sql = f"""
+            SELECT * 
+            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', union_by_name=True)
             WHERE {where_sql}
-            ORDER BY transaction_date DESC, filing_date DESC
+            ORDER BY transaction_date DESC
             LIMIT {limit} OFFSET {offset}
         """
-
         logger.info(f"Querying trades: limit={limit}, offset={offset}, total={total_count}")
-        result_df = conn.execute(query).fetchdf()
+        result_df = qb.conn.execute(fetch_sql).fetchdf()
 
         # Clean NaN values before serialization
         trades = clean_nan_values(result_df.to_dict('records'))

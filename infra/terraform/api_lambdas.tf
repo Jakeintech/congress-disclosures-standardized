@@ -141,6 +141,9 @@ resource "aws_lambda_function" "api" {
 
   s3_bucket = aws_s3_bucket.data_lake.id
   s3_key    = "lambda-deployments/api/${each.key}.zip"
+  
+  # Ensure Lambda is updated when the local zip file changes
+  source_code_hash = filebase64sha256("${path.module}/../../build/api/${each.key}.zip")
 
   timeout     = local.api_lambda_config.timeout
   memory_size = local.api_lambda_config.memory_size

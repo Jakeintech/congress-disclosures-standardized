@@ -28,7 +28,6 @@ import {
     fetchMembers,
     fetchLobbyingNetwork,
     fetchTripleCorrelations,
-    fetchTripleCorrelations,
     fetchRecentActivity,
     fetchTradingTimeline,
 } from '@/lib/api';

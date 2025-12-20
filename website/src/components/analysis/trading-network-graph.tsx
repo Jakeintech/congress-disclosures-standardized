@@ -422,8 +422,9 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             .style('font-size', (d: any) => d.group?.includes('_agg') ? '14px' : '11px')
             .style('font-weight', (d: any) => d.group?.includes('_agg') ? 'bold' : '600')
             .style('pointer-events', 'none')
-            .style('fill', '#1f2937')
-            .style('text-shadow', '0 1px 2px rgba(255, 255, 255, 0.8)')
+            .style('fill', 'currentColor')
+            .attr('class', 'text-slate-900 dark:text-slate-100')
+            .style('text-shadow', (d: any) => d.group?.includes('_agg') ? 'none' : '0 1px 4px var(--background)')
             .style('opacity', labelsVisible ? 1 : 0)
             .style('transition', 'opacity 0.3s ease');
 

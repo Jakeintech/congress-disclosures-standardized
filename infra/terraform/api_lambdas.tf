@@ -164,10 +164,6 @@ resource "aws_lambda_function" "api" {
     }
   )
 
-  lifecycle {
-    ignore_changes = [source_code_hash]
-  }
-
   depends_on = [
 
 

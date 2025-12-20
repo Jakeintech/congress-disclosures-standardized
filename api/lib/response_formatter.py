@@ -12,52 +12,26 @@ import math
 def clean_nan_values(data: Union[Dict, List, Any]) -> Union[Dict, List, Any]:
     """
     Recursively clean NaN/Inf values from data structures.
-    This should be called on dataframe.to_dict('records') output before serialization.
-    
-    Args:
-        data: Dict, list, or scalar value to clean
-        
-    Returns:
-        Cleaned data with NaN/Inf replaced by None
     """
     if isinstance(data, dict):
         return {k: clean_nan_values(v) for k, v in data.items()}
     elif isinstance(data, list):
         return [clean_nan_values(item) for item in data]
-    elif isinstance(data, float):
-        if math.isnan(data) or math.isinf(data):
-            return None
-        return data
-    elif hasattr(data, '__class__') and 'numpy' in str(data.__class__):
-        # Handle numpy types
-        try:
-            float_val = float(data)
-            if math.isnan(float_val) or math.isinf(float_val):
+    
+    # Robust numeric check
+    try:
+        # Check for NaN/Inf in any numeric type
+        if data is not None and isinstance(data, (float, int)) or (hasattr(data, '__class__') and 'numpy' in str(data.__class__)):
+            if math.isnan(float(data)) or math.isinf(float(data)):
                 return None
-            return float_val
-        except (TypeError, ValueError):
-            return data
+    except (TypeError, ValueError):
+        pass
     return data
 
 class NaNToNoneEncoder(json.JSONEncoder):
     """Encodes NaN/Inf floats as null for valid JSON output."""
     def encode(self, obj):
-        def replace_nan(o):
-            # Check for NaN/Inf in any numeric type (including numpy.float64)
-            # Use try-except to handle types that might not have math.isnan support
-            try:
-                if isinstance(o, (float, int)) or (hasattr(o, '__class__') and 'numpy' in str(o.__class__)):
-                    if math.isnan(o) or math.isinf(o):
-                        return None
-            except (TypeError, ValueError):
-                pass
-
-            if isinstance(o, dict):
-                return {k: replace_nan(v) for k, v in o.items()}
-            elif isinstance(o, (list, tuple)):
-                return [replace_nan(x) for x in o]
-            return o
-        return super().encode(replace_nan(obj))
+        return super().encode(clean_nan_values(obj))
 
 
 def success_response(
@@ -67,24 +41,11 @@ def success_response(
 ) -> Dict[str, Any]:
     """
     Build success response with consistent structure.
-    
-    Args:
-        data: Response data (will be JSON serialized)
-        status_code: HTTP status code (default 200)
-        metadata: Optional metadata dict
-    
-    Returns:
-        API Gateway response dict with statusCode, headers, body
-    
-    Example:
-        success_response(
-            data={'members': [...] },
-            metadata={'total': 435, 'query_time_ms': 42}
-        )
     """
     body = {
         "success": True,
-        "data": data
+        "data": data,
+        "version": "20251219-1815" # Version tag to verify deployment
     }
     
     if metadata:
@@ -93,7 +54,7 @@ def success_response(
     return {
         "statusCode": status_code,
         "headers": _get_cors_headers(),
-        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str, allow_nan=False)  # default=str handles dates
+        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str, allow_nan=False)
     }
 
 

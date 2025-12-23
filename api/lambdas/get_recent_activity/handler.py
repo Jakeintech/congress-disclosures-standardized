@@ -44,7 +44,7 @@ def handler(event, context):
             trades_df = db.execute(f"""
                 SELECT 
                     'trade' as type,
-                    member_name as actor,
+                    COALESCE(member_name, filer_name, full_name, 'Unknown Member') as actor,
                     ticker as subject,
                     transaction_date as date,
                     transaction_type as action,

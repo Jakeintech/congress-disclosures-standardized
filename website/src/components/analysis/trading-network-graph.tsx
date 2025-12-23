@@ -186,28 +186,84 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             setHoveredEdge(null);
         });
 
-        // Process nodes
-        const nodes = filteredData.nodes.map((n: any) => {
+        // Process nodes - CRITICAL: Initialize with random positions around center
+        // This prevents all nodes from starting at (0,0) which causes the clumping
+        const nodes = filteredData.nodes.map((n: any, i: number) => {
             const calculatedRadius = calculateNodeSize(n);
-            return { ...n, calculatedRadius };
+            const angle = (i / filteredData.nodes.length) * 2 * Math.PI;
+            const radius = 150 + Math.random() * 200;
+            return {
+                ...n,
+                calculatedRadius,
+                x: width / 2 + Math.cos(angle) * radius + (Math.random() - 0.5) * 100,
+                y: height / 2 + Math.sin(angle) * radius + (Math.random() - 0.5) * 100,
+                vx: 0,
+                vy: 0
+            };
         });
 
         const links = filteredData.links.map((l: any) => ({ ...l }));
 
-        // Simulation
+        // Calculate dynamic force parameters based on node count
+        const nodeCount = nodes.length;
+        const dynamicCharge = Math.min(-50, chargeStrength[0] - (nodeCount * 3));
+        const dynamicLinkDistance = Math.max(80, linkDistance[0] + (nodeCount * 0.5));
+
+        // Professional SNA Force Simulation Configuration
         const simulation = d3.forceSimulation(nodes)
+            // Link force - pulls connected nodes together
             .force('link', d3.forceLink(links)
                 .id((d: any) => d.id)
-                .distance((d: any) => d.is_aggregated ? linkDistance[0] * 0.67 : linkDistance[0])
-                .strength((d: any) => d.is_aggregated ? 0.8 : 0.3))
+                .distance((d: any) => {
+                    // Aggregate nodes get more space
+                    if (d.is_aggregated) return dynamicLinkDistance * 2;
+                    // Member-to-asset connections
+                    const source = typeof d.source === 'object' ? d.source : nodes.find((n: any) => n.id === d.source);
+                    const target = typeof d.target === 'object' ? d.target : nodes.find((n: any) => n.id === d.target);
+                    if (source?.group === 'member' && target?.group === 'asset') {
+                        return dynamicLinkDistance * 1.2;
+                    }
+                    return dynamicLinkDistance;
+                })
+                .strength((d: any) => d.is_aggregated ? 0.05 : 0.15))
+
+            // Charge force - repels nodes from each other (CRITICAL for spacing)
             .force('charge', d3.forceManyBody()
-                .strength((d: any) => d.group?.includes('_agg') ? chargeStrength[0] * 5 : chargeStrength[0]))
+                .strength((d: any) => {
+                    // Aggregate nodes need MUCH stronger repulsion
+                    if (d.group?.includes('_agg')) return dynamicCharge * 8;
+                    // Assets attract slightly less strongly
+                    if (d.group === 'asset') return dynamicCharge * 0.8;
+                    return dynamicCharge;
+                })
+                .distanceMin(30)
+                .distanceMax(500))
+
+            // Center force - keeps the graph centered
             .force('center', d3.forceCenter(width / 2, height / 2))
+
+            // Collision force - prevents node overlap (CRITICAL)
             .force('collide', d3.forceCollide()
-                .radius((d: any) => d.calculatedRadius + 5)
-                .strength(0.8))
-            .force('x', d3.forceX(width / 2).strength(0.05))
-            .force('y', d3.forceY(height / 2).strength(0.05));
+                .radius((d: any) => {
+                    // Give each node a collision radius larger than its visual size
+                    const baseRadius = d.calculatedRadius || 20;
+                    const padding = d.group?.includes('_agg') ? 40 : 15;
+                    return baseRadius + padding;
+                })
+                .strength(1)
+                .iterations(4)) // More iterations = better collision resolution
+
+            // Positioning forces - gentle pull toward center to prevent drift
+            .force('x', d3.forceX(width / 2).strength(0.03))
+            .force('y', d3.forceY(height / 2).strength(0.03))
+
+            // Simulation parameters for smoother animation
+            .alpha(1)
+            .alphaDecay(0.02) // Slower decay = more time to settle
+            .velocityDecay(0.4); // Higher = more friction, less oscillation
+
+        // Run simulation for initial ticks to get a good starting layout
+        simulation.tick(100);
 
         // Draw links
         const link = g.append('g')
@@ -335,14 +391,13 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             .join('g')
             .call(drag(simulation) as any);
 
-        // Apply entry animation
+        // Apply entry animation - IMPORTANT: Only animate opacity, NOT transform!
+        // CSS transform conflicts with D3's attr('transform') positioning
         node.style('opacity', 0)
-            .style('transform', 'scale(0)')
             .transition()
-            .duration(500)
-            .delay((d: any, i: number) => i * 10)
-            .style('opacity', 1)
-            .style('transform', 'scale(1)');
+            .duration(400)
+            .delay((d: any, i: number) => Math.min(i * 5, 500))
+            .style('opacity', 1);
 
         // Node rendering with images using foreignObject
         node.each(function (d: any) {
@@ -413,19 +468,34 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             }
         });
 
-        // Node labels
+        // Node labels with halo for readability
         node.append('text')
+            .attr('class', 'node-label-bg')
             .text((d: any) => d.group?.includes('_agg') || d.calculatedRadius > 5 ? d.id : '')
-            .attr('dx', (d: any) => d.group?.includes('_agg') ? 0 : 12)
+            .attr('dx', (d: any) => d.group?.includes('_agg') ? 0 : 15)
             .attr('dy', (d: any) => d.group?.includes('_agg') ? 5 : '.35em')
             .attr('text-anchor', (d: any) => d.group?.includes('_agg') ? 'middle' : 'start')
-            .style('font-size', (d: any) => d.group?.includes('_agg') ? '14px' : '11px')
-            .style('font-weight', (d: any) => d.group?.includes('_agg') ? 'bold' : '600')
-            .style('pointer-events', 'none')
+            .style('font-size', (d: any) => d.group?.includes('_agg') ? '13px' : '10px')
+            .style('font-weight', '700')
+            .style('fill', 'var(--background)')
+            .style('stroke', 'var(--background)')
+            .style('stroke-width', '4px')
+            .style('stroke-linejoin', 'round')
+            .style('opacity', labelsVisible ? 0.8 : 0)
+            .style('pointer-events', 'none');
+
+        node.append('text')
+            .attr('class', 'node-label-fg')
+            .text((d: any) => d.group?.includes('_agg') || d.calculatedRadius > 5 ? d.id : '')
+            .attr('dx', (d: any) => d.group?.includes('_agg') ? 0 : 15)
+            .attr('dy', (d: any) => d.group?.includes('_agg') ? 5 : '.35em')
+            .attr('text-anchor', (d: any) => d.group?.includes('_agg') ? 'middle' : 'start')
+            .style('font-size', (d: any) => d.group?.includes('_agg') ? '13px' : '10px')
+            .style('font-weight', '700')
             .style('fill', 'currentColor')
             .attr('class', 'text-slate-900 dark:text-slate-100')
-            .style('text-shadow', (d: any) => d.group?.includes('_agg') ? 'none' : '0 1px 4px var(--background)')
             .style('opacity', labelsVisible ? 1 : 0)
+            .style('pointer-events', 'none')
             .style('transition', 'opacity 0.3s ease');
 
         // Tooltip - use singleton pattern to prevent multiple instances
@@ -798,12 +868,12 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
     return (
         <div className="space-y-4">
             {/* Modern Glassmorphism Controls */}
-            <Card className="p-5 bg-white/80 backdrop-blur-md border border-gray-200/50 shadow-lg">
+            <Card className="p-5 bg-card/80 backdrop-blur-md border border-border shadow-lg">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <Label className="text-sm font-semibold text-gray-700">Aggregation Mode</Label>
+                        <Label className="text-sm font-semibold text-muted-foreground">Aggregation Mode</Label>
                         <Select value={aggregationMode} onValueChange={setAggregationMode}>
-                            <SelectTrigger className="mt-1.5 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                            <SelectTrigger className="mt-1.5 border-input focus:ring-2 focus:ring-ring transition-all">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -818,9 +888,9 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                     </div>
 
                     <div>
-                        <Label className="text-sm font-semibold text-gray-700">Party Filter</Label>
+                        <Label className="text-sm font-semibold text-muted-foreground">Party Filter</Label>
                         <Select value={partyFilter} onValueChange={setPartyFilter}>
-                            <SelectTrigger className="mt-1.5 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                            <SelectTrigger className="mt-1.5 border-input focus:ring-2 focus:ring-ring transition-all">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -832,9 +902,9 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                     </div>
 
                     <div>
-                        <Label className="text-sm font-semibold text-gray-700">Chamber Filter</Label>
+                        <Label className="text-sm font-semibold text-muted-foreground">Chamber Filter</Label>
                         <Select value={chamberFilter} onValueChange={setChamberFilter}>
-                            <SelectTrigger className="mt-1.5 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                            <SelectTrigger className="mt-1.5 border-input focus:ring-2 focus:ring-ring transition-all">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -846,19 +916,19 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                     </div>
 
                     <div>
-                        <Label className="text-sm font-semibold text-gray-700">Search Members</Label>
+                        <Label className="text-sm font-semibold text-muted-foreground">Search Members</Label>
                         <Input
                             placeholder="Search..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="mt-1.5 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                            className="mt-1.5 border-input focus:ring-2 focus:ring-ring transition-all"
                         />
                     </div>
                 </div>
 
                 {/* Relationship Type Filters */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                    <Label className="text-sm font-semibold text-gray-700 mb-3 block">Relationship Types</Label>
+                <div className="mt-4 pt-4 border-t border-border">
+                    <Label className="text-sm font-semibold text-muted-foreground mb-3 block">Relationship Types</Label>
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                         {Object.entries(relationshipFilters).map(([type, enabled]) => (
                             <div key={type} className="flex items-center space-x-2">
@@ -888,7 +958,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                         variant="outline"
                         size="sm"
                         onClick={resetView}
-                        className="border-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all"
+                        className="border-input hover:bg-accent transition-all"
                     >
                         <RotateCcw className="h-4 w-4 mr-2" />
                         Reset View
@@ -897,7 +967,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                         variant="outline"
                         size="sm"
                         onClick={() => setLabelsVisible(!labelsVisible)}
-                        className="border-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all"
+                        className="border-input hover:bg-accent transition-all"
                     >
                         <Tag className="h-4 w-4 mr-2" />
                         {labelsVisible ? 'Hide' : 'Show'} Node Labels
@@ -906,7 +976,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                         variant="outline"
                         size="sm"
                         onClick={() => setEdgeLabelsVisible(!edgeLabelsVisible)}
-                        className="border-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all"
+                        className="border-input hover:bg-accent transition-all"
                     >
                         <Tag className="h-4 w-4 mr-2" />
                         {edgeLabelsVisible ? 'Hide' : 'Show'} Edge Labels
@@ -915,7 +985,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                         variant="outline"
                         size="sm"
                         onClick={() => setAdvancedOpen(!advancedOpen)}
-                        className="border-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all"
+                        className="border-input hover:bg-accent transition-all"
                     >
                         <Filter className="h-4 w-4 mr-2" />
                         Advanced
@@ -925,9 +995,9 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
 
                 {/* Advanced Settings - Collapsible */}
                 {advancedOpen && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                    <div className="mt-4 pt-4 border-t border-border space-y-4 animate-in slide-in-from-top-2 duration-300">
                         <div>
-                            <Label className="text-sm font-semibold text-gray-700">Node Size By</Label>
+                            <Label className="text-sm font-semibold text-muted-foreground">Node Size By</Label>
                             <Select value={nodeSizeBy} onValueChange={setNodeSizeBy}>
                                 <SelectTrigger className="mt-1.5">
                                     <SelectValue />
@@ -940,7 +1010,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                             </Select>
                         </div>
                         <div>
-                            <Label className="text-sm font-semibold text-gray-700">Link Distance: {linkDistance[0]}</Label>
+                            <Label className="text-sm font-semibold text-muted-foreground">Link Distance: {linkDistance[0]}</Label>
                             <Slider
                                 value={linkDistance}
                                 onValueChange={setLinkDistance}
@@ -951,7 +1021,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                             />
                         </div>
                         <div>
-                            <Label className="text-sm font-semibold text-gray-700">Charge Strength: {chargeStrength[0]}</Label>
+                            <Label className="text-sm font-semibold text-muted-foreground">Charge Strength: {chargeStrength[0]}</Label>
                             <Slider
                                 value={chargeStrength}
                                 onValueChange={setChargeStrength}
@@ -966,12 +1036,12 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
             </Card>
 
             {/* Graph with Modern Styling */}
-            <div className="relative border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden shadow-xl" style={{ height: '700px' }}>
-                <svg ref={svgRef} className="w-full h-full" />
+            <div className="relative border-2 border-border rounded-xl bg-card overflow-hidden shadow-xl" style={{ height: '700px' }}>
+                <svg ref={svgRef} className="w-full h-full text-foreground" />
 
                 {/* Enhanced Legend with Glassmorphism */}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-xl border border-gray-200/50 shadow-lg text-xs">
-                    <div className="font-bold mb-3 text-sm text-gray-800">Legend</div>
+                <div className="absolute top-4 right-4 bg-card/90 backdrop-blur-md p-4 rounded-xl border border-border shadow-lg text-xs">
+                    <div className="font-bold mb-3 text-sm text-foreground">Legend</div>
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <div className="w-4 h-4 rounded-full bg-blue-500 shadow-sm" />
@@ -993,8 +1063,8 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                             <div className="w-4 h-4 rounded-full bg-orange-500 shadow-sm" />
                             <span className="font-medium">Family Member</span>
                         </div>
-                        <div className="h-px bg-gray-300 my-2" />
-                        <div className="text-xs font-semibold text-gray-700 mb-1.5">Edge Types:</div>
+                        <div className="h-px bg-border my-2" />
+                        <div className="text-xs font-semibold text-muted-foreground mb-1.5">Edge Types:</div>
                         {Object.entries(RELATIONSHIP_LABELS).map(([type, label]) => (
                             <div key={type} className="flex items-center gap-2">
                                 <div
@@ -1010,25 +1080,25 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                 </div>
 
                 {/* Instructions */}
-                <div className="absolute bottom-4 left-4 bg-white/85 backdrop-blur-sm p-3 rounded-lg text-xs text-gray-700 max-w-md shadow-md border border-gray-200/50">
-                    <p className="font-semibold mb-1">💡 Interaction Guide:</p>
+                <div className="absolute bottom-4 left-4 bg-card/85 backdrop-blur-sm p-3 rounded-lg text-xs text-muted-foreground max-w-md shadow-md border border-border">
+                    <p className="font-semibold mb-1 text-foreground">💡 Interaction Guide:</p>
                     <p>• <strong>Click</strong> aggregate nodes to expand • <strong>Drag</strong> to rearrange • <strong>Scroll</strong> to zoom</p>
                     <p>• <strong>Hover</strong> edges for details • <strong>Double-click</strong> to reset view</p>
                 </div>
 
                 {/* Zoom indicator */}
-                <div className="absolute top-4 left-4 bg-white/85 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-700 shadow-md border border-gray-200/50">
+                <div className="absolute top-4 left-4 bg-card/85 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground shadow-md border border-border">
                     Zoom: {currentZoom.toFixed(1)}x
                 </div>
             </div>
 
             {/* Selected Node Details */}
             {selectedNode && (
-                <Card className="p-5 bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-200 shadow-lg">
+                <Card className="p-5 bg-card border-2 border-primary shadow-lg">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <h3 className="font-bold text-xl text-gray-900">{selectedNode.id}</h3>
-                            <p className="text-sm text-gray-600 capitalize font-medium">{selectedNode.group}</p>
+                            <h3 className="font-bold text-xl text-card-foreground">{selectedNode.id}</h3>
+                            <p className="text-sm text-muted-foreground capitalize font-medium">{selectedNode.group}</p>
                         </div>
                         <Button variant="ghost" size="sm" onClick={() => setSelectedNode(null)} className="hover:bg-red-100">
                             ×
@@ -1037,29 +1107,29 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {selectedNode.party && (
                             <div>
-                                <div className="text-xs text-gray-500 font-semibold">Party</div>
+                                <div className="text-xs text-muted-foreground font-semibold">Party</div>
                                 <div className="font-bold text-lg">{selectedNode.party}</div>
                             </div>
                         )}
                         {selectedNode.chamber && (
                             <div>
-                                <div className="text-xs text-gray-500 font-semibold">Chamber</div>
+                                <div className="text-xs text-muted-foreground font-semibold">Chamber</div>
                                 <div className="font-bold text-lg">{selectedNode.chamber}</div>
                             </div>
                         )}
                         {selectedNode.group === 'bill' ? (
                             <div className="col-span-2">
-                                <div className="text-xs text-gray-500 font-semibold">Title</div>
+                                <div className="text-xs text-muted-foreground font-semibold">Title</div>
                                 <div className="text-sm line-clamp-2">{selectedNode.title}</div>
                             </div>
                         ) : (
                             <>
                                 <div>
-                                    <div className="text-xs text-gray-500 font-semibold">Total Volume</div>
-                                    <div className="font-bold text-lg text-green-600">{formatMoney(selectedNode.value || 0)}</div>
+                                    <div className="text-xs text-muted-foreground font-semibold">Total Volume</div>
+                                    <div className="font-bold text-lg text-green-500">{formatMoney(selectedNode.value || 0)}</div>
                                 </div>
                                 <div>
-                                    <div className="text-xs text-gray-500 font-semibold">Transactions</div>
+                                    <div className="text-xs text-muted-foreground font-semibold">Transactions</div>
                                     <div className="font-bold text-lg">{selectedNode.transaction_count || 0}</div>
                                 </div>
                             </>
@@ -1070,13 +1140,13 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
 
             {/* Selected Edge Details */}
             {selectedEdge && (
-                <Card className="p-5 bg-gradient-to-br from-white to-purple-50/30 border-2 border-purple-200 shadow-lg">
+                <Card className="p-5 bg-card border-2 border-primary shadow-lg">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <h3 className="font-bold text-xl text-gray-900">
+                            <h3 className="font-bold text-xl text-card-foreground">
                                 {getRelationshipLabel(selectedEdge.type)} Connection
                             </h3>
-                            <p className="text-sm text-gray-600 font-medium">
+                            <p className="text-sm text-muted-foreground font-medium">
                                 {typeof selectedEdge.source === 'object' ? selectedEdge.source.id : selectedEdge.source} → {typeof selectedEdge.target === 'object' ? selectedEdge.target.id : selectedEdge.target}
                             </p>
                         </div>
@@ -1086,7 +1156,7 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div>
-                            <div className="text-xs text-gray-500 font-semibold">Relationship Type</div>
+                            <div className="text-xs text-muted-foreground font-semibold">Relationship Type</div>
                             <div className="font-bold text-lg flex items-center gap-2">
                                 <div
                                     className="w-4 h-4 rounded-full"
@@ -1097,14 +1167,14 @@ export function TradingNetworkGraph({ data: originalData }: TradingNetworkGraphP
                         </div>
                         {selectedEdge.count && (
                             <div>
-                                <div className="text-xs text-gray-500 font-semibold">Transaction Count</div>
+                                <div className="text-xs text-muted-foreground font-semibold">Transaction Count</div>
                                 <div className="font-bold text-lg">{selectedEdge.count}</div>
                             </div>
                         )}
                         {selectedEdge.value && (
                             <div>
-                                <div className="text-xs text-gray-500 font-semibold">Total Value</div>
-                                <div className="font-bold text-lg text-green-600">{formatMoney(selectedEdge.value)}</div>
+                                <div className="text-xs text-muted-foreground font-semibold">Total Value</div>
+                                <div className="font-bold text-lg text-green-500">{formatMoney(selectedEdge.value)}</div>
                             </div>
                         )}
                     </div>

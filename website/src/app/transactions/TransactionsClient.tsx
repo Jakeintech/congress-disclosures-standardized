@@ -51,6 +51,21 @@ export function TransactionsClient({ initialTransactions }: TransactionsClientPr
         }
     }
 
+    function formatAmount(tx: Transaction): string {
+        if (tx.amount) return tx.amount;
+        if (tx.amount_low === 0 && tx.amount_high === 0) return 'N/A';
+
+        const low = tx.amount_low !== undefined ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(tx.amount_low) : null;
+        const high = tx.amount_high !== undefined ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(tx.amount_high) : null;
+
+        if (low && high && low !== high) {
+            return `${low} - ${high}`;
+        } else if (low) {
+            return `${low}+`;
+        }
+        return 'N/A';
+    }
+
     return (
         <div className="space-y-6">
             {/* Filters */}
@@ -101,7 +116,7 @@ export function TransactionsClient({ initialTransactions }: TransactionsClientPr
                                     <TableHead className="w-[100px]">Ticker</TableHead>
                                     <TableHead>Asset</TableHead>
                                     <TableHead className="w-[120px]">Type</TableHead>
-                                    <TableHead className="w-[150px]">Amount</TableHead>
+                                    <TableHead className="w-[180px]">Amount</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -122,12 +137,12 @@ export function TransactionsClient({ initialTransactions }: TransactionsClientPr
                                                             href={`/member?id=${tx.bioguide_id}`}
                                                             className="font-medium hover:underline"
                                                         >
-                                                            {tx.filer_name || tx.member_name}
+                                                            {tx.filer_name || tx.member_name || 'Unknown'}
                                                         </Link>
                                                     ) : (tx.filer_name || tx.member_name || 'Unknown')}
                                                     {tx.party && (
                                                         <span className="text-xs text-muted-foreground">
-                                                            ({tx.party}-{tx.state})
+                                                            ({tx.party.substring(0, 1)}-{tx.state})
                                                         </span>
                                                     )}
                                                 </div>
@@ -143,7 +158,9 @@ export function TransactionsClient({ initialTransactions }: TransactionsClientPr
                                                     {tx.transaction_type}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="whitespace-nowrap">{tx.amount || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap font-medium">
+                                                {formatAmount(tx)}
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 )}

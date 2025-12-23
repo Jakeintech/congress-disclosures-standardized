@@ -250,10 +250,12 @@ class Transaction(BaseModel):
     transaction_type: Optional[TransactionType] = Field(None, description="Purchase, sale, or exchange")
     amount_low: Optional[int] = Field(None, description="Minimum transaction amount")
     amount_high: Optional[int] = Field(None, description="Maximum transaction amount")
+    amount: Optional[str] = Field(None, description="Formatted transaction amount string")
 
     # Member information
     bioguide_id: Optional[str] = Field(None, description="Bioguide ID of the filler")
     member_name: str = Field("Unknown", description="Display name of the member")
+    filer_name: Optional[str] = Field(None, description="Alias for member_name")
     first_name: Optional[str] = Field(None, description="Member's first name")
     last_name: Optional[str] = Field(None, description="Member's last name")
     party: Optional[str] = Field(None, description="Party affiliation (D, R, I)")

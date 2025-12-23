@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RotateCcw, Tag, Download, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuLabel,
+    ContextMenuSeparator,
+    ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import { NodeDetailPanel } from './node-detail-panel';
+import { RotateCcw, Tag, Filter, ChevronDown, ChevronUp, ZoomIn, ZoomOut, Expand, Minimize2, ExternalLink, Eye, EyeOff } from 'lucide-react';
 
 interface TradingNetworkGraphProps {
     data: any;

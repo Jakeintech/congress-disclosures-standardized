@@ -244,8 +244,23 @@ export async function fetchTransactions(params: TransactionsParams = {}): Promis
     if (params.offset) searchParams.set('offset', params.offset.toString());
 
     const url = `${API_BASE}/v1/trades?${searchParams.toString()}`;
+    console.log('[fetchTransactions] Calling API:', url);
     const raw = await fetchApi<any>(`${url}`);
-    return parseAPIResponse<Transaction>(raw, { expectPaginated: true }) as Transaction[];
+    console.log('[fetchTransactions] Raw response received:', {
+        type: typeof raw,
+        keys: raw && typeof raw === 'object' ? Object.keys(raw) : [],
+        hasSuccess: raw && 'success' in raw,
+        hasData: raw && 'data' in raw
+    });
+    const parsed = parseAPIResponse<Transaction>(raw, {
+        expectPaginated: true,
+        context: 'fetchTransactions'
+    }) as Transaction[];
+    console.log('[fetchTransactions] Parsed result:', {
+        isArray: Array.isArray(parsed),
+        length: Array.isArray(parsed) ? parsed.length : undefined
+    });
+    return parsed;
 }
 
 /**

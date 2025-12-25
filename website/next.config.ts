@@ -20,12 +20,6 @@ const nextConfig: NextConfig = {
 
   // Base path: Only use '/website' for S3 deployments, not for Vercel
   // basePath: isVercel ? undefined : '/website',
-
-  // Disable link prefetching for static hosting
-  experimental: {
-    // @ts-ignore - This is valid but types might not include it
-    disableOptimizedLoading: true,
-  },
 };
 
 export default nextConfig;

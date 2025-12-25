@@ -294,7 +294,7 @@ export function BillDetailClient({ billId }: BillDetailClientProps) {
                                     <div className="grid grid-cols-[120px_1fr] items-baseline gap-4">
                                         <span className="text-sm font-medium text-muted-foreground">Sponsor</span>
                                         <div>
-                                            <Link href={`/member?id=${bill.sponsor.bioguide_id}`} className="font-medium hover:underline text-primary">
+                                            <Link href={`\/politician\/${bill.sponsor.bioguide_id}`} className="font-medium hover:underline text-primary">
                                                 {bill.sponsor.name}
                                             </Link>
                                             <p className="text-sm text-muted-foreground">
@@ -475,7 +475,7 @@ export function BillDetailClient({ billId }: BillDetailClientProps) {
                                                     {cosponsor.name.charAt(0)}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <Link href={`/member?id=${cosponsor.bioguide_id}`} className="font-medium hover:underline truncate block">
+                                                    <Link href={`\/politician\/${cosponsor.bioguide_id}`} className="font-medium hover:underline truncate block">
                                                         {cosponsor.name}
                                                     </Link>
                                                     <p className="text-xs text-muted-foreground">
@@ -727,7 +727,7 @@ export function BillDetailClient({ billId }: BillDetailClientProps) {
                                                 <TableRow key={i} className="group hover:bg-muted/50">
                                                     <TableCell>
                                                         <div className="flex flex-col">
-                                                            <Link href={`/member?id=${trade.member.bioguide_id}`} className="font-medium hover:underline">
+                                                            <Link href={`\/politician\/${trade.member.bioguide_id}`} className="font-medium hover:underline">
                                                                 {trade.member.name}
                                                             </Link>
                                                             <span className="text-xs text-muted-foreground">

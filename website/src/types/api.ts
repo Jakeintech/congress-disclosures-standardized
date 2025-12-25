@@ -346,32 +346,42 @@ export interface BillsParams extends PaginationParams {
 // ============================================================================
 
 export interface Transaction {
-  doc_id: string;
-  filing_year: number;
-  filing_date: string | null;
-  filing_date_key: number | null;
-  filer_name: string | null;
-  first_name: string | null;
-  last_name: string | null;
-  state_district: string | null;
-  bioguide_id: string | null;
-  party: 'D' | 'R' | 'I' | null;
-  state: string | null;
-  chamber: 'house' | 'senate' | null;
+  // Transaction IDs (backend returns transaction_id, Gold layer uses transaction_key)
+  transaction_id?: string;
+  doc_id?: string;
+  transaction_key?: string;
+
+  // Filing metadata
+  filing_year?: number;
+  filing_date?: string | null;
+  disclosure_date?: string | null;
+  filing_date_key?: number | null;
+
+  // Member information
+  filer_name?: string | null;
+  member_name?: string | null; // Alias for filer_name
+  first_name?: string | null;
+  last_name?: string | null;
+  bioguide_id?: string | null;
+  party?: 'D' | 'R' | 'I' | 'Democrat' | 'Republican' | 'Independent' | string | null;
+  state?: string | null;
+  state_district?: string | null;
+  chamber?: 'house' | 'senate' | null;
+
+  // Transaction details
   transaction_date: string;
-  transaction_date_key: number;
-  owner: string | null;
-  ticker: string;
-  asset_description: string;
-  asset_type: 'Stock' | 'Bond' | 'Mutual Fund' | 'ETF' | 'Cryptocurrency' | string;
-  transaction_type: 'Purchase' | 'Sale' | 'Exchange' | string;
-  amount: string;
-  amount_low: number;
-  amount_high: number;
-  comment: string | null;
-  cap_gains_over_200: boolean;
-  transaction_key: string;
-  year: number;
+  transaction_date_key?: number;
+  owner?: string | null;
+  ticker?: string;
+  asset_description?: string;
+  asset_type?: 'Stock' | 'Bond' | 'Mutual Fund' | 'ETF' | 'Cryptocurrency' | string;
+  transaction_type: 'purchase' | 'sale' | 'exchange' | 'Purchase' | 'Sale' | 'Exchange' | string;
+  amount?: string;
+  amount_low?: number;
+  amount_high?: number;
+  comment?: string | null;
+  cap_gains_over_200?: boolean | null;
+  year?: number;
 }
 
 export interface TransactionsParams extends PaginationParams {

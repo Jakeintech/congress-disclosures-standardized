@@ -134,7 +134,7 @@ export function TransactionsClient({ initialTransactions }: TransactionsClientPr
                                                 <div className="flex flex-col">
                                                     {tx.bioguide_id ? (
                                                         <Link
-                                                            href={`/member?id=${tx.bioguide_id}`}
+                                                            href={`/politician/${tx.bioguide_id}`}
                                                             className="font-medium hover:underline"
                                                         >
                                                             {tx.filer_name || tx.member_name || 'Unknown'}

@@ -1,6 +1,6 @@
 # STORY-025: Create build_fact_amendments Lambda Wrapper
 
-**Epic**: EPIC-001 | **Sprint**: Sprint 2 | **Points**: 3 | **Priority**: P2 | **Status**: To Do
+**Epic**: EPIC-001 | **Sprint**: Sprint 2 | **Points**: 3 | **Priority**: P2 | **Status**: Done | **Completed**: 2025-12-16
 
 ## User Story
 **As a** data engineer

@@ -442,6 +442,20 @@ resource "aws_apigatewayv2_integration" "get_version" {
   payload_format_version = "2.0"
 }
 
+# GET /v1/health - System health check
+resource "aws_apigatewayv2_route" "get_health" {
+  api_id    = aws_apigatewayv2_api.congress_api.id
+  route_key = "GET /v1/health"
+  target    = "integrations/${aws_apigatewayv2_integration.get_health.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_health" {
+  api_id           = aws_apigatewayv2_api.congress_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.api["get_health"].invoke_arn
+  payload_format_version = "2.0"
+}
+
 # ============================================================================
 # Lambda Permissions for API Gateway
 # ============================================================================

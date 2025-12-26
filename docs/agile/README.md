@@ -2,27 +2,46 @@
 
 **Project**: EPIC-001 Unified Data Platform Migration
 **Duration**: 4 weeks (Dec 16, 2025 - Jan 11, 2026)
-**Status**: 🟡 In Planning
+**Status**: 🔄 **In Progress** (Sprint 2 Complete, Sprint 3 Active)
+
+## 📊 Current Status (Dec 26, 2025)
+
+| Metric | Value | Status |
+|--------|-------|--------|
+| **Overall Progress** | 31% (51/167 points) | 🔄 On Track |
+| **Stories Complete** | 15/55 | ✅ 27% |
+| **Current Sprint** | Sprint 3 (Week 2) | 🔄 Active |
+| **Last Completed** | Sprint 2 - Gold Layer | ✅ Dec 16 |
+| **Sprint Velocity** | 43 pts/sprint | ⚡ Strong |
+| **Days to Completion** | 16 days | 📅 Jan 11 target |
+
+**Quick Links**:
+- 📋 [**Current Status**](./active/CURRENT_STATUS.md) - Real-time progress
+- 📅 [**Timeline**](./active/TIMELINE.md) - Actual vs. planned delivery
+- 📊 [**Story Catalog**](./STORY_CATALOG.md) - All 55 stories
 
 ---
 
 ## Quick Start
 
 ### For Developers
-1. **Read the Epic**: [EPIC_001_UNIFIED_PIPELINE.md](./EPIC_001_UNIFIED_PIPELINE.md)
-2. **Check Current Sprint**: [sprints/SPRINT_01_FOUNDATION.md](./sprints/SPRINT_01_FOUNDATION.md)
-3. **Pick a Story**: [stories/](./stories/) (organized by sprint)
-4. **Use Template**: [templates/user_story_template.md](./templates/user_story_template.md)
+1. **Check Current Work**: [active/CURRENT_STATUS.md](./active/CURRENT_STATUS.md)
+2. **Current Sprint**: [sprints/SPRINT_03_INTEGRATION.md](./sprints/SPRINT_03_INTEGRATION.md)
+3. **Active Stories**: [stories/active/](./stories/active/) (43 stories)
+4. **Pick a Task**: Choose from Sprint 3 backlog
+5. **Use Template**: [templates/user_story_template.md](./templates/user_story_template.md)
 
 ### For Product Owners
 1. **Review Epic Goals**: [EPIC_001_UNIFIED_PIPELINE.md#success-criteria](./EPIC_001_UNIFIED_PIPELINE.md#success-criteria)
-2. **Track Progress**: See [Sprint Boards](#sprint-boards) below
+2. **Track Progress**: [active/CURRENT_STATUS.md](./active/CURRENT_STATUS.md)
 3. **Review Metrics**: [metrics/VELOCITY_TRACKING.md](./metrics/VELOCITY_TRACKING.md)
+4. **Completed Work**: [completed/](./completed/) & [sprints/completed/](./sprints/completed/)
 
 ### For Stakeholders
 1. **Business Value**: [EPIC_001#business-value](./EPIC_001_UNIFIED_PIPELINE.md#business-value)
-2. **Timeline**: [EPIC_001#timeline](./EPIC_001_UNIFIED_PIPELINE.md#timeline)
+2. **Timeline**: [active/TIMELINE.md](./active/TIMELINE.md)
 3. **Budget**: [EPIC_001#budget](./EPIC_001_UNIFIED_PIPELINE.md#budget)
+4. **Sprint Reports**: [sprints/completed/](./sprints/completed/)
 
 ---
 
@@ -31,19 +50,38 @@
 ```
 docs/agile/
 ├── README.md                          # This file
+├── INDEX.md                           # Complete navigation guide
 ├── EPIC_001_UNIFIED_PIPELINE.md       # Main epic definition
+├── STORY_CATALOG.md                   # All 55 stories (15 complete)
+│
+├── active/                            # 🔄 CURRENT WORK
+│   ├── CURRENT_STATUS.md              # Real-time sprint progress
+│   └── TIMELINE.md                    # Actual vs. planned delivery
 │
 ├── sprints/                           # Sprint plans
-│   ├── SPRINT_01_FOUNDATION.md        # Week 1 (34 points)
-│   ├── SPRINT_02_GOLD_LAYER.md        # Week 2 (55 points)
-│   ├── SPRINT_03_INTEGRATION.md       # Week 3 (34 points)
-│   └── SPRINT_04_PRODUCTION.md        # Week 4 (21 points)
+│   ├── SPRINT_01_FOUNDATION.md        # Week 1 (merged into Sprint 2)
+│   ├── SPRINT_03_INTEGRATION.md       # Week 3 (46 points) 🔄 ACTIVE
+│   ├── SPRINT_04_PRODUCTION.md        # Week 4 (31 points)
+│   └── completed/                     # ✅ FINISHED SPRINTS
+│       └── SPRINT_02_REPORT.md        # Week 2 (43 points) ✅ COMPLETE
 │
-├── stories/                           # User stories (45 total)
-│   ├── STORY_001_disable_eventbridge.md
-│   ├── STORY_002_fix_max_concurrency.md
-│   ├── STORY_003_watermarking_house_fd.md
-│   └── ... (42 more stories)
+├── stories/                           # User stories (55 total)
+│   ├── active/                        # 📋 ACTIVE (43 stories)
+│   │   ├── STORY_001_disable_eventbridge.md
+│   │   ├── STORY_002_fix_max_concurrency.md
+│   │   └── ... (41 more active stories)
+│   ├── completed/                     # ✅ DONE (12 stories)
+│   │   ├── STORY_016_build_dim_members.md
+│   │   ├── STORY_017_build_dim_assets.md
+│   │   └── ... (10 more completed stories)
+│   └── backlog/                       # Future stories
+│
+├── completed/                         # ✅ ARCHIVED WORK
+│   ├── README.md                      # Archive guide
+│   └── archive/                       # Pre-Epic session docs
+│       ├── WEEK1_PROGRESS.md
+│       ├── WEEK2_COMPLETE.md
+│       └── ... (8 more archived docs)
 │
 ├── technical/                         # Technical specifications
 │   ├── ARCHITECTURE_DECISION_RECORD.md
@@ -76,10 +114,10 @@ Migrate from script-based orchestration to AWS Step Functions with production-qu
 - **Performance**: 10x faster processing (4 hours vs. 41 hours)
 
 ### Timeline
-- **Sprint 1**: Dec 16-20 (Foundation)
-- **Sprint 2**: Dec 23-27 (Gold Layer)
-- **Sprint 3**: Dec 30-Jan 3 (Integration)
-- **Sprint 4**: Jan 6-10 (Production)
+- **Sprint 1**: Dec 16-20 (Foundation) - Merged into Sprint 2
+- **Sprint 2**: Dec 16, 2025 (Gold Layer) - ✅ **COMPLETE** (1-day sprint!)
+- **Sprint 3**: Dec 27 - Jan 3 (Integration) - 🔄 **IN PROGRESS**
+- **Sprint 4**: Jan 6-10 (Production) - 📋 Planned
 - **Launch**: January 11, 2026
 
 ### Budget
@@ -91,13 +129,34 @@ Migrate from script-based orchestration to AWS Step Functions with production-qu
 
 ## Sprint Summary
 
-| Sprint | Goal | Points | Stories | Status |
-|--------|------|--------|---------|--------|
-| [Sprint 1](./sprints/SPRINT_01_FOUNDATION.md) | Fix critical blockers | 34 | 15 | 🔴 Not Started |
-| [Sprint 2](./sprints/SPRINT_02_GOLD_LAYER.md) | Create Gold layer Lambdas | 55 | 12 | 🔴 Not Started |
-| [Sprint 3](./sprints/SPRINT_03_INTEGRATION.md) | State machine + tests | 34 | 10 | 🔴 Not Started |
-| [Sprint 4](./sprints/SPRINT_04_PRODUCTION.md) | Monitoring + production | 21 | 8 | 🔴 Not Started |
-| **Total** | **Unified Data Platform** | **144** | **45** | **🟡 In Planning** |
+| Sprint | Goal | Points | Stories | Completed | Status |
+|--------|------|--------|---------|-----------|--------|
+| Sprint 1 | Fix critical blockers | 41 | 16 | - | ⚠️ Merged into Sprint 2 |
+| [**Sprint 2**](./sprints/completed/SPRINT_02_REPORT.md) | **Gold layer Lambdas** | **43** | **12** | **43/43** | ✅ **COMPLETE** (Dec 16) |
+| [**Sprint 3**](./sprints/SPRINT_03_INTEGRATION.md) | **State machine + tests** | **46** | **16** | **8/46** | 🔄 **IN PROGRESS** |
+| [Sprint 4](./sprints/SPRINT_04_PRODUCTION.md) | Monitoring + production | 31 | 14 | 0/31 | 📋 Planned |
+| **Total** | **Unified Data Platform** | **167** | **55** | **51/167** | **🔄 31% Complete** |
+
+## ✅ Recently Completed
+
+### Sprint 2: Gold Layer Lambdas (Dec 16, 2025)
+**Delivered**: 43 points in 1 day (exceptional velocity!)
+**Deployed**:
+- ✅ 8 Lambda functions (dimensions, facts, aggregates)
+- ✅ DuckDB v1.1.3 integration
+- ✅ 2 endpoints end-to-end tested
+- ✅ All analytics endpoints operational
+
+**Report**: [Sprint 2 Completion Report](./sprints/completed/SPRINT_02_REPORT.md)
+
+### Phase 0: Emergency Hotfixes (Dec 19-26, 2025)
+**Delivered**: 8 points (85% complete)
+**Fixed**:
+- ✅ Transactions page loading issues (5 commits)
+- ✅ DuckDB version mismatch (21 failing endpoints now working)
+- 🔄 Health endpoint Lambda (API Gateway integration pending)
+
+**Details**: [Implementation Status](../IMPLEMENTATION_STATUS.md)
 
 ---
 

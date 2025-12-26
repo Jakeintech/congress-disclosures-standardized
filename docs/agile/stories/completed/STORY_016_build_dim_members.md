@@ -1,6 +1,6 @@
 # STORY-016: Create build_dim_members Lambda Wrapper
 
-**Epic**: EPIC-001 | **Sprint**: Sprint 2 | **Points**: 5 | **Priority**: P0 | **Status**: To Do
+**Epic**: EPIC-001 | **Sprint**: Sprint 2 | **Points**: 5 | **Priority**: P0 | **Status**: Done | **Completed**: 2025-12-16
 
 ## User Story
 **As a** data engineer

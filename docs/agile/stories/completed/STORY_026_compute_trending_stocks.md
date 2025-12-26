@@ -1,6 +1,6 @@
 # STORY-026: Create compute_trending_stocks Lambda Wrapper
 
-**Epic**: EPIC-001 | **Sprint**: Sprint 2 | **Points**: 3 | **Priority**: P1 | **Status**: To Do
+**Epic**: EPIC-001 | **Sprint**: Sprint 2 | **Points**: 3 | **Priority**: P1 | **Status**: Done | **Completed**: 2025-12-16
 
 ## User Story
 **As a** API consumer

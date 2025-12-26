@@ -52,12 +52,19 @@ def handler(event, context):
             SELECT
                 ticker,
                 name,
-                COALESCE(CAST(trade_count AS BIGINT), 0) AS total_transactions,
-                COALESCE(CAST(total_volume_usd AS DOUBLE), 0.0) AS total_volume,
-                COALESCE(CAST(buy_count AS BIGINT), 0) AS buy_count,
-                COALESCE(CAST(sell_count AS BIGINT), 0) AS sell_count,
-                COALESCE(CAST(net_sentiment AS DOUBLE), 0.0) AS sentiment_score,
-                COALESCE(CAST(unique_members AS BIGINT), 0) AS unique_members,
+                COALESCE(TRY_CAST(trade_count AS BIGINT), 0) AS total_transactions,
+                COALESCE(TRY_CAST(total_volume_usd AS DOUBLE), 0.0) AS total_volume,
+                COALESCE(TRY_CAST(buy_count AS BIGINT), 0) AS buy_count,
+                COALESCE(TRY_CAST(sell_count AS BIGINT), 0) AS sell_count,
+                COALESCE(
+                    TRY_CAST(net_sentiment AS DOUBLE),
+                    CASE
+                        WHEN LOWER(CAST(net_sentiment AS VARCHAR)) IN ('bullish', 'positive') THEN 1.0
+                        WHEN LOWER(CAST(net_sentiment AS VARCHAR)) IN ('bearish', 'negative') THEN -1.0
+                        ELSE 0.0
+                    END
+                ) AS sentiment_score,
+                COALESCE(TRY_CAST(unique_members AS BIGINT), 0) AS unique_members,
                 period_start,
                 period_end
             FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet')

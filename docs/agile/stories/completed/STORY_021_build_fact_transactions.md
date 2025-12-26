@@ -1,10 +1,10 @@
 # STORY-021: Create build_fact_transactions Lambda Wrapper
 
-**Epic**: EPIC-001 Unified Data Platform Migration
+**Epic**: EPIC-001 Unified Data Platform Migration | **Completed**: 2025-12-16
 **Sprint**: Sprint 2 - Gold Layer
 **Story Points**: 8
 **Priority**: P0 (Critical - Core Gold Table)
-**Status**: To Do
+**Status**: Done
 **Assignee**: TBD
 **Created**: 2025-12-14
 **Updated**: 2025-12-14

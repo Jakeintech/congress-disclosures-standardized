@@ -28,6 +28,25 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
+  /v1/health:
+    get:
+      summary: Health check with service validation
+      description: Comprehensive health check endpoint that validates DuckDB connectivity, S3 access, and runtime dependencies.
+      tags:
+      - System
+      responses:
+        '200':
+          description: Service is healthy or degraded but functional
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
   /v1/search:
     get:
       summary: Search across all entities
@@ -3838,6 +3857,81 @@ components:
       - success
       - data
       title: VersionResponse
+      type: object
+    HealthResponse:
+      description: Health check response with service validation
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Overall health status
+        timestamp:
+          type: integer
+          description: Unix timestamp of health check
+        checks:
+          type: object
+          properties:
+            duckdb:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, unhealthy]
+                version:
+                  type: string
+                s3_enabled:
+                  type: boolean
+                error:
+                  type: string
+            s3:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, unhealthy]
+                bucket:
+                  type: string
+                accessible:
+                  type: boolean
+                latency_ms:
+                  type: integer
+                objects_found:
+                  type: integer
+                error:
+                  type: string
+                error_code:
+                  type: string
+        dependencies:
+          type: object
+          additionalProperties:
+            type: string
+          description: Python dependency versions (duckdb, pyarrow, boto3, python)
+        runtime:
+          type: object
+          properties:
+            function_name:
+              type: string
+            function_version:
+              type: string
+            memory_limit_mb:
+              type: string
+            log_group:
+              type: string
+            region:
+              type: string
+        response_time_ms:
+          type: integer
+          description: Total time to complete health checks
+        error:
+          type: string
+          description: Error message (if unhealthy)
+        error_type:
+          type: string
+          description: Error class name (if unhealthy)
+      required:
+      - status
+      - timestamp
+      title: HealthResponse
       type: object
   responses:
     BadRequest:

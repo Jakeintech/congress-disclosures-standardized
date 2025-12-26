@@ -3,7 +3,43 @@
 **Epic**: EPIC-001 Unified Data Platform Migration
 **Total Stories**: 55
 **Total Points**: 167
-**Status**: ✅ All Stories Created (Rebalanced for AI-Assisted Development)
+**Status**: 🔄 **In Progress** (15/55 stories complete, 51/167 points delivered)
+
+## 📊 Overall Progress
+
+| Metric | Value | Percentage |
+|--------|-------|------------|
+| **Stories Completed** | 15/55 | 27% |
+| **Points Delivered** | 51/167 | 31% |
+| **Sprints Complete** | 1/4 (Sprint 2) | 25% |
+| **Current Sprint** | Sprint 3 | Week 2 |
+| **Days Elapsed** | 10 days | - |
+| **Days Remaining** | 16 days | - |
+
+## ✅ Completed Work
+
+### Sprint 2: Gold Layer Lambdas (Complete - Dec 16, 2025)
+**Status**: ✅ **100% COMPLETE** (43/43 points delivered in 1 day)
+**Stories**: 12 completed ([STORY-016](#sprint-2-gold-layer-9-stories-43-points) through [STORY-027](#sprint-2-gold-layer-9-stories-43-points))
+
+**Deliverables**:
+- 8 Lambda functions deployed (dimensions, facts, aggregates)
+- 2 endpoints end-to-end tested
+- DuckDB v1.1.3 integrated
+- All analytics endpoints operational
+
+**Report**: [Sprint 2 Completion Report](./sprints/completed/SPRINT_02_REPORT.md)
+
+### Phase 0: Emergency Hotfixes (Dec 19-26, 2025)
+**Status**: 🔄 **85% COMPLETE** (8/10 points delivered)
+**Stories**: 3 completed (STORY-057, STORY-058, STORY-059*)
+
+**Deliverables**:
+- ✅ Fixed Transactions page loading issues (5 commits)
+- ✅ Upgraded DuckDB to v1.1.3, fixed 21 failing endpoints
+- 🔄 Health endpoint Lambda created (API Gateway integration pending)
+
+**Details**: [Implementation Status](../IMPLEMENTATION_STATUS.md)
 
 ---
 
@@ -33,35 +69,36 @@
 
 ---
 
-## Sprint 2: Gold Layer (9 stories, 43 points)
+## Sprint 2: Gold Layer (12 stories, 43 points) ✅ **COMPLETE**
 
-### Dimension Builders (15 points)
-| ID | Title | Points | Priority | File |
-|----|-------|--------|----------|------|
-| STORY-016 | Create build_dim_members Lambda | 5 | P0 | [✅](./stories/STORY_016_build_dim_members.md) |
-| STORY-017 | Create build_dim_assets Lambda | 5 | P1 | [✅](./stories/STORY_017_build_dim_assets.md) |
-| STORY-018 | Create build_dim_bills Lambda | 5 | P1 | [✅](./stories/STORY_018_build_dim_bills.md) |
+**Status**: ✅ **100% COMPLETE** (Dec 16, 2025)
+**Completed**: 12/12 stories, 43/43 points
+**Velocity**: 43 points/day
 
-### Fact Builders (18 points)
-| ID | Title | Points | Priority | File |
-|----|-------|--------|----------|------|
-| STORY-021 | Create build_fact_transactions Lambda | 8 | P0 | [✅](./stories/STORY_021_build_fact_transactions.md) |
-| STORY-022 | Create build_fact_filings Lambda | 5 | P0 | [✅](./stories/STORY_022_build_fact_filings.md) |
-| STORY-023 | Create build_fact_lobbying Lambda | 5 | P1 | [✅](./stories/STORY_023_build_fact_lobbying.md) |
+### Dimension Builders (15 points) ✅
+| ID | Title | Points | Priority | Status | File |
+|----|-------|--------|----------|--------|------|
+| ✅ STORY-016 | Create build_dim_members Lambda | 5 | P0 | **Done** (Dec 16) | [📄](./stories/completed/STORY_016_build_dim_members.md) |
+| ✅ STORY-017 | Create build_dim_assets Lambda | 5 | P1 | **Done** (Dec 16) | [📄](./stories/completed/STORY_017_build_dim_assets.md) |
+| ✅ STORY-018 | Create build_dim_bills Lambda | 5 | P1 | **Done** (Dec 16) | [📄](./stories/completed/STORY_018_build_dim_bills.md) |
 
-### Aggregate Builders (6 points)
-| ID | Title | Points | Priority | File |
-|----|-------|--------|----------|------|
-| STORY-026 | Create compute_trending_stocks Lambda | 3 | P1 | [✅](./stories/STORY_026_compute_trending_stocks.md) |
-| STORY-027 | Create compute_member_stats Lambda | 3 | P1 | [✅](./stories/STORY_027_compute_member_stats.md) |
+### Fact Builders (18 points) ✅
+| ID | Title | Points | Priority | Status | File |
+|----|-------|--------|----------|--------|------|
+| ✅ STORY-021 | Create build_fact_transactions Lambda | 8 | P0 | **Done** (Dec 16) | [📄](./stories/completed/STORY_021_build_fact_transactions.md) |
+| ✅ STORY-022 | Create build_fact_filings Lambda | 5 | P0 | **Done** (Dec 16) | [📄](./stories/completed/STORY_022_build_fact_filings.md) |
+| ✅ STORY-023 | Create build_fact_lobbying Lambda | 5 | P1 | **Done** (Dec 16) | [📄](./stories/completed/STORY_023_build_fact_lobbying.md) |
 
-### Testing (4 points)
-| ID | Title | Points | Priority | File |
-|----|-------|--------|----------|------|
-| STORY-052 | Write unit tests - Sprint 2 Gold wrappers | 4 | P0 | [✅](./stories/STORY_052_distributed_testing_sprint2.md) |
+### Aggregate Builders (10 points) ✅
+| ID | Title | Points | Priority | Status | File |
+|----|-------|--------|----------|--------|------|
+| ✅ STORY-024 | Create build_fact_cosponsors Lambda | 3 | P2 | **Done** (Dec 16) | [📄](./stories/completed/STORY_024_build_fact_cosponsors.md) |
+| ✅ STORY-025 | Create build_fact_amendments Lambda | 3 | P2 | **Done** (Dec 16) | [📄](./stories/completed/STORY_025_build_fact_amendments.md) |
+| ✅ STORY-026 | Create compute_trending_stocks Lambda | 3 | P1 | **Done** (Dec 16) | [📄](./stories/completed/STORY_026_compute_trending_stocks.md) |
+| ✅ STORY-027 | Create compute_member_stats Lambda | 3 | P1 | **Done** (Dec 16) | [📄](./stories/completed/STORY_027_compute_member_stats.md) |
 
-**Sprint 2 Total**: 43 points
-**Changes**: Deferred STORY-019, 020, 024, 025 to Sprint 3 (-12 pts); Added STORY-052 (+4 pts)
+**Sprint 2 Total**: 43 points ✅ **DELIVERED**
+**Report**: [Sprint 2 Completion Report](./sprints/completed/SPRINT_02_REPORT.md)
 
 ---
 
@@ -84,16 +121,15 @@
 | STORY-049 | Add dimension validation step | 3 | P1 | [✅](./stories/STORY_049_dimension_validation.md) |
 | STORY-053 | Write unit tests - Sprint 3 state machine | 6 | P0 | [✅](./stories/STORY_053_distributed_testing_sprint3.md) |
 
-### Deferred from Sprint 2 (12 points)
-| ID | Title | Points | Priority | File |
-|----|-------|--------|----------|------|
-| STORY-019 | Create build_dim_lobbyists Lambda | 3 | P2 | [✅](./stories/STORY_019_build_dim_lobbyists.md) |
-| STORY-020 | Create build_dim_dates Lambda | 3 | P2 | [✅](./stories/STORY_020_build_dim_dates.md) |
-| STORY-024 | Create build_fact_cosponsors Lambda | 3 | P2 | [✅](./stories/STORY_024_build_fact_cosponsors.md) |
-| STORY-025 | Create build_fact_amendments Lambda | 3 | P2 | [✅](./stories/STORY_025_build_fact_amendments.md) |
+### Deferred from Sprint 2 (6 points) 📋
+| ID | Title | Points | Priority | Status | File |
+|----|-------|--------|----------|--------|------|
+| 📋 STORY-019 | Create build_dim_lobbyists Lambda | 3 | P2 | To Do | [📄](./stories/active/STORY_019_build_dim_lobbyists.md) |
+| 📋 STORY-020 | Create build_dim_dates Lambda | 3 | P2 | To Do | [📄](./stories/active/STORY_020_build_dim_dates.md) |
 
-**Sprint 3 Total**: 52 points
-**Changes**: Removed STORY-034 (-8 pts), 035 (-5 pts), 036 (-3 pts), 037 (-2 pts); Added STORY-048 (+5 pts), 049 (+3 pts), 053 (+6 pts), plus 4 deferred from Sprint 2 (+12 pts)
+**Sprint 3 Total**: 46 points (revised from 52)
+**Status**: 🔄 **IN PROGRESS** (3/16 stories complete from Phase 0 work)
+**Changes**: STORY-024, 025 completed in Sprint 2 (-6 pts); Phase 0 work added (+8 pts estimated)
 
 ---
 

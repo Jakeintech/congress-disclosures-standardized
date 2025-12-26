@@ -1,317 +1,292 @@
 openapi: 3.0.0
 info:
-  title: Congress Bill API
+  title: Congressional Trading Data API
   version: 1.0.0
-  description: API for retrieving US Congress bill data via proxy to Congress.gov API.
+  description: Public API for congressional trading disclosures, legislative analytics, and lobbying correlations.
+
+servers:
+  - url: https://api.congress-disclosures.com/v1
+
+tags:
+  - name: System
+    description: System health and version information
+  - name: Members
+    description: Congressional member profiles and summary stats
+  - name: Trading
+    description: Financial disclosure transactions and stock analysis
+  - name: Analytics
+    description: Performance metrics, conflicts, and trending patterns
+  - name: Congress
+    description: Proxy to Congress.gov for bill and committee data
+  - name: Lobbying
+    description: Lobbying filings and bill-lobbying correlations
 
 paths:
-  /v1/congress/bills/{bill_id}/actions:
+  /health:
     get:
-      summary: Get bill actions
-      parameters:
-        - in: path
-          name: bill_id
-          required: true
-          schema:
-            type: string
-            example: "119-sconres-23"
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 250
+      tags: [System]
+      summary: Health check
+      description: Returns health status of Lambda, DuckDB, and S3 connectivity.
       responses:
         '200':
-          description: Successful response
+          description: Healthy
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  bill_id:
-                    type: string
-                  actions:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        action_date:
-                          type: string
-                        action_text:
-                          type: string
-                        type:
-                          type: string
-                        action_code:
-                          type: string
-                        source_system:
-                          type: string
-                  count:
-                    type: integer
+                $ref: '#/components/schemas/HealthResponse'
 
-  /v1/congress/bills/{bill_id}/summaries:
+  /version:
     get:
-      summary: Get bill summaries
-      parameters:
-        - in: path
-          name: bill_id
-          required: true
-          schema:
-            type: string
-            example: "119-sconres-23"
+      tags: [System]
+      summary: API version
+      description: Returns git commit, build timestamp, and runtime info.
       responses:
         '200':
-          description: Successful response
+          description: Version information
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  bill_id:
-                    type: string
-                  summaries:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        updateDate:
-                          type: string
-                        actionDate:
-                          type: string
-                        actionDesc:
-                          type: string
-                        text:
-                          type: string
-                        versionCode:
-                          type: string
-                  count:
-                    type: integer
+                $ref: '#/components/schemas/VersionResponse'
 
-  /v1/congress/bills/{bill_id}/titles:
+  /members:
     get:
-      summary: Get bill titles
+      tags: [Members]
+      summary: List members
       parameters:
-        - in: path
-          name: bill_id
-          required: true
-          schema:
-            type: string
-            example: "119-sconres-23"
+        - name: limit
+          in: query
+          schema: {type: integer, default: 50}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0}
+        - name: state
+          in: query
+          schema: {type: string}
+        - name: party
+          in: query
+          schema: {type: string, enum: [D, R, I]}
       responses:
         '200':
-          description: Successful response
+          description: Paginated members
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  bill_id:
-                    type: string
-                  titles:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        type:
-                          type: string
-                        title:
-                          type: string
-                        chamber:
-                          type: string
-                        congress:
-                          type: integer
-                  count:
-                    type: integer
+                $ref: '#/components/schemas/MembersPaginatedResponse'
 
-  /v1/congress/bills/{bill_id}/cosponsors:
+  /trades:
     get:
-      summary: Get bill cosponsors
+      tags: [Trading]
+      summary: List trades
       parameters:
-        - in: path
-          name: bill_id
-          required: true
-          schema:
-            type: string
-            example: "119-sconres-23"
+        - name: limit
+          in: query
+          schema: {type: integer, default: 50}
+        - name: ticker
+          in: query
+          schema: {type: string}
+        - name: start_date
+          in: query
+          schema: {type: string, format: date}
+        - name: end_date
+          in: query
+          schema: {type: string, format: date}
       responses:
         '200':
-          description: Successful response
+          description: Paginated trades
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  bill_id:
-                    type: string
-                  cosponsors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        bioguideId:
-                          type: string
-                        name:
-                          type: string
-                        state:
-                          type: string
-                        party:
-                          type: string
-                        district:
-                          type: string
-                        sponsorshipDate:
-                          type: string
-                        isOriginalCosponsor:
-                          type: boolean
-                  count:
-                    type: integer
+                $ref: '#/components/schemas/TransactionsPaginatedResponse'
 
-  /v1/congress/bills/{bill_id}/subjects:
+  /analytics/top-traders:
     get:
-      summary: Get bill subjects
+      tags: [Analytics]
+      summary: Top trading members
       parameters:
-        - in: path
-          name: bill_id
-          required: true
-          schema:
-            type: string
-            example: "119-sconres-23"
+        - name: days
+          in: query
+          schema: {type: integer, default: 365}
+        - name: metric
+          in: query
+          schema: {type: string, enum: [volume, transactions]}
       responses:
         '200':
-          description: Successful response
+          description: Top traders list
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  bill_id:
-                    type: string
-                  subjects:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        updateDate:
-                          type: string
-                  count:
-                    type: integer
+                $ref: '#/components/schemas/TopTradersResponse'
 
-  /v1/congress/bills/{bill_id}/amendments:
+  /analytics/alpha:
     get:
-      summary: Get bill amendments
+      tags: [Analytics]
+      summary: Congressional Alpha metrics
       parameters:
-        - in: path
-          name: bill_id
-          required: true
-          schema:
-            type: string
-            example: "119-sconres-23"
+        - name: type
+          in: query
+          schema: {type: string, enum: [member, party, sector_rotation]}
       responses:
         '200':
-          description: Successful response
+          description: Performance alpha metrics
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  bill_id:
-                    type: string
-                  amendments:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        number:
-                          type: string
-                        type:
-                          type: string
-                        congress:
-                          type: string
-                        description:
-                          type: string
-                        purpose:
-                          type: string
-                        latestAction:
-                          type: object
-                        updateDate:
-                          type: string
-                  count:
-                    type: integer
+                  success: {type: boolean}
+                  data: {type: array, items: {type: object}}
 
-  /v1/congress/bills/{bill_id}/committees:
+  /analytics/conflicts:
     get:
-      summary: Get bill committees
+      tags: [Analytics]
+      summary: Conflict of interest detection
       parameters:
-        - in: path
-          name: bill_id
-          required: true
-          schema:
-            type: string
-            example: "119-sconres-23"
+        - name: severity
+          in: query
+          schema: {type: string, enum: [all, critical, high, medium, low]}
+        - name: member_id
+          in: query
+          schema: {type: string}
       responses:
         '200':
-          description: Successful response
+          description: Potential conflicts found
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  bill_id:
-                    type: string
-                  committees:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        systemCode:
-                          type: string
-                        name:
-                          type: string
-                        chamber:
-                          type: string
-                        type:
-                          type: string
-                        activities:
-                          type: array
-                  count:
-                    type: integer
+                  success: {type: boolean}
+                  conflicts: {type: array, items: {type: object}}
 
-  /v1/congress/bills/{bill_id}/related:
+  /analytics/activity:
     get:
-      summary: Get related bills
-      parameters:
-        - in: path
-          name: bill_id
-          required: true
-          schema:
-            type: string
-            example: "119-sconres-23"
+      tags: [Analytics]
+      summary: Recent unified activity feed
       responses:
         '200':
-          description: Successful response
+          description: Activity across trades, bills, and lobbying
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecentActivityResponse'
+
+  /congress/committees:
+    get:
+      tags: [Congress]
+      summary: List congressional committees
+      parameters:
+        - name: chamber
+          in: query
+          schema: {type: string, enum: [house, senate, joint]}
+      responses:
+        '200':
+          description: List of committees
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  bill_id:
-                    type: string
-                  relatedBills:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        type:
-                          type: string
-                        number:
-                          type: integer
-                        congress:
-                          type: integer
-                        title:
-                          type: string
-                        relationshipType:
-                          type: string
-                        identifiedBy:
-                          type: string
-                  count:
-                    type: integer
+                  success: {type: boolean}
+                  committees: {type: array, items: {$ref: '#/components/schemas/Committee'}}
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            status: {type: string}
+            timestamp: {type: string}
+            checks: {type: object}
+
+    VersionResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            version: {type: string}
+            git: {type: object}
+            build: {type: object}
+            runtime: {type: object}
+
+    Member:
+      type: object
+      properties:
+        bioguide_id: {type: string}
+        name: {type: string}
+        party: {type: string}
+        state: {type: string}
+        chamber: {type: string}
+
+    MembersPaginatedResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            items: {type: array, items: {$ref: '#/components/schemas/Member'}}
+            pagination: {$ref: '#/components/schemas/PaginationMetadata'}
+
+    Transaction:
+      type: object
+      properties:
+        transaction_id: {type: string}
+        disclosure_date: {type: string, format: date}
+        transaction_date: {type: string, format: date}
+        ticker: {type: string}
+        member_name: {type: string}
+        amount: {type: string}
+
+    TransactionsPaginatedResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            items: {type: array, items: {$ref: '#/components/schemas/Transaction'}}
+            pagination: {$ref: '#/components/schemas/PaginationMetadata'}
+
+    TopTradersResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            traders: {type: array, items: {type: object}}
+            party_breakdown: {type: array, items: {type: object}}
+
+    RecentActivityResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            activity: {type: array, items: {type: object}}
+            count: {type: integer}
+
+    Committee:
+      type: object
+      properties:
+        systemCode: {type: string}
+        name: {type: string}
+        chamber: {type: string}
+        type: {type: string}
+
+    PaginationMetadata:
+      type: object
+      properties:
+        total: {type: integer}
+        count: {type: integer}
+        limit: {type: integer}
+        offset: {type: integer}
+        has_next: {type: boolean}
+        has_prev: {type: boolean}

@@ -40,7 +40,7 @@ if [ "$1" == "--publish" ]; then
     echo "Publishing layer to AWS Lambda..."
     aws lambda publish-layer-version \
         --layer-name ${LAYER_NAME} \
-        --description "DuckDB 0.9.2 + PyArrow 14.0.1 for S3-native analytics" \
+        --description "DuckDB 1.1.3 + PyArrow 18.1.0 for S3-native analytics (2025-12-25)" \
         --zip-file fileb://${LAYER_NAME}.zip \
         --compatible-runtimes python3.11 \
         --compatible-architectures x86_64 \

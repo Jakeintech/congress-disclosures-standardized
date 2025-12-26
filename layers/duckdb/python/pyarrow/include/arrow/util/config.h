@@ -15,24 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#define ARROW_VERSION_MAJOR 14
-#define ARROW_VERSION_MINOR 0
-#define ARROW_VERSION_PATCH 1
+#define ARROW_VERSION_MAJOR 18
+#define ARROW_VERSION_MINOR 1
+#define ARROW_VERSION_PATCH 0
 #define ARROW_VERSION ((ARROW_VERSION_MAJOR * 1000) + ARROW_VERSION_MINOR) * 1000 + ARROW_VERSION_PATCH
 
-#define ARROW_VERSION_STRING "14.0.1"
+#define ARROW_VERSION_STRING "18.1.0"
 
-#define ARROW_SO_VERSION "1400"
-#define ARROW_FULL_SO_VERSION "1400.1.0"
+#define ARROW_SO_VERSION "1801"
+#define ARROW_FULL_SO_VERSION "1801.0.0"
 
 #define ARROW_CXX_COMPILER_ID "GNU"
 #define ARROW_CXX_COMPILER_VERSION "10.2.1"
-#define ARROW_CXX_COMPILER_FLAGS " -fdiagnostics-color=always"
+#define ARROW_CXX_COMPILER_FLAGS " -Wno-noexcept-type -Wno-subobject-linkage  -fdiagnostics-color=always  -Wall -fno-semantic-interposition -msse4.2 "
 
 #define ARROW_BUILD_TYPE "RELEASE"
-
-#define ARROW_GIT_ID ""
-#define ARROW_GIT_DESCRIPTION ""
 
 #define ARROW_PACKAGE_KIND "python-wheel-manylinux2014"
 
@@ -47,15 +44,27 @@
 #define ARROW_JEMALLOC
 #define ARROW_JEMALLOC_VENDORED
 #define ARROW_JSON
+#define ARROW_MIMALLOC
 #define ARROW_ORC
 #define ARROW_PARQUET
 #define ARROW_SUBSTRAIT
 
+#define ARROW_AZURE
 #define ARROW_ENABLE_THREADING
 #define ARROW_GCS
+#define ARROW_HDFS
 #define ARROW_S3
+/* #undef ARROW_USE_GLOG */
 #define ARROW_USE_NATIVE_INT128
+#define ARROW_WITH_BROTLI
+#define ARROW_WITH_BZ2
+#define ARROW_WITH_LZ4
 /* #undef ARROW_WITH_MUSL */
 /* #undef ARROW_WITH_OPENTELEMETRY */
+#define ARROW_WITH_RE2
+#define ARROW_WITH_SNAPPY
 /* #undef ARROW_WITH_UCX */
+#define ARROW_WITH_UTF8PROC
+#define ARROW_WITH_ZLIB
+#define ARROW_WITH_ZSTD
 #define PARQUET_REQUIRE_ENCRYPTION

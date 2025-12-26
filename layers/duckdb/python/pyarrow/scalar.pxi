@@ -17,6 +17,7 @@
 
 import collections
 from cython cimport binding
+from uuid import UUID
 
 
 cdef class Scalar(_Weakrefable):
@@ -665,6 +666,14 @@ cdef class LargeStringScalar(StringScalar):
     pass
 
 
+cdef class BinaryViewScalar(BinaryScalar):
+    pass
+
+
+cdef class StringViewScalar(StringScalar):
+    pass
+
+
 cdef class ListScalar(Scalar):
     """
     Concrete class for list-like scalars.
@@ -709,6 +718,14 @@ cdef class FixedSizeListScalar(ListScalar):
 
 
 cdef class LargeListScalar(ListScalar):
+    pass
+
+
+cdef class ListViewScalar(ListScalar):
+    pass
+
+
+cdef class LargeListViewScalar(ListScalar):
     pass
 
 
@@ -1027,6 +1044,75 @@ cdef class ExtensionScalar(Scalar):
         return pyarrow_wrap_scalar(<shared_ptr[CScalar]> sp_scalar)
 
 
+class UuidScalar(ExtensionScalar):
+    """
+    Concrete class for Uuid extension scalar.
+    """
+
+    def as_py(self):
+        return None if self.value is None else UUID(bytes=self.value.as_py())
+
+
+cdef class FixedShapeTensorScalar(ExtensionScalar):
+    """
+    Concrete class for fixed shape tensor extension scalar.
+    """
+
+    def to_numpy(self):
+        """
+        Convert fixed shape tensor scalar to a numpy.ndarray.
+
+        The resulting ndarray's shape matches the permuted shape of the
+        fixed shape tensor scalar.
+        The conversion is zero-copy.
+
+        Returns
+        -------
+        numpy.ndarray
+        """
+        return self.to_tensor().to_numpy()
+
+    def to_tensor(self):
+        """
+        Convert fixed shape tensor extension scalar to a pyarrow.Tensor, using shape
+        and strides derived from corresponding FixedShapeTensorType.
+
+        The conversion is zero-copy.
+
+        Returns
+        -------
+        pyarrow.Tensor
+            Tensor represented stored in FixedShapeTensorScalar.
+        """
+        cdef:
+            CFixedShapeTensorType* c_type = static_pointer_cast[CFixedShapeTensorType, CDataType](
+                self.wrapped.get().type).get()
+            shared_ptr[CExtensionScalar] scalar = static_pointer_cast[CExtensionScalar, CScalar](self.wrapped)
+            shared_ptr[CTensor] ctensor
+
+        with nogil:
+            ctensor = GetResultValue(c_type.MakeTensor(scalar))
+        return pyarrow_wrap_tensor(ctensor)
+
+
+cdef class OpaqueScalar(ExtensionScalar):
+    """
+    Concrete class for opaque extension scalar.
+    """
+
+
+cdef class Bool8Scalar(ExtensionScalar):
+    """
+    Concrete class for bool8 extension scalar.
+    """
+
+    def as_py(self):
+        """
+        Return this scalar as a Python object.
+        """
+        py_val = super().as_py()
+        return None if py_val is None else py_val != 0
+
 cdef dict _scalar_classes = {
     _Type_BOOL: BooleanScalar,
     _Type_UINT8: UInt8Scalar,
@@ -1051,11 +1137,15 @@ cdef dict _scalar_classes = {
     _Type_BINARY: BinaryScalar,
     _Type_LARGE_BINARY: LargeBinaryScalar,
     _Type_FIXED_SIZE_BINARY: FixedSizeBinaryScalar,
+    _Type_BINARY_VIEW: BinaryViewScalar,
     _Type_STRING: StringScalar,
     _Type_LARGE_STRING: LargeStringScalar,
+    _Type_STRING_VIEW: StringViewScalar,
     _Type_LIST: ListScalar,
     _Type_LARGE_LIST: LargeListScalar,
     _Type_FIXED_SIZE_LIST: FixedSizeListScalar,
+    _Type_LIST_VIEW: ListViewScalar,
+    _Type_LARGE_LIST_VIEW: LargeListViewScalar,
     _Type_STRUCT: StructScalar,
     _Type_MAP: MapScalar,
     _Type_DICTIONARY: DictionaryScalar,
@@ -1131,6 +1221,11 @@ def scalar(value, type=None, *, from_pandas=None, MemoryPool memory_pool=None):
     type = ensure_type(type, allow_none=True)
     pool = maybe_unbox_memory_pool(memory_pool)
 
+    extension_type = None
+    if type is not None and type.id == _Type_EXTENSION:
+        extension_type = type
+        type = type.storage_type
+
     if _is_array_like(value):
         value = get_values(value, &is_pandas_object)
 
@@ -1155,4 +1250,8 @@ def scalar(value, type=None, *, from_pandas=None, MemoryPool memory_pool=None):
 
     # retrieve the scalar from the first position
     scalar = GetResultValue(array.get().GetScalar(0))
-    return Scalar.wrap(scalar)
+    result = Scalar.wrap(scalar)
+
+    if extension_type is not None:
+        result = ExtensionScalar.from_storage(extension_type, result)
+    return result

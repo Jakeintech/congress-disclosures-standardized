@@ -1,33 +1,19 @@
 # Lambda Functions for Gold Transformations using DuckDB
 
-# Upload DuckDB layer to S3 (required for layers > 70MB)
-resource "aws_s3_object" "duckdb_layer" {
-  bucket = var.s3_bucket_name
-  key    = "lambda-layers/congress-duckdb.zip"
-  source = "${path.module}/../../layers/duckdb/congress-duckdb.zip"
-  etag   = fileexists("${path.module}/../../layers/duckdb/congress-duckdb.zip") ? filemd5("${path.module}/../../layers/duckdb/congress-duckdb.zip") : null
-
-  lifecycle {
-    ignore_changes = [etag]
-  }
-
-  tags = {
-    Name        = "duckdb-lambda-layer"
-    Project     = var.project_name
-    Environment = var.environment
-  }
-}
-
-# DuckDB Lambda Layer (uploaded via S3)
+# DuckDB Lambda Layer (using pre-uploaded layer from S3)
+# Layer uploaded manually via layers/duckdb/build.sh --publish
+# Version: DuckDB 1.1.3 + PyArrow 18.1.0 (2025-12-25)
 resource "aws_lambda_layer_version" "duckdb" {
   layer_name          = "${var.project_name}-duckdb"
-  description         = "DuckDB 0.9.2 + PyArrow 14.0.1 for S3-native analytics"
-  s3_bucket           = aws_s3_object.duckdb_layer.bucket
-  s3_key              = aws_s3_object.duckdb_layer.key
+  description         = "DuckDB 1.1.3 + PyArrow 18.1.0 for S3-native analytics (2025-12-25)"
+  s3_bucket           = var.s3_bucket_name
+  s3_key              = "lambda-layers/congress-duckdb-1.1.3.zip"
   compatible_runtimes = ["python3.11"]
   compatible_architectures = ["x86_64"]
 
-  depends_on = [aws_s3_object.duckdb_layer]
+  lifecycle {
+    ignore_changes = [source_code_hash]
+  }
 }
 
 # Lambda Function: Build Fact Transactions

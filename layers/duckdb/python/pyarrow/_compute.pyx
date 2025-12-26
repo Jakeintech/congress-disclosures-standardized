@@ -33,7 +33,10 @@ from pyarrow.util import _DEPR_MSG
 from libcpp cimport bool as c_bool
 
 import inspect
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np = None
 import warnings
 
 
@@ -41,6 +44,11 @@ __pas = None
 _substrait_msg = (
     "The pyarrow installation is not built with support for Substrait."
 )
+
+
+SUPPORTED_INPUT_ARR_TYPES = (list, tuple)
+if np is not None:
+    SUPPORTED_INPUT_ARR_TYPES += (np.ndarray, )
 
 
 def _pas():
@@ -473,7 +481,7 @@ cdef class MetaFunction(Function):
 
 cdef _pack_compute_args(object values, vector[CDatum]* out):
     for val in values:
-        if isinstance(val, (list, np.ndarray)):
+        if isinstance(val, SUPPORTED_INPUT_ARR_TYPES):
             val = lib.asarray(val)
 
         if isinstance(val, Array):
@@ -1108,8 +1116,8 @@ class MatchSubstringOptions(_MatchSubstringOptions):
 
 
 cdef class _PadOptions(FunctionOptions):
-    def _set_options(self, width, padding):
-        self.wrapped.reset(new CPadOptions(width, tobytes(padding)))
+    def _set_options(self, width, padding, lean_left_on_odd_padding):
+        self.wrapped.reset(new CPadOptions(width, tobytes(padding), lean_left_on_odd_padding))
 
 
 class PadOptions(_PadOptions):
@@ -1122,10 +1130,14 @@ class PadOptions(_PadOptions):
         Desired string length.
     padding : str, default " "
         What to pad the string with. Should be one byte or codepoint.
+    lean_left_on_odd_padding : bool, default True
+        What to do if there is an odd number of padding characters (in case
+        of centered padding). Defaults to aligning on the left (i.e. adding
+        the extra padding character on the right).
     """
 
-    def __init__(self, width, padding=' '):
-        self._set_options(width, padding)
+    def __init__(self, width, padding=' ', lean_left_on_odd_padding=True):
+        self._set_options(width, padding, lean_left_on_odd_padding)
 
 
 cdef class _TrimOptions(FunctionOptions):
@@ -1390,7 +1402,7 @@ class TakeOptions(_TakeOptions):
     ----------
     boundscheck : boolean, default True
         Whether to check indices are within bounds. If False and an
-        index is out of boundes, behavior is undefined (the process
+        index is out of bounds, behavior is undefined (the process
         may crash).
     """
 
@@ -1468,7 +1480,7 @@ cdef class _StructFieldOptions(FunctionOptions):
     def _set_options(self, indices):
 
         if isinstance(indices, (list, tuple)) and not len(indices):
-            # Allow empty indices; effecitively return same array
+            # Allow empty indices; effectively return same array
             self.wrapped.reset(
                 new CStructFieldOptions(<vector[int]>indices))
             return
@@ -1682,6 +1694,9 @@ class StrptimeOptions(_StrptimeOptions):
     ----------
     format : str
         Pattern for parsing input strings as timestamps, such as "%Y/%m/%d".
+        Note that the semantics of the format follow the C/C++ strptime, not the Python one.
+        There are differences in behavior, for example how the "%y" placeholder
+        handles years with less than four digits.
     unit : str
         Timestamp unit of the output.
         Accepted values are "s", "ms", "us", "ns".
@@ -2032,6 +2047,26 @@ class PairwiseOptions(_PairwiseOptions):
         self._set_options(period)
 
 
+cdef class _ListFlattenOptions(FunctionOptions):
+    def _set_options(self, recursive):
+        self.wrapped.reset(new CListFlattenOptions(recursive))
+
+
+class ListFlattenOptions(_ListFlattenOptions):
+    """
+    Options for `list_flatten` function
+
+    Parameters
+    ----------
+    recursive : bool, default False
+        When True, the list array is flattened recursively until an array
+        of non-list values is formed.
+    """
+
+    def __init__(self, recursive=False):
+        self._set_options(recursive)
+
+
 cdef class _ArraySortOptions(FunctionOptions):
     def _set_options(self, order, null_placement):
         self.wrapped.reset(new CArraySortOptions(
@@ -2162,7 +2197,7 @@ class QuantileOptions(_QuantileOptions):
 
     def __init__(self, q=0.5, *, interpolation="linear", skip_nulls=True,
                  min_count=0):
-        if not isinstance(q, (list, tuple, np.ndarray)):
+        if not isinstance(q, SUPPORTED_INPUT_ARR_TYPES):
             q = [q]
         self._set_options(q, interpolation, skip_nulls, min_count)
 
@@ -2195,7 +2230,7 @@ class TDigestOptions(_TDigestOptions):
 
     def __init__(self, q=0.5, *, delta=100, buffer_size=500, skip_nulls=True,
                  min_count=0):
-        if not isinstance(q, (list, tuple, np.ndarray)):
+        if not isinstance(q, SUPPORTED_INPUT_ARR_TYPES):
             q = [q]
         self._set_options(q, delta, buffer_size, skip_nulls, min_count)
 
@@ -2988,7 +3023,7 @@ def register_aggregate_function(func, function_name, function_doc, in_types, out
     This is often used with ordered or segmented aggregation where groups
     can be emit before accumulating all of the input data.
 
-    Note that currently the size of any input column can not exceed 2 GB
+    Note that currently the size of any input column cannot exceed 2 GB
     for a single segment (all groups combined).
 
     Parameters
@@ -3073,7 +3108,7 @@ def register_tabular_function(func, function_name, function_doc, in_types, out_t
     UdfContext and returning a generator of struct arrays.
     The in_types argument must be empty and the out_type argument
     specifies a schema. Each struct array must have field types
-    correspoding to the schema.
+    corresponding to the schema.
 
     Parameters
     ----------

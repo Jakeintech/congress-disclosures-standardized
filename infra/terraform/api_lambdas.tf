@@ -9,12 +9,14 @@
 
 # Custom DuckDB Lambda Layer
 # AWS SDK Pandas layer does NOT include duckdb, so we need a custom layer
+# Using the latest DuckDB 1.1.3 layer built on 2025-12-25
 resource "aws_lambda_layer_version" "api_duckdb_layer" {
   layer_name          = "${local.name_prefix}-api-duckdb"
-  description         = "DuckDB for API Lambdas"
+  description         = "DuckDB 1.1.3 + PyArrow 18.1.0 for S3-native analytics (2025-12-25)"
   s3_bucket           = aws_s3_bucket.data_lake.id
-  s3_key              = "lambda-deployments/layers/api_duckdb_layer.zip"
+  s3_key              = "lambda-layers/congress-duckdb-1.1.3.zip"
   compatible_runtimes = ["python3.11"]
+  compatible_architectures = ["x86_64"]
 
   lifecycle {
     ignore_changes = [source_code_hash]

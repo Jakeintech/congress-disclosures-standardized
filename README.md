@@ -45,7 +45,8 @@ A robust, serverless data pipeline for ingesting, extracting, and analyzing US C
 
 We use an agile workflow managed through GitHub.
 
-- **Agile Board**: [Congress Disclosures Agile Board](https://github.com/users/Jakeintech/projects)
+- **Projects Board**: [Congress Disclosures Agile Board](https://github.com/users/Jakeintech/projects/1) - Automated sprint tracking
+- **Board Setup**: [Setup Guide](.github/PROJECTS_BOARD_SETUP.md) - Configure automated Projects board (~30 min)
 - **Current Sprint**: [Sprint 3: Integration](docs/agile/sprints/SPRINT_3_PLAN.md)
 - **Roadmap**: [Visual Roadmap](docs/agile/ROADMAP.md)
 - **Issues & Backlog**: [GitHub Issues](https://github.com/Jakeintech/congress-disclosures-standardized/issues)

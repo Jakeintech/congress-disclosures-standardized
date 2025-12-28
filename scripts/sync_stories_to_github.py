@@ -387,6 +387,22 @@ class GitHubIssueManager:
             log_error(f"Error: {stderr}")
             return False
 
+    def add_to_project(self, issue_number: int, project_title: str) -> bool:
+        """Add issue to GitHub Project"""
+        if self.dry_run:
+            log_info(f"DRY RUN: Would add issue #{issue_number} to project '{project_title}'")
+            return True
+
+        cmd = ['issue', 'edit', str(issue_number), '--add-project', project_title]
+        code, _, stderr = self.run_gh_command(cmd)
+
+        if code == 0:
+            log_success(f"Added issue #{issue_number} to project '{project_title}'")
+            return True
+        else:
+            log_warning(f"Failed to add issue #{issue_number} to project: {stderr.strip()}")
+            return False
+
 def load_mapping(mapping_file: Path) -> Dict[str, int]:
     """Load story ID to issue number mapping"""
     if mapping_file.exists():
@@ -432,6 +448,11 @@ def main():
         type=Path,
         default=Path('.github/story_issue_mapping.json'),
         help='Path to mapping file (default: .github/story_issue_mapping.json)'
+    )
+    parser.add_argument(
+        '--project',
+        type=str,
+        help='GitHub Project board title to add issues to'
     )
 
     args = parser.parse_args()
@@ -504,12 +525,21 @@ def main():
                 else:
                     log_info(f"Skipped {story_id}: Issue #{existing_issue} already exists")
                     stats['skipped'] += 1
+                
+                # Always try to add to project if specified and issue exists
+                if args.project:
+                    gh.add_to_project(existing_issue, args.project)
+
             else:
                 # Create new issue
                 issue_number = gh.create_issue(story)
                 if issue_number:
                     mapping[story_id] = issue_number
                     stats['created'] += 1
+                    
+                    # Add to project if specified
+                    if args.project:
+                        gh.add_to_project(issue_number, args.project)
                 else:
                     stats['errors'] += 1
 

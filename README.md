@@ -41,6 +41,24 @@ A robust, serverless data pipeline for ingesting, extracting, and analyzing US C
     # URL will be printed in the output
     ```
 
+## 📊 Project Management
+
+We use an agile workflow managed through GitHub.
+
+- **Agile Board**: [Congress Disclosures Agile Board](https://github.com/users/Jakeintech/projects)
+- **Current Sprint**: [Sprint 3: Integration](docs/agile/sprints/SPRINT_3_PLAN.md)
+- **Roadmap**: [Visual Roadmap](docs/agile/ROADMAP.md)
+- **Issues & Backlog**: [GitHub Issues](https://github.com/Jakeintech/congress-disclosures-standardized/issues)
+
+## 🤖 AI Agent Quick Start
+
+If you are an AI agent onboarding to this project:
+
+1.  **Onboarding**: See [.github/AGENT_ONBOARDING.md](.github/AGENT_ONBOARDING.md)
+2.  **Workflow**: Follow the [.github/AI_AGENT_WORKFLOW.md](.github/AI_AGENT_WORKFLOW.md)
+3.  **Task Template**: Use [.github/AI_AGENT_TASK_TEMPLATE.md](.github/AI_AGENT_TASK_TEMPLATE.md)
+4.  **Reference**: Check the [.github/QUICK_REFERENCE.md](.github/QUICK_REFERENCE.md)
+
 ## 🛠️ Pipeline Operations
 
 The pipeline is orchestrated by `scripts/run_smart_pipeline.py` and supports several modes:
@@ -365,6 +383,8 @@ Congress.gov API → Bronze JSON → Silver Dims → Gold Member Enrichment
 ```
 
 ## 🤝 Contributing
+
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on branch naming, commit messages, and our AI agent workflow.
 
 1.  Run checks before committing:
     ```bash

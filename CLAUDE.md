@@ -700,3 +700,4 @@ All usage must comply with **5 U.S.C. § 13107** (see `docs/LEGAL_NOTES.md`):
 - `docs/DEPLOYMENT.md` - Self-hosting deployment guide
 - `docs/EXTRACTION_ARCHITECTURE.md` - Extraction pipeline deep dive
 - `docs/API_STRATEGY.md` - API design and endpoints
+- Refer to files in .github which outline templates, processes, SOPs.

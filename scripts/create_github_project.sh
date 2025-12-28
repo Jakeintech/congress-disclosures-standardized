@@ -161,12 +161,12 @@ STORY_POINTS_FIELD_ID=$(gh api graphql -f query="
       dataType: SINGLE_SELECT
       name: \"Story Points\"
       singleSelectOptions: [
-        {name: \"0\", color: GRAY}
-        {name: \"1\", color: GREEN}
-        {name: \"2\", color: BLUE}
-        {name: \"3\", color: YELLOW}
-        {name: \"5\", color: ORANGE}
-        {name: \"8\", color: PINK}
+        {name: \"0\", color: GRAY, description: \"\"}
+        {name: \"1\", color: GREEN, description: \"\"}
+        {name: \"2\", color: BLUE, description: \"\"}
+        {name: \"3\", color: YELLOW, description: \"\"}
+        {name: \"5\", color: ORANGE, description: \"\"}
+        {name: \"8\", color: PINK, description: \"\"}
       ]
     }) {
       projectV2Field {
@@ -189,11 +189,11 @@ SPRINT_FIELD_ID=$(gh api graphql -f query="
       dataType: SINGLE_SELECT
       name: \"Sprint\"
       singleSelectOptions: [
-        {name: \"Sprint 1: Foundation\", color: BLUE}
-        {name: \"Sprint 2: Gold Layer\", color: GREEN}
-        {name: \"Sprint 3: Integration\", color: YELLOW}
-        {name: \"Sprint 4: Production\", color: ORANGE}
-        {name: \"Backlog\", color: GRAY}
+        {name: \"Sprint 1: Foundation\", color: BLUE, description: \"\"}
+        {name: \"Sprint 2: Gold Layer\", color: GREEN, description: \"\"}
+        {name: \"Sprint 3: Integration\", color: YELLOW, description: \"\"}
+        {name: \"Sprint 4: Production\", color: ORANGE, description: \"\"}
+        {name: \"Backlog\", color: GRAY, description: \"\"}
       ]
     }) {
       projectV2Field {
@@ -216,10 +216,10 @@ PRIORITY_FIELD_ID=$(gh api graphql -f query="
       dataType: SINGLE_SELECT
       name: \"Priority\"
       singleSelectOptions: [
-        {name: \"P0\", color: RED}
-        {name: \"P1\", color: ORANGE}
-        {name: \"P2\", color: YELLOW}
-        {name: \"P3\", color: GREEN}
+        {name: \"P0\", color: RED, description: \"\"}
+        {name: \"P1\", color: ORANGE, description: \"\"}
+        {name: \"P2\", color: YELLOW, description: \"\"}
+        {name: \"P3\", color: GREEN, description: \"\"}
       ]
     }) {
       projectV2Field {
@@ -242,13 +242,13 @@ COMPONENT_FIELD_ID=$(gh api graphql -f query="
       dataType: SINGLE_SELECT
       name: \"Component\"
       singleSelectOptions: [
-        {name: \"Lambda\", color: ORANGE}
-        {name: \"Terraform\", color: PINK}
-        {name: \"StepFunctions\", color: PURPLE}
-        {name: \"Testing\", color: GREEN}
-        {name: \"Docs\", color: BLUE}
-        {name: \"CI/CD\", color: YELLOW}
-        {name: \"Frontend\", color: PINK}
+        {name: \"Lambda\", color: ORANGE, description: \"\"}
+        {name: \"Terraform\", color: PINK, description: \"\"}
+        {name: \"StepFunctions\", color: PURPLE, description: \"\"}
+        {name: \"Testing\", color: GREEN, description: \"\"}
+        {name: \"Docs\", color: BLUE, description: \"\"}
+        {name: \"CI/CD\", color: YELLOW, description: \"\"}
+        {name: \"Frontend\", color: PINK, description: \"\"}
       ]
     }) {
       projectV2Field {

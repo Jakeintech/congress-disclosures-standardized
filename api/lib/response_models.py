@@ -664,32 +664,89 @@ class VersionData(BaseModel):
 # ============================================================================
 
 # Simple responses (non-paginated)
-class MemberResponse(APIResponse[Member]): pass
-class MemberProfileResponse(APIResponse[MemberProfile]): pass
-class MembersListResponse(APIResponse[List[Member]]): pass
-class StockResponse(APIResponse[StockDetail]): pass
-class TransactionResponse(APIResponse[Transaction]): pass
-class FilingResponse(APIResponse[Filing]): pass
-class BillResponse(APIResponse[BillDetail]): pass
-class CommitteeResponse(APIResponse[CommitteeDetail]): pass
-class CommitteesPaginatedResponse(APIResponse[PaginatedResponse[Committee]]): pass
+class MemberResponse(APIResponse[Member]):
+    pass
+
+
+class MemberProfileResponse(APIResponse[MemberProfile]):
+    pass
+
+
+class MembersListResponse(APIResponse[List[Member]]):
+    pass
+
+
+class StockResponse(APIResponse[StockDetail]):
+    pass
+
+
+class TransactionResponse(APIResponse[Transaction]):
+    pass
+
+
+class FilingResponse(APIResponse[Filing]):
+    pass
+
+
+class BillResponse(APIResponse[BillDetail]):
+    pass
+
+
+class CommitteeResponse(APIResponse[CommitteeDetail]):
+    pass
+
+
+class CommitteesPaginatedResponse(APIResponse[PaginatedResponse[Committee]]):
+    pass
+
+
 class ErrorResponse(BaseModel):
     success: bool = False
     error: ErrorDetail
 
+
 # Paginated responses
-class MembersPaginatedResponse(APIResponse[PaginatedResponse[Member]]): pass
-class StocksPaginatedResponse(APIResponse[PaginatedResponse[Stock]]): pass
-class TransactionsPaginatedResponse(APIResponse[PaginatedResponse[Transaction]]): pass
-class FilingsPaginatedResponse(APIResponse[PaginatedResponse[Filing]]): pass
-class BillsPaginatedResponse(APIResponse[PaginatedResponse[Bill]]): pass
+class MembersPaginatedResponse(APIResponse[PaginatedResponse[Member]]):
+    pass
+
+
+class StocksPaginatedResponse(APIResponse[PaginatedResponse[Stock]]):
+    pass
+
+
+class TransactionsPaginatedResponse(APIResponse[PaginatedResponse[Transaction]]):
+    pass
+
+
+class FilingsPaginatedResponse(APIResponse[PaginatedResponse[Filing]]):
+    pass
+
+
+class BillsPaginatedResponse(APIResponse[PaginatedResponse[Bill]]):
+    pass
+
 
 # Analytics responses
-class DashboardResponse(APIResponse[DashboardSummary]): pass
-class TrendingStocksResponse(APIResponse[List[TrendingStock]]): pass
-class TopTradersResponse(APIResponse[List[TopTrader]]): pass
-class NetworkGraphResponse(APIResponse[NetworkGraphData]): pass
-class ComplianceResponse(APIResponse[List[ComplianceMetric]]): pass
+class DashboardResponse(APIResponse[DashboardSummary]):
+    pass
+
+
+class TrendingStocksResponse(APIResponse[List[TrendingStock]]):
+    pass
+
+
+class TopTradersResponse(APIResponse[List[TopTrader]]):
+    pass
+
+
+class NetworkGraphResponse(APIResponse[NetworkGraphData]):
+    pass
+
+
+class ComplianceResponse(APIResponse[List[ComplianceMetric]]):
+    pass
+
 
 # System/utility responses
-class VersionResponse(APIResponse[VersionData]): pass
+class VersionResponse(APIResponse[VersionData]):
+    pass

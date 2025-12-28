@@ -2,6 +2,17 @@
 
 A robust, serverless data pipeline for ingesting, extracting, and analyzing US Congress financial disclosures.
 
+## 📖 Documentation
+
+**📚 [View Complete Documentation in Wiki](https://github.com/Jakeintech/congress-disclosures-standardized/wiki)** - Comprehensive guides for users, developers, operators, and AI agents.
+
+Quick links:
+- [Quick Start Guide](https://github.com/Jakeintech/congress-disclosures-standardized/wiki/Quick-Start-Guide) - Get running in 15 minutes
+- [System Architecture](https://github.com/Jakeintech/congress-disclosures-standardized/wiki/System-Architecture) - Understand the pipeline
+- [API Documentation](https://github.com/Jakeintech/congress-disclosures-standardized/wiki/API-Documentation) - Query the data
+- [Contributing Guide](https://github.com/Jakeintech/congress-disclosures-standardized/wiki/Contributing-Guide) - Submit improvements
+- [Troubleshooting](https://github.com/Jakeintech/congress-disclosures-standardized/wiki/Troubleshooting) - Solve common issues
+
 ## 🚀 Getting Started
 
 ### Prerequisites

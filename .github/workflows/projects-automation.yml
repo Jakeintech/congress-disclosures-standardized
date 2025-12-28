@@ -1,0 +1,95 @@
+name: Projects Board Automation
+
+# Automatically sync issues and PRs to GitHub Projects board
+# Sets custom fields based on labels and issue state
+# Uses: leonsteinhaeuser/project-beta-automations (external action)
+
+on:
+  issues:
+    types: [opened, labeled, assigned, closed, reopened]
+  pull_request:
+    types: [opened, ready_for_review, closed, reopened]
+
+jobs:
+  sync-to-project:
+    name: Sync to Projects Board
+    runs-on: ubuntu-latest
+
+    # Skip if issue/PR is already closed (unless just reopened)
+    if: |
+      github.event.action != 'closed' ||
+      github.event.action == 'reopened'
+
+    steps:
+      - name: Add to project and update custom fields
+        uses: leonsteinhaeuser/project-beta-automations@v2.2.1
+        with:
+          gh_token: ${{ secrets.PROJECTS_TOKEN }}
+          organization: Jakeintech
+          project_id: 1  # TODO: Replace with your actual project number from project URL
+          resource_node_id: ${{ github.event.issue.node_id || github.event.pull_request.node_id }}
+          operation_mode: custom_field
+          custom_field_values: |
+            [
+              {
+                "name": "Status",
+                "type": "single_select",
+                "value": "${{
+                  github.event.action == 'assigned' && 'In Progress' ||
+                  github.event.action == 'closed' && 'Done' ||
+                  github.event.action == 'reopened' && 'To Do' ||
+                  (github.event_name == 'pull_request' && github.event.action == 'opened') && 'In Review' ||
+                  (github.event_name == 'pull_request' && github.event.action == 'ready_for_review') && 'In Review' ||
+                  'To Do'
+                }}"
+              },
+              {
+                "name": "Story Points",
+                "type": "single_select",
+                "value": "${{
+                  contains(github.event.issue.labels.*.name, 'points-8') && '8' ||
+                  contains(github.event.issue.labels.*.name, 'points-5') && '5' ||
+                  contains(github.event.issue.labels.*.name, 'points-3') && '3' ||
+                  contains(github.event.issue.labels.*.name, 'points-2') && '2' ||
+                  contains(github.event.issue.labels.*.name, 'points-1') && '1' ||
+                  contains(github.event.issue.labels.*.name, 'points-0') && '0' ||
+                  '0'
+                }}"
+              },
+              {
+                "name": "Sprint",
+                "type": "single_select",
+                "value": "${{
+                  contains(github.event.issue.labels.*.name, 'sprint-4') && 'Sprint 4: Production' ||
+                  contains(github.event.issue.labels.*.name, 'sprint-3') && 'Sprint 3: Integration' ||
+                  contains(github.event.issue.labels.*.name, 'sprint-2') && 'Sprint 2: Gold Layer' ||
+                  contains(github.event.issue.labels.*.name, 'sprint-1') && 'Sprint 1: Foundation' ||
+                  'Backlog'
+                }}"
+              },
+              {
+                "name": "Priority",
+                "type": "single_select",
+                "value": "${{
+                  contains(github.event.issue.labels.*.name, 'P0-critical') && 'P0-critical' ||
+                  contains(github.event.issue.labels.*.name, 'P1-high') && 'P1-high' ||
+                  contains(github.event.issue.labels.*.name, 'P2-medium') && 'P2-medium' ||
+                  contains(github.event.issue.labels.*.name, 'P3-low') && 'P3-low' ||
+                  'P2-medium'
+                }}"
+              }
+            ]
+
+      - name: Post sync confirmation comment
+        if: |
+          github.event.action == 'opened' &&
+          contains(github.event.issue.labels.*.name, 'agent-task')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Issue added to [Projects board](https://github.com/users/Jakeintech/projects/1) and fields auto-populated from labels.'
+            })

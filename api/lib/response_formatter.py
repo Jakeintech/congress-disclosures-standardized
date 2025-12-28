@@ -12,6 +12,7 @@ from pathlib import Path
 
 try:
     from pydantic import BaseModel
+
     PYDANTIC_AVAILABLE = True
 except ImportError:
     PYDANTIC_AVAILABLE = False
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 # Load version at module initialization (cached for all Lambda invocations)
 _VERSION_CACHE = None
+
 
 def _load_version() -> str:
     """
@@ -39,18 +41,18 @@ def _load_version() -> str:
 
     # Try multiple potential locations for version.json
     possible_paths = [
-        Path("/var/task/version.json"),          # Lambda task root
-        Path("/opt/python/version.json"),        # Layer location
+        Path("/var/task/version.json"),  # Lambda task root
+        Path("/opt/python/version.json"),  # Layer location
         Path(__file__).parent.parent / "version.json",  # Relative to lib
-        Path("version.json")                     # Current directory
+        Path("version.json"),  # Current directory
     ]
 
     for version_path in possible_paths:
         try:
             if version_path.exists():
-                with open(version_path, 'r') as f:
+                with open(version_path, "r") as f:
                     version_data = json.load(f)
-                    _VERSION_CACHE = version_data.get('version', 'unknown')
+                    _VERSION_CACHE = version_data.get("version", "unknown")
                     logger.info(f"Loaded version {_VERSION_CACHE} from {version_path}")
                     return _VERSION_CACHE
         except Exception as e:
@@ -71,23 +73,32 @@ def clean_nan_values(data: Union[Dict, List, Any]) -> Union[Dict, List, Any]:
         return {k: clean_nan_values(v) for k, v in data.items()}
     elif isinstance(data, list):
         return [clean_nan_values(item) for item in data]
-    
+
     # Robust numeric check
     try:
         # Handle string representations of NaN/Inf that might leak from data layer
         if isinstance(data, str):
             data_lower = data.lower().strip()
-            if data_lower in ('nan', 'inf', 'infinity', '-inf', '-infinity', 'none', 'null'):
+            if data_lower in (
+                "nan",
+                "inf",
+                "infinity",
+                "-inf",
+                "-infinity",
+                "none",
+                "null",
+            ):
                 return None
-                
+
         # Check for NaN/Inf in any numeric type (including numpy)
         # We check for __class__ name to avoid direct numpy dependency if not present
         class_name = str(data.__class__).lower()
-        if 'numpy' in class_name or 'pandas' in class_name:
+        if "numpy" in class_name or "pandas" in class_name:
             import numpy as np
+
             if np.isnan(data) or np.isinf(data):
                 return None
-        
+
         if data is not None and isinstance(data, (float, int)):
             val = float(data)
             if math.isnan(val) or math.isinf(val):
@@ -96,16 +107,16 @@ def clean_nan_values(data: Union[Dict, List, Any]) -> Union[Dict, List, Any]:
         pass
     return data
 
+
 class NaNToNoneEncoder(json.JSONEncoder):
     """Encodes NaN/Inf floats as null for valid JSON output."""
+
     def encode(self, obj):
         return super().encode(clean_nan_values(obj))
 
 
 def success_response(
-    data: Any,
-    status_code: int = 200,
-    metadata: Optional[Dict[str, Any]] = None
+    data: Any, status_code: int = 200, metadata: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
     Build success response with consistent structure.
@@ -129,12 +140,12 @@ def success_response(
     """
     # Convert Pydantic models to dict
     if PYDANTIC_AVAILABLE and isinstance(data, BaseModel):
-        data = data.model_dump(mode='json', exclude_none=False)
+        data = data.model_dump(mode="json", exclude_none=False)
 
     body = {
         "success": True,
         "data": data,
-        "version": _load_version()  # Load version from version.json
+        "version": _load_version(),  # Load version from version.json
     }
 
     if metadata:
@@ -143,26 +154,24 @@ def success_response(
     return {
         "statusCode": status_code,
         "headers": _get_cors_headers(),
-        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str, allow_nan=False)
+        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str, allow_nan=False),
     }
 
 
 def error_response(
-    message: str,
-    status_code: int = 400,
-    details: Optional[Any] = None
+    message: str, status_code: int = 400, details: Optional[Any] = None
 ) -> Dict[str, Any]:
     """
     Build error response with consistent structure.
-    
+
     Args:
         message: Error message
         status_code: HTTP status code (400, 404, 500, etc.)
         details: Optional error details (stack trace, validation errors, etc.)
-    
+
     Returns:
         API Gateway response dict
-    
+
     Example:
         error_response(
             "Member not found",
@@ -170,28 +179,22 @@ def error_response(
             details={'bioguide_id': 'C999999'}
         )
     """
-    body = {
-        "success": False,
-        "error": {
-            "message": message,
-            "code": status_code
-        }
-    }
-    
+    body = {"success": False, "error": {"message": message, "code": status_code}}
+
     if details:
         body["error"]["details"] = details
-    
+
     return {
         "statusCode": status_code,
         "headers": _get_cors_headers(),
-        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str, allow_nan=False)
+        "body": json.dumps(body, cls=NaNToNoneEncoder, default=str, allow_nan=False),
     }
 
 
 def _get_cors_headers() -> Dict[str, str]:
     """
     Get CORS headers for API responses.
-    
+
     Returns:
         Dict of CORS headers
     """
@@ -199,22 +202,22 @@ def _get_cors_headers() -> Dict[str, str]:
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
 
 def add_cors_headers(response: Dict[str, Any]) -> Dict[str, Any]:
     """
     Add CORS headers to existing response dict.
-    
+
     Args:
         response: API Gateway response dict
-    
+
     Returns:
         Response dict with CORS headers added
     """
     if "headers" not in response:
         response["headers"] = {}
-    
+
     response["headers"].update(_get_cors_headers())
     return response

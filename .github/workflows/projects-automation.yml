@@ -26,7 +26,7 @@ jobs:
         with:
           gh_token: ${{ secrets.PROJECTS_TOKEN }}
           organization: Jakeintech
-          project_id: 1  # TODO: Replace with your actual project number from project URL
+          project_id: 4  # Congress Disclosures Agile Board
           resource_node_id: ${{ github.event.issue.node_id || github.event.pull_request.node_id }}
           operation_mode: custom_field
           custom_field_values: |

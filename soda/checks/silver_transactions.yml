@@ -1,0 +1,62 @@
+checks for silver_transactions:
+  # Schema validation
+  - schema:
+      fail when required column missing:
+        - doc_id
+        - transaction_date
+        - asset_name
+        - transaction_type
+        - amount_low
+        - amount_high
+      fail when wrong type:
+        transaction_date: date
+        amount_low: decimal
+        amount_high: decimal
+
+  # Referential integrity
+  - values in (doc_id) must exist in silver_filings (doc_id):
+      name: Transactions must reference valid filings
+
+  # Data validity
+  - invalid_count(transaction_date) = 0:
+      valid min: 2008-01-01
+      valid max: 2026-12-31
+      name: Transaction dates in valid range
+
+  - invalid_count(transaction_type) = 0:
+      valid values: ['Purchase', 'Sale', 'Exchange', 'purchase', 'sale', 'exchange']
+      name: Transaction type must be valid
+
+  - invalid_count(amount_low) = 0:
+      valid min: 0
+      valid max: 50000000
+      name: Amount ranges are realistic
+
+  # Business rules
+  - amount_low <= amount_high:
+      name: Low amount must be <= high amount
+
+  # Duplicates
+  - duplicate_count(transaction_id) = 0:
+      name: No duplicate transaction IDs
+
+  # Missing values
+  - missing_count(ticker) < 30%:
+      name: Most transactions have tickers
+
+  - missing_count(transaction_date) = 0:
+      name: All transactions must have dates
+
+  - missing_count(asset_name) = 0:
+      name: All transactions must have asset name
+
+  # Freshness
+  - freshness(silver_ingest_ts) < 6h:
+      name: Silver layer updated within 6 hours
+
+  # Anomaly detection
+  - anomaly score for row_count < 3:
+      name: Row count within 3 std devs of historical
+
+  - anomaly score for avg(amount_low) < 3:
+      name: Average trade size is normal

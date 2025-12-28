@@ -1,0 +1,93 @@
+{
+    "type": "struct",
+    "fields": [
+        {
+            "name": "gift_key",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Unique identifier for the gift/travel"
+            }
+        },
+        {
+            "name": "doc_id",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Foreign key to the original filing document"
+            }
+        },
+        {
+            "name": "year",
+            "type": "integer",
+            "nullable": false,
+            "metadata": {
+                "description": "Year of the filing"
+            }
+        },
+        {
+            "name": "member_key",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Foreign key to dim_members"
+            }
+        },
+        {
+            "name": "filing_date_key",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {
+                "description": "Date key of the filing"
+            }
+        },
+        {
+            "name": "source_name",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Source of the gift/travel"
+            }
+        },
+        {
+            "name": "description",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Description of the gift/travel"
+            }
+        },
+        {
+            "name": "value",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Value of the gift/travel"
+            }
+        },
+        {
+            "name": "received_date_key",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {
+                "description": "Date received"
+            }
+        },
+        {
+            "name": "type",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Gift or Travel"
+            }
+        },
+        {
+            "name": "confidence_score",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Extraction confidence"
+            }
+        }
+    ]
+}

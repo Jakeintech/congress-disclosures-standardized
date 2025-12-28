@@ -1,0 +1,49 @@
+checks for gold_agg_trending_stocks:
+  # Schema validation
+  - schema:
+      fail when required column missing:
+        - ticker
+        - time_window
+        - total_transactions
+        - total_volume
+        - buy_volume
+        - sell_volume
+        - net_volume
+        - sentiment_score
+      fail when wrong type:
+        total_transactions: integer
+        total_volume: decimal
+        sentiment_score: decimal
+
+  # Data validity
+  - invalid_count(time_window) = 0:
+      valid values: ['7d', '30d', '90d']
+      name: Time window must be valid
+
+  - invalid_count(total_transactions) = 0:
+      valid min: 1
+      name: Must have at least 1 transaction
+
+  - total_volume = buy_volume + sell_volume:
+      name: Total volume must equal buy + sell
+
+  - net_volume = buy_volume - sell_volume:
+      name: Net volume correctly calculated
+
+  - sentiment_score >= -1.0 and sentiment_score <= 1.0:
+      name: Sentiment score between -1 and 1
+
+  # Missing values
+  - missing_count(ticker) = 0:
+      name: All records must have ticker
+
+  - missing_count(sentiment_score) = 0:
+      name: All records must have sentiment score
+
+  # Row count validation
+  - row_count >= 100:
+      name: Sufficient trending stocks
+
+  # Freshness
+  - freshness(etl_timestamp) < 24h:
+      name: Aggregates updated daily

@@ -14,6 +14,48 @@ from .s3_utils import upload_bytes_to_s3, download_bytes_from_s3, s3_object_exis
 logger = logging.getLogger(__name__)
 
 
+def clean_nan_values(record: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert NaN values and empty strings to None for JSON schema compatibility.
+
+    Args:
+        record: Record dict that may contain NaN values or empty strings
+
+    Returns:
+        Cleaned record with NaN/empty string -> None for nullable fields
+    """
+    import math
+
+    # Fields that should be None instead of empty string
+    nullable_string_fields = {
+        'pdf_sha256', 'text_s3_key', 'json_s3_key',
+        'extraction_error', 'filing_date', 'last_name', 'first_name'
+    }
+
+    cleaned = {}
+    for key, value in record.items():
+        # Handle NaN floats
+        if isinstance(value, float) and math.isnan(value):
+            cleaned[key] = None
+        # Handle empty strings that should be None
+        elif key in nullable_string_fields and value == "":
+            cleaned[key] = None
+        # Recurse into dicts
+        elif isinstance(value, dict):
+            cleaned[key] = clean_nan_values(value)
+        # Recurse into lists
+        elif isinstance(value, list):
+            cleaned[key] = [
+                clean_nan_values(item) if isinstance(item, dict)
+                else None if (isinstance(item, float) and math.isnan(item))
+                else None if (isinstance(item, str) and item == "" and key in nullable_string_fields)
+                else item
+                for item in value
+            ]
+        else:
+            cleaned[key] = value
+    return cleaned
+
+
 def validate_record(record: Dict[str, Any], schema: Optional[Dict] = None) -> bool:
     """Validate a record against JSON schema.
 
@@ -31,7 +73,9 @@ def validate_record(record: Dict[str, Any], schema: Optional[Dict] = None) -> bo
         return True
 
     try:
-        validate(instance=record, schema=schema)
+        # Clean NaN values before validation (NaN is not valid JSON)
+        cleaned_record = clean_nan_values(record)
+        validate(instance=cleaned_record, schema=schema)
         return True
     except ValidationError as e:
         logger.error(f"Record validation failed: {e.message}")
@@ -208,12 +252,21 @@ def upsert_parquet_records(
         else:
             merged_df = new_df
 
+        # Drop columns not in schema (handles legacy Textract fields)
+        if schema:
+            allowed_cols = set(schema.get("properties", {}).keys())
+            # Ensure key columns are kept (though they should be in schema)
+            allowed_cols.update(key_columns)
+            
+            cols_to_drop = [c for c in merged_df.columns if c not in allowed_cols]
+            if cols_to_drop:
+                logger.info(f"Dropping legacy/unknown columns not in schema: {cols_to_drop}")
+                merged_df = merged_df.drop(columns=cols_to_drop)
+
         # Fill NaN values for required fields with schema defaults
         # This handles old records that don't have new required fields
-        if "textract_pages_used" in merged_df.columns:
-            merged_df["textract_pages_used"] = merged_df["textract_pages_used"].fillna(0).astype(int)
-        if "requires_textract_reprocessing" in merged_df.columns:
-            merged_df["requires_textract_reprocessing"] = merged_df["requires_textract_reprocessing"].fillna(False)
+        if "requires_additional_ocr" in merged_df.columns:
+            merged_df["requires_additional_ocr"] = merged_df["requires_additional_ocr"].fillna(False)
         if "extraction_month" in merged_df.columns:
             # For old records without extraction_month, use current month (project just started)
             from datetime import date

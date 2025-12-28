@@ -22,6 +22,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 # Import shared libraries
 from lib import s3_utils, parquet_writer, manifest_generator  # noqa: E402
+import boto3
+
+# Initialize SQS client for queuing extraction jobs
+sqs_client = boto3.client('sqs')
 
 # Configure logging
 logger = logging.getLogger()
@@ -32,6 +36,7 @@ S3_BUCKET = os.environ.get("S3_BUCKET_NAME")
 S3_BRONZE_PREFIX = os.environ.get("S3_BRONZE_PREFIX", "bronze")
 S3_SILVER_PREFIX = os.environ.get("S3_SILVER_PREFIX", "silver")
 EXTRACTION_VERSION = os.environ.get("EXTRACTION_VERSION", "1.0.0")
+EXTRACTION_QUEUE_URL = os.environ.get("EXTRACTION_QUEUE_URL")
 
 # Load JSON schemas
 SCHEMAS_DIR = Path(__file__).parent / "schemas"
@@ -124,6 +129,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             logger.warning(f"Failed to generate manifest: {str(e)}")
             manifest_result = {"error": str(e)}
 
+        logger.info("--> ENTERING STEP 6 <--")
         # Step 6: Generate silver_documents.json for website
         logger.info("Step 6: Generating silver_documents.json for website")
         try:
@@ -141,6 +147,59 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             logger.warning(f"Failed to generate silver_documents.json: {str(e)}")
             documents_json_result = {"error": str(e)}
 
+        logger.info("--> ENTERING STEP 7 <--")
+        # Step 7: Identify documents for extraction (skip already extracted)
+        logger.info(f"Step 7: Identifying documents for extraction (total {len(document_records)})...")
+        documents_to_extract = []
+        skipped_count = 0
+        
+        for filing in filing_records:
+            try:
+                # Check if PDF already extracted by checking Bronze metadata
+                pdf_key = filing['pdf_s3_key']
+                try:
+                    response = s3_client.head_object(Bucket=S3_BUCKET, Key=pdf_key)
+                    if response.get('Metadata', {}).get('extraction-processed') == 'true':
+                        skipped_count += 1
+                        continue  # Skip - already extracted
+                except Exception:
+                    pass  # PDF doesn't exist or no metadata - include it
+
+                # Construct filer name
+                filer_name = f"{filing.get('first_name', '')} {filing.get('last_name', '')}".strip()
+
+                task = {
+                    'doc_id': filing['doc_id'],
+                    'year': filing['year'],
+                    's3_pdf_key': pdf_key,
+                    'filing_type': filing.get('filing_type'),
+                    'filer_name': filer_name,
+                    'filing_date': filing.get('filing_date'),
+                    'state_district': filing.get('state_district')
+                }
+                
+                documents_to_extract.append(task)
+
+            except Exception as e:
+                logger.error(f"Failed to process doc {filing.get('doc_id')}: {e}")
+        
+        logger.info(f"✅ Identified {len(documents_to_extract)} documents for extraction ({skipped_count} already extracted)")
+
+        # Step 8: Write documents_to_extract to S3 to avoid Step Functions data limit (256KB)
+        # The ExtractDocumentsMap will read from S3 instead
+        extract_list_key = f"{S3_SILVER_PREFIX}/house/financial/extraction_queue/year={year}/documents_to_extract.json"
+        
+        if documents_to_extract:
+            import gzip
+            extract_json = json.dumps(documents_to_extract).encode('utf-8')
+            s3_utils.upload_bytes_to_s3(
+                bucket=S3_BUCKET,
+                s3_key=extract_list_key,
+                data=extract_json,
+                content_type="application/json"
+            )
+            logger.info(f"✅ Wrote {len(documents_to_extract)} extraction tasks to s3://{S3_BUCKET}/{extract_list_key}")
+        
         result = {
             "status": "success",
             "year": year,
@@ -150,10 +209,13 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "documents_s3_key": documents_s3_key,
             "manifest": manifest_result,
             "silver_documents_json": documents_json_result,
+            # Return S3 reference instead of full list to avoid 256KB limit
+            "documents_to_extract_s3_key": extract_list_key if documents_to_extract else None,
+            "documents_to_extract_count": len(documents_to_extract),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        logger.info(f"Index-to-silver complete: {json.dumps(result)}")
+        logger.info(f"Index-to-silver complete: {json.dumps(result, default=str)}")
 
         return result
 
@@ -196,11 +258,12 @@ def parse_xml_index(
             continue
 
         # Extract fields
+        filing_type = member.findtext("FilingType", "").strip() or "U"
         record = {
             "doc_id": doc_id,
             "year": year,
             "filing_date": member.findtext("FilingDate", "").strip(),
-            "filing_type": member.findtext("FilingType", "").strip(),
+            "filing_type": filing_type,
             "prefix": member.findtext("Prefix", "").strip() or None,
             "first_name": member.findtext("First", "").strip(),
             "last_name": member.findtext("Last", "").strip(),
@@ -208,8 +271,11 @@ def parse_xml_index(
             "state_district": member.findtext("StateDst", "").strip(),
             "raw_xml_path": xml_s3_key,
             "raw_txt_path": xml_s3_key.replace(".xml", ".txt"),
+            # Align with ingest Lambda's bronze layout
+            # bronze/house/financial/year=YYYY/filing_type={filing_type}/pdfs/{doc_id}.pdf
             "pdf_s3_key": (
-                f"{S3_BRONZE_PREFIX}/house/financial/year={year}/pdfs/{year}/{doc_id}.pdf"
+                f"{S3_BRONZE_PREFIX}/house/financial/year={year}/"
+                f"filing_type={filing_type}/pdfs/{doc_id}.pdf"
             ),
             "bronze_ingest_ts": datetime.now(timezone.utc).isoformat(),
             "silver_ingest_ts": datetime.now(timezone.utc).isoformat(),
@@ -255,7 +321,7 @@ def initialize_document_records(
             "doc_id": doc_id,
             "year": year,
             "pdf_s3_key": pdf_s3_key,
-            "pdf_sha256": "",  # Will be populated by extract Lambda
+            "pdf_sha256": None,  # Will be populated by extract Lambda
             "pdf_file_size_bytes": 0,  # Will be populated
             "pages": 0,  # Will be populated
             "has_embedded_text": False,  # Will be determined
@@ -267,7 +333,6 @@ def initialize_document_records(
             "extraction_duration_seconds": None,
             "text_s3_key": None,
             "json_s3_key": None,
-            "textract_job_id": None,
             "char_count": None,
         }
 

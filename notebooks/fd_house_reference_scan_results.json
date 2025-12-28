@@ -1,0 +1,23 @@
+{
+  "https://fd.house.gov/reference/asset-type-codes.aspx": 200,
+  "https://fd.house.gov/reference/report-types.aspx": 200,
+  "https://fd.house.gov/reference/filing-deadlines.aspx": 200,
+  "https://fd.house.gov/reference/value-ranges.aspx": 200,
+  "https://fd.house.gov/reference/transaction-types.aspx": 200,
+  "https://fd.house.gov/reference/transactions.aspx": 200,
+  "https://fd.house.gov/reference/assets.aspx": 200,
+  "https://fd.house.gov/reference/liabilities.aspx": 200,
+  "https://fd.house.gov/reference/income.aspx": 200,
+  "https://fd.house.gov/reference/employment.aspx": 200,
+  "https://fd.house.gov/reference/joint-filing.aspx": 200,
+  "https://fd.house.gov/reference/gifts-travel.aspx": 200,
+  "https://fd.house.gov/reference/gifts.aspx": 200,
+  "https://fd.house.gov/reference/ptr.aspx": 200,
+  "https://fd.house.gov/reference/travel-reports.aspx": 200,
+  "https://fd.house.gov/reference/pfd.aspx": 200,
+  "https://fd.house.gov/reference/file-form.aspx": 200,
+  "https://fd.house.gov/reference/amendments.aspx": 200,
+  "https://fd.house.gov/reference/exclusions.aspx": 200,
+  "https://fd.house.gov/reference/glossary.aspx": 200,
+  "https://fd.house.gov/reference/financial-disclosure.aspx": 200
+}

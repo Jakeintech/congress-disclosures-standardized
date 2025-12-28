@@ -1,0 +1,782 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BillTimeline > renders events correctly 1`] = `
+<DocumentFragment>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+      data-slot="card-header"
+    >
+      <div
+        class="leading-none font-semibold"
+        data-slot="card-title"
+      >
+        Bill Lifecycle Timeline
+      </div>
+      <div
+        class="text-muted-foreground text-sm"
+        data-slot="card-description"
+      >
+        Track the progress of this bill through Congress
+      </div>
+    </div>
+    <div
+      class="px-6"
+      data-slot="card-content"
+    >
+      <div
+        class="relative space-y-6"
+      >
+        <div
+          class="absolute left-[9px] top-2 bottom-2 w-0.5 bg-border"
+        />
+        <div
+          class="relative flex gap-4 group"
+        >
+          <div
+            class="relative z-10 flex-shrink-0"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-circle-check h-5 w-5 text-green-500"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <path
+                d="m9 12 2 2 4-4"
+              />
+            </svg>
+          </div>
+          <div
+            class="flex-1 pb-6"
+          >
+            <div
+              class="flex items-start justify-between gap-4"
+            >
+              <div
+                class="space-y-1"
+              >
+                <div
+                  class="flex items-center gap-2 flex-wrap"
+                >
+                  <h4
+                    class="font-semibold"
+                  >
+                    Introduced
+                  </h4>
+                  <span
+                    class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground capitalize"
+                    data-slot="badge"
+                  >
+                    House
+                  </span>
+                </div>
+                <p
+                  class="text-sm text-muted-foreground"
+                >
+                  Bill was introduced in the House
+                </p>
+              </div>
+              <time
+                class="text-sm text-muted-foreground whitespace-nowrap"
+              >
+                Jan 19, 2025
+              </time>
+            </div>
+          </div>
+        </div>
+        <div
+          class="relative flex gap-4 group"
+        >
+          <div
+            class="relative z-10 flex-shrink-0"
+          >
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-circle h-5 w-5 text-blue-500 fill-blue-500"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                />
+              </svg>
+              <div
+                class="absolute inset-0 animate-ping"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-circle h-5 w-5 text-blue-500"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div
+            class="flex-1 pb-6"
+          >
+            <div
+              class="flex items-start justify-between gap-4"
+            >
+              <div
+                class="space-y-1"
+              >
+                <div
+                  class="flex items-center gap-2 flex-wrap"
+                >
+                  <h4
+                    class="font-semibold text-blue-600 dark:text-blue-400"
+                  >
+                    Committee Referral
+                  </h4>
+                  <span
+                    class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground capitalize"
+                    data-slot="badge"
+                  >
+                    House
+                  </span>
+                </div>
+              </div>
+              <time
+                class="text-sm text-muted-foreground whitespace-nowrap"
+              >
+                Jan 20, 2025
+              </time>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="mt-8 pt-6 border-t"
+      >
+        <p
+          class="text-xs font-medium text-muted-foreground mb-3"
+        >
+          Timeline Status
+        </p>
+        <div
+          class="flex flex-wrap gap-4 text-xs"
+        >
+          <div
+            class="flex items-center gap-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-circle-check h-4 w-4 text-green-500"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <path
+                d="m9 12 2 2 4-4"
+              />
+            </svg>
+            <span>
+              Completed
+            </span>
+          </div>
+          <div
+            class="flex items-center gap-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-circle h-4 w-4 text-blue-500 fill-blue-500"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+            </svg>
+            <span>
+              Current Stage
+            </span>
+          </div>
+          <div
+            class="flex items-center gap-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-circle h-4 w-4 text-muted-foreground"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+            </svg>
+            <span>
+              Pending
+            </span>
+          </div>
+          <div
+            class="flex items-center gap-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-trending-up h-4 w-4 text-destructive"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 7h6v6"
+              />
+              <path
+                d="m22 7-8.5 8.5-5-5L2 17"
+              />
+            </svg>
+            <span>
+              Trade Activity Alert
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`BillTimeline > renders trade alerts if present 1`] = `
+<DocumentFragment>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+      data-slot="card-header"
+    >
+      <div
+        class="leading-none font-semibold"
+        data-slot="card-title"
+      >
+        Bill Lifecycle Timeline
+      </div>
+      <div
+        class="text-muted-foreground text-sm"
+        data-slot="card-description"
+      >
+        Track the progress of this bill through Congress
+      </div>
+    </div>
+    <div
+      class="px-6"
+      data-slot="card-content"
+    >
+      <div
+        class="relative space-y-6"
+      >
+        <div
+          class="absolute left-[9px] top-2 bottom-2 w-0.5 bg-border"
+        />
+        <div
+          class="relative flex gap-4 group"
+        >
+          <div
+            class="relative z-10 flex-shrink-0"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-circle-check h-5 w-5 text-green-500"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <path
+                d="m9 12 2 2 4-4"
+              />
+            </svg>
+          </div>
+          <div
+            class="flex-1 pb-6"
+          >
+            <div
+              class="flex items-start justify-between gap-4"
+            >
+              <div
+                class="space-y-1"
+              >
+                <div
+                  class="flex items-center gap-2 flex-wrap"
+                >
+                  <h4
+                    class="font-semibold"
+                  >
+                    Introduced
+                  </h4>
+                  <span
+                    class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground capitalize"
+                    data-slot="badge"
+                  >
+                    House
+                  </span>
+                </div>
+                <p
+                  class="text-sm text-muted-foreground"
+                >
+                  Bill was introduced in the House
+                </p>
+              </div>
+              <time
+                class="text-sm text-muted-foreground whitespace-nowrap"
+              >
+                Jan 19, 2025
+              </time>
+            </div>
+          </div>
+        </div>
+        <div
+          class="relative flex gap-4 group"
+        >
+          <div
+            class="relative z-10 flex-shrink-0"
+          >
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-circle h-5 w-5 text-blue-500 fill-blue-500"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                />
+              </svg>
+              <div
+                class="absolute inset-0 animate-ping"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-circle h-5 w-5 text-blue-500"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div
+            class="flex-1 pb-6"
+          >
+            <div
+              class="flex items-start justify-between gap-4"
+            >
+              <div
+                class="space-y-1"
+              >
+                <div
+                  class="flex items-center gap-2 flex-wrap"
+                >
+                  <h4
+                    class="font-semibold text-blue-600 dark:text-blue-400"
+                  >
+                    Committee Referral
+                  </h4>
+                  <span
+                    class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground capitalize"
+                    data-slot="badge"
+                  >
+                    House
+                  </span>
+                </div>
+              </div>
+              <time
+                class="text-sm text-muted-foreground whitespace-nowrap"
+              >
+                Jan 20, 2025
+              </time>
+            </div>
+          </div>
+        </div>
+        <div
+          class="relative flex gap-4 group"
+        >
+          <div
+            class="relative z-10 flex-shrink-0"
+          >
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-circle h-5 w-5 text-blue-500 fill-blue-500"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                />
+              </svg>
+              <div
+                class="absolute inset-0 animate-ping"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-circle h-5 w-5 text-blue-500"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div
+            class="flex-1 pb-6"
+          >
+            <div
+              class="flex items-start justify-between gap-4"
+            >
+              <div
+                class="space-y-1"
+              >
+                <div
+                  class="flex items-center gap-2 flex-wrap"
+                >
+                  <h4
+                    class="font-semibold text-blue-600 dark:text-blue-400"
+                  >
+                    Suspicious Activity
+                  </h4>
+                  <span
+                    class="justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 flex items-center gap-1"
+                    data-slot="badge"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-trending-up h-3 w-3"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M16 7h6v6"
+                      />
+                      <path
+                        d="m22 7-8.5 8.5-5-5L2 17"
+                      />
+                    </svg>
+                    5 trades
+                  </span>
+                </div>
+              </div>
+              <time
+                class="text-sm text-muted-foreground whitespace-nowrap"
+              >
+                Jan 21, 2025
+              </time>
+            </div>
+            <div
+              class="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+            >
+              <div
+                class="flex items-center gap-2 text-sm text-destructive"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-circle-alert h-4 w-4"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                  />
+                  <line
+                    x1="12"
+                    x2="12"
+                    y1="8"
+                    y2="12"
+                  />
+                  <line
+                    x1="12"
+                    x2="12.01"
+                    y1="16"
+                    y2="16"
+                  />
+                </svg>
+                <span
+                  class="font-medium"
+                >
+                  Trading Activity Detected
+                </span>
+              </div>
+              <p
+                class="text-xs text-muted-foreground mt-1"
+              >
+                5 members traded related stocks within 7 days of this action
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="mt-8 pt-6 border-t"
+      >
+        <p
+          class="text-xs font-medium text-muted-foreground mb-3"
+        >
+          Timeline Status
+        </p>
+        <div
+          class="flex flex-wrap gap-4 text-xs"
+        >
+          <div
+            class="flex items-center gap-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-circle-check h-4 w-4 text-green-500"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <path
+                d="m9 12 2 2 4-4"
+              />
+            </svg>
+            <span>
+              Completed
+            </span>
+          </div>
+          <div
+            class="flex items-center gap-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-circle h-4 w-4 text-blue-500 fill-blue-500"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+            </svg>
+            <span>
+              Current Stage
+            </span>
+          </div>
+          <div
+            class="flex items-center gap-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-circle h-4 w-4 text-muted-foreground"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+            </svg>
+            <span>
+              Pending
+            </span>
+          </div>
+          <div
+            class="flex items-center gap-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-trending-up h-4 w-4 text-destructive"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 7h6v6"
+              />
+              <path
+                d="m22 7-8.5 8.5-5-5L2 17"
+              />
+            </svg>
+            <span>
+              Trade Activity Alert
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

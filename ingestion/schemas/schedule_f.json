@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Schedule F",
+    "type": "object",
+    "description": "Gifts received or given.",
+    "properties": {
+        "gifts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "number"
+                    },
+                    "currency": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "date",
+                    "description",
+                    "value"
+                ]
+            }
+        }
+    },
+    "required": [
+        "gifts"
+    ]
+}

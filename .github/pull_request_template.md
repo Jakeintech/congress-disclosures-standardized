@@ -1,3 +1,11 @@
+## 📋 Agile Tracking
+
+**Story ID**: <!-- STORY-XXX (if applicable) -->
+**Sprint**: <!-- Sprint 3, Sprint 4, or Backlog -->
+**Story Points**: <!-- 0, 1, 2, 3, 5, or 8 -->
+**Estimated Tokens**: <!-- Based on story points -->
+**Actual Tokens**: <!-- Fill after completion (check usage in Claude Code) -->
+
 ## Description
 
 <!-- Provide a clear and concise description of your changes -->

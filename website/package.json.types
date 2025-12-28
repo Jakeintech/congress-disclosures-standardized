@@ -1,0 +1,11 @@
+{
+  "name": "congress-disclosures-api",
+  "version": "1.0.0",
+  "scripts": {
+    "generate-types": "openapi-typescript ../openapi.yaml -o src/lib/generated/api-schema.ts",
+    "validate-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.0.0"
+  }
+}

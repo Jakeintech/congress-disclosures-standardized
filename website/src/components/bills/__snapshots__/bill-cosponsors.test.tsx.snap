@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BillCosponsors > renders cosponsors from MSW 1`] = `
+<DocumentFragment>
+  <div
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+  >
+    <div
+      class="flex items-center gap-3 p-3 bg-background rounded-xl border hover:border-primary/30 transition-colors group"
+    >
+      <div
+        class="w-10 h-10 flex items-center justify-center rounded-full font-bold text-white shadow-sm shrink-0 bg-red-500"
+      >
+        R
+      </div>
+      <div
+        class="min-w-0 flex-1"
+      >
+        <a
+          class="font-semibold truncate text-sm hover:text-primary transition-colors block"
+          href="/politician/undefined"
+        >
+          Jane Smith
+        </a>
+        <div
+          class="text-[10px] text-muted-foreground uppercase tracking-tight flex items-center gap-1"
+        >
+          <span
+            class="inline-flex items-center justify-center rounded-full border py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground h-3.5 px-1 text-[9px]"
+            data-slot="badge"
+          >
+            TX-R
+          </span>
+          <span>
+            Joined Invalid Date
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Graph - Congress Financial Disclosures</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="nav-container"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <!-- Controls Panel -->
+                <div class="controls-panel">
+                    <!-- View Mode Selection -->
+                    <div class="control-section view-mode-section">
+                        <h4>View Mode</h4>
+                        <div class="view-mode-grid">
+                            <button class="view-mode-btn active" data-mode="party">By Party</button>
+                            <button class="view-mode-btn" data-mode="chamber">By Chamber</button>
+                            <button class="view-mode-btn" data-mode="state">By State</button>
+                            <button class="view-mode-btn" data-mode="volume">By Volume</button>
+                            <button class="view-mode-btn" data-mode="none">All Members</button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="control-section filter-section">
+                        <h4>Filters</h4>
+                        <div class="filter-row">
+                            <label>Party:</label>
+                            <select id="party-filter">
+                                <option value="all">All</option>
+                                <option value="Democrat">Democrat</option>
+                                <option value="Republican">Republican</option>
+                                <option value="Unknown">Other/Unknown</option>
+                            </select>
+                        </div>
+                        <div class="filter-row">
+                            <label>Chamber:</label>
+                            <select id="chamber-filter">
+                                <option value="all">All</option>
+                                <option value="House">House</option>
+                                <option value="Senate">Senate</option>
+                            </select>
+                        </div>
+                        <div class="filter-row">
+                            <label>Transaction Type:</label>
+                            <select id="transaction-type-filter">
+                                <option value="all">All</option>
+                                <option value="purchase">Purchase</option>
+                                <option value="sale">Sale</option>
+                                <option value="exchange">Exchange</option>
+                            </select>
+                        </div>
+                        <div class="filter-row">
+                            <label>Min Transaction Volume:</label>
+                            <input type="range" id="volume-threshold" min="0" max="1000000" step="10000" value="0">
+                            <span id="volume-display">$0</span>
+                        </div>
+                        <div class="filter-row search-row">
+                            <label>Search:</label>
+                            <input type="search" id="member-search" placeholder="Search members or assets...">
+                        </div>
+                    </div>
+
+                    <!-- Node Sizing -->
+                    <div class="control-section sizing-section">
+                        <h4>Node Sizing</h4>
+                        <select id="node-size-by">
+                            <option value="volume">Transaction Volume</option>
+                            <option value="count">Transaction Count</option>
+                            <option value="degree">Network Centrality</option>
+                        </select>
+                    </div>
+
+                    <!-- Graph Controls -->
+                    <div class="control-section graph-controls">
+                        <button id="reset-view">Reset View</button>
+                        <button id="toggle-labels">Toggle Labels</button>
+                        <button id="export-filtered">Export Data</button>
+                    </div>
+
+                    <!-- Stats Display -->
+                    <div class="control-section stats-section">
+                        <h4>Graph Stats</h4>
+                        <div id="graph-stats">
+                            <p><strong>Nodes:</strong> <span id="stat-nodes">-</span></p>
+                            <p><strong>Links:</strong> <span id="stat-links">-</span></p>
+                            <p><strong>Transactions:</strong> <span id="stat-transactions">-</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Settings (Collapsible) -->
+                    <div class="control-section advanced-section">
+                        <h4 class="collapsible-header" id="advanced-settings-toggle">
+                            Advanced Settings
+                            <span class="chevron">▶</span>
+                        </h4>
+                        <div class="collapsible-content collapsed" id="advanced-settings-content">
+                            <div class="slider-control">
+                                <label>
+                                    <span>Link Distance</span>
+                                    <span class="slider-value" id="link-distance-value">150</span>
+                                </label>
+                                <input type="range" id="link-distance" min="50" max="300" step="10" value="150">
+                            </div>
+                            <div class="slider-control">
+                                <label>
+                                    <span>Charge Strength</span>
+                                    <span class="slider-value" id="charge-strength-value">-200</span>
+                                </label>
+                                <input type="range" id="charge-strength" min="-500" max="-50" step="10" value="-200">
+                            </div>
+                            <div class="slider-control">
+                                <label>
+                                    <span>Collision Radius</span>
+                                    <span class="slider-value" id="collision-radius-value">5</span>
+                                </label>
+                                <input type="range" id="collision-radius" min="0" max="20" step="1" value="5">
+                            </div>
+                            <div class="slider-control">
+                                <label>
+                                    <span>Clustering Force</span>
+                                    <span class="slider-value" id="clustering-force-value">0.05</span>
+                                </label>
+                                <input type="range" id="clustering-force" min="0" max="0.2" step="0.01" value="0.05">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Graph -->
+                <div id="network-graph-container">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading network graph...</p>
+                    </div>
+                </div>
+
+                <!-- Details Sidebar -->
+                <div id="details-sidebar" class="sidebar hidden">
+                    <div class="sidebar-header">
+                        <h2 id="sidebar-title">Node Details</h2>
+                        <button id="close-sidebar" class="close-btn">&times;</button>
+                    </div>
+                    <div class="sidebar-content">
+                        <div id="sidebar-stats" class="stats-grid">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="sidebar-lists" class="lists-container">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="nav.js"></script>
+    <script src="network.js"></script>
+</body>
+
+</html>

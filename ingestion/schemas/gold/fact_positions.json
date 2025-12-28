@@ -1,0 +1,69 @@
+{
+    "type": "struct",
+    "fields": [
+        {
+            "name": "position_key",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Unique identifier for the position"
+            }
+        },
+        {
+            "name": "doc_id",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Foreign key to the original filing document"
+            }
+        },
+        {
+            "name": "year",
+            "type": "integer",
+            "nullable": false,
+            "metadata": {
+                "description": "Year of the filing"
+            }
+        },
+        {
+            "name": "member_key",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Foreign key to dim_members"
+            }
+        },
+        {
+            "name": "filing_date_key",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {
+                "description": "Date key of the filing"
+            }
+        },
+        {
+            "name": "organization",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Organization name"
+            }
+        },
+        {
+            "name": "position_title",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Title of the position"
+            }
+        },
+        {
+            "name": "confidence_score",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Extraction confidence"
+            }
+        }
+    ]
+}

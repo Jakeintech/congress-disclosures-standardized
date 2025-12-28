@@ -1,0 +1,30 @@
+{
+  "doc_id": "20030822",
+  "year": 2025,
+  "filing_type": "Unknown",
+  "document_header": {
+    "filing_id": "20030822"
+  },
+  "notice_type": "Unknown",
+  "missing_fields": [
+    "filer_name",
+    "filing_date"
+  ],
+  "confidence_score": 0.3333333333333333,
+  "manual_review_required": true,
+  "extraction_metadata": {
+    "extraction_method": "code_based",
+    "filing_type": "Unknown",
+    "extraction_timestamp": "2025-12-02T18:32:06.454370+00:00",
+    "processed_at": "2025-12-02T18:32:06.454384+00:00",
+    "text_length": 1095,
+    "confidence_score": 0.3333333333333333
+  },
+  "extracted_text_content": "P\u0000\u0000\u0000\u0000\u0000\u0000\u0000 T\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000 R\u0000\u0000\u0000\u0000\u0000\nClerk of the House of Representatives \u2022 Legislative Resource Center \u2022 B81 Cannon Building \u2022 Washington, DC 20515\nF\u0000\u0000\u0000\u0000 I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\nName: Hon. Susie Lee\nStatus: Member\nState/District: NV03\nT\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\nID OwnerAsset Transaction\nTypeDate Notification\nDateAmount Cap .\nGains >\n$200?\nFull House Resorts, Inc. - Common\nStock (FLL)  [ST]S 07/23/2025 07/23/2025 $500,001 -\n$1,000,000\nF\u0000\u0000\u0000\u0000\u0000 S\u0000\u0000\u0000\u0000\u0000: New\nS\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000 O\u0000: Suzanne K Lee Trust > Fidelity Investments Brokerage 249\n* For the complete list of asset type abbreviations, please visit https://fd.house.gov/reference/asset-type-codes.aspx .\nI\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000 V\u0000\u0000\u0000\u0000\u0000\u0000 D\u0000\u0000\u0000\u0000\u0000\u0000\nSuzanne K Lee Trust\nSuzanne K Lee Trust \u21d2  Fidelity Investments Brokerage 249\nI\u0000\u0000\u0000\u0000\u0000\u0000 P\u0000\u0000\u0000\u0000\u0000 O\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\n Yes  No\nC\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000 \u0000\u0000\u0000 S\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\n I CERTIFY that the statements I have made on the attached Periodic Transaction Report are true, complete, and correct to the best of\nmy knowledge and belief. Further, I CERTIFY that I have disclosed all transactions as required by the STOCK Act.\nDigitally Signed: Hon. Susie Lee , 08/22/2025Filing ID #20030822",
+  "bronze_metadata": {
+    "filer_name": "Susie Lee",
+    "filing_date": "8/22/2025",
+    "state_district": "NV03"
+  },
+  "bronze_pdf_s3_key": "bronze/house/financial/year=2025/pdfs/2025/20030822.pdf"
+}

@@ -1,0 +1,85 @@
+comparison: website-old_vs_website
+
+summary:
+  - The Next.js site replaces many legacy pages with modern equivalents but omits several specialized tools and advanced interactions from website-old.
+  - Core coverage exists for dashboard, transactions, members, bills, member profiles, influence, lobbying network, and quality.
+  - Gaps are largest around the Silver split document viewer, analytics deep-dive, S3 browsing/downloads UX, and advanced trading network features.
+
+missing_features_from_website_old:
+  - name: Silver Split View (public documents)
+    legacy_files: [documents.html, silver_split_view.js]
+    details:
+      - Split-pane PDF (pdf.js) + structured extraction with multiple audit modes (structured, pipeline diagram, raw JSON, extracted text)
+      - Filter by year/type, search, list-selection UX
+      - Direct S3 cached PDF rendering with graceful fallback to official House URLs
+    website_status: Not present. Admin page has a simplified viewer (iframe) and no structured-data/audit panes.
+
+  - name: Analytics Page (combined)
+    legacy_files: [analytics.html, analytics.js]
+    details:
+      - Dedicated page with Top Traders chart, Trending Stocks table (buy/sell ratio), Sector Analysis (pie + insights), CSV export
+    website_status: Partially present. Dashboard shows Top Traders + Trending Stocks in compact cards. No sector analysis or CSV export, and no dedicated analytics page.
+
+  - name: Trading Network (advanced aggregation)
+    legacy_files: [network.html, network.js]
+    details:
+      - Aggregation modes (party/chamber/state/volume), expand/collapse, advanced physics controls, node-size modes, export filtered
+    website_status: Not present in this form. The new network focuses on lobbying entities under /lobbying/network with simpler node types and no aggregation controls.
+
+  - name: S3 Downloads/Browse Pages
+    legacy_files: [downloads.html, browse-bronze.html, browse-silver.html, browse-gold.html, s3_browser.js]
+    details:
+      - Dedicated pages to navigate artifacts in layers
+    website_status: Component `src/components/s3-browser.tsx` exists but no dedicated route wiring for general users.
+
+  - name: Bill-Trade Correlation (standalone)
+    legacy_files: [bill-trade-correlation.html]
+    details:
+      - Focused correlation explorer per bill
+    website_status: Partially integrated into Bill Detail tabs (trade_correlations data), but no standalone deep-dive page.
+
+  - name: Lobbying Explorer (non-graph)
+    legacy_files: [lobbying-explorer.html]
+    details:
+      - Tabular/summary explorer distinct from graph
+    website_status: Not present. Only /lobbying/network is implemented.
+
+  - name: Costs Visualizer
+    legacy_files: [costs.html, cost_visualizer.js]
+    website_status: Not present.
+
+  - name: API Docs (static)
+    legacy_files: [api-docs/index.html]
+    website_status: Not present.
+
+  - name: Pipeline Errors & Extraction Pipeline Overviews
+    legacy_files: [errors.html, extraction_pipeline.html]
+    website_status: Not present.
+
+  - name: Transactions CSV export & sortable headers
+    legacy_files: [transactions.html, transactions.js]
+    details:
+      - CSV export, column sort toggles, pagination
+    website_status: Partially present. Filters implemented; CSV export, header-sorting, and pagination missing.
+
+  - name: PDF rendering via pdf.js with controls in public viewer
+    legacy_files: [silver_split_view.js]
+    website_status: Not present. Admin uses iframe-only; no pdf.js zoom/page controls.
+
+parity_or_improved:
+  - Dashboard cards with skeleton loading and modern UI
+  - Member profile page with charts (trade volume, sector mix) and recent trades
+  - Bill detail includes trade correlations, sponsors, actions; ISR fallback for archived congresses
+  - Influence Tracker (triple correlations) ported with filters and clearer score semantics
+  - Quality Page with filters, sorting and CSV export of the table
+  - Lobbying Network graph implemented with clean D3 and node details sheet
+
+recommended_next_steps:
+  - Reintroduce Documents Split View as `/documents` using pdf.js + audit modes (structured/pipeline/raw/text)
+  - Add a dedicated `/analytics` page with Top Traders, Trending Stocks, Sector Analysis and CSV exports
+  - Port advanced Trading Network with aggregation controls as `/network` (distinct from lobbying)
+  - Surface `S3Browser` under `/downloads` (and optionally `/browse/{layer}`) with safe public prefixes
+  - Add CSV export + sortable headers + pagination to `/transactions`
+  - Add static API docs route or link to OpenAPI (`/api-docs`) if desired
+  - Consider adding costs and pipeline status pages if still relevant for ops
+

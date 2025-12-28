@@ -56,7 +56,6 @@ budget_monthly_limit = "5.00"  # Monthly budget in USD (triggers alerts at 80%, 
 budget_daily_limit   = "0.50"  # Daily budget in USD (catch runaway costs early)
 
 # Extraction Configuration
-textract_max_pages_sync = 10      # Max pages for synchronous Textract calls
 extraction_version      = "1.0.0" # Version for auditability
 
 # Optional: Lambda Layers

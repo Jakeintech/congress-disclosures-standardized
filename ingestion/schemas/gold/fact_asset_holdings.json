@@ -1,0 +1,149 @@
+{
+    "type": "struct",
+    "fields": [
+        {
+            "name": "holding_key",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Unique identifier for the holding"
+            }
+        },
+        {
+            "name": "doc_id",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Foreign key to the original filing document"
+            }
+        },
+        {
+            "name": "year",
+            "type": "integer",
+            "nullable": false,
+            "metadata": {
+                "description": "Year of the filing"
+            }
+        },
+        {
+            "name": "member_key",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Foreign key to dim_members"
+            }
+        },
+        {
+            "name": "asset_key",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Foreign key to dim_assets"
+            }
+        },
+        {
+            "name": "filing_date_key",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {
+                "description": "Date key of the filing"
+            }
+        },
+        {
+            "name": "asset_description",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Raw description of the asset"
+            }
+        },
+        {
+            "name": "asset_category",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Derived category (Stock, Bond, Real Estate, etc.)"
+            }
+        },
+        {
+            "name": "location_city",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "City for real estate/business"
+            }
+        },
+        {
+            "name": "location_state",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "State for real estate/business"
+            }
+        },
+        {
+            "name": "value_code",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Value range code or string"
+            }
+        },
+        {
+            "name": "value_low",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Lower bound of value"
+            }
+        },
+        {
+            "name": "value_high",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Upper bound of value"
+            }
+        },
+        {
+            "name": "income_type",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Type of income (Dividends, Rent, etc.)"
+            }
+        },
+        {
+            "name": "income_amount_code",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Income amount code or string"
+            }
+        },
+        {
+            "name": "income_low",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Lower bound of income"
+            }
+        },
+        {
+            "name": "income_high",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Upper bound of income"
+            }
+        },
+        {
+            "name": "confidence_score",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Extraction confidence"
+            }
+        }
+    ]
+}

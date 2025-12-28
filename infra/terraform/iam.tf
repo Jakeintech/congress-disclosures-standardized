@@ -59,6 +59,7 @@ resource "aws_iam_role_policy" "lambda_s3_access" {
           "s3:GetObject",
           "s3:PutObject",
           "s3:PutObjectAcl",
+          "s3:PutObjectTagging",
           "s3:DeleteObject" # Needed for cleanup/re-processing
         ]
         Resource = "${aws_s3_bucket.data_lake.arn}/*"
@@ -91,32 +92,24 @@ resource "aws_iam_role_policy" "lambda_sqs_access" {
           "sqs:GetQueueAttributes",
           "sqs:SendMessage" # For ingestion Lambda to send messages
         ]
-        Resource = [
-          aws_sqs_queue.extraction_queue.arn,
-          aws_sqs_queue.extraction_dlq.arn
-        ]
-      }
-    ]
-  })
-}
-
-# AWS Textract policy (for PDF extraction)
-resource "aws_iam_role_policy" "lambda_textract_access" {
-  name = "${local.name_prefix}-lambda-textract"
-  role = aws_iam_role.lambda_execution.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "textract:DetectDocumentText",
-          "textract:AnalyzeDocument",
-          "textract:GetDocumentAnalysis",
-          "textract:GetDocumentTextDetection"
-        ]
-        Resource = "*"
+        Resource = concat(
+          [
+            aws_sqs_queue.extraction_queue.arn,
+            aws_sqs_queue.extraction_dlq.arn,
+            aws_sqs_queue.structured_extraction_queue.arn, # For extract Lambda to queue structured extraction
+            aws_sqs_queue.code_extraction_queue.arn,       # For code-based extraction
+            aws_sqs_queue.code_extraction_dlq.arn,         # Code extraction DLQ
+            aws_sqs_queue.lda_bill_extraction_queue.arn,   # LDA bill extraction (post-ingest)
+            aws_sqs_queue.lda_bill_extraction_dlq.arn      # LDA bill extraction DLQ
+          ],
+          # Congress.gov pipeline queues (conditional)
+          var.enable_congress_pipeline ? [
+            aws_sqs_queue.congress_fetch_queue[0].arn,
+            aws_sqs_queue.congress_fetch_dlq[0].arn,
+            aws_sqs_queue.congress_silver_queue[0].arn,
+            aws_sqs_queue.congress_silver_dlq[0].arn
+          ] : []
+        )
       }
     ]
   })
@@ -135,7 +128,7 @@ resource "aws_iam_role_policy" "lambda_ssm_congress_api" {
         Action = [
           "ssm:GetParameter"
         ],
-        Resource = "arn:aws:ssm:${local.region}:${local.account_id}:parameter${local.ssm_congress_api_key_param}"
+        Resource = "arn:aws:ssm:${local.region}:${local.account_id}:parameter/*congress-disclosures-*/development/congress-api-key*"
       }
     ]
   })
@@ -157,6 +150,94 @@ resource "aws_iam_role_policy" "lambda_xray_access" {
           "xray:PutTraceSegments",
           "xray:PutTelemetryRecords"
         ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Cost Explorer access for cost visualization
+resource "aws_iam_role_policy" "lambda_ce_access" {
+  name = "${local.name_prefix}-lambda-ce"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ce:GetCostAndUsage"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "lambda_s3_list" {
+  name = "${local.name_prefix}-lambda-s3-list"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket"
+        ]
+        Resource = aws_s3_bucket.data_lake.arn
+        Condition = {
+          StringLike = {
+            "s3:prefix" = [
+              "bronze/*",
+              "silver/*",
+              "gold/*"
+            ]
+          }
+        }
+      }
+    ]
+  })
+}
+
+# DynamoDB policy for watermarking (STORY-003)
+resource "aws_iam_role_policy" "lambda_dynamodb_access" {
+  name = "${local.name_prefix}-lambda-dynamodb"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:Query",
+          "dynamodb:Scan"
+        ]
+        Resource = aws_dynamodb_table.pipeline_watermarks.arn
+      }
+    ]
+  })
+}
+
+# CloudWatch Metrics policy for custom metrics
+resource "aws_iam_role_policy" "lambda_cloudwatch_metrics_access" {
+  name = "${local.name_prefix}-lambda-cloudwatch-metrics"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "cloudwatch:PutMetricData"
+        ],
         Resource = "*"
       }
     ]

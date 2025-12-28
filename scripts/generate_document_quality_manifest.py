@@ -47,7 +47,16 @@ def load_agg_document_quality(bucket_name: str) -> pd.DataFrame:
                     os.unlink(tmp.name)
 
     if not dfs:
-        raise ValueError("No agg_document_quality found")
+        logger.warning("No agg_document_quality found! Returning empty DataFrame.")
+        return pd.DataFrame(columns=[
+            'member_key', 'period_start_date', 'period_end_date', 'total_filings',
+            'ptr_filings', 'annual_filings', 'text_pdf_count', 'image_pdf_count',
+            'hybrid_pdf_count', 'image_pdf_pct', 'avg_confidence_score',
+            'min_confidence_score', 'low_confidence_count', 'manual_review_count',
+            'extraction_failure_count', 'avg_data_completeness_pct',
+            'zero_transaction_filing_count', 'quality_score', 'quality_category',
+            'is_hard_to_process', 'quality_trend', 'days_since_last_filing'
+        ])
 
     return pd.concat(dfs, ignore_index=True)
 
@@ -79,6 +88,19 @@ def load_dim_members(bucket_name: str) -> pd.DataFrame:
 
 def generate_manifest(quality_df: pd.DataFrame, members_df: pd.DataFrame) -> dict:
     """Generate document quality manifest JSON."""
+
+    # Handle empty quality_df
+    if quality_df.empty:
+        return {
+            'generated_at': pd.Timestamp.now().isoformat(),
+            'period_start': None,
+            'period_end': None,
+            'total_members': 0,
+            'flagged_members_count': 0,
+            'average_quality_score': 0.0,
+            'quality_breakdown': {},
+            'members': []
+        }
 
     # Join with member names
     manifest_df = quality_df.merge(
@@ -125,8 +147,7 @@ def generate_manifest(quality_df: pd.DataFrame, members_df: pd.DataFrame) -> dic
             'quality_score': round(float(row['quality_score']), 1),
             'quality_category': row['quality_category'],
             'is_hard_to_process': bool(row['is_hard_to_process']),
-            'days_since_last_filing': int(row['days_since_last_filing']),
-            'textract_pages_used': int(row['textract_pages_used'])
+            'days_since_last_filing': int(row['days_since_last_filing'])
         }
 
         manifest['members'].append(member_record)

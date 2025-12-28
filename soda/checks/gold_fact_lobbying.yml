@@ -1,0 +1,3 @@
+checks for fact_lobbying:
+  - row_count > 0
+  - missing_count(filing_id) = 0

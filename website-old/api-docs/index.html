@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - Congressional Trading Data API</title>
+    <meta name="description" content="REST API documentation for Congressional Trading Data">
+
+    <!-- Site CSS for shared layout/components -->
+    <link rel="stylesheet" href="../style.css">
+    <!-- Swagger UI CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+
+    <style>
+        /* Keep minimal page-specific styles; use site theme for everything else */
+        body {
+            background: hsl(var(--background));
+            min-height: 100vh;
+        }
+
+        .swagger-container {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        #swagger-ui { max-width: 100%; }
+
+        .swagger-ui .topbar { display: none; }
+        .swagger-ui .scheme-container {
+            background: hsl(var(--muted));
+            border-radius: var(--radius);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Shared Navigation -->
+        <div id="nav-container"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">API Documentation</h2>
+                        <p class="card-description">Interactive documentation for all API endpoints</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="download-actions">
+                            <a href="../index.html" class="btn btn-secondary">
+                                Back to Dashboard
+                            </a>
+                            <a href="../../docs/openapi.yaml" class="btn btn-primary" download>
+                                Download OpenAPI Spec
+                            </a>
+                            <a href="https://github.com/Jakeintech/congress-disclosures-standardized" class="btn btn-secondary" target="_blank">
+                                View on GitHub
+                            </a>
+                        </div>
+                        <div class="swagger-container">
+                            <div id="swagger-ui"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <p>
+                        Open-source project for government transparency.
+                        <a href="https://github.com/Jakeintech/congress-disclosures-standardized" target="_blank">View on GitHub</a> |
+                        <a href="https://disclosures-clerk.house.gov/" target="_blank">Official Source</a>
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Configuration -->
+    <script src="../config.js"></script>
+    
+    <!-- Swagger UI Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script src="../nav.js"></script>
+
+    <script>
+        window.onload = function() {
+            // Determine the OpenAPI spec URL
+            const specUrl = '../../docs/openapi.yaml';
+
+            window.ui = SwaggerUIBundle({
+                url: specUrl,
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                defaultModelsExpandDepth: 1,
+                defaultModelExpandDepth: 1,
+                displayRequestDuration: true,
+                filter: true,
+                syntaxHighlight: {
+                    activate: true,
+                    theme: "agate"
+                },
+                tryItOutEnabled: true,
+                // Override server URL with deployed API Gateway
+                onComplete: function() {
+                    // Set the server URL to our deployed API Gateway
+                    if (window.API_GATEWAY_URL) {
+                        window.ui.getSystem().specActions.changeServer(API_GATEWAY_URL);
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+</html>

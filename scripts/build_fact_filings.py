@@ -1,279 +1,203 @@
 #!/usr/bin/env python3
 """
-Build fact_filings table by joining silver layer data.
-
-Joins:
-- silver/filings (filing metadata)
-- silver/documents (extraction metadata)
-- silver/structured (counts of extracted data)
+Build Gold Layer: Fact Filings (Enhanced)
+Reads Silver layer structured JSONs from S3, extracts metadata and schedule counts, and writes Parquet to S3.
 """
 
-import sys
 import os
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-import pandas as pd
-import boto3
+import sys
 import json
-from datetime import datetime
 import logging
+import io
+from datetime import datetime
+from pathlib import Path
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+import boto3
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Add lib paths
+sys.path.insert(0, str(Path(__file__).parent.parent / "ingestion"))
+sys.path.insert(0, str(Path(__file__).parent))
+
+from lib.terraform_config import get_aws_config
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
+# Config
+config = get_aws_config()
+S3_BUCKET = config.get("s3_bucket_id")
+S3_REGION = config.get("s3_region", "us-east-1")
 
-def load_silver_filings(bucket_name: str) -> pd.DataFrame:
-    """Load silver/filings."""
-    s3 = boto3.client('s3')
-    logger.info("Loading silver/filings...")
+if not S3_BUCKET:
+    logger.error("Missing required configuration.")
+    sys.exit(1)
 
-    prefix = 'silver/house/financial/filings/'
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+s3 = boto3.client('s3', region_name=S3_REGION)
 
-    dfs = []
-    for obj in response.get('Contents', []):
-        if obj['Key'].endswith('.parquet'):
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
-                s3.download_file(bucket_name, obj['Key'], tmp.name)
-                df = pd.read_parquet(tmp.name)
-                dfs.append(df)
-                os.unlink(tmp.name)
-
-    result = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
-    logger.info(f"Loaded {len(result):,} filings")
-    return result
-
-
-def load_silver_documents(bucket_name: str) -> pd.DataFrame:
-    """Load silver/documents."""
-    s3 = boto3.client('s3')
-    logger.info("Loading silver/documents...")
-
-    prefix = 'silver/house/financial/documents/'
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-
-    dfs = []
-    for obj in response.get('Contents', []):
-        if obj['Key'].endswith('.parquet'):
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
-                s3.download_file(bucket_name, obj['Key'], tmp.name)
-                df = pd.read_parquet(tmp.name)
-                dfs.append(df)
-                os.unlink(tmp.name)
-
-    result = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
-    logger.info(f"Loaded {len(result):,} document records")
-    return result
-
-
-def load_dim_members(bucket_name: str) -> pd.DataFrame:
-    """Load dim_members for lookup."""
-    s3 = boto3.client('s3')
-    logger.info("Loading dim_members...")
-
-    prefix = 'gold/house/financial/dimensions/dim_members/'
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-
-    dfs = []
-    for obj in response.get('Contents', []):
-        if obj['Key'].endswith('.parquet'):
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.parquet') as tmp:
-                s3.download_file(bucket_name, obj['Key'], tmp.name)
-                df = pd.read_parquet(tmp.name)
-                dfs.append(df)
-                os.unlink(tmp.name)
-
-    result = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
-    logger.info(f"Loaded {len(result):,} members")
-    return result
-
-
-def lookup_member_key(members_df: pd.DataFrame, first_name: str, last_name: str, state_district: str) -> int:
-    """Lookup member_key."""
-    if members_df.empty:
+def get_date_key(date_str):
+    """Convert YYYY-MM-DD to YYYYMMDD integer key."""
+    if not date_str or date_str == 'None':
+        return None
+    try:
+        if isinstance(date_str, (int, float)):
+             return None
+        if len(str(date_str)) >= 10:
+            dt = datetime.strptime(str(date_str)[:10], "%Y-%m-%d")
+            return int(dt.strftime("%Y%m%d"))
+        return None
+    except ValueError:
         return None
 
-    matches = members_df[
-        (members_df['first_name'].str.upper() == str(first_name).upper()) &
-        (members_df['last_name'].str.upper() == str(last_name).upper()) &
-        (members_df['state_district'] == state_district)
+def process_year(year):
+    """Process all filings for a specific year."""
+    logger.info(f"Processing year {year}...")
+    
+    # Scan BOTH old and new structures for backward compatibility
+    # New: silver/house/financial/objects/year={year}/filing_type={type}/doc_id={doc_id}/extraction.json
+    # Old: silver/objects/filing_type={type}/year={year}/doc_id={doc_id}/extraction.json
+    prefixes = [
+        f'silver/house/financial/objects/',  # New standardized structure
+        f'silver/objects/',                   # Old structure (backward compat)
     ]
+    
+    filings = []
+    filing_type_counts = {}
+    
+    for prefix in prefixes:
+        logger.info(f"Scanning {prefix}...")
+        
+        paginator = s3.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=S3_BUCKET, Prefix=prefix)
+        
+        for page in pages:
+            if 'Contents' not in page:
+                continue
+                
+            for obj in page['Contents']:
+                key = obj['Key']
+                
+                # Only process files for this year
+                if f"/year={year}/" not in key or not key.endswith("extraction.json"):
+                    continue
+                    
+                try:
+                    import re
+                    
+                    response = s3.get_object(Bucket=S3_BUCKET, Key=key)
+                    data = json.loads(response['Body'].read())
+                    
+                    # Try to extract from new format first: year=2025/filing_type=type_p/doc_id=12345
+                    match_new = re.search(r'year=(\d+)/filing_type=([^/]+)/doc_id=([^/]+)/', key)
+                    # Try old format: filing_type=type_p/year=2025/doc_id=12345
+                    match_old = re.search(r'filing_type=([^/]+)/year=(\d+)/doc_id=([^/]+)/', key)
+                    
+                    filing_type = None
+                    doc_id = None
+                    
+                    if match_new:
+                        # New format: year first
+                        year_from_path = int(match_new.group(1))
+                        filing_type = match_new.group(2)
+                        doc_id = match_new.group(3)
+                    elif match_old:
+                        # Old format: filing_type first
+                        filing_type = match_old.group(1)
+                        year_from_path = int(match_old.group(2))
+                        doc_id = match_old.group(3)
+                    
+                    # Fallback to data if path parsing failed
+                    if not filing_type:
+                        filing_type = data.get('filing_type', 'Unknown')
+                    if not doc_id:
+                        doc_id = data.get('doc_id')
+                    
+                    if not doc_id:
+                        logger.warning(f"Skipping {key}: no doc_id found")
+                        continue
+                    
+                    filing_date = data.get('filing_date')
+                    
+                    # Track counts
+                    filing_type_counts[filing_type] = filing_type_counts.get(filing_type, 0) + 1
+                    
+                    # Get bronze metadata if available
+                    bronze_meta = data.get('bronze_metadata', {})
+                    filer_name = bronze_meta.get('filer_name') or data.get('document_header', {}).get('filer_name')
+                    state_district = bronze_meta.get('state_district')
+                    
+                    # Count items in schedules
+                    schedule_a_count = len(data.get('assets_and_income', []))
+                    schedule_b_count = len(data.get('transactions', []))
+                    
+                    record = {
+                        'doc_id': doc_id,
+                        'year': year,
+                        'filing_year': year,  # Add explicit filing_year column
+                        'filing_date_key': get_date_key(filing_date),
+                        'filing_date': filing_date,  # Keep original date too
+                        'filing_type': filing_type,
+                        'filer_name': filer_name,
+                        'state_district': state_district,
+                        'is_extension': data.get('extension_details', {}).get('is_extension_request', False),
+                        'schedule_a_count': schedule_a_count,
+                        'schedule_b_count': schedule_b_count,
+                        'confidence_score': data.get('extraction_metadata', {}).get('confidence_score', 1.0),
+                        'bronze_pdf_s3_key': data.get('bronze_pdf_s3_key')
+                    }
+                    
+                    filings.append(record)
+                    
+                except Exception as e:
+                    logger.error(f"Error processing {key}: {e}")
 
-    if len(matches) > 0:
-        return int(matches.iloc[0]['member_key'])
+    logger.info(f"Filing type counts: {filing_type_counts}")
 
-    # Fallback: name only
-    matches = members_df[
-        (members_df['first_name'].str.upper() == str(first_name).upper()) &
-        (members_df['last_name'].str.upper() == str(last_name).upper())
-    ]
+    if not filings:
+        logger.warning(f"No filings found for year {year}")
+        return
 
-    return int(matches.iloc[0]['member_key']) if len(matches) > 0 else None
-
-
-def build_fact_filings(filings_df: pd.DataFrame, documents_df: pd.DataFrame, members_df: pd.DataFrame) -> pd.DataFrame:
-    """Build fact_filings by joining silver data."""
-    logger.info("Building fact_filings...")
-
-    # Join filings + documents
-    merged = filings_df.merge(
-        documents_df,
-        on=['doc_id', 'year'],
-        how='left',
-        suffixes=('', '_doc')
+    df = pd.DataFrame(filings)
+    # df['year'] = df['year'].astype(int) # Year is in partition, don't include in file
+    
+    # Drop year column as it's the partition key
+    if 'year' in df.columns:
+        df = df.drop(columns=['year'])
+    
+    # Write to S3
+    output_key = f"gold/house/financial/facts/fact_filings/year={year}/part-0000.parquet"
+    
+    buffer = io.BytesIO()
+    df.to_parquet(buffer, index=False, engine="pyarrow")
+    buffer.seek(0)
+    
+    s3.put_object(
+        Bucket=S3_BUCKET,
+        Key=output_key,
+        Body=buffer.getvalue(),
+        ContentType="application/x-parquet"
     )
-
-    # Derive pdf_type from has_embedded_text
-    def determine_pdf_type(row):
-        if pd.isna(row.get('has_embedded_text')):
-            return 'unknown'
-        elif row['has_embedded_text']:
-            return 'text'
-        else:
-            return 'image'
-
-    merged['pdf_type'] = merged.apply(determine_pdf_type, axis=1)
-
-    # Lookup member_key
-    logger.info("Looking up member_keys...")
-    merged['member_key'] = merged.apply(
-        lambda row: lookup_member_key(members_df, row['first_name'], row['last_name'], row['state_district']),
-        axis=1
-    )
-
-    # Build fact records
-    logger.info("Building fact records...")
-    records = []
-
-    for _, row in merged.iterrows():
-        # Parse filing_date to date_key
-        try:
-            filing_date = pd.to_datetime(row['filing_date'])
-            filing_date_key = int(filing_date.strftime('%Y%m%d'))
-        except:
-            filing_date_key = None
-
-        # Build PDF URL
-        doc_id = row['doc_id']
-        year = row['year']
-        pdf_url = f"https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/{year}/{doc_id}.pdf"
-
-        # Calculate confidence score based on extraction quality
-        extraction_status = row.get('extraction_status', 'pending')
-        pdf_type = row.get('pdf_type', 'unknown')
-        char_count = row.get('char_count', 0)
-
-        # Simple confidence heuristic
-        if extraction_status == 'success' and pdf_type == 'text' and char_count > 100:
-            overall_confidence = 0.95
-        elif extraction_status == 'success' and pdf_type == 'text':
-            overall_confidence = 0.85
-        elif extraction_status == 'success' and pdf_type == 'image' and char_count > 100:
-            overall_confidence = 0.75  # OCR is less reliable
-        elif extraction_status == 'success':
-            overall_confidence = 0.60
-        elif extraction_status == 'pending':
-            overall_confidence = None
-        else:
-            overall_confidence = 0.30  # Failed extraction
-
-        record = {
-            'member_key': row.get('member_key'),
-            'filing_type_key': 1 if row['filing_type'] == 'P' else 2,  # Simplification
-            'filing_date_key': filing_date_key,
-            'doc_id': doc_id,
-            'year': year,
-            'pdf_url': pdf_url,
-            'pdf_pages': row.get('pages', 0),
-            'pdf_file_size_bytes': row.get('pdf_file_size_bytes', 0),
-            'pdf_sha256': row.get('pdf_sha256', ''),
-            'transaction_count': 0,  # Would need to count from structured.json
-            'asset_count': 0,
-            'liability_count': 0,
-            'position_count': 0,
-            'agreement_count': 0,
-            'expected_deadline_date': None,
-            'days_late': None,
-            'is_timely_filed': True,  # Assume true for now
-            'is_amendment': False,
-            'original_filing_doc_id': None,
-            'extraction_method': row.get('extraction_method', 'pypdf'),
-            'extraction_status': extraction_status,
-            'pdf_type': pdf_type,
-            'overall_confidence': overall_confidence,
-            'has_extracted_data': extraction_status == 'success',
-            'has_structured_data': False,  # Would need to check structured.json exists
-            'requires_manual_review': (pdf_type == 'image' or (extraction_status == 'success' and char_count < 100)),
-            'textract_pages_used': row.get('textract_pages_used', 0) if pd.notna(row.get('textract_pages_used')) else 0,
-            'created_at': datetime.utcnow().isoformat(),
-            'updated_at': datetime.utcnow().isoformat()
-        }
-
-        records.append(record)
-
-    df = pd.DataFrame(records)
-    df['filing_key'] = range(1, len(df) + 1)
-
-    return df
-
-
-def write_to_gold(df: pd.DataFrame, bucket_name: str):
-    """Write fact_filings to gold layer."""
-    logger.info("Writing to gold layer...")
-
-    output_dir = Path('data/gold/facts/fact_filings')
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Partition by year
-    for year in df['year'].unique():
-        year_df = df[df['year'] == year]
-        year_output_dir = output_dir / f'year={year}'
-        year_output_dir.mkdir(parents=True, exist_ok=True)
-
-        output_file = year_output_dir / 'part-0000.parquet'
-        year_df.to_parquet(output_file, engine='pyarrow', compression='snappy', index=False)
-        logger.info(f"  Wrote {year}: {len(year_df)} records -> {output_file}")
-
-    # Upload to S3
-    s3 = boto3.client('s3')
-    for year in df['year'].unique():
-        year_df = df[df['year'] == year]
-
-        import tempfile
-        with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:
-            year_df.to_parquet(tmp.name, engine='pyarrow', compression='snappy', index=False)
-            s3_key = f'gold/house/financial/facts/fact_filings/year={year}/part-0000.parquet'
-            s3.upload_file(tmp.name, bucket_name, s3_key)
-            logger.info(f"  Uploaded to s3://{bucket_name}/{s3_key}")
-            os.unlink(tmp.name)
-
+    
+    logger.info(f"Wrote {len(df)} filings to s3://{S3_BUCKET}/{output_key}")
 
 def main():
-    bucket_name = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--year', type=int, help='Process specific year')
+    args = parser.parse_args()
+    
+    if args.year:
+        process_year(args.year)
+    else:
+        # Default to current year + next year (for testing)
+        current_year = datetime.now().year
+        process_year(current_year)
+        process_year(current_year + 1)
 
-    logger.info("=" * 80)
-    logger.info("Building fact_filings")
-    logger.info("=" * 80)
-
-    filings_df = load_silver_filings(bucket_name)
-    documents_df = load_silver_documents(bucket_name)
-    members_df = load_dim_members(bucket_name)
-
-    fact_df = build_fact_filings(filings_df, documents_df, members_df)
-
-    logger.info(f"\nSummary:")
-    logger.info(f"  Total filings: {len(fact_df)}")
-    logger.info(f"  With member_key: {fact_df['member_key'].notna().sum()}")
-    logger.info(f"  By extraction method: {fact_df['extraction_method'].value_counts().to_dict()}")
-    logger.info(f"  By PDF type: {fact_df['pdf_type'].value_counts().to_dict()}")
-
-    write_to_gold(fact_df, bucket_name)
-    logger.info("\n✅ fact_filings build complete!")
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

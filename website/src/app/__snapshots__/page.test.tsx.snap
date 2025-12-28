@@ -1,0 +1,763 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DashboardPage > matches snapshot after loading 1`] = `
+<DocumentFragment>
+  <div
+    class="space-y-8"
+  >
+    <div
+      class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <h1
+          class="text-3xl font-bold tracking-tight"
+        >
+          Dashboard
+        </h1>
+        <p
+          class="text-muted-foreground"
+        >
+          Congressional financial disclosures and transparency analytics
+        </p>
+      </div>
+      <div
+        class="flex gap-2"
+      >
+        <a
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+          href="/transactions"
+        >
+          View All Transactions
+        </a>
+      </div>
+    </div>
+    <div
+      class="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+    >
+      <div
+        class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+        data-slot="card"
+      >
+        <div
+          class="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-row items-center justify-between space-y-0 pb-2"
+          data-slot="card-header"
+        >
+          <div
+            class="text-sm font-medium text-muted-foreground"
+            data-slot="card-title"
+          >
+            Total Members
+          </div>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-users h-4 w-4 text-muted-foreground"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+            />
+            <path
+              d="M16 3.128a4 4 0 0 1 0 7.744"
+            />
+            <path
+              d="M22 21v-2a4 4 0 0 0-3-3.87"
+            />
+            <circle
+              cx="9"
+              cy="7"
+              r="4"
+            />
+          </svg>
+        </div>
+        <div
+          class="px-6"
+          data-slot="card-content"
+        >
+          <div
+            class="text-2xl font-bold"
+          >
+            535
+          </div>
+          <p
+            class="text-xs text-muted-foreground mt-1"
+          >
+            Congress members tracked
+          </p>
+        </div>
+      </div>
+      <div
+        class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+        data-slot="card"
+      >
+        <div
+          class="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-row items-center justify-between space-y-0 pb-2"
+          data-slot="card-header"
+        >
+          <div
+            class="text-sm font-medium text-muted-foreground"
+            data-slot="card-title"
+          >
+            Transactions
+          </div>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-trending-up h-4 w-4 text-muted-foreground"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16 7h6v6"
+            />
+            <path
+              d="m22 7-8.5 8.5-5-5L2 17"
+            />
+          </svg>
+        </div>
+        <div
+          class="px-6"
+          data-slot="card-content"
+        >
+          <div
+            class="text-2xl font-bold"
+          >
+            12,450
+          </div>
+          <p
+            class="text-xs text-muted-foreground mt-1"
+          >
+            Financial disclosures filed
+          </p>
+          <div
+            class="flex items-center gap-1 text-xs mt-1 text-green-600 dark:text-green-400"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-trending-up h-4 w-4 text-green-500"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 7h6v6"
+              />
+              <path
+                d="m22 7-8.5 8.5-5-5L2 17"
+              />
+            </svg>
+            <span
+              class="font-medium"
+            >
+              +423 this quarter
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+        data-slot="card"
+      >
+        <div
+          class="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-row items-center justify-between space-y-0 pb-2"
+          data-slot="card-header"
+        >
+          <div
+            class="text-sm font-medium text-muted-foreground"
+            data-slot="card-title"
+          >
+            Bills Tracked
+          </div>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-file-text h-4 w-4 text-muted-foreground"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
+            />
+            <path
+              d="M14 2v5a1 1 0 0 0 1 1h5"
+            />
+            <path
+              d="M10 9H8"
+            />
+            <path
+              d="M16 13H8"
+            />
+            <path
+              d="M16 17H8"
+            />
+          </svg>
+        </div>
+        <div
+          class="px-6"
+          data-slot="card-content"
+        >
+          <div
+            class="text-2xl font-bold"
+          >
+            4,200
+          </div>
+          <p
+            class="text-xs text-muted-foreground mt-1"
+          >
+            Active legislation monitored
+          </p>
+        </div>
+      </div>
+      <div
+        class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+        data-slot="card"
+      >
+        <div
+          class="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-row items-center justify-between space-y-0 pb-2"
+          data-slot="card-header"
+        >
+          <div
+            class="text-sm font-medium text-muted-foreground"
+            data-slot="card-title"
+          >
+            Filings Processed
+          </div>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-folder-open h-4 w-4 text-muted-foreground"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"
+            />
+          </svg>
+        </div>
+        <div
+          class="px-6"
+          data-slot="card-content"
+        >
+          <div
+            class="text-2xl font-bold"
+          >
+            8,900
+          </div>
+          <p
+            class="text-xs text-muted-foreground mt-1"
+          >
+            Total documents analyzed
+          </p>
+          <div
+            class="flex items-center gap-1 text-xs mt-1 text-green-600 dark:text-green-400"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-trending-up h-4 w-4 text-green-500"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 7h6v6"
+              />
+              <path
+                d="m22 7-8.5 8.5-5-5L2 17"
+              />
+            </svg>
+            <span
+              class="font-medium"
+            >
+              +1.2K this month
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="grid gap-6 lg:grid-cols-2"
+    >
+      <div
+        class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+        data-slot="card"
+      >
+        <div
+          class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+          data-slot="card-header"
+        >
+          <div
+            class="leading-none font-semibold"
+            data-slot="card-title"
+          >
+            Trading Volume Over Time
+          </div>
+          <div
+            class="text-muted-foreground text-sm"
+            data-slot="card-description"
+          >
+            Monthly trading activity by Congress members
+          </div>
+        </div>
+        <div
+          class="px-6"
+          data-slot="card-content"
+        >
+          <div
+            class="flex items-center justify-center h-[300px] text-muted-foreground"
+          >
+            <div
+              class="text-center"
+            >
+              <p>
+                No trading volume data available
+              </p>
+              <p
+                class="text-xs mt-2"
+              >
+                Data will appear once aggregation is complete
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+        data-slot="card"
+      >
+        <div
+          class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+          data-slot="card-header"
+        >
+          <div
+            class="leading-none font-semibold"
+            data-slot="card-title"
+          >
+            Top 10 Traded Stocks
+          </div>
+          <div
+            class="text-muted-foreground text-sm"
+            data-slot="card-description"
+          >
+            Most actively traded by Congress members
+          </div>
+        </div>
+        <div
+          class="px-6"
+          data-slot="card-content"
+        >
+          <div>
+            <div>
+              BarChart
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="grid gap-6 md:grid-cols-2"
+    >
+      <div
+        class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+        data-slot="card"
+      >
+        <div
+          class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+          data-slot="card-header"
+        >
+          <div
+            class="leading-none font-semibold flex items-center gap-2"
+            data-slot="card-title"
+          >
+            <span>
+              📈
+            </span>
+            Trending Stocks
+          </div>
+          <div
+            class="text-muted-foreground text-sm"
+            data-slot="card-description"
+          >
+            Most traded stocks by Congress members
+          </div>
+        </div>
+        <div
+          class="px-6"
+          data-slot="card-content"
+        >
+          <div
+            class="space-y-2"
+          >
+            <div
+              class="flex items-center justify-between p-2 rounded-md hover:bg-muted"
+            >
+              <div
+                class="flex items-center gap-3"
+              >
+                <span
+                  class="text-lg font-semibold text-muted-foreground"
+                >
+                  #1
+                </span>
+                <div
+                  class="rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold overflow-hidden shrink-0 w-10 h-10 text-sm"
+                >
+                  <img
+                    alt="AAPL"
+                    class="w-full h-full object-cover"
+                    src="https://financialmodelingprep.com/image-stock/AAPL.png"
+                  />
+                </div>
+                <div>
+                  <p
+                    class="font-medium"
+                  >
+                    AAPL
+                  </p>
+                  <p
+                    class="text-sm text-muted-foreground"
+                  >
+                    Apple Inc.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="text-right"
+              >
+                <span
+                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+                  data-slot="badge"
+                >
+                  45 trades
+                </span>
+              </div>
+            </div>
+            <div
+              class="flex items-center justify-between p-2 rounded-md hover:bg-muted"
+            >
+              <div
+                class="flex items-center gap-3"
+              >
+                <span
+                  class="text-lg font-semibold text-muted-foreground"
+                >
+                  #2
+                </span>
+                <div
+                  class="rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold overflow-hidden shrink-0 w-10 h-10 text-sm"
+                >
+                  <img
+                    alt="NVDA"
+                    class="w-full h-full object-cover"
+                    src="https://financialmodelingprep.com/image-stock/NVDA.png"
+                  />
+                </div>
+                <div>
+                  <p
+                    class="font-medium"
+                  >
+                    NVDA
+                  </p>
+                  <p
+                    class="text-sm text-muted-foreground"
+                  >
+                    NVIDIA Corp.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="text-right"
+              >
+                <span
+                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+                  data-slot="badge"
+                >
+                  38 trades
+                </span>
+              </div>
+            </div>
+            <div
+              class="flex items-center justify-between p-2 rounded-md hover:bg-muted"
+            >
+              <div
+                class="flex items-center gap-3"
+              >
+                <span
+                  class="text-lg font-semibold text-muted-foreground"
+                >
+                  #3
+                </span>
+                <div
+                  class="rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold overflow-hidden shrink-0 w-10 h-10 text-sm"
+                >
+                  <img
+                    alt="MSFT"
+                    class="w-full h-full object-cover"
+                    src="https://financialmodelingprep.com/image-stock/MSFT.png"
+                  />
+                </div>
+                <div>
+                  <p
+                    class="font-medium"
+                  >
+                    MSFT
+                  </p>
+                  <p
+                    class="text-sm text-muted-foreground"
+                  >
+                    Microsoft Corp.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="text-right"
+              >
+                <span
+                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90"
+                  data-slot="badge"
+                >
+                  25 trades
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+        data-slot="card"
+      >
+        <div
+          class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+          data-slot="card-header"
+        >
+          <div
+            class="leading-none font-semibold flex items-center gap-2"
+            data-slot="card-title"
+          >
+            <span>
+              🏆
+            </span>
+            Top Traders
+          </div>
+          <div
+            class="text-muted-foreground text-sm"
+            data-slot="card-description"
+          >
+            Most active members by transaction count
+          </div>
+        </div>
+        <div
+          class="px-6"
+          data-slot="card-content"
+        >
+          <div
+            class="space-y-2"
+          >
+            <a
+              class="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors"
+              href="/politician/P000197"
+            >
+              <div
+                class="flex items-center gap-3"
+              >
+                <span
+                  class="text-lg font-semibold text-muted-foreground"
+                >
+                  #1
+                </span>
+                <div>
+                  <p
+                    class="font-medium"
+                  >
+                    Nancy Pelosi
+                  </p>
+                  <p
+                    class="text-sm text-muted-foreground"
+                  >
+                    D-CA
+                  </p>
+                </div>
+              </div>
+              <div
+                class="text-right"
+              >
+                <span
+                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+                  data-slot="badge"
+                >
+                  50 trades
+                </span>
+                <p
+                  class="text-xs text-muted-foreground mt-1"
+                >
+                  15.0M
+                </p>
+              </div>
+            </a>
+            <a
+              class="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors"
+              href="/politician/M001194"
+            >
+              <div
+                class="flex items-center gap-3"
+              >
+                <span
+                  class="text-lg font-semibold text-muted-foreground"
+                >
+                  #2
+                </span>
+                <div>
+                  <p
+                    class="font-medium"
+                  >
+                    John R. Moolenaar
+                  </p>
+                  <p
+                    class="text-sm text-muted-foreground"
+                  >
+                    R-MI
+                  </p>
+                </div>
+              </div>
+              <div
+                class="text-right"
+              >
+                <span
+                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+                  data-slot="badge"
+                >
+                  42 trades
+                </span>
+                <p
+                  class="text-xs text-muted-foreground mt-1"
+                >
+                  0.8M
+                </p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+      data-slot="card"
+    >
+      <div
+        class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+        data-slot="card-header"
+      >
+        <div
+          class="leading-none font-semibold"
+          data-slot="card-title"
+        >
+          Quick Links
+        </div>
+      </div>
+      <div
+        class="px-6"
+        data-slot="card-content"
+      >
+        <div
+          class="grid gap-4 sm:grid-cols-2 md:grid-cols-4"
+        >
+          <a
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 px-4 has-[>svg]:px-3 h-auto py-4 flex-col"
+            data-slot="button"
+            href="/bills"
+          >
+            <span
+              class="text-2xl mb-2"
+            >
+              📜
+            </span>
+            <span>
+              Browse Bills
+            </span>
+          </a>
+          <a
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 px-4 has-[>svg]:px-3 h-auto py-4 flex-col"
+            data-slot="button"
+            href="/members"
+          >
+            <span
+              class="text-2xl mb-2"
+            >
+              👥
+            </span>
+            <span>
+              View Members
+            </span>
+          </a>
+          <a
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 px-4 has-[>svg]:px-3 h-auto py-4 flex-col"
+            data-slot="button"
+            href="/lobbying"
+          >
+            <span
+              class="text-2xl mb-2"
+            >
+              💼
+            </span>
+            <span>
+              Lobbying Data
+            </span>
+          </a>
+          <a
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 px-4 has-[>svg]:px-3 h-auto py-4 flex-col"
+            data-slot="button"
+            href="/influence"
+          >
+            <span
+              class="text-2xl mb-2"
+            >
+              ⚡
+            </span>
+            <span>
+              Influence Tracker
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

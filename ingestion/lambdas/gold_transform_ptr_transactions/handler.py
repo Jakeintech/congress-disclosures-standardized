@@ -115,11 +115,14 @@ def transform_to_fact_transactions(
     last_name = filer_info.get('last_name', '').strip()
     state_district = filer_info.get('state_district', '')
 
-    # Lookup member_key
-    member_key = lookup_member_key(dim_members, first_name, last_name, state_district)
-    if not member_key:
+    # Lookup member info from dim_members
+    member_info = lookup_member_info(dim_members, first_name, last_name, state_district)
+    if not member_info:
         logger.warning(f"Member not found in dim_members: {first_name} {last_name} ({state_district})")
         return []
+        
+    member_key = member_info.get('member_key')
+    parent_bioguide_id = member_info.get('bioguide_id')
 
     # Extract metadata
     filing_date = structured_data.get('filing_date')
@@ -163,6 +166,8 @@ def transform_to_fact_transactions(
         # Build fact record
         fact_record = {
             'member_key': member_key,
+            'bioguide_id': parent_bioguide_id,
+            'parent_bioguide_id': parent_bioguide_id,
             'asset_key': asset_key,
             'filing_type_key': 1,  # PTR filing type
             'transaction_date_key': transaction_date_key,
@@ -197,6 +202,36 @@ def transform_to_fact_transactions(
         fact_records.append(fact_record)
 
     return fact_records
+
+
+def lookup_member_info(dim_members: pd.DataFrame, first_name: str, last_name: str, state_district: str) -> Optional[Dict[str, Any]]:
+    """Lookup full member info from dim_members."""
+    if dim_members.empty:
+        return None
+
+    # Filter current members only
+    current_members = dim_members[dim_members['is_current'] == True]
+
+    # Exact match on names and state_district
+    matches = current_members[
+        (current_members['first_name'].str.upper() == first_name.upper()) &
+        (current_members['last_name'].str.upper() == last_name.upper()) &
+        (current_members['state_district'] == state_district)
+    ]
+
+    if len(matches) > 0:
+        return matches.iloc[0].to_dict()
+
+    # Fallback: match on names only
+    matches = current_members[
+        (current_members['first_name'].str.upper() == first_name.upper()) &
+        (current_members['last_name'].str.upper() == last_name.upper())
+    ]
+
+    if len(matches) > 0:
+        return matches.iloc[0].to_dict()
+
+    return None
 
 
 def load_dim_members() -> pd.DataFrame:
@@ -244,35 +279,6 @@ def load_dim_assets() -> pd.DataFrame:
 
     return pd.DataFrame()
 
-
-def lookup_member_key(dim_members: pd.DataFrame, first_name: str, last_name: str, state_district: str) -> Optional[int]:
-    """Lookup member_key from dim_members."""
-    if dim_members.empty:
-        return None
-
-    # Filter current members only
-    current_members = dim_members[dim_members['is_current'] == True]
-
-    # Exact match on names and state_district
-    matches = current_members[
-        (current_members['first_name'].str.upper() == first_name.upper()) &
-        (current_members['last_name'].str.upper() == last_name.upper()) &
-        (current_members['state_district'] == state_district)
-    ]
-
-    if len(matches) > 0:
-        return int(matches.iloc[0]['member_key'])
-
-    # Fallback: match on names only
-    matches = current_members[
-        (current_members['first_name'].str.upper() == first_name.upper()) &
-        (current_members['last_name'].str.upper() == last_name.upper())
-    ]
-
-    if len(matches) > 0:
-        return int(matches.iloc[0]['member_key'])
-
-    return None
 
 
 def lookup_or_create_asset_key(dim_assets: pd.DataFrame, asset_name: str) -> int:

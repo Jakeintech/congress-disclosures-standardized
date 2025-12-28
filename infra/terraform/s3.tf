@@ -43,6 +43,19 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "data_lake" {
   }
 }
 
+# Static website hosting configuration (for index document resolution)
+resource "aws_s3_bucket_website_configuration" "data_lake" {
+  bucket = aws_s3_bucket.data_lake.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "index.html"
+  }
+}
+
 # Lifecycle policy for cost optimization
 resource "aws_s3_bucket_lifecycle_configuration" "data_lake" {
   bucket = aws_s3_bucket.data_lake.id
@@ -58,6 +71,40 @@ resource "aws_s3_bucket_lifecycle_configuration" "data_lake" {
 
     noncurrent_version_expiration {
       noncurrent_days = 90 # Delete old versions after 90 days
+    }
+  }
+
+  # PTR Retention: 7 years
+  rule {
+    id     = "bronze-ptr-retention"
+    status = "Enabled"
+
+    filter {
+      tag {
+        key   = "filing_type"
+        value = "P"
+      }
+    }
+
+    expiration {
+      days = 2555 # 7 years
+    }
+  }
+
+  # Extension Retention: 1 year
+  rule {
+    id     = "bronze-extension-retention"
+    status = "Enabled"
+
+    filter {
+      tag {
+        key   = "filing_type"
+        value = "X"
+      }
+    }
+
+    expiration {
+      days = 365 # 1 year
     }
   }
 
@@ -77,6 +124,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "data_lake" {
         days          = var.s3_lifecycle_glacier_days
         storage_class = "GLACIER"
       }
+    }
+  }
+
+  # Silver versioned extractions: Expire old versions after 90 days
+  # Enables iterative quality improvements without massive reprocessing
+  rule {
+    id     = "silver-versioned-extractions-cleanup"
+    status = "Enabled"
+
+    filter {
+      prefix = "silver/house/financial/objects/"
+    }
+
+    # Delete objects from old extractor versions after 90 days
+    # This allows time to validate new extractor versions before cleanup
+    expiration {
+      days = 90
     }
   }
 

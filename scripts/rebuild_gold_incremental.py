@@ -42,7 +42,15 @@ def should_rebuild_fact_filings(bucket: str) -> bool:
     silver_docs_ts = get_s3_last_modified(bucket, 'silver/house/financial/documents/')
     gold_fact_ts = get_s3_last_modified(bucket, 'gold/house/financial/facts/fact_filings/')
 
-    # Rebuild if silver is newer than gold
+    # Compare timestamps (make all timezone-aware for comparison)
+    from datetime import timezone
+    if silver_filings_ts.tzinfo is None:
+        silver_filings_ts = silver_filings_ts.replace(tzinfo=timezone.utc)
+    if silver_docs_ts.tzinfo is None:
+        silver_docs_ts = silver_docs_ts.replace(tzinfo=timezone.utc)
+    if gold_fact_ts.tzinfo is None:
+        gold_fact_ts = gold_fact_ts.replace(tzinfo=timezone.utc)
+    
     needs_rebuild = max(silver_filings_ts, silver_docs_ts) > gold_fact_ts
 
     if needs_rebuild:
@@ -59,6 +67,13 @@ def should_rebuild_agg_document_quality(bucket: str) -> bool:
     gold_fact_ts = get_s3_last_modified(bucket, 'gold/house/financial/facts/fact_filings/')
     gold_agg_ts = get_s3_last_modified(bucket, 'gold/house/financial/aggregates/agg_document_quality/')
 
+    # Compare timestamps (make timezone-aware)
+    from datetime import timezone
+    if gold_fact_ts.tzinfo is None:
+        gold_fact_ts = gold_fact_ts.replace(tzinfo=timezone.utc)
+    if gold_agg_ts.tzinfo is None:
+        gold_agg_ts = gold_agg_ts.replace(tzinfo=timezone.utc)
+    
     needs_rebuild = gold_fact_ts > gold_agg_ts
 
     if needs_rebuild:
@@ -73,7 +88,13 @@ def should_rebuild_manifest(bucket: str) -> bool:
     """Check if website manifest needs rebuilding."""
     gold_agg_ts = get_s3_last_modified(bucket, 'gold/house/financial/aggregates/agg_document_quality/')
     manifest_ts = get_s3_last_modified(bucket, 'website/data/document_quality.json')
-
+    # Compare timestamps (make timezone-aware)
+    from datetime import timezone
+    if gold_agg_ts.tzinfo is None:
+        gold_agg_ts = gold_agg_ts.replace(tzinfo=timezone.utc)
+    if manifest_ts.tzinfo is None:
+        manifest_ts = manifest_ts.replace(tzinfo=timezone.utc)
+    
     needs_rebuild = gold_agg_ts > manifest_ts
 
     if needs_rebuild:

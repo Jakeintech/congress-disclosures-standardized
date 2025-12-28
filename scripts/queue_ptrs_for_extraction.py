@@ -96,6 +96,7 @@ def main(limit=None):
                 "doc_id": row["doc_id"],
                 "year": int(row["year"]),
                 "s3_pdf_key": row["pdf_s3_key"],
+                "filing_type": "P"
             }),
         }
         batch.append(message)

@@ -69,6 +69,20 @@ resource "aws_cloudwatch_log_group" "gold_seed_members" {
   )
 }
 
+resource "aws_cloudwatch_log_group" "data_quality_validator" {
+  name              = "/aws/lambda/${local.name_prefix}-data-quality-validator"
+  retention_in_days = var.cloudwatch_log_retention_days
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${local.name_prefix}-data-quality-validator-logs"
+      Component = "logging"
+      Lambda    = "data-quality-validator"
+    }
+  )
+}
+
 # SNS Topic for alerts (optional)
 resource "aws_sns_topic" "alerts" {
   count = var.enable_cost_alerts && var.alert_email != "" ? 1 : 0

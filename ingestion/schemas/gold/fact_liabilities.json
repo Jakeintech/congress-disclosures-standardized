@@ -1,0 +1,117 @@
+{
+    "type": "struct",
+    "fields": [
+        {
+            "name": "liability_key",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Unique identifier for the liability"
+            }
+        },
+        {
+            "name": "doc_id",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Foreign key to the original filing document"
+            }
+        },
+        {
+            "name": "year",
+            "type": "integer",
+            "nullable": false,
+            "metadata": {
+                "description": "Year of the filing"
+            }
+        },
+        {
+            "name": "member_key",
+            "type": "string",
+            "nullable": false,
+            "metadata": {
+                "description": "Foreign key to dim_members"
+            }
+        },
+        {
+            "name": "filing_date_key",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {
+                "description": "Date key of the filing"
+            }
+        },
+        {
+            "name": "creditor_name",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Name of the creditor"
+            }
+        },
+        {
+            "name": "description",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Description of liability (e.g. Mortgage)"
+            }
+        },
+        {
+            "name": "month_incurred",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Month liability was incurred"
+            }
+        },
+        {
+            "name": "year_incurred",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {
+                "description": "Year liability was incurred"
+            }
+        },
+        {
+            "name": "value_code",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Value range code"
+            }
+        },
+        {
+            "name": "value_low",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Lower bound of value"
+            }
+        },
+        {
+            "name": "value_high",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Upper bound of value"
+            }
+        },
+        {
+            "name": "interest_rate",
+            "type": "string",
+            "nullable": true,
+            "metadata": {
+                "description": "Interest rate terms"
+            }
+        },
+        {
+            "name": "confidence_score",
+            "type": "double",
+            "nullable": true,
+            "metadata": {
+                "description": "Extraction confidence"
+            }
+        }
+    ]
+}

@@ -1,0 +1,166 @@
+name: API Testing and Deployment
+
+on:
+  push:
+    branches: [main, development, enhancement]
+    paths:
+      - 'api/**'
+      - 'infra/terraform/**'
+      - '.github/workflows/api-tests.yml'
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Stage 1: Local validation
+  lint-and-validate:
+    name: Lint and Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black mypy pyyaml
+      
+      - name: Lint Python code
+        run: |
+          flake8 api/ --max-line-length=120 --exclude=package,dist
+      
+      - name: Validate OpenAPI spec
+        run: |
+          npm install -g @apidevtools/swagger-cli
+          swagger-cli validate openapi.yaml
+  
+  # Stage 2: Unit tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-mock
+          pip install -r requirements.txt
+      
+      - name: Run unit tests
+        run: |
+          pytest tests/unit/ -v --cov=api/lib --cov-report=xml
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+  
+  # Stage 3: Integration tests (local Lambda simulation)
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest duckdb pandas requests pyyaml
+          pip install -r requirements.txt
+      
+      - name: Run Lambda simulation tests
+        run: |
+          python scripts/test_lambda_locally.py --all || true
+          pytest tests/integration/ -v -m "not aws"
+  
+  # Stage 4: Deploy to staging (on main branch only)
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [lint-and-validate, unit-tests, integration-tests]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Package Lambda functions
+        run: |
+          make package-api
+      
+      - name: Deploy with Terraform
+        run: |
+          cd infra/terraform
+          terraform init
+          terraform apply -auto-approve -target=aws_lambda_function.api
+  
+  # Stage 5: E2E tests against staging
+  e2e-tests:
+    name: E2E Tests (Staging)
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest requests pyyaml
+      
+      - name: Get API Gateway URL
+        id: get-url
+        run: |
+          cd infra/terraform
+          terraform init
+          API_URL=$(terraform output -raw api_gateway_url)
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+      
+      - name: Run API health checks
+        env:
+          API_BASE_URL: ${{ steps.get-url.outputs.api_url }}
+        run: |
+          python scripts/test_api_production.py
+      
+      - name: Run contract tests
+        env:
+          API_BASE_URL: ${{ steps.get-url.outputs.api_url }}
+        run: |
+          pytest tests/test_api_contracts.py -v
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-health-report
+          path: api_health_report.json

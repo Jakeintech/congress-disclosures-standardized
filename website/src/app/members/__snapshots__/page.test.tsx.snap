@@ -1,0 +1,472 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MembersPage > matches snapshot after loading 1`] = `
+<DocumentFragment>
+  <div
+    class="space-y-6"
+  >
+    <div
+      class="flex flex-col md:flex-row md:items-end justify-between gap-4"
+    >
+      <div>
+        <h1
+          class="text-3xl font-bold tracking-tight"
+        >
+          Members of Congress
+        </h1>
+        <p
+          class="text-muted-foreground"
+        >
+          Browse congressional members and their financial disclosure activity
+        </p>
+      </div>
+      <div
+        class="flex items-center gap-2 text-sm text-muted-foreground"
+      >
+        <span
+          class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground"
+          data-slot="badge"
+        >
+          3 Members
+        </span>
+      </div>
+    </div>
+    <div
+      class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+      data-slot="card"
+    >
+      <div
+        class="px-6 pt-6"
+        data-slot="card-content"
+      >
+        <div
+          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
+        >
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            placeholder="Search page..."
+            value=""
+          />
+          <button
+            aria-autocomplete="none"
+            aria-controls="radix-_r_21_"
+            aria-expanded="false"
+            class="border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            data-size="default"
+            data-slot="select-trigger"
+            data-state="closed"
+            dir="ltr"
+            role="combobox"
+            type="button"
+          >
+            <span
+              data-slot="select-value"
+              style="pointer-events: none;"
+            >
+              All Parties
+            </span>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down size-4 opacity-50"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+          <button
+            aria-autocomplete="none"
+            aria-controls="radix-_r_22_"
+            aria-expanded="false"
+            class="border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            data-size="default"
+            data-slot="select-trigger"
+            data-state="closed"
+            dir="ltr"
+            role="combobox"
+            type="button"
+          >
+            <span
+              data-slot="select-value"
+              style="pointer-events: none;"
+            >
+              Both Chambers
+            </span>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down size-4 opacity-50"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+          <button
+            aria-autocomplete="none"
+            aria-controls="radix-_r_23_"
+            aria-expanded="false"
+            class="border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            data-size="default"
+            data-slot="select-trigger"
+            data-state="closed"
+            dir="ltr"
+            role="combobox"
+            type="button"
+          >
+            <span
+              data-slot="select-value"
+              style="pointer-events: none;"
+            >
+              All States
+            </span>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down size-4 opacity-50"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+          <button
+            aria-autocomplete="none"
+            aria-controls="radix-_r_24_"
+            aria-expanded="false"
+            class="border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            data-size="default"
+            data-slot="select-trigger"
+            data-state="closed"
+            dir="ltr"
+            role="combobox"
+            type="button"
+          >
+            <span
+              data-slot="select-value"
+              style="pointer-events: none;"
+            >
+              Most Active (Volume)
+            </span>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down size-4 opacity-50"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+    >
+      <a
+        href="/politician/P000197"
+      >
+        <div
+          class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm hover:bg-muted/50 transition-colors cursor-pointer h-full border-t-4 data-[party=D]:border-t-blue-500 data-[party=R]:border-t-red-500"
+          data-party="D"
+          data-slot="card"
+        >
+          <div
+            class="px-6 pt-6"
+            data-slot="card-content"
+          >
+            <div
+              class="flex items-start gap-4"
+            >
+              <div
+                class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0"
+              >
+                <img
+                  alt="Nancy Pelosi"
+                  class="object-cover"
+                  data-nimg="1"
+                  decoding="async"
+                  height="48"
+                  loading="lazy"
+                  src="https://bioguide.congress.gov/bioguide/photo/P/P000197.jpg"
+                  style="color: transparent;"
+                  width="48"
+                />
+              </div>
+              <div
+                class="flex-1 min-w-0"
+              >
+                <h3
+                  class="font-semibold truncate"
+                >
+                  Nancy Pelosi
+                </h3>
+                <div
+                  class="flex items-center gap-2 mt-1"
+                >
+                  <span
+                    class="inline-flex items-center justify-center rounded-full border py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground text-[10px] px-1 h-4"
+                    data-slot="badge"
+                  >
+                    D-CA
+                  </span>
+                  <span
+                    class="text-[10px] text-muted-foreground uppercase font-medium"
+                  >
+                    house
+                  </span>
+                </div>
+                <div
+                  class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-muted"
+                >
+                  <div>
+                    <p
+                      class="text-[10px] text-muted-foreground uppercase"
+                    >
+                      Volume (Est)
+                    </p>
+                    <p
+                      class="text-sm font-bold text-primary"
+                    >
+                      $15.0M
+                    </p>
+                  </div>
+                  <div>
+                    <p
+                      class="text-[10px] text-muted-foreground uppercase"
+                    >
+                      Trades
+                    </p>
+                    <p
+                      class="text-sm font-bold text-primary"
+                    >
+                      50
+                    </p>
+                  </div>
+                </div>
+                <p
+                  class="text-[10px] text-muted-foreground mt-2 italic"
+                >
+                  Last trade: 2023-12-01
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <a
+        href="/politician/M001194"
+      >
+        <div
+          class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm hover:bg-muted/50 transition-colors cursor-pointer h-full border-t-4 data-[party=D]:border-t-blue-500 data-[party=R]:border-t-red-500"
+          data-party="R"
+          data-slot="card"
+        >
+          <div
+            class="px-6 pt-6"
+            data-slot="card-content"
+          >
+            <div
+              class="flex items-start gap-4"
+            >
+              <div
+                class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0"
+              >
+                <img
+                  alt="John R. Moolenaar"
+                  class="object-cover"
+                  data-nimg="1"
+                  decoding="async"
+                  height="48"
+                  loading="lazy"
+                  src="https://bioguide.congress.gov/bioguide/photo/M/M001194.jpg"
+                  style="color: transparent;"
+                  width="48"
+                />
+              </div>
+              <div
+                class="flex-1 min-w-0"
+              >
+                <h3
+                  class="font-semibold truncate"
+                >
+                  John R. Moolenaar
+                </h3>
+                <div
+                  class="flex items-center gap-2 mt-1"
+                >
+                  <span
+                    class="inline-flex items-center justify-center rounded-full border py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground text-[10px] px-1 h-4"
+                    data-slot="badge"
+                  >
+                    R-MI
+                  </span>
+                  <span
+                    class="text-[10px] text-muted-foreground uppercase font-medium"
+                  >
+                    house
+                  </span>
+                </div>
+                <div
+                  class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-muted"
+                >
+                  <div>
+                    <p
+                      class="text-[10px] text-muted-foreground uppercase"
+                    >
+                      Volume (Est)
+                    </p>
+                    <p
+                      class="text-sm font-bold text-primary"
+                    >
+                      $800K
+                    </p>
+                  </div>
+                  <div>
+                    <p
+                      class="text-[10px] text-muted-foreground uppercase"
+                    >
+                      Trades
+                    </p>
+                    <p
+                      class="text-sm font-bold text-primary"
+                    >
+                      42
+                    </p>
+                  </div>
+                </div>
+                <p
+                  class="text-[10px] text-muted-foreground mt-2 italic"
+                >
+                  Last trade: 2023-11-28
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <a
+        href="/politician/W000817"
+      >
+        <div
+          class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm hover:bg-muted/50 transition-colors cursor-pointer h-full border-t-4 data-[party=D]:border-t-blue-500 data-[party=R]:border-t-red-500"
+          data-party="D"
+          data-slot="card"
+        >
+          <div
+            class="px-6 pt-6"
+            data-slot="card-content"
+          >
+            <div
+              class="flex items-start gap-4"
+            >
+              <div
+                class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0"
+              >
+                <img
+                  alt="Elizabeth Warren"
+                  class="object-cover"
+                  data-nimg="1"
+                  decoding="async"
+                  height="48"
+                  loading="lazy"
+                  src="https://bioguide.congress.gov/bioguide/photo/W/W000817.jpg"
+                  style="color: transparent;"
+                  width="48"
+                />
+              </div>
+              <div
+                class="flex-1 min-w-0"
+              >
+                <h3
+                  class="font-semibold truncate"
+                >
+                  Elizabeth Warren
+                </h3>
+                <div
+                  class="flex items-center gap-2 mt-1"
+                >
+                  <span
+                    class="inline-flex items-center justify-center rounded-full border py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground text-[10px] px-1 h-4"
+                    data-slot="badge"
+                  >
+                    D-MA
+                  </span>
+                  <span
+                    class="text-[10px] text-muted-foreground uppercase font-medium"
+                  >
+                    senate
+                  </span>
+                </div>
+                <div
+                  class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-muted"
+                >
+                  <div>
+                    <p
+                      class="text-[10px] text-muted-foreground uppercase"
+                    >
+                      Volume (Est)
+                    </p>
+                    <p
+                      class="text-sm font-bold text-primary"
+                    >
+                      $0
+                    </p>
+                  </div>
+                  <div>
+                    <p
+                      class="text-[10px] text-muted-foreground uppercase"
+                    >
+                      Trades
+                    </p>
+                    <p
+                      class="text-sm font-bold text-primary"
+                    >
+                      0
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</DocumentFragment>
+`;

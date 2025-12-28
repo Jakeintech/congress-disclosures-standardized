@@ -1,0 +1,54 @@
+checks for gold_dim_member:
+  # Schema validation (SCD Type 2)
+  - schema:
+      fail when required column missing:
+        - member_key
+        - bioguide_id
+        - full_name
+        - party
+        - state
+        - valid_from
+        - valid_to
+        - is_current
+      fail when wrong type:
+        member_key: integer
+        valid_from: date
+        valid_to: date
+        is_current: boolean
+
+  # Uniqueness
+  - duplicate_count(member_key) = 0:
+      name: Member keys must be unique
+
+  # SCD Type 2 validation
+  - missing_count(valid_from) = 0:
+      name: All records must have valid_from date
+
+  - missing_count(valid_to) = 0:
+      name: All records must have valid_to date
+
+  - valid_from <= valid_to:
+      name: Valid from must be before valid to
+
+  # Data quality
+  - invalid_count(party) = 0:
+      valid values: ['D', 'R', 'I', 'Democrat', 'Republican', 'Independent']
+      name: Party must be valid code
+
+  - invalid_count(state) = 0:
+      valid format: regex ^[A-Z]{2}$
+      name: State must be 2-letter code
+
+  # Business rules
+  - row_count where is_current = true >= 500:
+      name: At least 500 current members
+
+  - duplicate_count(bioguide_id) where is_current = true = 0:
+      name: Only one current record per bioguide_id
+
+  # Missing values
+  - missing_count(bioguide_id) = 0:
+      name: All members must have bioguide ID
+
+  - missing_count(full_name) = 0:
+      name: All members must have name

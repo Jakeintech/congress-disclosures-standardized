@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+__tests__
+*.test.ts
+*.test.tsx
+*.spec.ts
+coverage
+.DS_Store

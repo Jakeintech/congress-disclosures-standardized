@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Schedule G",
+    "type": "object",
+    "description": "Travel and related expenses.",
+    "properties": {
+        "travel": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "purpose": {
+                        "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
+                    },
+                    "cost": {
+                        "type": "number"
+                    },
+                    "currency": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "date",
+                    "purpose",
+                    "location",
+                    "cost"
+                ]
+            }
+        }
+    },
+    "required": [
+        "travel"
+    ]
+}

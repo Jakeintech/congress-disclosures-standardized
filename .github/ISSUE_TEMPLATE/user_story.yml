@@ -1,0 +1,211 @@
+name: 📖 User Story
+description: Create a new user story for agile development
+title: "[STORY-XXX] "
+labels: ["user-story", "agent-task"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📖 User Story Template
+
+        Complete all sections below. For implementation guidance, see:
+        - [AI Agent Task Template](.github/AI_AGENT_TASK_TEMPLATE.md)
+        - [AI Agent Context](docs/agile/AI_AGENT_CONTEXT.md)
+        - [Agent Workflow Guide](.github/AI_AGENT_WORKFLOW.md)
+
+  - type: dropdown
+    id: epic
+    attributes:
+      label: Epic
+      description: Which epic does this story belong to?
+      options:
+        - EPIC-001: Foundation & Infrastructure
+        - EPIC-002: Data Quality & Monitoring
+        - EPIC-003: Advanced Analytics
+    validations:
+      required: true
+
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: Sprint
+      description: Target sprint for completion
+      options:
+        - Sprint 3: Integration (Dec 27 - Jan 3)
+        - Sprint 4: Production (Jan 6-11)
+        - Backlog
+    validations:
+      required: true
+
+  - type: dropdown
+    id: points
+    attributes:
+      label: Story Points
+      description: Complexity estimate (Fibonacci: 0=config only, 1=trivial, 2=small, 3=medium, 5=complex, 8=very complex)
+      options:
+        - "0"
+        - "1"
+        - "2"
+        - "3"
+        - "5"
+        - "8"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Business priority (P0=critical/blocks, P1=high/must-have, P2=medium/should-have, P3=low/nice-to-have)
+      options:
+        - P0 - Critical
+        - P1 - High
+        - P2 - Medium
+        - P3 - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: User Story
+      description: "Format: **As a** [role], **I want** [feature], **so that** [benefit]"
+      placeholder: |
+        **As a** data engineer
+        **I want** automated quality checks in the silver layer
+        **So that** I can trust the data pipeline without manual validation
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: "Testable conditions that must be met for completion (checkbox format)"
+      placeholder: |
+        - [ ] Quality checks run automatically on each silver layer update
+        - [ ] Failed checks send alerts to monitoring dashboard
+        - [ ] Quality metrics are logged to CloudWatch
+        - [ ] Integration tests verify check execution
+        - [ ] Documentation updated with quality thresholds
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_tasks
+    attributes:
+      label: Technical Tasks
+      description: "Implementation steps (optional - can be added during planning)"
+      placeholder: |
+        ### 1. Setup & Planning (~2K tokens)
+        - Review Soda Core documentation
+        - Identify quality checks needed
+        - Plan Lambda implementation
+
+        ### 2. Implementation (~15K tokens for 2-point story)
+        - Create `validate_silver_quality` Lambda
+        - Add Soda check configurations
+        - Integrate with Step Functions
+        - Add CloudWatch logging
+
+        ### 3. Testing (~5K tokens)
+        - Unit tests for validation logic
+        - Integration test with sample data
+        - Test failure scenarios
+
+        ### 4. Documentation (~3K tokens)
+        - Update ARCHITECTURE.md
+        - Add quality check documentation
+        - Update runbook
+    validations:
+      required: false
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: "List STORY-XXX dependencies (if any)"
+      placeholder: |
+        - STORY-001 (required) - Infrastructure must be deployed
+        - STORY-015 (optional) - Monitoring dashboard for alerts
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: components
+    attributes:
+      label: Components Affected
+      description: Which components will this story touch?
+      options:
+        - label: Lambda functions
+        - label: Terraform (infrastructure)
+        - label: Step Functions (state machines)
+        - label: Testing
+        - label: Documentation
+        - label: CI/CD pipelines
+        - label: Frontend (website)
+
+  - type: checkboxes
+    id: data_layers
+    attributes:
+      label: Data Layers
+      description: Which data layers are affected?
+      options:
+        - label: Bronze (raw data)
+        - label: Silver (normalized)
+        - label: Gold (analytics)
+
+  - type: textarea
+    id: token_estimate
+    attributes:
+      label: Token Estimate Breakdown
+      description: "Estimated tokens by phase (auto-calculated from story points)"
+      value: |
+        Based on story points selected:
+        - 0 points: ~0 tokens (config/docs only)
+        - 1 point: ~10K tokens
+        - 2 points: ~20K tokens
+        - 3 points: ~30K tokens
+        - 5 points: ~50K tokens
+        - 8 points: ~80K tokens
+
+        **Breakdown** (for reference):
+        - Setup & Planning: ~2K
+        - Implementation: ~60-70% of total
+        - Testing: ~5-10K
+        - Code Quality: ~2K
+        - Documentation: ~3-5K
+        - Git/PR: ~2-3K
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes
+      description: "Any other context, risks, or considerations"
+      placeholder: |
+        - Risk: Soda Core may have performance issues with large datasets
+        - Note: Consider using DuckDB for quality checks instead of pandas
+        - Context: This supports EPIC-002 data quality initiative
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        ## 🤖 For AI Agents
+
+        When claiming this task:
+        1. Create branch: `agent/<your-name>/<story-id>-description`
+        2. Read full story file in `docs/agile/stories/`
+        3. Follow [AI Agent Task Template](.github/AI_AGENT_TASK_TEMPLATE.md)
+        4. Use [AI Agent Context](docs/agile/AI_AGENT_CONTEXT.md) for project context
+        5. Create PR with conventional commit format
+        6. Link PR to this issue
+
+        See [Agent Onboarding Guide](.github/AGENT_ONBOARDING.md) for detailed walkthrough.

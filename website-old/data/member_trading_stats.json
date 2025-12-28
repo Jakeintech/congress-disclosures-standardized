@@ -1,0 +1,25 @@
+{
+  "generated_at": "2025-12-08T15:43:43.805054",
+  "total_members": 1,
+  "total_trades": 5582,
+  "total_volume": 160030291.0,
+  "members": [
+    {
+      "member_key": "UNKNOWN",
+      "total_trades": 5582,
+      "buy_count": 3109,
+      "sell_count": 2473,
+      "buy_sell_ratio": 1.2571775171856046,
+      "total_volume": 160030291.0,
+      "avg_transaction_size": 28668.987997133645,
+      "min_transaction_size": 8000.5,
+      "max_transaction_size": 3000000.5,
+      "avg_days_between_trades": 0.6884070955025982,
+      "most_active_month": "2025-04",
+      "first_transaction_date": "2015-05-08",
+      "last_transaction_date": "2025-11-day",
+      "period_start": "2025-01-01",
+      "period_end": "2025-12-31"
+    }
+  ]
+}

@@ -46,7 +46,7 @@ variable "s3_lifecycle_glacier_days" {
 variable "lambda_timeout_seconds" {
   description = "Lambda function timeout in seconds"
   type        = number
-  default     = 300 # 5 minutes
+  default     = 900 # 15 minutes - required for large ZIP downloads
 
   validation {
     condition     = var.lambda_timeout_seconds >= 30 && var.lambda_timeout_seconds <= 900
@@ -68,7 +68,7 @@ variable "lambda_ingest_memory_mb" {
 variable "lambda_extract_memory_mb" {
   description = "Memory allocation for extract Lambda in MB"
   type        = number
-  default     = 2048 # Needs more memory for PDF/Textract processing
+  default     = 2048 # Memory for PDF processing
 
   validation {
     condition     = var.lambda_extract_memory_mb >= 128 && var.lambda_extract_memory_mb <= 10240
@@ -123,7 +123,7 @@ variable "sqs_message_retention_days" {
 variable "sqs_max_receive_count" {
   description = "Max receives before moving to DLQ"
   type        = number
-  default     = 3
+  default     = 5
 
   validation {
     condition     = var.sqs_max_receive_count >= 1 && var.sqs_max_receive_count <= 1000
@@ -176,28 +176,6 @@ variable "enable_xray_tracing" {
   default     = false # Disabled by default to save costs
 }
 
-variable "textract_max_pages_sync" {
-  description = "Max pages to process synchronously with Textract"
-  type        = number
-  default     = 10
-
-  validation {
-    condition     = var.textract_max_pages_sync >= 1 && var.textract_max_pages_sync <= 100
-    error_message = "Textract sync max pages must be between 1 and 100."
-  }
-}
-
-variable "textract_monthly_page_limit" {
-  description = "Monthly page limit for Textract processing (AWS free tier: 1000 pages/month for 3 months)"
-  type        = number
-  default     = 1000
-
-  validation {
-    condition     = var.textract_monthly_page_limit >= 0 && var.textract_monthly_page_limit <= 100000
-    error_message = "Textract monthly page limit must be between 0 and 100000."
-  }
-}
-
 variable "extraction_version" {
   description = "Version string for extraction pipeline (for auditability)"
   type        = string
@@ -233,3 +211,23 @@ variable "budget_daily_limit" {
   type        = string
   default     = "0.50"
 }
+
+variable "tesseract_layer_arn" {
+  description = "ARN of Lambda Layer containing Tesseract binaries"
+  type        = string
+  default     = "arn:aws:lambda:us-east-1:464813693153:layer:tesseract-ocr:2"
+}
+
+variable "alert_phone_number" {
+  description = "Phone number for critical SMS alerts (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "enable_custom_alert_handler" {
+  description = "Enable custom Lambda handler for alerts"
+  type        = bool
+  default     = false
+}
+
+

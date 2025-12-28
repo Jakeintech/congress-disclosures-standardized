@@ -25,7 +25,10 @@
     "filer_info": {
       "type": "object",
       "description": "Information about the filer (NOT made public)",
-      "required": ["full_name", "filer_type"],
+      "required": [
+        "full_name",
+        "filer_type"
+      ],
       "properties": {
         "full_name": {
           "type": "string",
@@ -41,7 +44,10 @@
         },
         "filer_type": {
           "type": "string",
-          "enum": ["Member", "Officer or Employee"],
+          "enum": [
+            "Member",
+            "Officer or Employee"
+          ],
           "description": "Status of filer"
         },
         "state": {
@@ -62,7 +68,10 @@
     "report_type": {
       "type": "object",
       "description": "Type of PTR filing",
-      "required": ["is_initial", "is_amendment"],
+      "required": [
+        "is_initial",
+        "is_amendment"
+      ],
       "properties": {
         "is_initial": {
           "type": "boolean",
@@ -73,7 +82,10 @@
           "description": "Whether this is an amendment to a previous PTR"
         },
         "date_of_report_being_amended": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date",
           "description": "Date of original report being amended (YYYY-MM-DD)"
         }
@@ -88,20 +100,47 @@
       "description": "List of reportable transactions (stocks, bonds, commodities futures, securities)",
       "items": {
         "type": "object",
-        "required": ["asset_name", "transaction_type", "transaction_date", "notification_date", "amount_column"],
+        "required": [
+          "asset_name",
+          "transaction_type",
+          "transaction_date",
+          "notification_date",
+          "amount_column"
+        ],
         "properties": {
           "owner_code": {
-            "type": ["string", "null"],
-            "enum": ["SP", "DC", "JT", null],
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SP",
+              "DC",
+              "JT",
+              null
+            ],
             "description": "SP=Spouse only, DC=Dependent Child only, JT=Jointly held, null=Filer only"
           },
           "asset_name": {
             "type": "string",
             "description": "Full name of asset (NOT ticker symbol) - e.g., 'Mega Corp. Common Stock'"
           },
+          "ticker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stock ticker symbol extracted from asset name (e.g., 'AMZN', 'MSFT')",
+            "pattern": "^[A-Z]{1,5}(\\.[A-Z]{1,2})?$"
+          },
           "transaction_type": {
             "type": "string",
-            "enum": ["Purchase", "Sale", "Partial Sale", "Exchange"],
+            "enum": [
+              "Purchase",
+              "Sale",
+              "Partial Sale",
+              "Exchange"
+            ],
             "description": "Type of transaction"
           },
           "transaction_date": {
@@ -116,7 +155,19 @@
           },
           "amount_column": {
             "type": "string",
-            "enum": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"],
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H",
+              "I",
+              "J",
+              "K"
+            ],
             "description": "Amount column checked on form (A through K)"
           },
           "amount_range": {
@@ -137,16 +188,25 @@
             ]
           },
           "amount_low": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "description": "Lower bound of transaction amount (parsed from range)",
             "minimum": 0
           },
           "amount_high": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "description": "Upper bound of transaction amount (parsed from range, null for 'over' categories)"
           },
           "note_number": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Reference to note number in Filer Notes section"
           }
         }
@@ -172,7 +232,11 @@
     "certification": {
       "type": "object",
       "description": "Certification and signature information",
-      "required": ["filer_certified", "filer_signature_date", "stock_act_certified"],
+      "required": [
+        "filer_certified",
+        "filer_signature_date",
+        "stock_act_certified"
+      ],
       "properties": {
         "filer_certified": {
           "type": "boolean",
@@ -200,7 +264,10 @@
           "description": "Signature of certifying official"
         },
         "official_signature_date": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date",
           "description": "Date official signed (YYYY-MM-DD)"
         }
@@ -216,15 +283,24 @@
           "description": "Due date: earlier of (a) 30 days from notification or (b) 45 days from transaction"
         },
         "timely_filed": {
-          "type": ["boolean", "null"],
+          "type": [
+            "boolean",
+            "null"
+          ],
           "description": "Whether PTR was filed by deadline"
         },
         "days_late": {
-          "type": ["integer", "null"],
+          "type": [
+            "integer",
+            "null"
+          ],
           "description": "Number of days filed late (null if timely)"
         },
         "penalty_amount": {
-          "type": ["integer", "null"],
+          "type": [
+            "integer",
+            "null"
+          ],
           "description": "Penalty assessed ($200 if more than 30 days late)"
         },
         "transaction_count": {
@@ -234,7 +310,10 @@
         },
         "copies_required": {
           "type": "string",
-          "enum": ["1 original + 2 copies", "1 original + 1 copy"],
+          "enum": [
+            "1 original + 2 copies",
+            "1 original + 1 copy"
+          ],
           "description": "Members: 1 original + 2 copies; Officers/Employees: 1 original + 1 copy"
         }
       }
@@ -242,11 +321,24 @@
     "extraction_metadata": {
       "type": "object",
       "description": "Comprehensive metadata about how this structured data was extracted - full audit trail",
-      "required": ["extraction_method", "extraction_timestamp", "extraction_version", "confidence_score", "pdf_type", "requires_manual_review"],
+      "required": [
+        "extraction_method",
+        "extraction_timestamp",
+        "extraction_version",
+        "confidence_score",
+        "pdf_type",
+        "requires_manual_review"
+      ],
       "properties": {
         "extraction_method": {
           "type": "string",
-          "enum": ["ocr_tesseract", "ocr_textract", "ocr_hybrid", "regex", "ocr_fallback", "manual"],
+          "enum": [
+            "ocr_tesseract",
+            "ocr_hybrid",
+            "regex",
+            "ocr_fallback",
+            "manual"
+          ],
           "description": "Primary method used to extract structured data"
         },
         "extraction_timestamp": {
@@ -286,7 +378,11 @@
         },
         "pdf_type": {
           "type": "string",
-          "enum": ["text", "image", "hybrid"],
+          "enum": [
+            "text",
+            "image",
+            "hybrid"
+          ],
           "description": "Whether source PDF was text-based, image-based, or hybrid (determines extraction strategy)"
         },
         "requires_manual_review": {
@@ -316,17 +412,26 @@
               "description": "PDF format version (e.g., '1.4', '1.7')"
             },
             "creation_date": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "format": "date-time",
               "description": "PDF creation timestamp from metadata"
             },
             "modification_date": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "format": "date-time",
               "description": "PDF last modification timestamp from metadata"
             },
             "producer": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "description": "Software that produced the PDF"
             }
           }
@@ -339,7 +444,11 @@
             "properties": {
               "method": {
                 "type": "string",
-                "enum": ["regex", "ocr_tesseract", "ocr_textract", "ocr_hybrid"],
+                "enum": [
+                  "regex",
+                  "ocr_tesseract",
+                  "ocr_hybrid"
+                ],
                 "description": "Extraction method attempted"
               },
               "success": {
@@ -357,11 +466,17 @@
                 "minimum": 0
               },
               "error_message": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "Error message if attempt failed"
               },
               "records_extracted": {
-                "type": ["integer", "null"],
+                "type": [
+                  "integer",
+                  "null"
+                ],
                 "description": "Number of transactions/records extracted in this attempt",
                 "minimum": 0
               }
@@ -402,7 +517,11 @@
                 "type": "string"
               },
               "examples": [
-                ["0 transactions extracted from 2-page PTR", "All transaction amounts in same range", "Transaction date in future"]
+                [
+                  "0 transactions extracted from 2-page PTR",
+                  "All transaction amounts in same range",
+                  "Transaction date in future"
+                ]
               ]
             }
           }
@@ -455,7 +574,10 @@
               "minimum": 0
             },
             "ocr_seconds": {
-              "type": ["number", "null"],
+              "type": [
+                "number",
+                "null"
+              ],
               "description": "Time spent on OCR processing (if applicable)",
               "minimum": 0
             },

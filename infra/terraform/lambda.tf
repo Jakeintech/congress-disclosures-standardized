@@ -13,8 +13,8 @@ resource "aws_lambda_function" "ingest_zip" {
   s3_key           = "lambda-deployments/house_fd_ingest_zip/function.zip"
   source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") : null
 
-  timeout     = var.lambda_timeout_seconds
-  memory_size = var.lambda_ingest_memory_mb
+  timeout     = 900
+  memory_size = 2048
 
   # Environment variables
   environment {
@@ -57,8 +57,9 @@ resource "aws_lambda_function" "ingest_zip" {
     ]
   }
 
-  # Depends on log group being created first
+  # Depends on log group being created first and Lambda packages being built
   depends_on = [
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.ingest_zip,
     aws_iam_role_policy.lambda_logging
   ]
@@ -74,7 +75,7 @@ resource "aws_lambda_function" "index_to_silver" {
   # Deploy from S3 (packages >50 MB must use S3)
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/house_fd_index_to_silver/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_index_to_silver/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_index_to_silver/function.zip") : null
+  # source_code_hash removed to prevent race condition with package_lambdas
 
   timeout     = 120 # 2 minutes (lighter processing)
   memory_size = var.lambda_index_memory_mb
@@ -85,6 +86,8 @@ resource "aws_lambda_function" "index_to_silver" {
       S3_BRONZE_PREFIX   = "bronze"
       S3_SILVER_PREFIX   = "silver"
       EXTRACTION_VERSION = var.extraction_version
+      # Provide SQS queue URL so index-to-silver can enqueue extraction jobs
+      EXTRACTION_QUEUE_URL = aws_sqs_queue.extraction_queue.url
       LOG_LEVEL          = "INFO"
       PYTHONUNBUFFERED   = "1"
       TZ                 = "UTC"
@@ -101,8 +104,10 @@ resource "aws_lambda_function" "index_to_silver" {
   # Use AWS Data Wrangler layer for pandas/pyarrow/numpy
   layers = concat(
     var.lambda_layer_arns,
-    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
+    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"],
+    ["arn:aws:lambda:us-east-1:464813693153:layer:python-custom-dependencies:3"]
   )
+
 
   tags = merge(
     local.standard_tags,
@@ -121,6 +126,9 @@ resource "aws_lambda_function" "index_to_silver" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.index_to_silver,
     aws_iam_role_policy.lambda_logging
   ]
@@ -136,7 +144,7 @@ resource "aws_lambda_function" "extract_document" {
   # Deploy from S3 (packages >50 MB must use S3)
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/house_fd_extract_document/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_extract_document/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_extract_document/function.zip") : null
+  # source_code_hash removed to prevent race condition with package_lambdas
 
   timeout     = var.lambda_timeout_seconds
   memory_size = var.lambda_extract_memory_mb
@@ -148,15 +156,15 @@ resource "aws_lambda_function" "extract_document" {
 
   environment {
     variables = {
-      S3_BUCKET_NAME              = aws_s3_bucket.data_lake.id
-      S3_BRONZE_PREFIX            = "bronze"
-      S3_SILVER_PREFIX            = "silver"
-      EXTRACTION_VERSION          = var.extraction_version
-      TEXTRACT_MAX_PAGES_SYNC     = var.textract_max_pages_sync
-      TEXTRACT_MONTHLY_PAGE_LIMIT = var.textract_monthly_page_limit
-      LOG_LEVEL                   = "INFO"
-      PYTHONUNBUFFERED            = "1"
-      TZ                          = "UTC"
+      S3_BUCKET_NAME                  = aws_s3_bucket.data_lake.id
+      S3_BRONZE_PREFIX                = "bronze"
+      S3_SILVER_PREFIX                = "silver"
+      EXTRACTION_VERSION              = var.extraction_version
+      STRUCTURED_EXTRACTION_QUEUE_URL = aws_sqs_queue.structured_extraction_queue.id
+      CODE_EXTRACTION_QUEUE_URL       = aws_sqs_queue.code_extraction_queue.id
+      LOG_LEVEL                       = "INFO"
+      PYTHONUNBUFFERED                = "1"
+      TZ                              = "UTC"
     }
   }
 
@@ -168,12 +176,12 @@ resource "aws_lambda_function" "extract_document" {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
   }
 
-  # AWS SDK for pandas Layer provides numpy, pandas, pyarrow for parquet_writer
-  # Layer: 389MB + Package: 1.6MB = 390MB (under 250MB uncompressed limit)
   layers = concat(
     var.lambda_layer_arns,
-    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
+    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"],
+    ["arn:aws:lambda:us-east-1:464813693153:layer:python-custom-dependencies:3"] # Custom layer for jsonschema, etc.
   )
+
 
   tags = merge(
     local.standard_tags,
@@ -192,6 +200,9 @@ resource "aws_lambda_function" "extract_document" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.extract_document,
     aws_iam_role_policy.lambda_logging
   ]
@@ -278,6 +289,7 @@ resource "aws_lambda_function" "gold_seed" {
     ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
   )
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -295,6 +307,9 @@ resource "aws_lambda_function" "gold_seed" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.gold_seed,
     aws_iam_role_policy.lambda_logging
   ]
@@ -338,6 +353,7 @@ resource "aws_lambda_function" "gold_seed_members" {
     ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
   )
 
+
   tags = merge(
     local.standard_tags,
     {
@@ -355,6 +371,9 @@ resource "aws_lambda_function" "gold_seed_members" {
   }
 
   depends_on = [
+
+
+    null_resource.package_lambdas,
     aws_cloudwatch_log_group.gold_seed_members,
     aws_iam_role_policy.lambda_logging,
     aws_iam_role_policy.lambda_ssm_congress_api
@@ -364,4 +383,67 @@ resource "aws_lambda_function" "gold_seed_members" {
 output "lambda_gold_seed_members_name" {
   description = "Name of gold seed members Lambda"
   value       = aws_lambda_function.gold_seed_members.function_name
+}
+
+# Lambda function: data_quality_validator
+resource "aws_lambda_function" "data_quality_validator" {
+  function_name = "${local.name_prefix}-data-quality-validator"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+
+  s3_bucket        = aws_s3_bucket.data_lake.id
+  s3_key           = "lambda-deployments/data_quality_validator/function.zip"
+  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/data_quality_validator/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/data_quality_validator/function.zip") : null
+
+  timeout     = 300
+  memory_size = 512
+
+  environment {
+    variables = {
+      S3_BUCKET_NAME   = aws_s3_bucket.data_lake.id
+      S3_SILVER_PREFIX = "silver"
+      LOG_LEVEL        = "INFO"
+    }
+  }
+
+  tracing_config {
+    mode = var.enable_xray_tracing ? "Active" : "PassThrough"
+  }
+
+  # Use AWS Data Wrangler layer (pandas/pyarrow)
+  layers = concat(
+    var.lambda_layer_arns,
+    ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"]
+  )
+
+
+  tags = merge(
+    local.standard_tags,
+    {
+      Name      = "${local.name_prefix}-data-quality-validator"
+      Component = "lambda"
+      Purpose   = "validation"
+    }
+  )
+
+  lifecycle {
+    ignore_changes = [
+      source_code_hash,
+      filename
+    ]
+  }
+
+  depends_on = [
+
+
+    null_resource.package_lambdas,
+    aws_cloudwatch_log_group.data_quality_validator,
+    aws_iam_role_policy.lambda_logging
+  ]
+}
+
+output "lambda_data_quality_validator_name" {
+  description = "Name of data quality validator Lambda"
+  value       = aws_lambda_function.data_quality_validator.function_name
 }

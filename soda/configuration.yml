@@ -1,0 +1,21 @@
+data_source congress_s3:
+  type: duckdb
+  connection:
+    database: ':memory:'
+
+  # Table mappings to S3 paths
+  tables:
+    silver_filings:
+      path: 's3://congress-disclosures-standardized/silver/house/financial/filings/*.parquet'
+
+    silver_transactions:
+      path: 's3://congress-disclosures-standardized/silver/house/financial/transactions/*.parquet'
+
+    gold_fact_transactions:
+      path: 's3://congress-disclosures-standardized/gold/facts/fact_ptr_transactions/*.parquet'
+
+    gold_dim_member:
+      path: 's3://congress-disclosures-standardized/gold/dimensions/dim_member/*.parquet'
+
+    gold_agg_trending_stocks:
+      path: 's3://congress-disclosures-standardized/gold/aggregates/trending_stocks/*.parquet'

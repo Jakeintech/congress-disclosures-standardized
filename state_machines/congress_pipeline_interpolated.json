@@ -1,0 +1,510 @@
+{
+  "Comment": "Congress.gov API Pipeline - Daily ingestion of bills, members, and legislative data using Distributed Map",
+  "StartAt": "CheckExecutionType",
+  "States": {
+    "CheckExecutionType": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.execution_type",
+          "StringEquals": "initial_load",
+          "Next": "MultiYearIterator"
+        }
+      ],
+      "Default": "FetchNewBills"
+    },
+    "MultiYearIterator": {
+      "Type": "Map",
+      "ItemsPath": "$.years",
+      "MaxConcurrency": 2,
+      "Iterator": {
+        "StartAt": "StartChildExecution",
+        "States": {
+          "StartChildExecution": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+            "Parameters": {
+              "StateMachineArn.$": "$$.StateMachine.Id",
+              "Input": {
+                "execution_type": "manual",
+                "year.$": "$"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "End": true
+    },
+    "FetchNewBills": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-congress-orchestrator",
+      "Comment": "Generate bill fetch jobs Manifest",
+      "Parameters": {
+        "entity_type": "bill",
+        "output_mode": "s3_manifest",
+        "year.$": "$.year"
+      },
+      "ResultPath": "$.bills_manifest",
+      "TimeoutSeconds": 900,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "CongressAPIError"
+          ],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "ProcessBillsMap"
+    },
+    "ProcessBillsMap": {
+      "Type": "Map",
+      "MaxConcurrency": 5,
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "ReaderConfig": {
+          "InputType": "JSON"
+        },
+        "Parameters": {
+          "Bucket.$": "$.bills_manifest.s3_bucket",
+          "Key.$": "$.bills_manifest.manifest_key"
+        }
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "FetchBill",
+        "States": {
+          "FetchBill": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-congress-fetch-entity",
+            "Parameters": {
+              "entity_type.$": "$.entity_type",
+              "entity_id.$": "$.entity_id",
+              "congress.$": "$.congress",
+              "bill_type.$": "$.bill_type",
+              "bill_number.$": "$.bill_number",
+              "endpoint.$": "$.endpoint",
+              "skip_silver_queue": true
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "CongressAPIRateLimitError"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              },
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 3
+              }
+            ],
+            "Next": "WriteBillSilver"
+          },
+          "WriteBillSilver": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-congress-bronze-to-silver",
+            "Parameters": {
+              "entity_type.$": "$.entity_type",
+              "bronze_s3_key.$": "$.bronze_s3_key"
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 3
+              }
+            ],
+            "End": true
+          }
+        }
+      },
+      "Label": "ProcessBills",
+      "ResultPath": "$.bills_processed",
+      "Next": "FetchMembers"
+    },
+    "FetchMembers": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-congress-orchestrator",
+      "Comment": "Generate member fetch jobs Manifest",
+      "Parameters": {
+        "entity_type": "member",
+        "output_mode": "s3_manifest"
+      },
+      "ResultPath": "$.members_manifest",
+      "TimeoutSeconds": 900,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineWarning"
+        }
+      ],
+      "Next": "ProcessMembersMap"
+    },
+    "ProcessMembersMap": {
+      "Type": "Map",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "ReaderConfig": {
+          "InputType": "JSON"
+        },
+        "Parameters": {
+          "Bucket.$": "$.members_manifest.s3_bucket",
+          "Key.$": "$.members_manifest.manifest_key"
+        }
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "FetchMember",
+        "States": {
+          "FetchMember": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-congress-fetch-entity",
+            "Comment": "Reusing fetch entity lambda for members",
+            "Parameters": {
+              "entity_type.$": "$.entity_type",
+              "entity_id.$": "$.entity_id",
+              "chamber.$": "$.chamber",
+              "endpoint.$": "$.endpoint",
+              "skip_silver_queue": true
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "CongressAPIRateLimitError"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Next": "WriteMemberSilver"
+          },
+          "WriteMemberSilver": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-congress-bronze-to-silver",
+            "Comment": "Using generic silver writer",
+            "Parameters": {
+              "entity_type.$": "$.entity_type",
+              "bronze_s3_key.$": "$.bronze_s3_key"
+            },
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrency": 20,
+      "Label": "ProcessMembers",
+      "ResultPath": "$.members_processed",
+      "Next": "ValidateSilverQuality"
+    },
+    "ValidateSilverQuality": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-data-quality-validator",
+      "Comment": "Run data quality checks on Silver bills and members",
+      "Parameters": {
+        "checks_path": "soda/checks/silver_bills.yml"
+      },
+      "ResultPath": "$.silver_quality_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "DataQualityFailure",
+            "States.TaskFailed"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyQualityFailure"
+        }
+      ],
+      "Next": "BuildGoldDimensions"
+    },
+    "BuildGoldDimensions": {
+      "Type": "Parallel",
+      "Comment": "Build Gold dimensions for bills and members",
+      "ResultPath": "$.gold_dim_results",
+      "Branches": [
+        {
+          "StartAt": "BuildDimBill",
+          "States": {
+            "BuildDimBill": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-build-dim-bills",
+              "Comment": "Build bill dimension table",
+              "TimeoutSeconds": 300,
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 10,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "UpdateDimMember",
+          "States": {
+            "UpdateDimMember": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-build-dim-members",
+              "Comment": "Update member dimension with Congress.gov data (SCD Type 2)",
+              "TimeoutSeconds": 300,
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 10,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "End": true
+            }
+          }
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "BuildFactCosponsors"
+    },
+    "BuildFactCosponsors": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-build-fact-cosponsors",
+      "Comment": "Build bill cosponsors fact table",
+      "ResultPath": "$.fact_cosponsors_result",
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "ValidateGoldQuality"
+    },
+    "ValidateGoldQuality": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-data-quality-validator",
+      "Comment": "Run data quality checks on Gold layer",
+      "Parameters": {
+        "checks_path": "soda/checks/gold_dim_bill.yml"
+      },
+      "ResultPath": "$.gold_quality_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "DataQualityFailure",
+            "States.TaskFailed"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyQualityFailure"
+        }
+      ],
+      "Next": "PublishMetrics"
+    },
+    "PublishMetrics": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:464813693153:function:congress-disclosures-development-publish-pipeline-metrics",
+      "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
+      "Parameters": {
+        "pipeline": "congress",
+        "status": "success",
+        "execution_id.$": "$$.Execution.Id"
+      },
+      "ResultPath": "$.metrics_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.metrics_error",
+          "Next": "PipelineSuccess"
+        }
+      ],
+      "Next": "PipelineSuccess"
+    },
+    "PipelineSuccess": {
+      "Type": "Succeed",
+      "Comment": "Congress.gov pipeline completed successfully"
+    },
+    "NotifyQualityFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for quality check failure",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:464813693153:congress-disclosures-pipeline-alerts",
+        "Subject": "Data Quality Check Failed - Congress.gov Pipeline",
+        "Message.$": "States.Format('Data quality check failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "QualityCheckFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "NotifyPipelineFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for pipeline failure",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:464813693153:congress-disclosures-pipeline-alerts",
+        "Subject": "Pipeline Failure - Congress.gov Pipeline",
+        "Message.$": "States.Format('Pipeline failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "PipelineFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "NotifyPipelineWarning": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for non-critical warning",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:464813693153:congress-disclosures-pipeline-alerts",
+        "Subject": "Pipeline Warning - Congress.gov Pipeline",
+        "Message.$": "States.Format('Pipeline completed with warnings.\n\nWarning: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "ValidateSilverQuality",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "QualityCheckFailed": {
+      "Type": "Fail",
+      "Comment": "Pipeline stopped due to quality check failure",
+      "Cause": "Data quality checks did not pass",
+      "Error": "DataQualityFailure"
+    },
+    "PipelineFailed": {
+      "Type": "Fail",
+      "Comment": "Pipeline failed",
+      "Cause": "Pipeline execution encountered an error",
+      "Error": "PipelineExecutionFailure"
+    }
+  },
+  "TimeoutSeconds": 10800
+}

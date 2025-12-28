@@ -1,0 +1,18 @@
+# OCR Dependencies (Optional)
+# These are large dependencies suitable for Lambda Layers or local development
+# Install with: pip install -r requirements-ocr.txt
+
+# OCR engine
+pytesseract>=0.3.10,<0.4.0
+
+# PDF to image conversion
+pdf2image>=1.16.3,<2.0.0
+
+# Image processing
+opencv-python>=4.8.1,<5.0.0
+Pillow>=10.1.0,<11.0.0
+
+# Note: Also requires system dependencies:
+# - tesseract-ocr (apt-get install tesseract-ocr)
+# - poppler-utils (apt-get install poppler-utils)
+# - libopencv-dev (apt-get install libopencv-dev)

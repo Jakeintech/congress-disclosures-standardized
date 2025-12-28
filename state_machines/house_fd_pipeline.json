@@ -1,0 +1,667 @@
+{
+  "Comment": "House Financial Disclosures Pipeline - Automated ingestion, extraction, and transformation",
+  "StartAt": "CheckExecutionType",
+  "States": {
+    "CheckExecutionType": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.execution_type",
+          "StringEquals": "initial_load",
+          "Next": "MultiYearIterator"
+        }
+      ],
+      "Default": "CheckForNewFilings"
+    },
+    "MultiYearIterator": {
+      "Type": "Map",
+      "ItemsPath": "$.years",
+      "MaxConcurrency": 2,
+      "Iterator": {
+        "StartAt": "StartChildExecution",
+        "States": {
+          "StartChildExecution": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+            "Parameters": {
+              "StateMachineArn.$": "$$.StateMachine.Id",
+              "Input": {
+                "execution_type": "manual",
+                "year.$": "$"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "End": true
+    },
+    "CheckForNewFilings": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CHECK_HOUSE_FD_UPDATES}",
+      "Comment": "Check House Clerk website for new filings",
+      "ResultPath": "$.filings_check",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "CongressAPIRateLimitError",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 60,
+          "MaxAttempts": 10,
+          "BackoffRate": 1.5
+        },
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "IngestZip"
+    },
+    "IngestZip": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_HOUSE_FD_INGEST_ZIP}",
+      "Comment": "Download YEARFD.zip and upload to Bronze S3",
+      "Parameters": {
+        "year.$": "$.year",
+        "skip_existing": true
+      },
+      "ResultPath": "$.ingest_result",
+      "TimeoutSeconds": 600,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "IndexToSilver"
+    },
+    "IndexToSilver": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_HOUSE_FD_INDEX_TO_SILVER}",
+      "Comment": "Parse XML index and write Silver filings/documents tables",
+      "ResultPath": "$.silver_index_result",
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "ExtractDocumentsMap"
+    },
+    "ExtractDocumentsMap": {
+      "Type": "Map",
+      "Comment": "Extract text from PDFs in parallel using S3 distributed map",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "ReaderConfig": {
+          "InputType": "JSON"
+        },
+        "Parameters": {
+          "Bucket": "congress-disclosures-standardized",
+          "Key.$": "$.silver_index_result.documents_to_extract_s3_key"
+        }
+      },
+      "MaxConcurrency": 40,
+      "ResultPath": "$.extraction_results",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "ExtractDocument",
+        "States": {
+          "ExtractDocument": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_HOUSE_FD_EXTRACT_DOCUMENT}",
+            "Comment": "Extract text via pypdf or OCR",
+            "TimeoutSeconds": 300,
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.TooManyRequestsException",
+                  "Lambda.AWSLambdaException"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 6,
+                "BackoffRate": 2.0
+              },
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 2,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "ResultPath": "$.error",
+                "Next": "ExtractFailed"
+              }
+            ],
+            "Next": "ExtractStructured"
+          },
+          "ExtractStructured": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_HOUSE_FD_EXTRACT_STRUCTURED}",
+            "Comment": "Code-based extraction by filing type",
+            "TimeoutSeconds": 180,
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.TooManyRequestsException",
+                  "Lambda.AWSLambdaException"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 6,
+                "BackoffRate": 2.0
+              },
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 2,
+                "BackoffRate": 2.0
+              }
+            ],
+            "End": true
+          },
+          "ExtractFailed": {
+            "Type": "Pass",
+            "Comment": "Mark extraction as failed, continue pipeline",
+            "Result": {
+              "status": "failed"
+            },
+            "End": true
+          }
+        }
+      },
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "WaitForExtractionComplete"
+    },
+    "WaitForExtractionComplete": {
+      "Type": "Wait",
+      "Comment": "Brief wait to ensure all S3 writes complete",
+      "Seconds": 10,
+      "Next": "ValidateSilverQuality"
+    },
+    "ValidateSilverQuality": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_RUN_SODA_CHECKS}",
+      "Comment": "Run data quality checks on Silver layer",
+      "Parameters": {
+        "checks_path": "soda/checks/silver_transactions.yml"
+      },
+      "ResultPath": "$.silver_quality_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "DataQualityFailure",
+            "States.TaskFailed"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyQualityFailure"
+        }
+      ],
+      "Next": "ConsolidateSilverTabular"
+    },
+    "ConsolidateSilverTabular": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CONSOLIDATE_TABULAR}",
+      "Comment": "Consolidate individual extractions into Hive-partitioned Parquet (Tabular Layer)",
+      "Parameters": {
+        "year.$": "$.year"
+      },
+      "ResultPath": "$.consolidation_result",
+      "Next": "ConsolidateStockCache"
+    },
+    "ConsolidateStockCache": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CONSOLIDATE_CACHE}",
+      "Comment": "Consolidate individual ticker cache JSONs into optimized Parquet",
+      "ResultPath": "$.cache_consolidation_result",
+      "Next": "TransformToGoldParallel"
+    },
+    "TransformToGoldParallel": {
+      "Type": "Parallel",
+      "Comment": "Build Gold dimensions and facts in parallel using optimized Tabular sources",
+      "ResultPath": "$.gold_results",
+      "Branches": [
+        {
+          "StartAt": "BuildDimMembers",
+          "States": {
+            "BuildDimMembers": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_DIM_MEMBERS}",
+              "Comment": "Build member dimension (SCD Type 2)",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "BuildDimAssets",
+          "States": {
+            "BuildDimAssets": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_DIM_ASSETS}",
+              "Comment": "Build asset dimension",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "BuildFactTransactions",
+          "States": {
+            "BuildFactTransactions": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_FACT_TRANSACTIONS}",
+              "Comment": "Build transactions fact table (incremental)",
+              "TimeoutSeconds": 600,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "BuildFactFilings",
+          "States": {
+            "BuildFactFilings": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_BUILD_FACT_FILINGS}",
+              "Comment": "Build filings fact table",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "ValidateGoldQuality"
+    },
+    "ValidateGoldQuality": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_RUN_SODA_CHECKS}",
+      "Comment": "Run data quality checks on Gold layer",
+      "Parameters": {
+        "checks_path": "soda/checks/gold_fact_transactions.yml"
+      },
+      "ResultPath": "$.gold_quality_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "DataQualityFailure",
+            "States.TaskFailed"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyQualityFailure"
+        }
+      ],
+      "Next": "ComputeAggregatesParallel"
+    },
+    "ComputeAggregatesParallel": {
+      "Type": "Parallel",
+      "Comment": "Compute aggregates in parallel",
+      "ResultPath": "$.aggregate_results",
+      "Branches": [
+        {
+          "StartAt": "ComputeTrendingStocks",
+          "States": {
+            "ComputeTrendingStocks": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_COMPUTE_TRENDING_STOCKS}",
+              "Comment": "Compute trending stocks (7d, 30d, 90d windows)",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "ComputeMemberStats",
+          "States": {
+            "ComputeMemberStats": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_COMPUTE_MEMBER_STATS}",
+              "Comment": "Compute member trading stats",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "ComputeDocumentQuality",
+          "States": {
+            "ComputeDocumentQuality": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_COMPUTE_DOCUMENT_QUALITY}",
+              "Comment": "Compute document quality scores",
+              "TimeoutSeconds": 180,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "ComputeNetworkGraph",
+          "States": {
+            "ComputeNetworkGraph": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_COMPUTE_NETWORK_GRAPH}",
+              "Comment": "Build member-asset network graph (JSON)",
+              "TimeoutSeconds": 300,
+              "End": true
+            }
+          }
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "UpdateAPICache"
+    },
+    "UpdateAPICache": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_UPDATE_API_CACHE}",
+      "Comment": "Pre-compute JSON API responses",
+      "ResultPath": "$.cache_result",
+      "TimeoutSeconds": 180,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        },
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "TriggerCorrelationPipeline"
+    },
+    "TriggerCorrelationPipeline": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Comment": "Trigger cross-dataset correlation pipeline",
+      "Parameters": {
+        "StateMachineArn": "arn:aws:states:${AWS_REGION}:${AWS_ACCOUNT_ID}:stateMachine:${PROJECT_NAME}-cross-dataset-correlation",
+        "Input": {
+          "trigger_source": "house_fd_pipeline",
+          "execution_id.$": "$$.Execution.Id"
+        }
+      },
+      "ResultPath": "$.correlation_result",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineWarning"
+        }
+      ],
+      "Next": "PublishMetrics",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "PublishMetrics": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
+      "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
+      "Parameters": {
+        "pipeline": "house_fd",
+        "status": "success",
+        "execution_id.$": "$$.Execution.Id"
+      },
+      "ResultPath": "$.metrics_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.metrics_error",
+          "Next": "PipelineSuccess"
+        }
+      ],
+      "Next": "PipelineSuccess"
+    },
+    "PipelineSuccess": {
+      "Type": "Succeed",
+      "Comment": "Pipeline completed successfully"
+    },
+    "NotifyQualityFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for quality check failure",
+      "Parameters": {
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "Subject": "Data Quality Check Failed - House FD Pipeline",
+        "Message.$": "States.Format('Data quality check failed at {}.\n\nError: {}\n\nExecution ID: {}', $.error.step, $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "QualityCheckFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "NotifyPipelineFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for pipeline failure",
+      "Parameters": {
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "Subject": "Pipeline Failure - House FD Pipeline",
+        "Message.$": "States.Format('Pipeline failed. Error: {}', $.error)"
+      },
+      "Next": "PipelineFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "NotifyPipelineWarning": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for non-critical warning",
+      "Parameters": {
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "Subject": "Pipeline Warning - House FD Pipeline",
+        "Message.$": "States.Format('Pipeline completed with warnings.\n\nWarning: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "PublishMetrics",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "QualityCheckFailed": {
+      "Type": "Fail",
+      "Comment": "Pipeline stopped due to quality check failure",
+      "Cause": "Data quality checks did not pass",
+      "Error": "DataQualityFailure"
+    },
+    "PipelineFailed": {
+      "Type": "Fail",
+      "Comment": "Pipeline failed",
+      "Cause": "Pipeline execution encountered an error",
+      "Error": "PipelineExecutionFailure"
+    }
+  },
+  "TimeoutSeconds": 7200
+}

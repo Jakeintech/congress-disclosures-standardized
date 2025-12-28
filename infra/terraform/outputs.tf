@@ -46,11 +46,10 @@ output "monthly_cost_estimate" {
   value = {
     s3_storage_20gb = "$0.46"
     lambda_compute  = "$0.08 - $2.00 (depends on invocations)"
-    textract        = "$0.00 - $15.00 (depends on image PDFs, 1000 pages free)"
     sqs             = "$0.00 (within free tier)"
     cloudwatch_logs = "$0.50"
-    total_estimate  = "$1.04 - $17.96 per month"
-    note            = "First month may be fully covered by AWS free tier. Textract is main variable cost."
+    total_estimate  = "$0.96 - $2.96 per month"
+    note            = "Textract dependency removed; costs are storage + Lambda only."
   }
 }
 
@@ -106,4 +105,9 @@ output "data_access_commands" {
     list_silver = "aws s3 ls s3://${aws_s3_bucket.data_lake.id}/silver/ --recursive --human-readable"
     list_gold   = "aws s3 ls s3://${aws_s3_bucket.data_lake.id}/gold/ --recursive --human-readable"
   }
+}
+
+output "s3_website_endpoint" {
+  description = "S3 static website hosting endpoint (HTTP only)"
+  value       = aws_s3_bucket_website_configuration.data_lake.website_endpoint
 }

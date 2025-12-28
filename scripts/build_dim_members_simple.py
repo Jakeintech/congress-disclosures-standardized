@@ -25,7 +25,8 @@ def load_unique_members_from_silver(bucket_name: str) -> pd.DataFrame:
     s3 = boto3.client('s3')
     logger.info("Loading filings from silver layer...")
 
-    prefix = 'silver/house/financial/filings/'
+    # Read from Gold layer fact_filings (source of truth for filings)
+    prefix = 'gold/house/financial/facts/fact_filings/'
     response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
 
     if 'Contents' not in response:
@@ -44,6 +45,28 @@ def load_unique_members_from_silver(bucket_name: str) -> pd.DataFrame:
 
     all_filings = pd.concat(dfs, ignore_index=True)
     logger.info(f"Loaded {len(all_filings):,} filings")
+
+    # Handle missing name columns by parsing filer_name
+    if 'first_name' not in all_filings.columns:
+        logger.info("Parsing names from filer_name...")
+        
+        def parse_name(full_name):
+            if not full_name:
+                return pd.Series([None, None])
+            
+            parts = full_name.strip().split(',')
+            if len(parts) == 2:
+                # Format: Last, First
+                return pd.Series([parts[1].strip(), parts[0].strip()])
+            
+            parts = full_name.strip().split(' ')
+            if len(parts) >= 2:
+                # Format: First Last (simple assumption)
+                return pd.Series([parts[0], ' '.join(parts[1:])])
+            
+            return pd.Series([full_name, None])
+
+        all_filings[['first_name', 'last_name']] = all_filings['filer_name'].apply(parse_name)
 
     unique_members = all_filings[[
         'first_name', 'last_name', 'state_district'

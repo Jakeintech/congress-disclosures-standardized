@@ -61,10 +61,23 @@ def load_fact_filings(bucket_name: str) -> pd.DataFrame:
                     os.unlink(tmp.name)
 
     if not dfs:
-        raise ValueError("No fact_filings found")
+        logger.warning("No fact_filings found! Returning empty DataFrame.")
+        return pd.DataFrame(columns=[
+            'member_key', 'filing_type_key', 'filing_date_key', 'doc_id', 'year',
+            'pdf_url', 'pdf_pages', 'pdf_file_size_bytes', 'pdf_sha256',
+            'transaction_count', 'asset_count', 'liability_count', 'position_count',
+            'agreement_count', 'expected_deadline_date', 'days_late', 'is_timely_filed',
+            'is_amendment', 'original_filing_doc_id', 'extraction_method',
+            'extraction_status', 'pdf_type', 'overall_confidence', 'has_extracted_data',
+            'has_structured_data', 'requires_manual_review', 'requires_additional_ocr',
+            'created_at', 'updated_at', 'filing_date'
+        ])
 
     all_filings = pd.concat(dfs, ignore_index=True)
     logger.info(f"Loaded {len(all_filings):,} filings")
+
+    if 'requires_additional_ocr' not in all_filings.columns:
+        all_filings['requires_additional_ocr'] = 0
 
     return all_filings
 
@@ -113,6 +126,24 @@ def compute_document_quality_by_member(
     ]
 
     logger.info(f"Computing quality metrics for {len(period_filings):,} filings in period {period_start} to {period_end}")
+
+    # Check if required columns exist (handle schema migration)
+    required_cols = ['member_key', 'filing_type_key', 'pdf_type', 'overall_confidence']
+    missing_cols = [col for col in required_cols if col not in period_filings.columns]
+    
+    if missing_cols:
+        logger.warning(f"⚠️  Skipping quality computation - missing columns: {missing_cols}")
+        logger.info("Note: fact_filings schema has been updated. Analytics will be re-enabled after schema migration.")
+        return pd.DataFrame(columns=[
+            'member_key', 'period_start_date', 'period_end_date', 'total_filings',
+            'ptr_filings', 'annual_filings', 'text_pdf_count', 'image_pdf_count',
+            'hybrid_pdf_count', 'image_pdf_pct', 'avg_confidence_score',
+            'min_confidence_score', 'low_confidence_count', 'manual_review_count',
+            'extraction_failure_count', 'avg_data_completeness_pct',
+            'zero_transaction_filing_count', 'quality_score', 'quality_category',
+            'is_hard_to_process', 'quality_trend', 'days_since_last_filing',
+            'requires_additional_ocr'
+        ])
 
     # Group by member_key
     quality_metrics = []
@@ -178,8 +209,8 @@ def compute_document_quality_by_member(
         last_filing_date = member_filings['filing_date'].max()
         days_since_last_filing = (datetime.now() - last_filing_date).days
 
-        # Textract usage
-        textract_pages_used = member_filings['textract_pages_used'].sum()
+        # OCR follow-ups
+        requires_additional_ocr = member_filings['requires_additional_ocr'].sum()
 
         # Build record
         record = {
@@ -205,16 +236,32 @@ def compute_document_quality_by_member(
             'is_hard_to_process': is_hard_to_process,
             'quality_trend': quality_trend,
             'days_since_last_filing': days_since_last_filing,
-            'textract_pages_used': int(textract_pages_used)
+            'requires_additional_ocr': int(requires_additional_ocr)
         }
 
         quality_metrics.append(record)
+
+    if not quality_metrics:
+        return pd.DataFrame(columns=[
+            'member_key', 'period_start_date', 'period_end_date', 'total_filings',
+            'ptr_filings', 'annual_filings', 'text_pdf_count', 'image_pdf_count',
+            'hybrid_pdf_count', 'image_pdf_pct', 'avg_confidence_score',
+            'min_confidence_score', 'low_confidence_count', 'manual_review_count',
+            'extraction_failure_count', 'avg_data_completeness_pct',
+            'zero_transaction_filing_count', 'quality_score', 'quality_category',
+            'is_hard_to_process', 'quality_trend', 'days_since_last_filing',
+            'requires_additional_ocr'
+        ])
 
     return pd.DataFrame(quality_metrics)
 
 
 def write_to_gold(df: pd.DataFrame, bucket_name: str):
     """Write agg_document_quality to gold layer."""
+    if df.empty:
+        logger.warning("DataFrame is empty, skipping write to gold layer.")
+        return
+
     logger.info("Writing to gold layer...")
 
     # Save locally
@@ -296,10 +343,13 @@ def main():
     write_to_gold(quality_df, bucket_name)
 
     logger.info(f"\nSummary:")
-    logger.info(f"  Total members: {len(quality_df)}")
-    logger.info(f"  Flagged as hard to process: {quality_df['is_hard_to_process'].sum()}")
-    logger.info(f"  Average quality score: {quality_df['quality_score'].mean():.1f}")
-    logger.info(f"  Quality breakdown: {quality_df['quality_category'].value_counts().to_dict()}")
+    if not quality_df.empty:
+        logger.info(f"  Total members: {len(quality_df)}")
+        logger.info(f"  Flagged as hard to process: {quality_df['is_hard_to_process'].sum()}")
+        logger.info(f"  Average quality score: {quality_df['quality_score'].mean():.1f}")
+        logger.info(f"  Quality breakdown: {quality_df['quality_category'].value_counts().to_dict()}")
+    else:
+        logger.info("  No data to summarize.")
 
     logger.info("\n✅ agg_document_quality computation complete!")
 

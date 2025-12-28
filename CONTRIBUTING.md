@@ -12,6 +12,8 @@ Thank you for considering contributing to this project! This pipeline makes cong
 - [Testing Guidelines](#testing-guidelines)
 - [Documentation](#documentation)
 - [Security & Secrets](#security--secrets)
+- [AI Agent Workflow](#ai-agent-workflow)
+- [Managing Sprints & Tasks](#managing-sprints--tasks)
 
 ## Code of Conduct
 
@@ -56,6 +58,35 @@ Unsure where to start? Look for issues labeled:
 4. Update documentation (README, Architecture docs, etc.)
 5. Ensure all tests pass
 6. Submit a pull request
+
+### AI Agent Workflow
+
+AI agents working on this project should follow the **Agentic Agile Workflow** to ensure high-quality, traceable contributions.
+
+#### 🎯 Workflow Steps
+1. **Onboarding**: Read [.github/AGENT_ONBOARDING.md](file:///.github/AGENT_ONBOARDING.md) for your first task.
+2. **Task Planning**: Use [.github/AI_AGENT_TASK_TEMPLATE.md](file:///.github/AI_AGENT_TASK_TEMPLATE.md) to structure your implementation plan.
+3. **Coordination**: Reference [.github/AI_AGENT_WORKFLOW.md](file:///.github/AI_AGENT_WORKFLOW.md) when collaborating with other agents.
+4. **Context**: Use `docs/agile/AI_AGENT_CONTEXT.md` to maintain consistent project knowledge.
+
+#### 🌿 Branch Naming Convention
+Branches MUST follow this format to enable automated tracking:
+`agent/<name>/STORY-XXX-description`
+
+- **Example**: `agent/claudia/STORY-028-unified-state-machine`
+- **Prefix**: `agent/`
+- **Name**: Your identity (e.g., `claudia`, `jake`)
+- **ID**: The user story ID (e.g., `STORY-042`)
+- **Description**: Short kebab-case description
+
+### Managing Sprints & Tasks
+
+We use **GitHub Projects (v2)** for all agile tracking.
+
+- **Board**: [Congress Disclosures Agile Board](https://github.com/users/Jakeintech/projects)
+- **Status Tracking**: Issues move automatically based on linked Pull Requests.
+- **Story Points**: We use Fibonacci sequence (0, 1, 2, 3, 5, 8).
+- **Tokens**: AI agent estimates are tracked in tokens (1pt = 10k context).
 
 ## Development Setup
 
@@ -140,6 +171,28 @@ mypy ingestion/
 - [ ] No secrets or credentials in code
 - [ ] Terraform `plan` succeeds (for infrastructure changes)
 - [ ] Commit messages are clear and descriptive
+- [ ] Pre-commit hooks passed locally
+
+### Pre-commit Hooks
+
+This project uses `pre-commit` to enforce quality gates (linting, formatting, secret detection).
+
+#### Setup
+1. Install pre-commit:
+   ```bash
+   pip install pre-commit
+   ```
+2. Install the hooks:
+   ```bash
+   pre-commit install
+   pre-commit install --hook-type commit-msg
+   ```
+
+#### Usage
+Hooks run automatically on `git commit`. To run manually on all files:
+```bash
+pre-commit run --all-files
+```
 
 ### PR Checklist
 
@@ -171,12 +224,15 @@ We follow the **Conventional Commits** specification to maintain a clean, readab
 ### Commit Message Format
 
 ```
-<type>(<scope>): <subject>
+<type>(<scope>): [STORY-XXX] <subject>
 
 <body>
 
 <footer>
 ```
+
+- **Subject**: Must include the story ID in brackets, e.g., `[STORY-042]`.
+- **Type**: See below.
 
 ### Commit Types
 

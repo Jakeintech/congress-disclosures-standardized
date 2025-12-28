@@ -1,0 +1,292 @@
+openapi: 3.0.0
+info:
+  title: Congressional Trading Data API
+  version: 1.0.0
+  description: Public API for congressional trading disclosures, legislative analytics, and lobbying correlations.
+
+servers:
+  - url: https://api.congress-disclosures.com/v1
+
+tags:
+  - name: System
+    description: System health and version information
+  - name: Members
+    description: Congressional member profiles and summary stats
+  - name: Trading
+    description: Financial disclosure transactions and stock analysis
+  - name: Analytics
+    description: Performance metrics, conflicts, and trending patterns
+  - name: Congress
+    description: Proxy to Congress.gov for bill and committee data
+  - name: Lobbying
+    description: Lobbying filings and bill-lobbying correlations
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      description: Returns health status of Lambda, DuckDB, and S3 connectivity.
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /version:
+    get:
+      tags: [System]
+      summary: API version
+      description: Returns git commit, build timestamp, and runtime info.
+      responses:
+        '200':
+          description: Version information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionResponse'
+
+  /members:
+    get:
+      tags: [Members]
+      summary: List members
+      parameters:
+        - name: limit
+          in: query
+          schema: {type: integer, default: 50}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0}
+        - name: state
+          in: query
+          schema: {type: string}
+        - name: party
+          in: query
+          schema: {type: string, enum: [D, R, I]}
+      responses:
+        '200':
+          description: Paginated members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MembersPaginatedResponse'
+
+  /trades:
+    get:
+      tags: [Trading]
+      summary: List trades
+      parameters:
+        - name: limit
+          in: query
+          schema: {type: integer, default: 50}
+        - name: ticker
+          in: query
+          schema: {type: string}
+        - name: start_date
+          in: query
+          schema: {type: string, format: date}
+        - name: end_date
+          in: query
+          schema: {type: string, format: date}
+      responses:
+        '200':
+          description: Paginated trades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsPaginatedResponse'
+
+  /analytics/top-traders:
+    get:
+      tags: [Analytics]
+      summary: Top trading members
+      parameters:
+        - name: days
+          in: query
+          schema: {type: integer, default: 365}
+        - name: metric
+          in: query
+          schema: {type: string, enum: [volume, transactions]}
+      responses:
+        '200':
+          description: Top traders list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopTradersResponse'
+
+  /analytics/alpha:
+    get:
+      tags: [Analytics]
+      summary: Congressional Alpha metrics
+      parameters:
+        - name: type
+          in: query
+          schema: {type: string, enum: [member, party, sector_rotation]}
+      responses:
+        '200':
+          description: Performance alpha metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {type: object}}
+
+  /analytics/conflicts:
+    get:
+      tags: [Analytics]
+      summary: Conflict of interest detection
+      parameters:
+        - name: severity
+          in: query
+          schema: {type: string, enum: [all, critical, high, medium, low]}
+        - name: member_id
+          in: query
+          schema: {type: string}
+      responses:
+        '200':
+          description: Potential conflicts found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  conflicts: {type: array, items: {type: object}}
+
+  /analytics/activity:
+    get:
+      tags: [Analytics]
+      summary: Recent unified activity feed
+      responses:
+        '200':
+          description: Activity across trades, bills, and lobbying
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecentActivityResponse'
+
+  /congress/committees:
+    get:
+      tags: [Congress]
+      summary: List congressional committees
+      parameters:
+        - name: chamber
+          in: query
+          schema: {type: string, enum: [house, senate, joint]}
+      responses:
+        '200':
+          description: List of committees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  committees: {type: array, items: {$ref: '#/components/schemas/Committee'}}
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            status: {type: string}
+            timestamp: {type: string}
+            checks: {type: object}
+
+    VersionResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            version: {type: string}
+            git: {type: object}
+            build: {type: object}
+            runtime: {type: object}
+
+    Member:
+      type: object
+      properties:
+        bioguide_id: {type: string}
+        name: {type: string}
+        party: {type: string}
+        state: {type: string}
+        chamber: {type: string}
+
+    MembersPaginatedResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            items: {type: array, items: {$ref: '#/components/schemas/Member'}}
+            pagination: {$ref: '#/components/schemas/PaginationMetadata'}
+
+    Transaction:
+      type: object
+      properties:
+        transaction_id: {type: string}
+        disclosure_date: {type: string, format: date}
+        transaction_date: {type: string, format: date}
+        ticker: {type: string}
+        member_name: {type: string}
+        amount: {type: string}
+
+    TransactionsPaginatedResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            items: {type: array, items: {$ref: '#/components/schemas/Transaction'}}
+            pagination: {$ref: '#/components/schemas/PaginationMetadata'}
+
+    TopTradersResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            traders: {type: array, items: {type: object}}
+            party_breakdown: {type: array, items: {type: object}}
+
+    RecentActivityResponse:
+      type: object
+      properties:
+        success: {type: boolean}
+        data:
+          type: object
+          properties:
+            activity: {type: array, items: {type: object}}
+            count: {type: integer}
+
+    Committee:
+      type: object
+      properties:
+        systemCode: {type: string}
+        name: {type: string}
+        chamber: {type: string}
+        type: {type: string}
+
+    PaginationMetadata:
+      type: object
+      properties:
+        total: {type: integer}
+        count: {type: integer}
+        limit: {type: integer}
+        offset: {type: integer}
+        has_next: {type: boolean}
+        has_prev: {type: boolean}

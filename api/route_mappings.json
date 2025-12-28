@@ -1,0 +1,453 @@
+{
+  "get_version": {
+    "path": "/v1/version",
+    "method": "get",
+    "summary": "Get API version and build info",
+    "response_model": "VersionResponse",
+    "tags": ["System"]
+  },
+  "search": {
+    "path": "/v1/search",
+    "method": "get",
+    "summary": "Search across all entities",
+    "response_model": "APIResponse",
+    "tags": ["System"]
+  },
+  "get_congress_bills": {
+    "path": "/v1/congress/bills",
+    "method": "get",
+    "summary": "List congressional bills",
+    "response_model": "BillsPaginatedResponse",
+    "tags": ["Bills"]
+  },
+  "get_congress_bill": {
+    "path": "/v1/congress/bills/{bill_id}",
+    "method": "get",
+    "summary": "Get bill details",
+    "response_model": "BillResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_actions": {
+    "path": "/v1/congress/bills/{bill_id}/actions",
+    "method": "get",
+    "summary": "Get bill actions",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_amendments": {
+    "path": "/v1/congress/bills/{bill_id}/amendments",
+    "method": "get",
+    "summary": "Get bill amendments",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_cosponsors": {
+    "path": "/v1/congress/bills/{bill_id}/cosponsors",
+    "method": "get",
+    "summary": "Get bill cosponsors",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_subjects": {
+    "path": "/v1/congress/bills/{bill_id}/subjects",
+    "method": "get",
+    "summary": "Get bill subjects/topics",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_summaries": {
+    "path": "/v1/congress/bills/{bill_id}/summaries",
+    "method": "get",
+    "summary": "Get bill summaries",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_titles": {
+    "path": "/v1/congress/bills/{bill_id}/titles",
+    "method": "get",
+    "summary": "Get bill titles",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_text": {
+    "path": "/v1/congress/bills/{bill_id}/text",
+    "method": "get",
+    "summary": "Get bill text versions",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_committees": {
+    "path": "/v1/congress/bills/{bill_id}/committees",
+    "method": "get",
+    "summary": "Get bill committees",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_lob_activity": {
+    "path": "/v1/congress/bills/{bill_id}/lobbying",
+    "method": "get",
+    "summary": "Get lobbying activity for bill",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_bill_related": {
+    "path": "/v1/congress/bills/{bill_id}/related",
+    "method": "get",
+    "summary": "Get related bills",
+    "response_model": "APIResponse",
+    "tags": ["Bills"],
+    "parameters": [
+      {"name": "bill_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_congress_committees": {
+    "path": "/v1/congress/committees",
+    "method": "get",
+    "summary": "List congressional committees",
+    "response_model": "APIResponse",
+    "tags": ["Committees"]
+  },
+  "get_congress_committee": {
+    "path": "/v1/congress/committees/{committee_code}",
+    "method": "get",
+    "summary": "Get committee details",
+    "response_model": "APIResponse",
+    "tags": ["Committees"],
+    "parameters": [
+      {"name": "committee_code", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_committee_bills": {
+    "path": "/v1/congress/committees/{committee_code}/bills",
+    "method": "get",
+    "summary": "Get bills by committee",
+    "response_model": "BillsPaginatedResponse",
+    "tags": ["Committees"],
+    "parameters": [
+      {"name": "committee_code", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_committee_members": {
+    "path": "/v1/congress/committees/{committee_code}/members",
+    "method": "get",
+    "summary": "Get committee members",
+    "response_model": "MembersPaginatedResponse",
+    "tags": ["Committees"],
+    "parameters": [
+      {"name": "committee_code", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_committee_reports": {
+    "path": "/v1/congress/committees/{committee_code}/reports",
+    "method": "get",
+    "summary": "Get committee reports",
+    "response_model": "APIResponse",
+    "tags": ["Committees"],
+    "parameters": [
+      {"name": "committee_code", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_members": {
+    "path": "/v1/members",
+    "method": "get",
+    "summary": "List congressional members",
+    "response_model": "MembersPaginatedResponse",
+    "tags": ["Members"]
+  },
+  "get_member": {
+    "path": "/v1/members/{bioguide_id}",
+    "method": "get",
+    "summary": "Get member details",
+    "response_model": "MemberResponse",
+    "tags": ["Members"],
+    "parameters": [
+      {"name": "bioguide_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_member_filings": {
+    "path": "/v1/members/{bioguide_id}/filings",
+    "method": "get",
+    "summary": "Get member's financial disclosure filings",
+    "response_model": "FilingsPaginatedResponse",
+    "tags": ["Members"],
+    "parameters": [
+      {"name": "bioguide_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_member_trades": {
+    "path": "/v1/members/{bioguide_id}/trades",
+    "method": "get",
+    "summary": "Get member's stock trades",
+    "response_model": "TransactionsPaginatedResponse",
+    "tags": ["Members"],
+    "parameters": [
+      {"name": "bioguide_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_member_portfolio": {
+    "path": "/v1/members/{bioguide_id}/portfolio",
+    "method": "get",
+    "summary": "Get member's current portfolio",
+    "response_model": "APIResponse",
+    "tags": ["Members"],
+    "parameters": [
+      {"name": "bioguide_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_member_assets": {
+    "path": "/v1/members/{bioguide_id}/assets",
+    "method": "get",
+    "summary": "Get member's assets",
+    "response_model": "APIResponse",
+    "tags": ["Members"],
+    "parameters": [
+      {"name": "bioguide_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_member_lob_connects": {
+    "path": "/v1/members/{bioguide_id}/lobbying",
+    "method": "get",
+    "summary": "Get member's lobbying connections",
+    "response_model": "APIResponse",
+    "tags": ["Members"],
+    "parameters": [
+      {"name": "bioguide_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_filings": {
+    "path": "/v1/filings",
+    "method": "get",
+    "summary": "List financial disclosure filings",
+    "response_model": "FilingsPaginatedResponse",
+    "tags": ["Filings"]
+  },
+  "get_filing": {
+    "path": "/v1/filings/{doc_id}",
+    "method": "get",
+    "summary": "Get filing details",
+    "response_model": "FilingResponse",
+    "tags": ["Filings"],
+    "parameters": [
+      {"name": "doc_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_filing_assets": {
+    "path": "/v1/filings/{doc_id}/assets",
+    "method": "get",
+    "summary": "Get filing assets",
+    "response_model": "APIResponse",
+    "tags": ["Filings"],
+    "parameters": [
+      {"name": "doc_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_filing_positions": {
+    "path": "/v1/filings/{doc_id}/positions",
+    "method": "get",
+    "summary": "Get filing positions",
+    "response_model": "APIResponse",
+    "tags": ["Filings"],
+    "parameters": [
+      {"name": "doc_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_filing_transactions": {
+    "path": "/v1/filings/{doc_id}/transactions",
+    "method": "get",
+    "summary": "Get filing transactions",
+    "response_model": "TransactionsPaginatedResponse",
+    "tags": ["Filings"],
+    "parameters": [
+      {"name": "doc_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_stocks": {
+    "path": "/v1/stocks",
+    "method": "get",
+    "summary": "List stocks with trading activity",
+    "response_model": "StocksPaginatedResponse",
+    "tags": ["Trading"]
+  },
+  "get_stock": {
+    "path": "/v1/stocks/{ticker}",
+    "method": "get",
+    "summary": "Get stock details",
+    "response_model": "StockResponse",
+    "tags": ["Trading"],
+    "parameters": [
+      {"name": "ticker", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_stock_activity": {
+    "path": "/v1/stocks/{ticker}/activity",
+    "method": "get",
+    "summary": "Get stock trading activity",
+    "response_model": "TransactionsPaginatedResponse",
+    "tags": ["Trading"],
+    "parameters": [
+      {"name": "ticker", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_stock_leg_exposure": {
+    "path": "/v1/stocks/{ticker}/legislative-exposure",
+    "method": "get",
+    "summary": "Get stock's legislative exposure",
+    "response_model": "APIResponse",
+    "tags": ["Trading"],
+    "parameters": [
+      {"name": "ticker", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_trades": {
+    "path": "/v1/trades",
+    "method": "get",
+    "summary": "List all trades",
+    "response_model": "TransactionsPaginatedResponse",
+    "tags": ["Trading"]
+  },
+  "get_trending_stocks": {
+    "path": "/v1/analytics/trending-stocks",
+    "method": "get",
+    "summary": "Get trending stocks",
+    "response_model": "TrendingStocksResponse",
+    "tags": ["Analytics"]
+  },
+  "get_trading_timeline": {
+    "path": "/v1/analytics/trading-timeline",
+    "method": "get",
+    "summary": "Get trading timeline",
+    "response_model": "APIResponse",
+    "tags": ["Analytics"]
+  },
+  "get_summary": {
+    "path": "/v1/analytics/summary",
+    "method": "get",
+    "summary": "Get dashboard summary statistics",
+    "response_model": "DashboardResponse",
+    "tags": ["Analytics"]
+  },
+  "get_top_traders": {
+    "path": "/v1/analytics/top-traders",
+    "method": "get",
+    "summary": "Get top trading members",
+    "response_model": "TopTradersResponse",
+    "tags": ["Analytics"]
+  },
+  "get_recent_activity": {
+    "path": "/v1/analytics/recent-activity",
+    "method": "get",
+    "summary": "Get recent trading activity",
+    "response_model": "APIResponse",
+    "tags": ["Analytics"]
+  },
+  "get_sector_activity": {
+    "path": "/v1/analytics/sector-activity",
+    "method": "get",
+    "summary": "Get trading by sector",
+    "response_model": "APIResponse",
+    "tags": ["Analytics"]
+  },
+  "get_pattern_insights": {
+    "path": "/v1/analytics/pattern-insights",
+    "method": "get",
+    "summary": "Get trading pattern insights",
+    "response_model": "APIResponse",
+    "tags": ["Analytics"]
+  },
+  "get_portfolio_recon": {
+    "path": "/v1/analytics/portfolio-reconciliation",
+    "method": "get",
+    "summary": "Get portfolio reconciliation data",
+    "response_model": "APIResponse",
+    "tags": ["Analytics"]
+  },
+  "get_congressional_alpha": {
+    "path": "/v1/analytics/congressional-alpha",
+    "method": "get",
+    "summary": "Get congressional alpha metrics",
+    "response_model": "APIResponse",
+    "tags": ["Analytics"]
+  },
+  "get_compliance": {
+    "path": "/v1/analytics/compliance",
+    "method": "get",
+    "summary": "Get compliance metrics",
+    "response_model": "ComplianceResponse",
+    "tags": ["Analytics"]
+  },
+  "get_conflict_detection": {
+    "path": "/v1/analytics/conflict-detection",
+    "method": "get",
+    "summary": "Get conflict of interest detection",
+    "response_model": "APIResponse",
+    "tags": ["Analytics"]
+  },
+  "get_lobbying_client": {
+    "path": "/v1/lobbying/clients/{client_id}",
+    "method": "get",
+    "summary": "Get lobbying client details",
+    "response_model": "APIResponse",
+    "tags": ["Lobbying"],
+    "parameters": [
+      {"name": "client_id", "in": "path", "required": true, "schema": {"type": "string"}}
+    ]
+  },
+  "get_lobbying_filings": {
+    "path": "/v1/lobbying/filings",
+    "method": "get",
+    "summary": "List lobbying filings",
+    "response_model": "APIResponse",
+    "tags": ["Lobbying"]
+  },
+  "get_lobbying_network": {
+    "path": "/v1/lobbying/network",
+    "method": "get",
+    "summary": "Get lobbying network graph",
+    "response_model": "NetworkGraphResponse",
+    "tags": ["Lobbying"]
+  },
+  "get_triple_correlations": {
+    "path": "/v1/correlations/triple",
+    "method": "get",
+    "summary": "Get member-stock-bill correlations",
+    "response_model": "APIResponse",
+    "tags": ["Lobbying"]
+  },
+  "get_network_graph": {
+    "path": "/v1/network-graph",
+    "method": "get",
+    "summary": "Get network graph data",
+    "response_model": "NetworkGraphResponse",
+    "tags": ["Lobbying"]
+  }
+}

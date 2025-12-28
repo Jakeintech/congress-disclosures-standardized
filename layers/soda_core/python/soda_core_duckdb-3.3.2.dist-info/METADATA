@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: soda-core-duckdb
+Version: 3.3.2
+License-File: LICENSE
+Requires-Dist: soda-core ==3.3.2
+Requires-Dist: duckdb
+

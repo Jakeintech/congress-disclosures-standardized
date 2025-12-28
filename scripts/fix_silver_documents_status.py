@@ -51,7 +51,7 @@ def check_extraction_exists(s3_client, doc_id: str, year: int) -> Dict[str, Any]
     }
 
     # Check for text extraction (try different extraction methods)
-    extraction_methods = ["pypdf", "textract", "textract-async"]
+    extraction_methods = ["direct_text", "ocr_text", "pypdf"]
 
     for method in extraction_methods:
         text_key = f"silver/house/financial/text/extraction_method={method}/year={year}/doc_id={doc_id}/raw_text.txt.gz"
@@ -165,6 +165,12 @@ def main():
 
             if extraction['json_s3_key']:
                 df.at[idx, 'json_s3_key'] = extraction['json_s3_key']
+
+            # Infer has_embedded_text from extraction method
+            if extraction['extraction_method'] in ('pypdf', 'direct_text'):
+                df.at[idx, 'has_embedded_text'] = True
+            else:
+                df.at[idx, 'has_embedded_text'] = False
 
             updated_count += 1
 

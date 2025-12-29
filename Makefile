@@ -168,7 +168,7 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-congress package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations ## Package all Lambda functions
 
 
 package-ingest: ## Package house_fd_ingest_zip Lambda
@@ -309,6 +309,16 @@ package-check-house-fd: ## Package check_house_fd_updates Lambda
 	@cd $(LAMBDA_DIR)/check_house_fd_updates/package && zip -r ../function.zip . > /dev/null
 	@rm -rf $(LAMBDA_DIR)/check_house_fd_updates/package
 	@aws s3 cp $(LAMBDA_DIR)/check_house_fd_updates/function.zip s3://$(S3_BUCKET)/lambda-deployments/check_house_fd_updates/function.zip
+	@echo "✓ Lambda package created and uploaded"
+
+package-check-congress: ## Package check_congress_updates Lambda
+	@echo "Packaging check_congress_updates..."
+	@rm -rf $(LAMBDA_DIR)/check_congress_updates/package $(LAMBDA_DIR)/check_congress_updates/function.zip
+	@mkdir -p $(LAMBDA_DIR)/check_congress_updates/package
+	@cp $(LAMBDA_DIR)/check_congress_updates/handler.py $(LAMBDA_DIR)/check_congress_updates/package/
+	@cd $(LAMBDA_DIR)/check_congress_updates/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/check_congress_updates/package
+	@aws s3 cp $(LAMBDA_DIR)/check_congress_updates/function.zip s3://$(S3_BUCKET)/lambda-deployments/check_congress_updates/function.zip
 	@echo "✓ Lambda package created and uploaded"
 
 package-check-lobbying: ## Package check_lobbying_updates Lambda

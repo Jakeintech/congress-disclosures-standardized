@@ -10,7 +10,7 @@ import logging
 import urllib.request
 import urllib.parse
 import boto3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 logger = logging.getLogger()
@@ -53,7 +53,7 @@ def update_watermark(data_type: str, last_update_date: str, record_count: int):
                 'watermark_type': data_type,
                 'last_update_date': last_update_date,
                 'record_count': Decimal(str(record_count)),
-                'updated_at': datetime.utcnow().isoformat() + 'Z'
+                'updated_at': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             }
         )
         logger.info(f"Updated watermark for {data_type}: {last_update_date}")
@@ -166,7 +166,7 @@ def lambda_handler(event, context):
             logger.info(f"Found {record_count} new {data_type} records since {from_date}")
             
             # Update watermark to current time
-            current_time = datetime.utcnow().isoformat() + 'Z'
+            current_time = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             update_watermark(data_type, current_time, record_count)
             
             return {
@@ -185,7 +185,7 @@ def lambda_handler(event, context):
                 "data_type": data_type,
                 "from_date": from_date,
                 "watermark_status": watermark_status,
-                "checked_at": datetime.utcnow().isoformat() + 'Z'
+                "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             }
             
     except Exception as e:
@@ -195,5 +195,5 @@ def lambda_handler(event, context):
             "has_new_data": False,
             "data_type": data_type,
             "error": str(e),
-            "checked_at": datetime.utcnow().isoformat() + 'Z'
+            "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         }

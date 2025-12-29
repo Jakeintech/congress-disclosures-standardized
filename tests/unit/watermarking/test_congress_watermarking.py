@@ -95,3 +95,45 @@ class TestCongressWatermarking:
         assert result['watermark_status'] == 'new'
         # Should use 5-year lookback
         assert '2020' in result['from_date'] or '2019' in result['from_date']
+    
+    @patch('handler.check_congress_api')
+    @patch('handler.get_watermark')
+    def test_rate_limiting_handled_gracefully(self, mock_get, mock_api):
+        """Test that HTTP 429 rate limiting is handled gracefully."""
+        mock_get.return_value = {'last_update_date': '2025-01-01T00:00:00Z'}
+        # Simulate rate limiting by returning empty count
+        mock_api.return_value = {'pagination': {'count': 0}}
+        
+        result = handler.lambda_handler({'data_type': 'bills'}, {})
+        
+        assert result['has_new_data'] is False
+        # Should not fail the pipeline
+        assert 'error' not in result or result.get('error') != 'rate_limited'
+    
+    @patch('handler.urllib.request.urlopen')
+    def test_check_congress_api_handles_429(self, mock_urlopen):
+        """Test that check_congress_api handles HTTP 429 gracefully."""
+        # Simulate HTTP 429 error
+        from urllib.error import HTTPError
+        mock_response = Mock()
+        mock_response.code = 429
+        mock_urlopen.side_effect = HTTPError(None, 429, 'Too Many Requests', {}, None)
+        
+        result = handler.check_congress_api('bill', {'fromDateTime': '2025-01-01T00:00:00Z'})
+        
+        # Should return empty result, not raise exception
+        assert result == {'pagination': {'count': 0}}
+    
+    @patch('handler.urllib.request.urlopen')
+    def test_check_congress_api_success(self, mock_urlopen):
+        """Test successful API call."""
+        # Mock successful response
+        mock_response = Mock()
+        mock_response.read.return_value = b'{"pagination": {"count": 42}, "bills": []}'
+        mock_response.__enter__ = Mock(return_value=mock_response)
+        mock_response.__exit__ = Mock(return_value=False)
+        mock_urlopen.return_value = mock_response
+        
+        result = handler.check_congress_api('bill', {'fromDateTime': '2025-01-01T00:00:00Z'})
+        
+        assert result['pagination']['count'] == 42

@@ -263,7 +263,6 @@ def get_trade_correlations(qb, bill_id, limit=20):
         return []
 
 
-
 def get_committees(qb, bill_id):
     """Get committee assignments for a bill."""
     try:

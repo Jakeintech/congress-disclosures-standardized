@@ -68,7 +68,7 @@ def handler(event, context):
             order_sql = f"m.last_name {sort_order}, m.first_name {sort_order}"
         elif sort_by == 'total_trades':
             order_sql = f"COALESCE(t.total_trades, 0) {sort_order}"
-        else: # Default total_volume
+        else:  # Default total_volume
             order_sql = f"COALESCE(t.total_volume, 0) {sort_order}"
             
         # Standardize search paths for DuckDB

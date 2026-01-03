@@ -67,7 +67,6 @@ def handler(event, context):
         
         filings_data = filings_df.to_dict('records')
         
-        
         # Map to Pydantic models
         filings = []
         for row in filings_data:

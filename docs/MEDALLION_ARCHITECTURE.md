@@ -22,7 +22,7 @@ This document defines the complete medallion architecture (Bronze → Silver →
 | **Storage Format** | Parquet (→ Iceberg Phase 2) | Columnar, ZSTD compression, schema evolution | $0.023/GB |
 | **Data Quality** | Soda Core | SQL-based checks, fail-fast validation | $0 |
 | **Metadata** | AWS Glue Data Catalog | 1M objects free, schema registry | $0 |
-| **Scheduling** | EventBridge | Cron triggers (hourly/daily/weekly) | $0 |
+| **Scheduling** | EventBridge | Cron triggers (daily/weekly, DISABLED until watermarking) | $0 |
 | **Monitoring** | CloudWatch + SNS | Dashboards, logs, alerts | $0 (within limits) |
 | **Watermarking** | DynamoDB | Track incremental processing state | $0 (25GB free) |
 

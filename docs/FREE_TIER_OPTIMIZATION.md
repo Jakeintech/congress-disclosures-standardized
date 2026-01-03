@@ -191,9 +191,9 @@ if TEXTRACT_ENABLED:
    - Mitigation: We keep extracted text, which is the valuable data
 
 3. ❌ **Real-time Processing** → Batch processing
-   - Trade-off: 5-10 minute delay for new filings
-   - Impact: Not real-time, but near-real-time (hourly check)
-   - Mitigation: EventBridge runs hourly, minimal delay
+   - Trade-off: Manual or scheduled updates (daily when enabled)
+   - Impact: Not real-time, but near-daily updates when EventBridge is enabled
+   - Mitigation: Manual triggering available anytime; EventBridge runs daily (DISABLED until watermarking complete)
 
 ### What We Keep:
 - ✅ All extracted text

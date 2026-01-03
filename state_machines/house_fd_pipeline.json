@@ -71,7 +71,29 @@
           "Next": "NotifyPipelineFailure"
         }
       ],
-      "Next": "IngestZip"
+      "Next": "CheckHasNewFilings"
+    },
+    "CheckHasNewFilings": {
+      "Type": "Choice",
+      "Comment": "Skip pipeline if no new filings detected (STORY-003)",
+      "Choices": [
+        {
+          "Variable": "$.filings_check.has_new_filings",
+          "BooleanEquals": true,
+          "Next": "IngestZip"
+        }
+      ],
+      "Default": "NoNewFilingsDetected"
+    },
+    "NoNewFilingsDetected": {
+      "Type": "Pass",
+      "Comment": "No new filings - skip pipeline execution",
+      "Result": {
+        "status": "skipped",
+        "reason": "No new filings detected by watermarking"
+      },
+      "ResultPath": "$.skip_reason",
+      "Next": "PipelineSuccess"
     },
     "IngestZip": {
       "Type": "Task",

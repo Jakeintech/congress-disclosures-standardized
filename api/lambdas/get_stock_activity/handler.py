@@ -3,7 +3,13 @@
 import os
 import json
 import logging
-from api.lib import ParquetQueryBuilder, success_response, error_response, parse_pagination_params, build_pagination_response
+from api.lib import (
+    ParquetQueryBuilder,
+    success_response,
+    error_response,
+    parse_pagination_params,
+    build_pagination_response
+)
 
 S3_BUCKET = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 
@@ -28,7 +34,13 @@ def handler(event, context):
         
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         total = qb.count_records('gold/house/financial/facts/fact_ptr_transactions', filters)
-        trades_df = qb.query_parquet('gold/house/financial/facts/fact_ptr_transactions', filters=filters, order_by='transaction_date DESC', limit=limit, offset=offset)
+        trades_df = qb.query_parquet(
+            'gold/house/financial/facts/fact_ptr_transactions',
+            filters=filters,
+            order_by='transaction_date DESC',
+            limit=limit,
+            offset=offset
+        )
         
         return success_response({
             'trades': trades_df.to_dict('records'),

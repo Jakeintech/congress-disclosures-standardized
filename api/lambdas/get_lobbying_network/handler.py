@@ -56,7 +56,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'node_count': len(graph_data['nodes']),
                 'link_count': len(graph_data['links']),
                 'node_types': list(set(n['type'] for n in graph_data['nodes'])),
-                'edge_types': list(set(l['link_type'] for l in graph_data['links']))
+                'edge_types': list(set(link['link_type'] for link in graph_data['links']))
             }
         })
 
@@ -225,7 +225,7 @@ def build_comprehensive_network(year: str, limit: int, include_bills: bool, incl
     if include_members and not govt_df.empty:
         # Get entities that look like Congress members
         congress_entities = govt_df[
-            govt_df['entity_name'].str.contains('House|Senate|Congress|Rep\.|Sen\.', case=False, na=False)
+            govt_df['entity_name'].str.contains(r'House|Senate|Congress|Rep\.|Sen\.', case=False, na=False)
         ]
         
         if not congress_entities.empty:

@@ -68,8 +68,16 @@ def handler(event, context):
             )
             total_filings = len(filings_df)
             # filing_date_key is stored as YYYYMMDD double/int
-            latest_filing = int(filings_df['filing_date_key'].max()) if len(filings_df) > 0 and filings_df['filing_date_key'].notna().any() else None
-            earliest_filing = int(filings_df['filing_date_key'].min()) if len(filings_df) > 0 and filings_df['filing_date_key'].notna().any() else None
+            latest_filing = (
+                int(filings_df['filing_date_key'].max())
+                if len(filings_df) > 0 and filings_df['filing_date_key'].notna().any()
+                else None
+            )
+            earliest_filing = (
+                int(filings_df['filing_date_key'].min())
+                if len(filings_df) > 0 and filings_df['filing_date_key'].notna().any()
+                else None
+            )
             filing_years = sorted(filings_df['year'].dropna().unique().tolist()) if len(filings_df) > 0 else []
         except Exception as e:
             logger.warning(f"Could not get filing stats: {e}")

@@ -107,8 +107,16 @@ def compute_trending_stocks(conn) -> Dict[str, Any]:
                 SUM(CASE WHEN transaction_type = 'Sale' THEN amount_midpoint ELSE 0 END) AS net_volume,
                 COUNT(CASE WHEN party IN ('D', 'Democrat', 'Democratic') THEN 1 END) AS dem_transactions,
                 COUNT(CASE WHEN party IN ('R', 'Republican') THEN 1 END) AS rep_transactions,
-                SUM(CASE WHEN party IN ('D', 'Democrat', 'Democratic') AND transaction_type = 'Purchase' THEN amount_midpoint ELSE 0 END) AS dem_buy_volume,
-                SUM(CASE WHEN party IN ('R', 'Republican') AND transaction_type = 'Purchase' THEN amount_midpoint ELSE 0 END) AS rep_buy_volume,
+                SUM(
+                    CASE WHEN party IN ('D', 'Democrat', 'Democratic')
+                    AND transaction_type = 'Purchase'
+                    THEN amount_midpoint ELSE 0 END
+                ) AS dem_buy_volume,
+                SUM(
+                    CASE WHEN party IN ('R', 'Republican')
+                    AND transaction_type = 'Purchase'
+                    THEN amount_midpoint ELSE 0 END
+                ) AS rep_buy_volume,
                 MIN(transaction_date) AS first_trade_date,
                 MAX(transaction_date) AS last_trade_date,
                 CURRENT_TIMESTAMP AS computed_at
@@ -139,7 +147,10 @@ def compute_trending_stocks(conn) -> Dict[str, Any]:
 
         # Export to S3
         timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-        output_path = f"s3://{S3_BUCKET}/gold/aggregates/agg_trending_stocks/window={window_label}/data_{timestamp}.parquet"
+        output_path = (
+            f"s3://{S3_BUCKET}/gold/aggregates/agg_trending_stocks/"
+            f"window={window_label}/data_{timestamp}.parquet"
+        )
 
         conn.execute(f"""
             COPY trending_{window_label}_final

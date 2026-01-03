@@ -43,7 +43,10 @@ def handler(event, context):
             if len(filing_type_path) == 1:
                 filing_type_path = f"type_{filing_type_path}"
             
-            key = f"silver/house/financial/objects/year={year}/filing_type={filing_type_path}/doc_id={doc_id}/extraction.json"
+            key = (
+                f"silver/house/financial/objects/year={year}/"
+                f"filing_type={filing_type_path}/doc_id={doc_id}/extraction.json"
+            )
             
             response = s3.get_object(Bucket=S3_BUCKET, Key=key)
             structured_data = json.loads(response['Body'].read())

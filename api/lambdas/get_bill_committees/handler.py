@@ -69,7 +69,7 @@ def handler(event, context):
                     'systemCode': item.get('systemCode'),
                     'name': item.get('name'),
                     'chamber': item.get('chamber'),
-                    'type': item.get('committeeTypeCode', 'Standing'), # Default to valid type if missing
+                    'type': item.get('committeeTypeCode', 'Standing'),  # Default to valid type if missing
                     'activities': item.get('activities', [])
                 })
 

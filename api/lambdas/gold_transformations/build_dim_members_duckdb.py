@@ -386,7 +386,10 @@ def lambda_handler(event, context):
             'execution_id': context.request_id if context else 'local'
         }
 
-        logger.info(f"Build completed successfully: {result['rows_inserted']} inserted, {result['rows_expired']} expired")
+        logger.info(
+            f"Build completed successfully: {result['rows_inserted']} inserted, "
+            f"{result['rows_expired']} expired"
+        )
         return response
 
     except Exception as e:

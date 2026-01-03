@@ -110,8 +110,14 @@ def handler(event, context):
                     'state': member.get('state', ''),
                     'rank': member.get('rank', ''),
                     'title': member.get('title', ''),
-                    'isChair': member.get('isChair', False) or member.get('title', '').lower() in ['chair', 'chairman', 'chairwoman'],
-                    'isRankingMember': member.get('isRankingMember', False) or member.get('title', '').lower() == 'ranking member',
+                    'isChair': (
+                        member.get('isChair', False) or
+                        member.get('title', '').lower() in ['chair', 'chairman', 'chairwoman']
+                    ),
+                    'isRankingMember': (
+                        member.get('isRankingMember', False) or
+                        member.get('title', '').lower() == 'ranking member'
+                    ),
                     'updateDate': member.get('updateDate', '')
                 })
 

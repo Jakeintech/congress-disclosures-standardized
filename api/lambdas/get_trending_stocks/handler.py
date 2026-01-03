@@ -67,8 +67,13 @@ def handler(event, context):
                 COALESCE(TRY_CAST(unique_members AS BIGINT), 0) AS unique_members,
                 period_start,
                 period_end
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet')
-            ORDER BY {sort_by.replace('total_volume', 'total_volume_usd').replace('total_transactions', 'trade_count')} DESC
+            FROM read_parquet(
+                's3://{S3_BUCKET}/gold/house/financial/aggregates/agg_trending_stocks/**/*.parquet'
+            )
+            ORDER BY {
+                sort_by.replace('total_volume', 'total_volume_usd')
+                .replace('total_transactions', 'trade_count')
+            } DESC
             LIMIT {limit}
         """
 

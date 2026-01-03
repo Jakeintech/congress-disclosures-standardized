@@ -93,7 +93,7 @@ def handle_member_detail_graph(qb, bioguide_id, congress=None):
 
     nodes = []
     links = []
-    node_map = {} # node_id -> index
+    node_map = {}  # node_id -> index
 
     # Add Primary Member Node
     member_name = bioguide_id
@@ -307,7 +307,12 @@ def build_aggregate_graph_response(trades_df, limit):
         node['avg_trade_value'] = node['value'] / node['transaction_count'] if node['transaction_count'] > 0 else 0
         
         # Calculate buy/sell ratio
-        node['buy_sell_ratio'] = node['buy_count'] / node['sell_count'] if node['sell_count'] > 0 else float(node['buy_count'])
+        buy_sell_ratio = (
+            node['buy_count'] / node['sell_count']
+            if node['sell_count'] > 0
+            else float(node['buy_count'])
+        )
+        node['buy_sell_ratio'] = buy_sell_ratio
     
     # Process stock nodes
     for node in nodes:
@@ -315,7 +320,12 @@ def build_aggregate_graph_response(trades_df, limit):
             # Convert set to count
             node['unique_traders'] = len(node['unique_traders'])
             # Calculate buy/sell ratio
-            node['buy_sell_ratio'] = node['buy_count'] / node['sell_count'] if node['sell_count'] > 0 else float(node['buy_count'])
+            buy_sell_ratio = (
+                node['buy_count'] / node['sell_count']
+                if node['sell_count'] > 0
+                else float(node['buy_count'])
+            )
+            node['buy_sell_ratio'] = buy_sell_ratio
     
     if len(nodes) > limit * 2:
         member_nodes = [n for n in nodes if n['group'] == 'member']
@@ -325,7 +335,7 @@ def build_aggregate_graph_response(trades_df, limit):
         top_members = set(n['id'] for n in member_nodes[:limit])
         top_stocks = set(n['id'] for n in stock_nodes[:limit])
         nodes = [n for n in nodes if n['id'] in top_members or n['id'] in top_stocks]
-        links = [l for l in links if l['source'] in top_members and l['target'] in top_stocks]
+        links = [link for link in links if link['source'] in top_members and link['target'] in top_stocks]
     
     # Party Aggregation
     dem_members = [n for n in nodes if n['group'] == 'member' and n.get('party') in ('D', 'Democrat', 'Democratic')]
@@ -388,6 +398,6 @@ def build_aggregate_graph_response(trades_df, limit):
             'total_members': len([n for n in nodes if n['group'] == 'member']),
             'total_assets': len([n for n in nodes if n['group'] == 'asset']),
             'total_links': len(links),
-            'total_transactions': sum(l['count'] for l in links)
+            'total_transactions': sum(link['count'] for link in links)
         }
     })

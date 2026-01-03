@@ -47,7 +47,7 @@ def handler(event, context):
     try:
         path_params = event.get('pathParameters') or {}
         chamber = path_params.get('chamber')
-        committee_code = path_params.get('code') or path_params.get('bill_id') # Handle potential naming inconsistency
+        committee_code = path_params.get('code') or path_params.get('bill_id')  # Handle potential naming inconsistency
 
         if not committee_code:
             return error_response(message="Missing committee code", status_code=400)

@@ -75,14 +75,21 @@ def handler(event, context):
         qb = ParquetQueryBuilder(s3_bucket=S3_BUCKET)
         
         # 1. Count total records
-        count_sql = f"SELECT COUNT(*) FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', union_by_name=True) WHERE {where_sql}"
+        count_sql = (
+            f"SELECT COUNT(*) FROM read_parquet("
+            f"'s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', "
+            f"union_by_name=True) WHERE {where_sql}"
+        )
         logger.info(f"Counting trades with filters: {where_sql}")
         total_count = qb.conn.execute(count_sql).fetchone()[0]
         
         # 2. Get paginated results
         fetch_sql = f"""
             SELECT * 
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', union_by_name=True)
+            FROM read_parquet(
+                's3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet',
+                union_by_name=True
+            )
             WHERE {where_sql}
             ORDER BY transaction_date DESC
             LIMIT {limit} OFFSET {offset}
@@ -101,11 +108,20 @@ def handler(event, context):
                     disclosure_date=row.get('disclosure_date') or row.get('filing_date'),
                     transaction_date=row.get('transaction_date'),
                     ticker=row.get('ticker'),
-                    asset_description=row.get('asset_description') or row.get('description', 'Unknown'),
-                    transaction_type=row.get('transaction_type').lower() if row.get('transaction_type') else 'purchase',
+                    asset_description=(
+                        row.get('asset_description') or row.get('description', 'Unknown')
+                    ),
+                    transaction_type=(
+                        row.get('transaction_type').lower()
+                        if row.get('transaction_type') else 'purchase'
+                    ),
                     amount_low=int(row.get('amount_low', 0)) if row.get('amount_low') is not None else 0,
                     amount_high=int(row.get('amount_high', 0)) if row.get('amount_high') is not None else 0,
-                    amount=f"${int(row.get('amount_low', 0)):,}" + (f" - ${int(row.get('amount_high', 0)):,}" if row.get('amount_high') else "+"),
+                    amount=(
+                        f"${int(row.get('amount_low', 0)):,}" +
+                        (f" - ${int(row.get('amount_high', 0)):,}"
+                         if row.get('amount_high') else "+")
+                    ),
                     bioguide_id=row.get('bioguide_id'),
                     member_name=row.get('member_name') or row.get('filer_name') or row.get('full_name') or 'Unknown',
                     filer_name=row.get('member_name') or row.get('filer_name') or row.get('full_name') or 'Unknown',
@@ -115,7 +131,11 @@ def handler(event, context):
                     state=row.get('state'),
                     chamber=row.get('chamber').lower() if row.get('chamber') else 'house',
                     owner=row.get('owner'),
-                    cap_gains_over_200=bool(row.get('cap_gains_over_200')) if row.get('cap_gains_over_200') is not None else None
+                    cap_gains_over_200=(
+                        bool(row.get('cap_gains_over_200'))
+                        if row.get('cap_gains_over_200') is not None
+                        else None
+                    )
                 )
                 transactions.append(tx)
             except Exception as e:

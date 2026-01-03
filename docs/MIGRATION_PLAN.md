@@ -53,13 +53,15 @@
     definition = file("${path.module}/../../state_machines/house_fd_pipeline.json")
   }
 
-  resource "aws_cloudwatch_event_rule" "house_fd_hourly" {
-    name                = "${var.project_name}-house-fd-hourly"
-    schedule_expression = "rate(1 hour)"
+  # STORY-001: Changed to daily schedule and DISABLED to prevent cost explosion
+  resource "aws_cloudwatch_event_rule" "house_fd_daily" {
+    name                = "${var.project_name}-house-fd-daily"
+    schedule_expression = "cron(0 9 * * ? *)"  # Daily at 4 AM EST
+    state               = "DISABLED"            # Enable after watermarking (STORY-003)
   }
 
   resource "aws_cloudwatch_event_target" "trigger_house_fd" {
-    rule      = aws_cloudwatch_event_rule.house_fd_hourly.name
+    rule      = aws_cloudwatch_event_rule.house_fd_daily.name
     arn       = aws_sfn_state_machine.house_fd_pipeline.arn
     role_arn  = aws_iam_role.eventbridge_step_functions.arn
   }

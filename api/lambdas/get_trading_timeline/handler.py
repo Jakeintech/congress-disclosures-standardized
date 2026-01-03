@@ -29,7 +29,11 @@ def handler(event, context):
                 order_by='date ASC',
                 limit=365
             )
-            return success_response({'timeline': timeline_df.to_dict('records'), 'start_date': start_date, 'end_date': end_date})
+            return success_response({
+                'timeline': timeline_df.to_dict('records'),
+                'start_date': start_date,
+                'end_date': end_date
+            })
         except:
             # Fallback: aggregate from transactions (limit reduced for performance)
             trades_df = qb.query_parquet(
@@ -38,7 +42,12 @@ def handler(event, context):
                 limit=2000
             )
             daily = trades_df.groupby('transaction_date').size().reset_index(name='trade_count')
-            return success_response({'timeline': daily.to_dict('records'), 'start_date': start_date, 'end_date': end_date, 'note': 'Calculated from transactions'})
+            return success_response({
+                'timeline': daily.to_dict('records'),
+                'start_date': start_date,
+                'end_date': end_date,
+                'note': 'Calculated from transactions'
+            })
     except Exception as e:
         logger.error(f"Error: {e}", exc_info=True)
         return error_response("Failed to retrieve trading timeline", 500, str(e))

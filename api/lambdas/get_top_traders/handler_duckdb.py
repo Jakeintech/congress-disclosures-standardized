@@ -65,8 +65,14 @@ def handler(event, context):
                     SUM((t.amount_low + t.amount_high) / 2.0) AS total_volume,
                     SUM(CASE WHEN t.transaction_type = 'Purchase' THEN 1 ELSE 0 END) AS purchases,
                     SUM(CASE WHEN t.transaction_type = 'Sale' THEN 1 ELSE 0 END) AS sales,
-                    SUM(CASE WHEN t.transaction_type = 'Purchase' THEN (t.amount_low + t.amount_high) / 2.0 ELSE 0 END) AS buy_volume,
-                    SUM(CASE WHEN t.transaction_type = 'Sale' THEN (t.amount_low + t.amount_high) / 2.0 ELSE 0 END) AS sell_volume,
+                    SUM(
+                        CASE WHEN t.transaction_type = 'Purchase'
+                        THEN (t.amount_low + t.amount_high) / 2.0 ELSE 0 END
+                    ) AS buy_volume,
+                    SUM(
+                        CASE WHEN t.transaction_type = 'Sale'
+                        THEN (t.amount_low + t.amount_high) / 2.0 ELSE 0 END
+                    ) AS sell_volume,
                     COUNT(DISTINCT t.ticker) AS unique_stocks,
                     MIN(t.transaction_date) AS first_trade_date,
                     MAX(t.transaction_date) AS last_trade_date,

@@ -307,7 +307,12 @@ def build_aggregate_graph_response(trades_df, limit):
         node['avg_trade_value'] = node['value'] / node['transaction_count'] if node['transaction_count'] > 0 else 0
         
         # Calculate buy/sell ratio
-        node['buy_sell_ratio'] = node['buy_count'] / node['sell_count'] if node['sell_count'] > 0 else float(node['buy_count'])
+        buy_sell_ratio = (
+            node['buy_count'] / node['sell_count']
+            if node['sell_count'] > 0
+            else float(node['buy_count'])
+        )
+        node['buy_sell_ratio'] = buy_sell_ratio
     
     # Process stock nodes
     for node in nodes:
@@ -315,7 +320,12 @@ def build_aggregate_graph_response(trades_df, limit):
             # Convert set to count
             node['unique_traders'] = len(node['unique_traders'])
             # Calculate buy/sell ratio
-            node['buy_sell_ratio'] = node['buy_count'] / node['sell_count'] if node['sell_count'] > 0 else float(node['buy_count'])
+            buy_sell_ratio = (
+                node['buy_count'] / node['sell_count']
+                if node['sell_count'] > 0
+                else float(node['buy_count'])
+            )
+            node['buy_sell_ratio'] = buy_sell_ratio
     
     if len(nodes) > limit * 2:
         member_nodes = [n for n in nodes if n['group'] == 'member']

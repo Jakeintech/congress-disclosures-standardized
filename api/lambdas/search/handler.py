@@ -39,7 +39,9 @@ def handler(event, context):
                 },
                 limit=10
             )
-            members_results = members_df[['bioguide_id', 'first_name', 'last_name', 'party', 'state']].to_dict('records')
+            members_results = members_df[
+                ['bioguide_id', 'first_name', 'last_name', 'party', 'state']
+            ].to_dict('records')
         except Exception as e:
             logger.warning(f"Member search failed: {e}")
             members_results = []

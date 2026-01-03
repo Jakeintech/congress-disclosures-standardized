@@ -26,7 +26,10 @@ def handler(event, context):
             compliance = filings_df.groupby('member_key').size().reset_index(name='filing_count')
             
             # Map member_key to bioguide_id
-            members_df = qb.query_parquet('gold/house/financial/dimensions/dim_members', columns=['member_key', 'bioguide_id'])
+            members_df = qb.query_parquet(
+                'gold/house/financial/dimensions/dim_members',
+                columns=['member_key', 'bioguide_id']
+            )
             # Create mapping dict: member_key -> bioguide_id
             key_map = dict(zip(members_df['member_key'], members_df['bioguide_id']))
             

@@ -195,10 +195,13 @@ def lambda_handler(event, context):
 
             # Fail the Lambda to trigger Step Functions Catch
             raise Exception(
-                f"Data quality checks failed: {all_results['failed']} failures out of {all_results['total_checks']} checks"
+                f"Data quality checks failed: {all_results['failed']} failures "
+                f"out of {all_results['total_checks']} checks"
             )
 
-        logger.info(f"All checks passed! {all_results['passed']}/{all_results['total_checks']}")
+        logger.info(
+            f"All checks passed! {all_results['passed']}/{all_results['total_checks']}"
+        )
 
         return success_response(all_results)
 

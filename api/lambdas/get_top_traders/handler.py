@@ -71,14 +71,27 @@ def handler(event, context):
                     COALESCE(SUM((amount_low + amount_high) / 2.0), 0) AS total_volume,
                     SUM(CASE WHEN transaction_type = 'Purchase' THEN 1 ELSE 0 END) AS purchases,
                     SUM(CASE WHEN transaction_type = 'Sale' THEN 1 ELSE 0 END) AS sales,
-                    COALESCE(SUM(CASE WHEN transaction_type = 'Purchase' THEN (amount_low + amount_high) / 2.0 ELSE 0 END), 0) AS buy_volume,
-                    COALESCE(SUM(CASE WHEN transaction_type = 'Sale' THEN (amount_low + amount_high) / 2.0 ELSE 0 END), 0) AS sell_volume,
+                    COALESCE(
+                        SUM(CASE WHEN transaction_type = 'Purchase'
+                            THEN (amount_low + amount_high) / 2.0 ELSE 0 END), 0
+                    ) AS buy_volume,
+                    COALESCE(
+                        SUM(CASE WHEN transaction_type = 'Sale'
+                            THEN (amount_low + amount_high) / 2.0 ELSE 0 END), 0
+                    ) AS sell_volume,
                     COUNT(DISTINCT ticker) AS unique_stocks,
                     MIN(transaction_date) AS first_trade_date,
                     MAX(transaction_date) AS last_trade_date,
                     -- Compliance metrics
-                    COALESCE(AVG(CASE WHEN CAST((CAST(filing_date AS DATE) - CAST(transaction_date AS DATE)) AS INTEGER) <= 45 THEN 1.0 ELSE 0.0 END), 0) AS compliance_rate
-                FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', union_by_name=True)
+                    COALESCE(
+                        AVG(CASE WHEN CAST((CAST(filing_date AS DATE) -
+                            CAST(transaction_date AS DATE)) AS INTEGER) <= 45
+                            THEN 1.0 ELSE 0.0 END), 0
+                    ) AS compliance_rate
+                FROM read_parquet(
+                    's3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet',
+                    union_by_name=True
+                )
                 WHERE {where_sql}
                     AND bioguide_id IS NOT NULL
                 GROUP BY bioguide_id, filer_name, party, state, chamber
@@ -111,7 +124,10 @@ def handler(event, context):
                 party,
                 COUNT(DISTINCT bioguide_id) AS member_count,
                 COALESCE(SUM((amount_low + amount_high) / 2.0), 0) AS total_volume
-            FROM read_parquet('s3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet', union_by_name=True)
+            FROM read_parquet(
+                's3://{S3_BUCKET}/gold/house/financial/facts/fact_ptr_transactions/**/*.parquet',
+                union_by_name=True
+            )
             WHERE {where_sql}
                 AND bioguide_id IS NOT NULL
             GROUP BY party

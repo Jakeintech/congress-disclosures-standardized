@@ -127,6 +127,7 @@ locals {
     # ============================================================
     # CONGRESS PIPELINE LAMBDAS
     # ============================================================
+    LAMBDA_CHECK_CONGRESS_UPDATES  = "${local.name_prefix}-check-congress-updates"
     LAMBDA_FETCH_CONGRESS_BILLS    = local.congress_orchestrator_lambda_name
     LAMBDA_FETCH_CONGRESS_MEMBERS  = local.congress_orchestrator_lambda_name
     LAMBDA_FETCH_BILL_DETAILS      = "${local.name_prefix}-congress-fetch-entity"

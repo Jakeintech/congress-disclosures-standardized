@@ -14,31 +14,30 @@ import pytest
 STATE_MACHINES_DIR = Path(__file__).parent.parent.parent / "state_machines"
 
 
+@pytest.fixture(scope="module")
+def congress_data_platform_definition():
+    """Load congress_data_platform.json once for all tests."""
+    state_machine_path = STATE_MACHINES_DIR / "congress_data_platform.json"
+    
+    with open(state_machine_path, "r") as f:
+        return json.load(f)
+
+
 class TestStateMachineDefinitions:
     """Test suite for state machine JSON definitions."""
 
-    def test_congress_data_platform_json_valid(self):
+    def test_congress_data_platform_json_valid(self, congress_data_platform_definition):
         """Test that congress_data_platform.json is valid JSON."""
-        state_machine_path = STATE_MACHINES_DIR / "congress_data_platform.json"
-        
-        assert state_machine_path.exists(), f"State machine file not found: {state_machine_path}"
-        
-        with open(state_machine_path, "r") as f:
-            definition = json.load(f)
+        definition = congress_data_platform_definition
         
         assert definition is not None
         assert "States" in definition
         assert "StartAt" in definition
         assert "Comment" in definition
 
-    def test_bronze_ingestion_parallel_state_exists(self):
+    def test_bronze_ingestion_parallel_state_exists(self, congress_data_platform_definition):
         """Test that BronzeIngestion Parallel state exists in congress_data_platform."""
-        state_machine_path = STATE_MACHINES_DIR / "congress_data_platform.json"
-        
-        with open(state_machine_path, "r") as f:
-            definition = json.load(f)
-        
-        states = definition["States"]
+        states = congress_data_platform_definition["States"]
         
         # Verify BronzeIngestion state exists
         assert "BronzeIngestion" in states, "BronzeIngestion state not found"
@@ -52,14 +51,9 @@ class TestStateMachineDefinitions:
         assert "Branches" in bronze_state, "BronzeIngestion must have Branches"
         assert len(bronze_state["Branches"]) == 3, "BronzeIngestion must have 3 branches"
 
-    def test_bronze_ingestion_has_three_branches(self):
+    def test_bronze_ingestion_has_three_branches(self, congress_data_platform_definition):
         """Test that BronzeIngestion has House FD, Congress, and Lobbying branches."""
-        state_machine_path = STATE_MACHINES_DIR / "congress_data_platform.json"
-        
-        with open(state_machine_path, "r") as f:
-            definition = json.load(f)
-        
-        bronze_state = definition["States"]["BronzeIngestion"]
+        bronze_state = congress_data_platform_definition["States"]["BronzeIngestion"]
         branches = bronze_state["Branches"]
         
         # Extract first state names from each branch
@@ -73,14 +67,9 @@ class TestStateMachineDefinitions:
         assert "IngestCongress" in branch_names, "Congress ingestion branch missing"
         assert "IngestLobbying" in branch_names, "Lobbying ingestion branch missing"
 
-    def test_bronze_ingestion_error_handling(self):
+    def test_bronze_ingestion_error_handling(self, congress_data_platform_definition):
         """Test that each branch has proper error handling (Retry, Catch)."""
-        state_machine_path = STATE_MACHINES_DIR / "congress_data_platform.json"
-        
-        with open(state_machine_path, "r") as f:
-            definition = json.load(f)
-        
-        bronze_state = definition["States"]["BronzeIngestion"]
+        bronze_state = congress_data_platform_definition["States"]["BronzeIngestion"]
         branches = bronze_state["Branches"]
         
         for branch in branches:
@@ -101,14 +90,9 @@ class TestStateMachineDefinitions:
             assert "Catch" in ingest_state, f"{start_state} must have Catch configuration"
             assert len(ingest_state["Catch"]) > 0, f"{start_state} must have at least one catch policy"
 
-    def test_bronze_ingestion_timeout_configured(self):
+    def test_bronze_ingestion_timeout_configured(self, congress_data_platform_definition):
         """Test that each ingestion Lambda has a timeout configured."""
-        state_machine_path = STATE_MACHINES_DIR / "congress_data_platform.json"
-        
-        with open(state_machine_path, "r") as f:
-            definition = json.load(f)
-        
-        bronze_state = definition["States"]["BronzeIngestion"]
+        bronze_state = congress_data_platform_definition["States"]["BronzeIngestion"]
         branches = bronze_state["Branches"]
         
         for branch in branches:
@@ -123,14 +107,9 @@ class TestStateMachineDefinitions:
             # Verify timeout is reasonable (between 5 and 15 minutes)
             assert 300 <= timeout <= 900, f"{start_state} timeout should be between 300 and 900 seconds"
 
-    def test_check_for_updates_parallel_state_exists(self):
+    def test_check_for_updates_parallel_state_exists(self, congress_data_platform_definition):
         """Test that CheckForUpdates Parallel state exists."""
-        state_machine_path = STATE_MACHINES_DIR / "congress_data_platform.json"
-        
-        with open(state_machine_path, "r") as f:
-            definition = json.load(f)
-        
-        states = definition["States"]
+        states = congress_data_platform_definition["States"]
         
         # Verify CheckForUpdates state exists
         assert "CheckForUpdates" in states, "CheckForUpdates state not found"
@@ -143,15 +122,10 @@ class TestStateMachineDefinitions:
         # Verify it has 3 branches (House FD, Congress, Lobbying)
         assert len(check_state["Branches"]) == 3, "CheckForUpdates must have 3 branches"
 
-    def test_state_machine_has_timeout(self):
+    def test_state_machine_has_timeout(self, congress_data_platform_definition):
         """Test that the state machine has a global timeout configured."""
-        state_machine_path = STATE_MACHINES_DIR / "congress_data_platform.json"
-        
-        with open(state_machine_path, "r") as f:
-            definition = json.load(f)
-        
-        assert "TimeoutSeconds" in definition, "State machine must have TimeoutSeconds"
-        timeout = definition["TimeoutSeconds"]
+        assert "TimeoutSeconds" in congress_data_platform_definition, "State machine must have TimeoutSeconds"
+        timeout = congress_data_platform_definition["TimeoutSeconds"]
         
         # Verify timeout is 2 hours (7200 seconds) as per spec
         assert timeout == 7200, "State machine timeout should be 7200 seconds (2 hours)"

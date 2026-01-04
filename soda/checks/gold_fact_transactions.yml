@@ -14,45 +14,70 @@ checks for gold_fact_transactions:
         member_key: integer
         asset_key: integer
         amount_midpoint: decimal
+      name: Fact transactions has correct schema
+      severity: critical
+      description: Star schema requires surrogate keys and fact measures
 
   # Uniqueness
   - duplicate_count(transaction_key) = 0:
       name: Transaction keys must be unique
+      severity: critical
+      description: transaction_key is surrogate primary key
 
   # Referential integrity
   - values in (member_key) must exist in gold_dim_member (member_key):
       name: Must reference valid member dimension
+      severity: critical
+      description: Orphaned member keys break member-based queries
 
   - invalid_count(member_key) where member_key = -1 < 5%:
       name: Less than 5% unknown members
+      severity: warning
+      description: Unknown members (-1) indicate fuzzy match failures
 
   # Data validity
   - invalid_count(amount_midpoint) = 0:
       valid min: 0
       valid max: 50000000
       name: Midpoint amounts are realistic
+      severity: critical
+      description: Amounts outside this range indicate calculation errors
 
   - amount_midpoint = (amount_low + amount_high) / 2:
       name: Midpoint correctly calculated
+      severity: critical
+      description: amount_midpoint must be average of low and high
 
   # Completeness
   - missing_count(transaction_date) = 0:
       name: All transactions must have dates
+      severity: critical
+      description: transaction_date is required for time-series queries
 
   - missing_count(ticker) < 20%:
       name: Most transactions have tickers
+      severity: warning
+      description: Tickers enable stock tracking. Some assets lack ticker symbols.
 
   # Freshness
   - freshness(etl_timestamp) < 12h:
       name: Gold layer updated within 12 hours
+      severity: warning
+      description: Gold should refresh within 12 hours of Silver updates
 
   # Row count validation
   - row_count >= 100000:
       name: Fact table has sufficient data
+      severity: warning
+      description: Expect 100K+ total transactions. Lower counts indicate incomplete processing.
 
   # Anomaly detection
   - anomaly score for row_count < 3:
       name: Daily row count is normal
+      severity: info
+      description: Detects unusual transaction volume spikes or drops
 
   - anomaly score for avg(amount_midpoint) < 3:
       name: Average trade size is normal
+      severity: info
+      description: Detects unusual shifts in average transaction amounts

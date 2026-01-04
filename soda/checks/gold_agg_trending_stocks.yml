@@ -14,36 +14,57 @@ checks for gold_agg_trending_stocks:
         total_transactions: integer
         total_volume: decimal
         sentiment_score: decimal
+      name: Trending stocks has correct schema
+      severity: critical
+      description: Aggregate schema must match dashboard requirements
 
   # Data validity
   - invalid_count(time_window) = 0:
       valid values: ['7d', '30d', '90d']
       name: Time window must be valid
+      severity: critical
+      description: Time windows must match configured rolling periods
 
   - invalid_count(total_transactions) = 0:
       valid min: 1
       name: Must have at least 1 transaction
+      severity: critical
+      description: Zero transactions should not appear in trending stocks
 
   - total_volume = buy_volume + sell_volume:
       name: Total volume must equal buy + sell
+      severity: critical
+      description: Volume calculation must be consistent
 
   - net_volume = buy_volume - sell_volume:
       name: Net volume correctly calculated
+      severity: critical
+      description: Net volume determines buy/sell sentiment
 
   - sentiment_score >= -1.0 and sentiment_score <= 1.0:
       name: Sentiment score between -1 and 1
+      severity: critical
+      description: Sentiment score is normalized between -1 (bearish) and 1 (bullish)
 
   # Missing values
   - missing_count(ticker) = 0:
       name: All records must have ticker
+      severity: critical
+      description: Ticker is the primary identifier for trending stocks
 
   - missing_count(sentiment_score) = 0:
       name: All records must have sentiment score
+      severity: critical
+      description: Sentiment score is required for trending stock ranking
 
   # Row count validation
   - row_count >= 100:
       name: Sufficient trending stocks
+      severity: warning
+      description: Expect 100+ trending stocks across all time windows
 
   # Freshness
   - freshness(etl_timestamp) < 24h:
       name: Aggregates updated daily
+      severity: warning
+      description: Trending stocks should refresh daily with new transaction data

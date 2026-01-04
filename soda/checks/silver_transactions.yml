@@ -12,51 +12,78 @@ checks for silver_transactions:
         transaction_date: date
         amount_low: decimal
         amount_high: decimal
+      name: Transactions table has correct schema
+      severity: critical
+      description: Schema must match expected structure for transaction analytics
 
   # Referential integrity
   - values in (doc_id) must exist in silver_filings (doc_id):
       name: Transactions must reference valid filings
+      severity: critical
+      description: Orphaned transactions break member attribution
 
   # Data validity
   - invalid_count(transaction_date) = 0:
       valid min: 2008-01-01
       valid max: 2026-12-31
       name: Transaction dates in valid range
+      severity: critical
+      description: Dates outside e-filing era are invalid
 
   - invalid_count(transaction_type) = 0:
       valid values: ['Purchase', 'Sale', 'Exchange', 'purchase', 'sale', 'exchange']
       name: Transaction type must be valid
+      severity: critical
+      description: Transaction type determines buy/sell attribution
 
   - invalid_count(amount_low) = 0:
       valid min: 0
       valid max: 50000000
       name: Amount ranges are realistic
+      severity: critical
+      description: Negative amounts or extreme values indicate extraction errors
 
   # Business rules
   - amount_low <= amount_high:
       name: Low amount must be <= high amount
+      severity: critical
+      description: Amount range logic requires low <= high for calculations
 
   # Duplicates
   - duplicate_count(transaction_id) = 0:
       name: No duplicate transaction IDs
+      severity: critical
+      description: transaction_id is primary key. Duplicates break aggregations.
 
   # Missing values
   - missing_count(ticker) < 30%:
       name: Most transactions have tickers
+      severity: warning
+      description: Tickers enable stock tracking. Some assets lack ticker symbols.
 
   - missing_count(transaction_date) = 0:
       name: All transactions must have dates
+      severity: critical
+      description: Transaction date is required for all time-series analysis
 
   - missing_count(asset_name) = 0:
       name: All transactions must have asset name
+      severity: critical
+      description: Asset name is required for identification even without ticker
 
   # Freshness
   - freshness(silver_ingest_ts) < 6h:
       name: Silver layer updated within 6 hours
+      severity: warning
+      description: Transactions should extract within 6 hours of document ingestion
 
   # Anomaly detection
   - anomaly score for row_count < 3:
       name: Row count within 3 std devs of historical
+      severity: info
+      description: Detects unusual transaction volume spikes or drops
 
   - anomaly score for avg(amount_low) < 3:
       name: Average trade size is normal
+      severity: info
+      description: Detects unusual shifts in average transaction amounts

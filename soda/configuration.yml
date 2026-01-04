@@ -5,17 +5,47 @@ data_source congress_s3:
 
   # Table mappings to S3 paths
   tables:
+    # Bronze Layer
+    bronze_house_fd_pdfs:
+      path: 's3://congress-disclosures-standardized/bronze/house/financial/year=*/pdfs/*.pdf'
+    
+    # Silver Layer - House Financial Disclosures
     silver_filings:
       path: 's3://congress-disclosures-standardized/silver/house/financial/filings/*.parquet'
+
+    silver_documents:
+      path: 's3://congress-disclosures-standardized/silver/house/financial/documents/*.parquet'
+
+    silver_text_extractions:
+      path: 's3://congress-disclosures-standardized/silver/house/financial/text/*/*.txt.gz'
 
     silver_transactions:
       path: 's3://congress-disclosures-standardized/silver/house/financial/transactions/*.parquet'
 
+    # Silver Layer - Lobbying
+    silver_lobbying:
+      path: 's3://congress-disclosures-standardized/silver/lobbying/*.parquet'
+
+    # Gold Layer - Facts
     gold_fact_transactions:
       path: 's3://congress-disclosures-standardized/gold/facts/fact_ptr_transactions/*.parquet'
 
+    gold_fact_lobbying:
+      path: 's3://congress-disclosures-standardized/gold/facts/fact_lobbying/*.parquet'
+
+    # Gold Layer - Dimensions
     gold_dim_member:
       path: 's3://congress-disclosures-standardized/gold/dimensions/dim_member/*.parquet'
 
+    gold_dim_client:
+      path: 's3://congress-disclosures-standardized/gold/dimensions/dim_client/*.parquet'
+
+    gold_dim_registrant:
+      path: 's3://congress-disclosures-standardized/gold/dimensions/dim_registrant/*.parquet'
+
+    gold_dim_dates:
+      path: 's3://congress-disclosures-standardized/gold/dimensions/dim_dates/*.parquet'
+
+    # Gold Layer - Aggregates
     gold_agg_trending_stocks:
       path: 's3://congress-disclosures-standardized/gold/aggregates/trending_stocks/*.parquet'

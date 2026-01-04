@@ -1,0 +1,95 @@
+# Bronze Layer Quality Checks - House Financial Disclosures
+# Purpose: Ensure Bronze layer has complete, immutable source data with integrity validation
+# Layer: Bronze (Raw/Immutable)
+# Critical: Pipeline fails on violation
+# Warning: Logs but continues
+
+checks for bronze_house_fd_pdfs:
+  # COMPLETENESS CHECKS
+  
+  # Check 1: Bronze has data
+  - row_count > 0:
+      name: Bronze layer contains PDFs
+      severity: critical
+      description: Bronze layer must contain at least one PDF. Empty Bronze indicates ingestion failure.
+  
+  # Check 2: Expected minimum volume per year
+  - row_count > 1000:
+      name: Bronze has sufficient volume
+      severity: warning
+      description: Each year typically has 1000+ filings. Low counts may indicate partial ingestion.
+  
+  # FRESHNESS CHECKS
+  
+  # Check 3: Bronze data is recent
+  - freshness(upload_timestamp) < 48h:
+      name: Bronze data is fresh
+      severity: warning
+      description: Bronze data should be updated within last 48 hours for current year ingestion
+  
+  # INTEGRITY CHECKS
+  
+  # Check 4: SHA256 checksums present
+  - missing_count(sha256) = 0:
+      name: All PDFs have SHA256 checksums
+      severity: critical
+      description: Every PDF must have SHA256 for integrity validation and duplicate detection
+  
+  # Check 5: SHA256 checksums are valid format
+  - invalid_count(sha256) = 0:
+      valid format: regex ^[a-f0-9]{64}$
+      name: SHA256 checksums are valid
+      severity: critical
+      description: SHA256 must be 64 hex characters
+  
+  # UNIQUENESS CHECKS
+  
+  # Check 6: No duplicate doc_ids
+  - duplicate_count(doc_id) = 0:
+      name: No duplicate documents in Bronze
+      severity: critical
+      description: Each doc_id should appear only once per year. Duplicates indicate ingestion error.
+  
+  # Check 7: No duplicate SHA256 hashes
+  - duplicate_count(sha256) < 10:
+      name: Minimal duplicate file content
+      severity: warning
+      description: Different doc_ids should have unique content. Some duplicates expected for corrections.
+  
+  # FILE VALIDATION CHECKS
+  
+  # Check 8: PDFs are not empty
+  - invalid_count(file_size_bytes) = 0:
+      valid min: 1000
+      name: PDFs are not empty or corrupted
+      severity: critical
+      description: All PDFs must be at least 1KB. Smaller files indicate corruption or incomplete download.
+  
+  # Check 9: PDF sizes are realistic
+  - invalid_count(file_size_bytes) = 0:
+      valid max: 50000000
+      name: PDF sizes are within expected range
+      severity: warning
+      description: PDFs over 50MB are unusually large and may indicate processing issues
+  
+  # METADATA COMPLETENESS
+  
+  # Check 10: All PDFs have doc_id
+  - missing_count(doc_id) = 0:
+      name: All PDFs have document IDs
+      severity: critical
+      description: doc_id is the primary key and required for all processing
+  
+  # Check 11: All PDFs have filing year
+  - missing_count(filing_year) = 0:
+      name: All PDFs have filing year
+      severity: critical
+      description: filing_year is required for partitioning and processing
+  
+  # Check 12: Filing years are valid
+  - invalid_count(filing_year) = 0:
+      valid min: 2008
+      valid max: 2027
+      name: Filing years in valid range
+      severity: critical
+      description: House e-filing started in 2008. Years beyond current+1 are invalid.

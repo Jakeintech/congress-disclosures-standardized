@@ -168,7 +168,7 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations package-reprocess ## Package all Lambda functions
 
 
 package-ingest: ## Package house_fd_ingest_zip Lambda
@@ -340,6 +340,19 @@ package-compute-bill-trade-correlations: ## Package compute_bill_trade_correlati
 	@rm -rf $(LAMBDA_DIR)/compute_bill_trade_correlations/package
 	@aws s3 cp $(LAMBDA_DIR)/compute_bill_trade_correlations/function.zip s3://$(S3_BUCKET)/lambda-deployments/compute_bill_trade_correlations/function.zip
 	@echo "✓ Lambda package created and uploaded"
+
+package-reprocess: ## Package reprocess_filings Lambda (STORY-055)
+	@echo "Packaging reprocess_filings..."
+	@rm -rf $(LAMBDA_DIR)/reprocess_filings/package $(LAMBDA_DIR)/reprocess_filings/function.zip
+	@mkdir -p $(LAMBDA_DIR)/reprocess_filings/package
+	$(PIP) install -r $(LAMBDA_DIR)/reprocess_filings/requirements.txt -t $(LAMBDA_DIR)/reprocess_filings/package
+	@cp $(LAMBDA_DIR)/reprocess_filings/handler.py $(LAMBDA_DIR)/reprocess_filings/package/
+	@cp -r ingestion/lib $(LAMBDA_DIR)/reprocess_filings/package/lib
+	@cd $(LAMBDA_DIR)/reprocess_filings/package && zip -r ../function.zip . > /dev/null
+	@rm -rf $(LAMBDA_DIR)/reprocess_filings/package
+	@aws s3 cp $(LAMBDA_DIR)/reprocess_filings/function.zip s3://$(S3_BUCKET)/lambda-deployments/reprocess_filings/function.zip
+	@echo "✓ Lambda package created and uploaded"
+	@ls -lh $(LAMBDA_DIR)/reprocess_filings/function.zip | awk '{print "  Package size:", $$5}'
 
 ##@ Testing
 
@@ -973,3 +986,32 @@ package-congress-orchestrator: ## Package Congress Orchestrator Lambda
 	@rm -rf $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip"
 	@ls -lh $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip | awk '{print "  Package size:", $$5}'
+
+##@ Selective Reprocessing (STORY-055)
+
+reprocess-type-p: ## Reprocess Type P (PTR) filings for 2024-2025
+@echo "Reprocessing Type P filings for 2024-2025..."
+@aws lambda invoke \
+--function-name $(PROJECT_NAME)-reprocess-filings \
+--payload '{"filing_type":"type_p","year_range":[2024,2025],"extractor_version":"1.1.0"}' \
+/tmp/reprocess_output.json
+@cat /tmp/reprocess_output.json | jq '.'
+@rm /tmp/reprocess_output.json
+
+reprocess-dry-run: ## Dry run reprocessing (validate without executing)
+@echo "Dry run reprocessing Type P for 2024..."
+@aws lambda invoke \
+--function-name $(PROJECT_NAME)-reprocess-filings \
+--payload '{"filing_type":"type_p","year_range":[2024,2024],"extractor_version":"1.1.0","dry_run":true}' \
+/tmp/reprocess_output.json
+@cat /tmp/reprocess_output.json | jq '.'
+@rm /tmp/reprocess_output.json
+
+reprocess-compare: ## Reprocess with quality comparison
+@echo "Reprocessing with quality comparison..."
+@aws lambda invoke \
+--function-name $(PROJECT_NAME)-reprocess-filings \
+--payload '{"filing_type":"type_p","year_range":[2024,2024],"extractor_version":"1.1.0","comparison_mode":true}' \
+/tmp/reprocess_output.json
+@cat /tmp/reprocess_output.json | jq '.comparison'
+@rm /tmp/reprocess_output.json

@@ -279,6 +279,14 @@ See `docs/STATE_MACHINE_FLOW.md` for detailed diagrams.
   - Code-based extraction (NO AWS Textract - fully free!)
   - Outputs structured JSON to `silver/objects/`
 
+- **`reprocess_filings`** (`ingestion/lambdas/reprocess_filings/handler.py`) **[NEW - STORY-055]**
+  - Selective reprocessing of filings when extraction logic improves
+  - Targets specific filing types and year ranges
+  - Generates before/after quality comparison reports
+  - Stores multiple extraction versions side-by-side (no data loss)
+  - Supports version promotion/rollback for safe iteration
+  - See `ingestion/lambdas/reprocess_filings/README.md` for usage
+
 ### Gold Layer
 - Transformations run as **scripts** (not Lambdas) via `scripts/run_smart_pipeline.py`
 
@@ -445,6 +453,8 @@ The master orchestrator is `scripts/run_smart_pipeline.py`. It supports 4 modes:
 - **`metadata_tagger.py`**: Calculate quality scores for PDFs
 - **`simple_member_lookup.py`**: Fuzzy name matching against Congress.gov data
 - **`reference_data.py`**: Filing type codes, amount range mappings
+- **`version_utils.py`**: Version comparison, registry management (STORY-055)
+- **`version_comparison.py`**: Quality metrics calculation, comparison reports (STORY-055)
 
 ### Extraction Framework
 - **`extraction/ExtractionPipeline`**: Multi-strategy extraction with confidence scoring

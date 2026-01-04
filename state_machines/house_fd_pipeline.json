@@ -332,12 +332,12 @@
       "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CONSOLIDATE_CACHE}",
       "Comment": "Consolidate individual ticker cache JSONs into optimized Parquet",
       "ResultPath": "$.cache_consolidation_result",
-      "Next": "TransformToGoldParallel"
+      "Next": "BuildGoldDimensions"
     },
-    "TransformToGoldParallel": {
+    "BuildGoldDimensions": {
       "Type": "Parallel",
-      "Comment": "Build Gold dimensions and facts in parallel using optimized Tabular sources",
-      "ResultPath": "$.gold_results",
+      "Comment": "Build Gold dimension tables in parallel",
+      "ResultPath": "$.gold_dimensions_results",
       "Branches": [
         {
           "StartAt": "BuildDimMembers",
@@ -362,7 +362,64 @@
               "End": true
             }
           }
-        },
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyPipelineFailure"
+        }
+      ],
+      "Next": "ValidateDimensions"
+    },
+    "ValidateDimensions": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_VALIDATE_DIMENSIONS}",
+      "Comment": "Validate all dimension tables exist and have valid data",
+      "ResultPath": "$.validation_results",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyValidationFailure"
+        }
+      ],
+      "Next": "CheckValidationResults"
+    },
+    "CheckValidationResults": {
+      "Type": "Choice",
+      "Comment": "Check if dimension validation passed",
+      "Choices": [
+        {
+          "Variable": "$.validation_results.validation_passed",
+          "BooleanEquals": true,
+          "Next": "BuildGoldFacts"
+        }
+      ],
+      "Default": "NotifyValidationFailure"
+    },
+    "BuildGoldFacts": {
+      "Type": "Parallel",
+      "Comment": "Build Gold fact tables in parallel (after dimension validation)",
+      "ResultPath": "$.gold_facts_results",
+      "Branches": [
         {
           "StartAt": "BuildFactTransactions",
           "States": {
@@ -671,6 +728,35 @@
           "BackoffRate": 2.0
         }
       ]
+    },
+    "NotifyValidationFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for dimension validation failure",
+      "Parameters": {
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "Subject": "Dimension Validation Failed - House FD Pipeline",
+        "Message.$": "States.Format('Dimension validation failed.\n\nFailures: {}\n\nExecution ID: {}', States.JsonToString($.validation_results.failures), $$.Execution.Id)"
+      },
+      "Next": "FailDimensionValidation",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 6,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "FailDimensionValidation": {
+      "Type": "Fail",
+      "Comment": "Pipeline stopped due to dimension validation failure",
+      "Cause": "One or more dimension tables are missing or invalid",
+      "Error": "DimensionValidationFailed"
     },
     "QualityCheckFailed": {
       "Type": "Fail",

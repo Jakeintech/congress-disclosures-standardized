@@ -168,7 +168,7 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations package-validate-dimensions ## Package all Lambda functions
 
 
 package-ingest: ## Package house_fd_ingest_zip Lambda
@@ -340,6 +340,16 @@ package-compute-bill-trade-correlations: ## Package compute_bill_trade_correlati
 	@rm -rf $(LAMBDA_DIR)/compute_bill_trade_correlations/package
 	@aws s3 cp $(LAMBDA_DIR)/compute_bill_trade_correlations/function.zip s3://$(S3_BUCKET)/lambda-deployments/compute_bill_trade_correlations/function.zip
 	@echo "✓ Lambda package created and uploaded"
+
+package-validate-dimensions: ## Package validate_dimensions Lambda
+	@echo "Packaging validate_dimensions..."
+	@rm -rf $(LAMBDA_DIR)/validate_dimensions/dist $(LAMBDA_DIR)/validate_dimensions/function.zip
+	@mkdir -p $(LAMBDA_DIR)/validate_dimensions/dist
+	$(PIP) install -r $(LAMBDA_DIR)/validate_dimensions/requirements.txt -t $(LAMBDA_DIR)/validate_dimensions/dist
+	@cp $(LAMBDA_DIR)/validate_dimensions/handler.py $(LAMBDA_DIR)/validate_dimensions/dist/
+	@cd $(LAMBDA_DIR)/validate_dimensions/dist && zip -q -r ../function.zip .
+	@aws s3 cp $(LAMBDA_DIR)/validate_dimensions/function.zip s3://$(S3_BUCKET)/lambda-deployments/validate_dimensions/function.zip
+	@echo "✓ validate_dimensions packaged and uploaded"
 
 ##@ Testing
 

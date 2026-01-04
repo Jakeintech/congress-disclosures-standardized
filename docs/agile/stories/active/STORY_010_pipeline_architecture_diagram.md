@@ -14,15 +14,15 @@
 - **WHEN** I view the diagram
 - **THEN** It shows: EventBridge, Step Functions, Lambda, S3, SQS, SNS
 - **AND** Data flow from triggers → Bronze → Silver → Gold
-- **AND** All 47 Lambda functions categorized by phase
+- **AND** All 29 Lambda functions categorized by phase
 
 ## Technical Tasks
-- [ ] Create `docs/agile/diagrams/` directory
-- [ ] Design Mermaid diagram structure
-- [ ] Include all AWS services
-- [ ] Show data flow with arrows
-- [ ] Add color coding by layer (Bronze=blue, Silver=green, Gold=yellow)
-- [ ] Include legend
+- [x] Create `docs/agile/diagrams/` directory
+- [x] Design Mermaid diagram structure
+- [x] Include all AWS services
+- [x] Show data flow with arrows
+- [x] Add color coding by layer (Bronze=blue, Silver=green, Gold=yellow)
+- [x] Include legend
 
 ## Mermaid Diagram Structure
 ```mermaid

@@ -118,7 +118,7 @@ def lambda_handler(event, context):
     response = check_congress_api('bill', {'fromDateTime': from_date})
     
     if response['pagination']['count'] > 0:
-        update_watermark(data_type, datetime.utcnow().isoformat(), count)
+        update_watermark(data_type, datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'), count)
         return {"has_new_data": True}
     return {"has_new_data": False}
 ```

@@ -93,5 +93,8 @@ class TestCongressWatermarking:
         
         assert result['has_new_data'] is True
         assert result['watermark_status'] == 'new'
-        # Should use 5-year lookback
-        assert '2020' in result['from_date'] or '2019' in result['from_date']
+        # Should use 5-year lookback (current year - 5)
+        from datetime import datetime
+        current_year = datetime.now().year
+        expected_year = current_year - 5
+        assert str(expected_year) in result['from_date']

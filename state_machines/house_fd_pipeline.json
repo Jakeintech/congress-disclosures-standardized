@@ -633,7 +633,7 @@
       "Parameters": {
         "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
         "Subject": "Pipeline Failure - House FD Pipeline",
-        "Message.$": "States.Format('Pipeline failed. Error: {}', $.error)"
+        "Message.$": "States.Format('Pipeline failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
       },
       "Next": "PipelineFailed",
       "Retry": [

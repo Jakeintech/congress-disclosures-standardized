@@ -342,7 +342,76 @@
           "Next": "NotifyPipelineFailure"
         }
       ],
-      "Next": "BuildFactCosponsors"
+      "Next": "ValidateDimensions"
+    },
+    "ValidateDimensions": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_VALIDATE_DIMENSIONS}",
+      "Comment": "Validate all Gold dimension tables before building facts",
+      "ResultPath": "$.validation_results",
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.error",
+          "Next": "NotifyValidationFailure"
+        }
+      ],
+      "Next": "CheckValidationResults"
+    },
+    "CheckValidationResults": {
+      "Type": "Choice",
+      "Comment": "Check if dimension validation passed",
+      "Choices": [
+        {
+          "Variable": "$.validation_results.validation_passed",
+          "BooleanEquals": true,
+          "Next": "BuildFactCosponsors"
+        }
+      ],
+      "Default": "NotifyValidationFailure"
+    },
+    "NotifyValidationFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for dimension validation failure",
+      "Parameters": {
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "Subject": "Gold Layer Dimension Validation Failed",
+        "Message.$": "States.Format('Dimension validation failed.\n\nFailures: {}\n\nExecution ID: {}', States.JsonToString($.validation_results.failures), $$.Execution.Id)"
+      },
+      "Next": "FailDimensionValidation",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "FailDimensionValidation": {
+      "Type": "Fail",
+      "Error": "DimensionValidationFailed",
+      "Cause": "One or more dimension tables are missing or invalid"
     },
     "BuildFactCosponsors": {
       "Type": "Task",

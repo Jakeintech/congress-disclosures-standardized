@@ -168,7 +168,7 @@ output: ## Show Terraform outputs
 
 ##@ Lambda Packaging
 
-package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations package-reprocess ## Package all Lambda functions
+package-all: package-ingest package-index package-extract package-extract-structured package-seed package-seed-members package-quality package-validate-dimensions package-lda-ingest package-api package-pipeline-metrics package-check-house-fd package-check-lobbying package-compute-member-stats package-compute-bill-trade-correlations package-reprocess ## Package all Lambda functions
 
 
 package-ingest: ## Package house_fd_ingest_zip Lambda
@@ -245,6 +245,13 @@ package-quality: ## Package data_quality_validator Lambda
 	@cp -r ingestion/schemas $(LAMBDA_DIR)/data_quality_validator/package/ingestion/schemas
 	@cd $(LAMBDA_DIR)/data_quality_validator/package && zip -r ../function.zip . > /dev/null
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/data_quality_validator/function.zip"
+
+package-validate-dimensions: ## Package validate_dimensions Lambda
+	@echo "Packaging validate_dimensions..."
+	@rm -rf build/validate_dimensions.zip
+	@mkdir -p build
+	@cd $(LAMBDA_DIR)/validate_dimensions && zip -r ../../../build/validate_dimensions.zip handler.py > /dev/null
+	@echo "✓ Lambda package created: build/validate_dimensions.zip"
 
 package-lda-ingest: ## Package lda_ingest_filings Lambda
 	@echo "Packaging lda_ingest_filings..."
@@ -990,28 +997,28 @@ package-congress-orchestrator: ## Package Congress Orchestrator Lambda
 ##@ Selective Reprocessing (STORY-055)
 
 reprocess-type-p: ## Reprocess Type P (PTR) filings for 2024-2025
-@echo "Reprocessing Type P filings for 2024-2025..."
-@aws lambda invoke \
---function-name $(PROJECT_NAME)-reprocess-filings \
---payload '{"filing_type":"type_p","year_range":[2024,2025],"extractor_version":"1.1.0"}' \
-/tmp/reprocess_output.json
-@cat /tmp/reprocess_output.json | jq '.'
-@rm /tmp/reprocess_output.json
+	@echo "Reprocessing Type P filings for 2024-2025..."
+	@aws lambda invoke \
+	--function-name $(PROJECT_NAME)-reprocess-filings \
+	--payload '{"filing_type":"type_p","year_range":[2024,2025],"extractor_version":"1.1.0"}' \
+	/tmp/reprocess_output.json
+	@cat /tmp/reprocess_output.json | jq '.'
+	@rm /tmp/reprocess_output.json
 
 reprocess-dry-run: ## Dry run reprocessing (validate without executing)
-@echo "Dry run reprocessing Type P for 2024..."
-@aws lambda invoke \
---function-name $(PROJECT_NAME)-reprocess-filings \
---payload '{"filing_type":"type_p","year_range":[2024,2024],"extractor_version":"1.1.0","dry_run":true}' \
-/tmp/reprocess_output.json
-@cat /tmp/reprocess_output.json | jq '.'
-@rm /tmp/reprocess_output.json
+	@echo "Dry run reprocessing Type P for 2024..."
+	@aws lambda invoke \
+	--function-name $(PROJECT_NAME)-reprocess-filings \
+	--payload '{"filing_type":"type_p","year_range":[2024,2024],"extractor_version":"1.1.0","dry_run":true}' \
+	/tmp/reprocess_output.json
+	@cat /tmp/reprocess_output.json | jq '.'
+	@rm /tmp/reprocess_output.json
 
 reprocess-compare: ## Reprocess with quality comparison
-@echo "Reprocessing with quality comparison..."
-@aws lambda invoke \
---function-name $(PROJECT_NAME)-reprocess-filings \
---payload '{"filing_type":"type_p","year_range":[2024,2024],"extractor_version":"1.1.0","comparison_mode":true}' \
-/tmp/reprocess_output.json
-@cat /tmp/reprocess_output.json | jq '.comparison'
-@rm /tmp/reprocess_output.json
+	@echo "Reprocessing with quality comparison..."
+	@aws lambda invoke \
+	--function-name $(PROJECT_NAME)-reprocess-filings \
+	--payload '{"filing_type":"type_p","year_range":[2024,2024],"extractor_version":"1.1.0","comparison_mode":true}' \
+	/tmp/reprocess_output.json
+	@cat /tmp/reprocess_output.json | jq '.comparison'
+	@rm /tmp/reprocess_output.json

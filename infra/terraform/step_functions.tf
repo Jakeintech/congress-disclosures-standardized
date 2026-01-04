@@ -293,6 +293,31 @@ resource "aws_sfn_state_machine" "cross_dataset_correlation" {
   }
 }
 
+# Congress Data Platform - Unified Pipeline State Machine
+resource "aws_sfn_state_machine" "congress_data_platform" {
+  name     = "${var.project_name}-data-platform"
+  role_arn = aws_iam_role.step_functions_role.arn
+
+  definition = templatefile("${path.module}/../../state_machines/congress_data_platform.json", local.state_machine_vars)
+
+  logging_configuration {
+    log_destination        = "${aws_cloudwatch_log_group.step_functions_logs.arn}:*"
+    include_execution_data = true
+    level                  = "ALL"
+  }
+
+  tracing_configuration {
+    enabled = true
+  }
+
+  tags = {
+    Name        = "${var.project_name}-data-platform"
+    Project     = var.project_name
+    Environment = var.environment
+    Pipeline    = "unified"
+  }
+}
+
 # CloudWatch Log Group for Step Functions
 resource "aws_cloudwatch_log_group" "step_functions_logs" {
   name              = "/aws/vendedlogs/states/${var.project_name}-pipelines"
@@ -500,4 +525,14 @@ output "check_lobbying_updates_function_name" {
 output "check_congress_updates_function_name" {
   description = "Name of Check Congress Updates Lambda"
   value       = aws_lambda_function.check_congress_updates.function_name
+}
+
+output "congress_data_platform_arn" {
+  description = "ARN of Congress Data Platform (Unified) state machine"
+  value       = aws_sfn_state_machine.congress_data_platform.arn
+}
+
+output "congress_data_platform_name" {
+  description = "Name of Congress Data Platform (Unified) state machine"
+  value       = aws_sfn_state_machine.congress_data_platform.name
 }

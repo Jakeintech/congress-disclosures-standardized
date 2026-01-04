@@ -1,0 +1,542 @@
+{
+  "Comment": "Congress Data Platform - Unified Pipeline with Bronze → Silver → Gold orchestration",
+  "StartAt": "CheckExecutionType",
+  "States": {
+    "CheckExecutionType": {
+      "Type": "Choice",
+      "Comment": "Route initial_load to multi-year iterator, otherwise check for updates",
+      "Choices": [
+        {
+          "Variable": "$.execution_type",
+          "StringEquals": "initial_load",
+          "Next": "MultiYearIterator"
+        }
+      ],
+      "Default": "CheckForUpdates"
+    },
+    "MultiYearIterator": {
+      "Type": "Map",
+      "Comment": "Process multiple years in parallel for initial load",
+      "ItemsPath": "$.years",
+      "MaxConcurrency": 2,
+      "Iterator": {
+        "StartAt": "StartChildExecution",
+        "States": {
+          "StartChildExecution": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+            "Parameters": {
+              "StateMachineArn.$": "$$.StateMachine.Id",
+              "Input": {
+                "execution_type": "manual",
+                "year.$": "$"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "End": true
+    },
+    "CheckForUpdates": {
+      "Type": "Parallel",
+      "Comment": "Check all 3 data sources for updates in parallel",
+      "Branches": [
+        {
+          "StartAt": "CheckHouseFD",
+          "States": {
+            "CheckHouseFD": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CHECK_HOUSE_FD_UPDATES}",
+              "Comment": "Check House Clerk website for new financial disclosures",
+              "Parameters": {
+                "year.$": "$.year"
+              },
+              "ResultPath": "$.updates.house_fd",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.error",
+                  "Next": "CheckFailed"
+                }
+              ],
+              "End": true
+            },
+            "CheckFailed": {
+              "Type": "Pass",
+              "Comment": "Mark check as failed but continue with other sources",
+              "Result": {
+                "has_new_filings": false,
+                "status": "check_failed"
+              },
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "CheckCongress",
+          "States": {
+            "CheckCongress": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CHECK_CONGRESS_UPDATES}",
+              "Comment": "Check Congress.gov API for new bills and members",
+              "ResultPath": "$.updates.congress",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.error",
+                  "Next": "CheckCongressFailed"
+                }
+              ],
+              "End": true
+            },
+            "CheckCongressFailed": {
+              "Type": "Pass",
+              "Comment": "Mark check as failed but continue with other sources",
+              "Result": {
+                "has_new_data": false,
+                "status": "check_failed"
+              },
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "CheckLobbying",
+          "States": {
+            "CheckLobbying": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_CHECK_LOBBYING_UPDATES}",
+              "Comment": "Check Senate LDA database for new lobbying filings",
+              "Parameters": {
+                "year.$": "$.year",
+                "quarter": "all"
+              },
+              "ResultPath": "$.updates.lobbying",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.error",
+                  "Next": "CheckLobbyingFailed"
+                }
+              ],
+              "End": true
+            },
+            "CheckLobbyingFailed": {
+              "Type": "Pass",
+              "Comment": "Mark check as failed but continue with other sources",
+              "Result": {
+                "has_new_filings": false,
+                "status": "check_failed"
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "ResultPath": "$.update_checks",
+      "Next": "BronzeIngestion"
+    },
+    "BronzeIngestion": {
+      "Type": "Parallel",
+      "Comment": "Ingest data from all 3 sources in parallel to Bronze layer",
+      "Branches": [
+        {
+          "StartAt": "IngestHouseFD",
+          "States": {
+            "IngestHouseFD": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_HOUSE_FD_INGEST_ZIP}",
+              "Comment": "Download House FD ZIP file and upload to Bronze S3",
+              "Parameters": {
+                "year.$": "$.year",
+                "skip_existing": true
+              },
+              "ResultPath": "$.bronze.house_fd",
+              "TimeoutSeconds": 600,
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.Timeout"],
+                  "ResultPath": "$.error",
+                  "Next": "NotifyHouseFDTimeout"
+                },
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.error",
+                  "Next": "NotifyHouseFDFailure"
+                }
+              ],
+              "End": true
+            },
+            "NotifyHouseFDTimeout": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sns:publish",
+              "Comment": "Send SNS alert for House FD ingestion timeout",
+              "Parameters": {
+                "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+                "Subject": "Bronze Ingestion Timeout - House FD",
+                "Message.$": "States.Format('House FD Bronze ingestion timed out.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+              },
+              "Next": "HouseFDFailed",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 2,
+                  "BackoffRate": 2.0
+                }
+              ]
+            },
+            "NotifyHouseFDFailure": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sns:publish",
+              "Comment": "Send SNS alert for House FD ingestion failure",
+              "Parameters": {
+                "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+                "Subject": "Bronze Ingestion Failed - House FD",
+                "Message.$": "States.Format('House FD Bronze ingestion failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+              },
+              "Next": "HouseFDFailed",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 2,
+                  "BackoffRate": 2.0
+                }
+              ]
+            },
+            "HouseFDFailed": {
+              "Type": "Fail",
+              "Comment": "House FD Bronze ingestion failed",
+              "Error": "BronzeIngestionFailed",
+              "Cause": "Failed to ingest House FD data to Bronze layer"
+            }
+          }
+        },
+        {
+          "StartAt": "IngestCongress",
+          "States": {
+            "IngestCongress": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_FETCH_CONGRESS_BILLS}",
+              "Comment": "Fetch Congress.gov bills and members data to Bronze S3",
+              "Parameters": {
+                "entity_type": "bill",
+                "output_mode": "bronze_only",
+                "year.$": "$.year",
+                "mode": "full"
+              },
+              "ResultPath": "$.bronze.congress",
+              "TimeoutSeconds": 900,
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "CongressAPIRateLimitError",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 60,
+                  "MaxAttempts": 10,
+                  "BackoffRate": 1.5
+                },
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.Timeout"],
+                  "ResultPath": "$.error",
+                  "Next": "NotifyCongressTimeout"
+                },
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.error",
+                  "Next": "NotifyCongressFailure"
+                }
+              ],
+              "End": true
+            },
+            "NotifyCongressTimeout": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sns:publish",
+              "Comment": "Send SNS alert for Congress ingestion timeout",
+              "Parameters": {
+                "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+                "Subject": "Bronze Ingestion Timeout - Congress.gov",
+                "Message.$": "States.Format('Congress.gov Bronze ingestion timed out.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+              },
+              "Next": "CongressFailed",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 2,
+                  "BackoffRate": 2.0
+                }
+              ]
+            },
+            "NotifyCongressFailure": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sns:publish",
+              "Comment": "Send SNS alert for Congress ingestion failure",
+              "Parameters": {
+                "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+                "Subject": "Bronze Ingestion Failed - Congress.gov",
+                "Message.$": "States.Format('Congress.gov Bronze ingestion failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+              },
+              "Next": "CongressFailed",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 2,
+                  "BackoffRate": 2.0
+                }
+              ]
+            },
+            "CongressFailed": {
+              "Type": "Fail",
+              "Comment": "Congress.gov Bronze ingestion failed",
+              "Error": "BronzeIngestionFailed",
+              "Cause": "Failed to ingest Congress.gov data to Bronze layer"
+            }
+          }
+        },
+        {
+          "StartAt": "IngestLobbying",
+          "States": {
+            "IngestLobbying": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_DOWNLOAD_LOBBYING_XML}",
+              "Comment": "Download Senate LDA XML files to Bronze S3",
+              "Parameters": {
+                "filing_year.$": "$.year",
+                "filing_type": "all",
+                "entity_type": "all",
+                "skip_existing": true
+              },
+              "ResultPath": "$.bronze.lobbying",
+              "TimeoutSeconds": 600,
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException",
+                    "Lambda.AWSLambdaException"
+                  ],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.Timeout"],
+                  "ResultPath": "$.error",
+                  "Next": "NotifyLobbyingTimeout"
+                },
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.error",
+                  "Next": "NotifyLobbyingFailure"
+                }
+              ],
+              "End": true
+            },
+            "NotifyLobbyingTimeout": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sns:publish",
+              "Comment": "Send SNS alert for Lobbying ingestion timeout",
+              "Parameters": {
+                "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+                "Subject": "Bronze Ingestion Timeout - Lobbying",
+                "Message.$": "States.Format('Lobbying Bronze ingestion timed out.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+              },
+              "Next": "LobbyingFailed",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 2,
+                  "BackoffRate": 2.0
+                }
+              ]
+            },
+            "NotifyLobbyingFailure": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sns:publish",
+              "Comment": "Send SNS alert for Lobbying ingestion failure",
+              "Parameters": {
+                "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+                "Subject": "Bronze Ingestion Failed - Lobbying",
+                "Message.$": "States.Format('Lobbying Bronze ingestion failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+              },
+              "Next": "LobbyingFailed",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 2,
+                  "BackoffRate": 2.0
+                }
+              ]
+            },
+            "LobbyingFailed": {
+              "Type": "Fail",
+              "Comment": "Lobbying Bronze ingestion failed",
+              "Error": "BronzeIngestionFailed",
+              "Cause": "Failed to ingest Lobbying data to Bronze layer"
+            }
+          }
+        }
+      ],
+      "ResultPath": "$.bronze_results",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "NotifyBronzePhaseFailure"
+        }
+      ],
+      "Next": "PublishMetrics"
+    },
+    "NotifyBronzePhaseFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send SNS alert for Bronze phase failure",
+      "Parameters": {
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "Subject": "Pipeline Failure - Bronze Ingestion Phase",
+        "Message.$": "States.Format('Bronze ingestion phase failed.\n\nError: {}\n\nExecution ID: {}', $.error.Cause, $$.Execution.Id)"
+      },
+      "Next": "BronzePhaseFailed",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "BronzePhaseFailed": {
+      "Type": "Fail",
+      "Comment": "Bronze ingestion phase failed",
+      "Error": "BronzeIngestionPhaseFailed",
+      "Cause": "One or more Bronze ingestion sources failed"
+    },
+    "PublishMetrics": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
+      "Comment": "Publish pipeline metrics to CloudWatch via Lambda",
+      "Parameters": {
+        "pipeline": "congress_data_platform",
+        "phase": "bronze",
+        "status": "success",
+        "execution_id.$": "$$.Execution.Id",
+        "bronze_results.$": "$.bronze_results"
+      },
+      "ResultPath": "$.metrics_result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.metrics_error",
+          "Next": "PipelineSuccess"
+        }
+      ],
+      "Next": "PipelineSuccess"
+    },
+    "PipelineSuccess": {
+      "Type": "Succeed",
+      "Comment": "Bronze ingestion phase completed successfully"
+    }
+  },
+  "TimeoutSeconds": 7200
+}

@@ -82,7 +82,7 @@ class TestUpdateWatermark:
         item = call_args['Item']
         
         assert item['table_name'] == 'house_fd'
-        assert item['watermark_type'] == '2025'
+        assert item['watermark_type'] == 'year_2025'
         assert item['sha256'] == 'abc123'
         assert item['content_length'] == Decimal('1000000')
     

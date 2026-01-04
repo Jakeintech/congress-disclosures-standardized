@@ -10,7 +10,7 @@ import logging
 import urllib.request
 import hashlib
 import boto3
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 logger = logging.getLogger()
@@ -54,7 +54,7 @@ def update_watermark(year: int, sha256: str, last_modified: str, content_length:
                 'sha256': sha256,
                 'last_modified': last_modified,
                 'content_length': Decimal(str(content_length)),
-                'updated_at': datetime.utcnow().isoformat() + 'Z'
+                'updated_at': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             }
         )
         logger.info(f"Updated watermark for year {year}: {sha256[:16]}...")
@@ -111,7 +111,7 @@ def lambda_handler(event, context):
             "has_new_filings": False,
             "year": year,
             "error": f"Year outside lookback window (current - {LOOKBACK_YEARS} years)",
-            "checked_at": datetime.utcnow().isoformat() + "Z"
+            "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         }
     
     # House Clerk FD ZIP URL pattern
@@ -151,7 +151,7 @@ def lambda_handler(event, context):
                     "last_modified": last_modified,
                     "content_length": content_length,
                     "watermark_status": "updated",
-                    "checked_at": datetime.utcnow().isoformat() + "Z"
+                    "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                 }
             
             # Content length same, check SHA256
@@ -166,7 +166,7 @@ def lambda_handler(event, context):
                     "zip_url": zip_url,
                     "sha256": sha256,
                     "watermark_status": "unchanged",
-                    "checked_at": datetime.utcnow().isoformat() + "Z"
+                    "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                 }
             else:
                 logger.info(f"SHA256 differs: {watermark.get('sha256', '')[:16]}... -> {sha256[:16]}...")
@@ -180,7 +180,7 @@ def lambda_handler(event, context):
                     "last_modified": last_modified,
                     "content_length": content_length,
                     "watermark_status": "updated",
-                    "checked_at": datetime.utcnow().isoformat() + "Z"
+                    "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                 }
         else:
             # No watermark exists - first ingestion
@@ -196,7 +196,7 @@ def lambda_handler(event, context):
                 "last_modified": last_modified,
                 "content_length": content_length,
                 "watermark_status": "new",
-                "checked_at": datetime.utcnow().isoformat() + "Z"
+                "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             }
             
     except urllib.error.HTTPError as e:
@@ -207,7 +207,7 @@ def lambda_handler(event, context):
                 "year": year,
                 "zip_url": zip_url,
                 "error": "File not found (404)",
-                "checked_at": datetime.utcnow().isoformat() + "Z"
+                "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             }
         else:
             logger.error(f"HTTP error checking {zip_url}: {e}")
@@ -221,7 +221,7 @@ def lambda_handler(event, context):
             "year": year,
             "zip_url": zip_url,
             "error": f"Network error: {str(e)}",
-            "checked_at": datetime.utcnow().isoformat() + "Z"
+            "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         }
             
     except Exception as e:

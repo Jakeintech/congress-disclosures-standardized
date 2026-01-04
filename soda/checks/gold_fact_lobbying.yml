@@ -1,3 +1,112 @@
-checks for fact_lobbying:
-  - row_count > 0
-  - missing_count(filing_id) = 0
+# Gold Layer Quality Checks - Fact Lobbying
+# Purpose: Ensure Gold fact table has complete lobbying analytics with referential integrity
+# Layer: Gold (Query-Facing)
+# Critical: Pipeline fails on violation
+# Warning: Logs but continues
+
+checks for gold_fact_lobbying:
+  # SCHEMA VALIDATION
+  
+  # Check 1: Required columns present
+  - schema:
+      fail when required column missing:
+        - lobbying_key
+        - filing_id
+        - client_key
+        - registrant_key
+        - date_key
+        - issue_key
+        - filing_date
+        - income_amount
+        - expense_amount
+        - net_amount
+      fail when wrong type:
+        lobbying_key: integer
+        client_key: integer
+        registrant_key: integer
+        date_key: integer
+        income_amount: decimal
+        expense_amount: decimal
+      name: Fact lobbying has correct schema
+      severity: critical
+      description: Schema must follow star schema design with surrogate keys
+  
+  # COMPLETENESS CHECKS
+  
+  # Check 2: Fact table has data
+  - row_count > 0:
+      name: Fact lobbying contains records
+      severity: critical
+      description: Gold fact table must have lobbying records
+  
+  # Check 3: All records have filing_id
+  - missing_count(filing_id) = 0:
+      name: All records have filing IDs
+      severity: critical
+      description: filing_id links to source Silver data
+  
+  # PRIMARY KEY VALIDATION
+  
+  # Check 4: Lobbying keys are unique
+  - duplicate_count(lobbying_key) = 0:
+      name: Lobbying keys are unique
+      severity: critical
+      description: lobbying_key is the primary surrogate key
+  
+  # REFERENTIAL INTEGRITY
+  
+  # Check 5: Valid client dimension references
+  - values in (client_key) must exist in gold_dim_client (client_key):
+      name: All facts reference valid clients
+      severity: critical
+      description: Every fact must reference a valid client dimension record
+  
+  # Check 6: Valid registrant dimension references
+  - values in (registrant_key) must exist in gold_dim_registrant (registrant_key):
+      name: All facts reference valid registrants
+      severity: critical
+      description: Every fact must reference a valid registrant dimension record
+  
+  # Check 7: Valid date dimension references
+  - values in (date_key) must exist in gold_dim_dates (date_key):
+      name: All facts reference valid dates
+      severity: critical
+      description: Every fact must reference a valid date dimension record
+  
+  # FINANCIAL VALIDATION
+  
+  # Check 8: Income amounts are non-negative
+  - invalid_count(income_amount) = 0:
+      valid min: 0
+      name: Income amounts are non-negative
+      severity: critical
+      description: Lobbying income cannot be negative
+  
+  # Check 9: Expense amounts are non-negative
+  - invalid_count(expense_amount) = 0:
+      valid min: 0
+      name: Expense amounts are non-negative
+      severity: critical
+      description: Lobbying expenses cannot be negative
+  
+  # Check 10: Net amount calculated correctly
+  - net_amount = income_amount - expense_amount:
+      name: Net amount correctly calculated
+      severity: critical
+      description: Net amount must equal income minus expenses
+  
+  # FRESHNESS
+  
+  # Check 11: Gold layer is fresh
+  - freshness(etl_timestamp) < 12h:
+      name: Gold layer updated within 12 hours
+      severity: warning
+      description: Fact table should refresh within 12 hours of Silver updates
+  
+  # BUSINESS LOGIC
+  
+  # Check 12: Sufficient quarterly data
+  - row_count >= 10000:
+      name: Sufficient lobbying records
+      severity: warning
+      description: Expect at least 10K records per year across all quarters

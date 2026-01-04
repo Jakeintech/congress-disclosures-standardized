@@ -1,3 +1,98 @@
-checks for lobbying:
-  - row_count > 0
-  - missing_count(client_id) = 0
+# Silver Layer Quality Checks - Lobbying Disclosures
+# Purpose: Ensure Silver layer has valid lobbying disclosure data from Senate LDA
+# Layer: Silver (Normalized)
+# Critical: Pipeline fails on violation
+# Warning: Logs but continues
+
+checks for silver_lobbying:
+  # SCHEMA VALIDATION
+  
+  # Check 1: Required columns present
+  - schema:
+      fail when required column missing:
+        - filing_id
+        - client_id
+        - registrant_id
+        - filing_date
+        - filing_year
+        - filing_quarter
+        - income_amount
+        - expense_amount
+      fail when wrong type:
+        filing_id: string
+        filing_date: date
+        filing_year: integer
+        income_amount: decimal
+        expense_amount: decimal
+      name: Lobbying table has correct schema
+      severity: critical
+      description: Schema must match Senate LDA disclosure format
+  
+  # COMPLETENESS CHECKS
+  
+  # Check 2: Lobbying data exists
+  - row_count > 0:
+      name: Lobbying disclosures exist
+      severity: critical
+      description: Silver lobbying layer must contain disclosure records
+  
+  # Check 3: All filings have client_id
+  - missing_count(client_id) = 0:
+      name: All filings have client IDs
+      severity: critical
+      description: client_id is required for all lobbying disclosures
+  
+  # Check 4: All filings have registrant_id
+  - missing_count(registrant_id) = 0:
+      name: All filings have registrant IDs
+      severity: critical
+      description: registrant_id identifies lobbying firms and is required
+  
+  # DATE VALIDATION
+  
+  # Check 5: Filing dates are in valid range
+  - invalid_count(filing_date) = 0:
+      valid min: 2008-01-01
+      valid max: 2027-12-31
+      name: Filing dates in valid range
+      severity: critical
+      description: Lobbying disclosure data starts 2008. Future dates invalid.
+  
+  # Check 6: Filing quarters are valid
+  - invalid_count(filing_quarter) = 0:
+      valid values: ['Q1', 'Q2', 'Q3', 'Q4']
+      name: Filing quarters are valid
+      severity: critical
+      description: Quarter must be Q1, Q2, Q3, or Q4
+  
+  # FINANCIAL VALIDATION
+  
+  # Check 7: Income amounts are non-negative
+  - invalid_count(income_amount) = 0:
+      valid min: 0
+      name: Income amounts are non-negative
+      severity: critical
+      description: Lobbying income cannot be negative
+  
+  # Check 8: Expense amounts are non-negative
+  - invalid_count(expense_amount) = 0:
+      valid min: 0
+      name: Expense amounts are non-negative
+      severity: critical
+      description: Lobbying expenses cannot be negative
+  
+  # UNIQUENESS
+  
+  # Check 9: No duplicate filing IDs
+  - duplicate_count(filing_id) = 0:
+      name: Filing IDs are unique
+      severity: critical
+      description: Each filing should appear only once
+  
+  # FRESHNESS
+  
+  # Check 10: Lobbying data is recent
+  - freshness(silver_ingest_ts) < 48h:
+      name: Lobbying data updated within 48 hours
+      severity: warning
+      description: Silver layer should refresh regularly with new quarterly data

@@ -1,0 +1,138 @@
+# Silver Layer Quality Checks - Text Extraction
+# Purpose: Ensure text extraction quality, confidence scores, and content validation
+# Layer: Silver (Normalized)
+# Critical: Pipeline fails on violation
+# Warning: Logs but continues
+
+checks for silver_text_extractions:
+  # SCHEMA VALIDATION
+  
+  # Check 1: Required columns present
+  - schema:
+      fail when required column missing:
+        - doc_id
+        - extraction_method
+        - confidence_score
+        - text_length
+        - page_number
+        - extracted_text
+      fail when wrong type:
+        doc_id: string
+        confidence_score: decimal
+        text_length: integer
+        page_number: integer
+      name: Text extractions table has correct schema
+      severity: critical
+      description: Schema must match expected structure for text analysis
+  
+  # COMPLETENESS CHECKS
+  
+  # Check 2: Text extractions exist
+  - row_count > 0:
+      name: Text extractions exist
+      severity: critical
+      description: Silver text layer must contain at least one extracted text record
+  
+  # Check 3: All extractions have doc_id
+  - missing_count(doc_id) = 0:
+      name: All extractions have document IDs
+      severity: critical
+      description: doc_id links text to documents and is required
+  
+  # EXTRACTION METHOD DISTRIBUTION
+  
+  # Check 4: Extraction method is valid
+  - invalid_count(extraction_method) = 0:
+      valid values: ['direct_text', 'ocr', 'textract']
+      name: Extraction method is valid
+      severity: critical
+      description: Method must be one of the allowed extraction strategies
+  
+  # Check 5: Direct text is preferred method
+  - fraction_where(extraction_method = 'direct_text') > 0.70:
+      name: 70%+ direct text extraction
+      severity: info
+      description: Most PDFs should extract via direct_text (not OCR) for quality and speed
+  
+  # Check 6: OCR usage is tracked
+  - fraction_where(extraction_method = 'ocr') < 0.30:
+      name: Less than 30% OCR usage
+      severity: info
+      description: OCR indicates image-based PDFs. High OCR rates may indicate format changes.
+  
+  # CONFIDENCE SCORE VALIDATION
+  
+  # Check 7: Confidence scores are present
+  - missing_count(confidence_score) = 0:
+      name: All extractions have confidence scores
+      severity: critical
+      description: Confidence score is required for quality assessment
+  
+  # Check 8: Confidence scores are in valid range
+  - invalid_count(confidence_score) = 0:
+      valid min: 0.0
+      valid max: 1.0
+      name: Confidence scores between 0 and 1
+      severity: critical
+      description: Confidence score must be a probability between 0.0 and 1.0
+  
+  # Check 9: Average confidence is high
+  - avg(confidence_score) > 0.80:
+      name: Average confidence above 80%
+      severity: warning
+      description: Text extraction confidence should average above 80% for quality data
+  
+  # Check 10: High confidence extractions dominate
+  - fraction_where(confidence_score >= 0.90) > 0.70:
+      name: 70%+ high-confidence extractions
+      severity: warning
+      description: Most extractions should have 90%+ confidence for reliable text
+  
+  # TEXT CONTENT VALIDATION
+  
+  # Check 11: Extracted text is not empty
+  - missing_count(extracted_text) = 0:
+      name: All records have extracted text
+      severity: critical
+      description: extracted_text field is required even if extraction failed (may be empty string)
+  
+  # Check 12: Text has meaningful length
+  - invalid_count(text_length) = 0:
+      valid min: 50
+      name: Extracted text has meaningful length
+      severity: warning
+      description: Text should be at least 50 characters. Shorter text indicates poor extraction or blank pages.
+  
+  # Check 13: Text length matches actual content
+  - invalid_count(text_length - length(extracted_text)) = 0:
+      valid min: -10
+      valid max: 10
+      name: Text length field matches actual text
+      severity: warning
+      description: text_length metadata should match actual extracted_text length within 10 chars
+  
+  # PAGE VALIDATION
+  
+  # Check 14: Page numbers are valid
+  - invalid_count(page_number) = 0:
+      valid min: 1
+      valid max: 500
+      name: Page numbers are realistic
+      severity: warning
+      description: Page numbers should be 1-500. Outside this range indicates parsing errors.
+  
+  # REFERENTIAL INTEGRITY
+  
+  # Check 15: Text references valid documents
+  - values in (doc_id) must exist in silver_documents (doc_id):
+      name: Text extractions reference valid documents
+      severity: critical
+      description: Every text extraction must reference a valid Silver document
+  
+  # FRESHNESS CHECKS
+  
+  # Check 16: Text extraction is recent
+  - freshness(extraction_ts) < 12h:
+      name: Text extracted within 12 hours
+      severity: warning
+      description: Text should be extracted within 12 hours of document ingestion

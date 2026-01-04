@@ -15,40 +15,63 @@ checks for gold_dim_member:
         valid_from: date
         valid_to: date
         is_current: boolean
+      name: Member dimension has correct SCD Type 2 schema
+      severity: critical
+      description: SCD Type 2 structure is required for historical member tracking
 
   # Uniqueness
   - duplicate_count(member_key) = 0:
       name: Member keys must be unique
+      severity: critical
+      description: member_key is surrogate primary key. Duplicates break joins.
 
   # SCD Type 2 validation
   - missing_count(valid_from) = 0:
       name: All records must have valid_from date
+      severity: critical
+      description: SCD Type 2 requires valid_from for temporal queries
 
   - missing_count(valid_to) = 0:
       name: All records must have valid_to date
+      severity: critical
+      description: SCD Type 2 requires valid_to for temporal queries
 
   - valid_from <= valid_to:
       name: Valid from must be before valid to
+      severity: critical
+      description: Temporal logic requires valid_from <= valid_to
 
   # Data quality
   - invalid_count(party) = 0:
       valid values: ['D', 'R', 'I', 'Democrat', 'Republican', 'Independent']
       name: Party must be valid code
+      severity: critical
+      description: Party code is required for political analysis
 
   - invalid_count(state) = 0:
       valid format: regex ^[A-Z]{2}$
       name: State must be 2-letter code
+      severity: critical
+      description: State code must be standard USPS abbreviation
 
   # Business rules
   - row_count where is_current = true >= 500:
       name: At least 500 current members
+      severity: warning
+      description: Expect 535 current members (435 House + 100 Senate). Low counts indicate refresh issue.
 
   - duplicate_count(bioguide_id) where is_current = true = 0:
       name: Only one current record per bioguide_id
+      severity: critical
+      description: SCD Type 2 allows only one is_current=true per member
 
   # Missing values
   - missing_count(bioguide_id) = 0:
       name: All members must have bioguide ID
+      severity: critical
+      description: bioguide_id is the natural key for member lookups
 
   - missing_count(full_name) = 0:
       name: All members must have name
+      severity: critical
+      description: full_name is required for user-facing displays

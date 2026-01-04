@@ -1,0 +1,112 @@
+# Silver Layer Quality Checks - Documents
+# Purpose: Ensure Silver layer documents have valid extraction metadata and processing status
+# Layer: Silver (Normalized)
+# Critical: Pipeline fails on violation
+# Warning: Logs but continues
+
+checks for silver_documents:
+  # SCHEMA VALIDATION
+  
+  # Check 1: Required columns present
+  - schema:
+      fail when required column missing:
+        - doc_id
+        - filing_year
+        - filing_type
+        - pdf_url
+        - extraction_status
+        - extraction_method
+        - page_count
+        - file_size_bytes
+      fail when wrong type:
+        doc_id: string
+        filing_year: integer
+        page_count: integer
+        file_size_bytes: integer
+      name: Documents table has correct schema
+      severity: critical
+      description: Schema must match expected structure for downstream processing
+  
+  # COMPLETENESS CHECKS
+  
+  # Check 2: All documents have IDs
+  - missing_count(doc_id) = 0:
+      name: All documents have doc_id
+      severity: critical
+      description: doc_id is the primary key linking Bronze to Silver
+  
+  # Check 3: Row count matches Bronze
+  - row_count >= 100000:
+      name: Sufficient documents in Silver layer
+      severity: warning
+      description: Expect 100K+ total documents across all years
+  
+  # EXTRACTION STATUS CHECKS
+  
+  # Check 4: Extraction status is valid
+  - invalid_count(extraction_status) = 0:
+      valid values: ['success', 'failed', 'pending', 'skipped']
+      name: Extraction status has valid values
+      severity: critical
+      description: Status must be one of the allowed values
+  
+  # Check 5: High extraction success rate
+  - fraction_where(extraction_status = 'success') > 0.90:
+      name: 90%+ extraction success rate
+      severity: warning
+      description: At least 90% of PDFs should extract successfully. Lower rates indicate quality issues.
+  
+  # Check 6: Failed extractions are tracked
+  - fraction_where(extraction_status = 'failed') < 0.05:
+      name: Less than 5% failed extractions
+      severity: warning
+      description: Failed extractions should be minimal. Higher rates require investigation.
+  
+  # EXTRACTION METHOD VALIDATION
+  
+  # Check 7: Extraction method is valid
+  - invalid_count(extraction_method) = 0:
+      valid values: ['direct_text', 'ocr', 'textract', 'none']
+      name: Extraction method is valid
+      severity: critical
+      description: Method must be one of the allowed extraction strategies
+  
+  # Check 8: Prefer direct text extraction
+  - fraction_where(extraction_method = 'direct_text') > 0.70:
+      name: 70%+ direct text extraction
+      severity: info
+      description: Most PDFs should extract via direct_text (not OCR). Monitors PDF quality trends.
+  
+  # PDF METADATA VALIDATION
+  
+  # Check 9: Page counts are realistic
+  - invalid_count(page_count) = 0:
+      valid min: 1
+      valid max: 500
+      name: Page counts are realistic
+      severity: warning
+      description: PDFs should have 1-500 pages. Outside this range may indicate parsing errors.
+  
+  # Check 10: File sizes match Bronze
+  - invalid_count(file_size_bytes) = 0:
+      valid min: 1000
+      valid max: 50000000
+      name: File sizes are consistent with Bronze
+      severity: warning
+      description: File sizes should match Bronze layer validation (1KB-50MB)
+  
+  # REFERENTIAL INTEGRITY
+  
+  # Check 11: Documents reference Bronze PDFs
+  - values in (doc_id) must exist in bronze_house_fd_pdfs (doc_id):
+      name: All documents have corresponding Bronze PDFs
+      severity: critical
+      description: Every Silver document must reference a valid Bronze PDF
+  
+  # FRESHNESS CHECKS
+  
+  # Check 12: Silver extraction is recent
+  - freshness(silver_ingest_ts) < 24h:
+      name: Silver layer updated within 24 hours
+      severity: warning
+      description: Documents should be extracted within 24 hours of Bronze ingestion

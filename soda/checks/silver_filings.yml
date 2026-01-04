@@ -13,38 +13,57 @@ checks for silver_filings:
         doc_id: string
         filing_year: integer
         filing_date: date
+      name: Filings table has correct schema
+      severity: critical
+      description: Schema must match expected structure for all filing queries
 
   # Uniqueness
   - duplicate_count(doc_id) = 0:
       name: Doc IDs must be unique
+      severity: critical
+      description: doc_id is primary key. Duplicates indicate ingestion error.
 
   # Referential integrity
   - invalid_count(filing_type) = 0:
       valid values: ['P', 'A', 'T', 'X', 'D', 'W']
       name: Filing type must be valid code
+      severity: critical
+      description: Filing type determines extraction logic. Invalid codes break processing.
 
   # Data validity
   - invalid_count(filing_year) = 0:
       valid min: 2008
       valid max: 2026
       name: Filing year in valid range
+      severity: critical
+      description: House e-filing started 2008. Invalid years break partitioning.
 
   - invalid_count(filing_date) = 0:
       valid min: 2008-01-01
       valid max: 2026-12-31
       name: Filing date in valid range
+      severity: critical
+      description: Filing dates must be within e-filing era
 
   # Missing values
   - missing_count(bioguide_id) < 100:
       name: Most filings have bioguide IDs
+      severity: warning
+      description: bioguide_id enables member lookups. Some early filings may lack this.
 
   - missing_count(filing_date) = 0:
       name: All filings must have date
+      severity: critical
+      description: filing_date is required for all time-based queries
 
   # Freshness
   - freshness(silver_ingest_ts) < 24h:
       name: Silver layer updated daily
+      severity: warning
+      description: Silver should refresh within 24 hours of Bronze ingestion
 
   # Anomaly detection
   - anomaly score for row_count < 3:
       name: Row count within expected range
+      severity: info
+      description: Detects unusual spikes/drops in filing volume

@@ -320,9 +320,10 @@ gh run view <run_id> --log
 
 ## Related Documentation
 
-- [State Machine Flow](STATE_MACHINE_FLOW.md) - Detailed pipeline architecture
-- [Deployment Guide](DEPLOYMENT.md) - Infrastructure setup
-- [CLAUDE.md](../CLAUDE.md) - Development context and architecture
+- [State Machine Flow](STATE_MACHINE_FLOW.md) - Detailed pipeline architecture (if available)
+- [Deployment Guide](DEPLOYMENT.md) - Infrastructure setup (if available)
+- [CLAUDE.md](../CLAUDE.md) - AI agent development context and repository architecture
+- [Architecture Documentation](ARCHITECTURE.md) - Overall system design (if available)
 
 ## Support
 

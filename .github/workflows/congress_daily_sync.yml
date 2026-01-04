@@ -37,15 +37,23 @@ jobs:
         echo "Execution started: $EXECUTION_ARN"
         
         # Wait for completion with timeout (2 hours max)
-        TIMEOUT=$((SECONDS + 7200))
+        START_TIME=$(date +%s)
+        TIMEOUT_SECONDS=7200
         
-        while [ $SECONDS -lt $TIMEOUT ]; do
+        while true; do
+          ELAPSED=$(($(date +%s) - START_TIME))
+          
+          if [ $ELAPSED -ge $TIMEOUT_SECONDS ]; then
+            echo "⏱️ Pipeline execution timed out after $ELAPSED seconds"
+            exit 1
+          fi
+          
           STATUS=$(aws stepfunctions describe-execution \
             --execution-arn "$EXECUTION_ARN" \
             --query 'status' \
             --output text)
           
-          echo "Current status: $STATUS"
+          echo "[$ELAPSED s] Current status: $STATUS"
           
           if [ "$STATUS" = "SUCCEEDED" ]; then
             echo "✅ Pipeline completed successfully"
@@ -78,9 +86,6 @@ jobs:
           # Wait 30 seconds before checking again
           sleep 30
         done
-        
-        echo "⏱️ Pipeline execution timed out after 2 hours"
-        exit 1
 
     - name: Upload Logs to S3
       if: always()

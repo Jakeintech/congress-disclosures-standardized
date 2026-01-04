@@ -10,9 +10,19 @@ logger = logging.getLogger(__name__)
 
 # Environment variables
 S3_REGION = os.getenv("AWS_REGION", "us-east-1")
+AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+PROJECT_NAME = os.getenv("PROJECT_NAME", "congress-disclosures")
+
+# Validate required environment variables
+if not AWS_ACCOUNT_ID:
+    logger.error("AWS_ACCOUNT_ID environment variable is required")
+    import sys
+    sys.exit(1)
+
 DYNAMODB_TABLE = "house_fd_documents"
 # Queue URL from previous command output
-QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-structured-extraction-queue-v2"
+QUEUE_URL = f"https://sqs.{S3_REGION}.amazonaws.com/{AWS_ACCOUNT_ID}/{PROJECT_NAME}-{ENVIRONMENT}-structured-extraction-queue-v2"
 
 dynamodb = boto3.resource("dynamodb", region_name=S3_REGION)
 sqs = boto3.client("sqs", region_name=S3_REGION)

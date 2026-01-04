@@ -5,6 +5,7 @@ Reprocess Type P filings by sending messages to the extraction queue.
 import boto3
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -12,9 +13,20 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Environment variables
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+AWS_ACCOUNT_ID = os.environ.get('AWS_ACCOUNT_ID')
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'congress-disclosures')
+
+# Validate required environment variables
+if not AWS_ACCOUNT_ID:
+    logger.error("AWS_ACCOUNT_ID environment variable is required")
+    sys.exit(1)
+
 # Config
 S3_BUCKET = "congress-disclosures-standardized"
-QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-code-extraction-queue"
+QUEUE_URL = f"https://sqs.{AWS_REGION}.amazonaws.com/{AWS_ACCOUNT_ID}/{PROJECT_NAME}-{ENVIRONMENT}-code-extraction-queue"
 
 s3 = boto3.client('s3')
 sqs = boto3.client('sqs')

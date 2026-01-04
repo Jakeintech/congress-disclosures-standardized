@@ -32,7 +32,7 @@ for func in "${FUNCTIONS[@]}"; do
     mkdir -p "$PKG_DIR"
     
     # Note: Dependencies like pydantic are now provided by Lambda Layer
-    # arn:aws:lambda:us-east-1:464813693153:layer:pydantic-2-10-4:1
+    # Configure layer ARN via TF_VAR_pydantic_layer_arn environment variable
     
     # Copy handler
     cp "$API_LAMBDA_DIR/$func/handler.py" "$PKG_DIR/"

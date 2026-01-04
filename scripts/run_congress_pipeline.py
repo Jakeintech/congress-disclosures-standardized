@@ -33,7 +33,15 @@ logger = logging.getLogger(__name__)
 # Config
 BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardized')
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+AWS_ACCOUNT_ID = os.environ.get('AWS_ACCOUNT_ID')
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'congress-disclosures')
 SCRIPTS_DIR = Path(__file__).parent
+
+# Validate required environment variables
+if not AWS_ACCOUNT_ID:
+    logger.error("AWS_ACCOUNT_ID environment variable is required")
+    sys.exit(1)
 
 
 def get_lambda_client():
@@ -159,11 +167,11 @@ def run_full_pipeline(congress: int = None, wait: bool = True):
     # Step 2: Wait for fetch queue to drain (optional)
     if wait:
         logger.info("\n⏳ STEP 2: Waiting for ingestion to complete...")
-        fetch_queue_url = f"https://sqs.{AWS_REGION}.amazonaws.com/464813693153/congress-disclosures-development-congress-fetch-queue"
+        fetch_queue_url = f"https://sqs.{AWS_REGION}.amazonaws.com/{AWS_ACCOUNT_ID}/{PROJECT_NAME}-{ENVIRONMENT}-congress-fetch-queue"
         wait_for_queue_drain(fetch_queue_url, timeout_seconds=7200)  # 2 hours max
         
         # Also wait for Silver queue
-        silver_queue_url = f"https://sqs.{AWS_REGION}.amazonaws.com/464813693153/congress-disclosures-development-congress-silver-queue"
+        silver_queue_url = f"https://sqs.{AWS_REGION}.amazonaws.com/{AWS_ACCOUNT_ID}/{PROJECT_NAME}-{ENVIRONMENT}-congress-silver-queue"
         wait_for_queue_drain(silver_queue_url, timeout_seconds=1800)  # 30 min max
     
     # Step 3: Build Gold layer
@@ -207,7 +215,7 @@ def run_incremental_pipeline():
     
     # Step 2: Wait briefly for processing
     logger.info("\n⏳ STEP 2: Waiting for processing (5 min max)...")
-    silver_queue_url = f"https://sqs.{AWS_REGION}.amazonaws.com/464813693153/congress-disclosures-development-congress-silver-queue"
+    silver_queue_url = f"https://sqs.{AWS_REGION}.amazonaws.com/{AWS_ACCOUNT_ID}/{PROJECT_NAME}-{ENVIRONMENT}-congress-silver-queue"
     wait_for_queue_drain(silver_queue_url, timeout_seconds=300, poll_interval=15)
     
     # Step 3: Rebuild Gold & Analytics

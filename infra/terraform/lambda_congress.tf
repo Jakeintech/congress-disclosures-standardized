@@ -24,6 +24,10 @@ resource "aws_lambda_function" "congress_fetch_entity" {
   environment {
     variables = {
       S3_BUCKET_NAME             = aws_s3_bucket.data_lake.id
+      AWS_REGION                 = var.aws_region
+      AWS_ACCOUNT_ID             = data.aws_caller_identity.current.account_id
+      ENVIRONMENT                = var.environment
+      PROJECT_NAME               = var.project_name
       CONGRESS_API_KEY           = "" # Placeholder - will be overridden by SSM parameter at runtime
       CONGRESS_API_KEY_SSM_PATH  = local.congress_api_key_ssm_path
       CONGRESS_API_BASE_URL      = var.congress_api_base_url
@@ -137,6 +141,10 @@ resource "aws_lambda_function" "congress_orchestrator" {
   environment {
     variables = {
       S3_BUCKET_NAME              = aws_s3_bucket.data_lake.id
+      AWS_REGION                  = var.aws_region
+      AWS_ACCOUNT_ID              = data.aws_caller_identity.current.account_id
+      ENVIRONMENT                 = var.environment
+      PROJECT_NAME                = var.project_name
       CONGRESS_API_KEY_SSM_PATH   = local.congress_api_key_ssm_path
       CONGRESS_API_BASE_URL       = var.congress_api_base_url
       CONGRESS_FETCH_QUEUE_URL    = var.enable_congress_pipeline ? aws_sqs_queue.congress_fetch_queue[0].url : ""
@@ -226,6 +234,10 @@ resource "aws_lambda_function" "congress_bronze_to_silver" {
   environment {
     variables = {
       S3_BUCKET_NAME   = aws_s3_bucket.data_lake.id
+      AWS_REGION       = var.aws_region
+      AWS_ACCOUNT_ID   = data.aws_caller_identity.current.account_id
+      ENVIRONMENT      = var.environment
+      PROJECT_NAME     = var.project_name
       LOG_LEVEL        = "INFO"
       PYTHONUNBUFFERED = "1"
       TZ               = "UTC"

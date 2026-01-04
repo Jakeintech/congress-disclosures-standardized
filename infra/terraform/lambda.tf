@@ -21,6 +21,10 @@ resource "aws_lambda_function" "ingest_zip" {
     variables = {
       S3_BUCKET_NAME     = aws_s3_bucket.data_lake.id
       S3_BRONZE_PREFIX   = "bronze"
+      AWS_REGION         = var.aws_region
+      AWS_ACCOUNT_ID     = data.aws_caller_identity.current.account_id
+      ENVIRONMENT        = var.environment
+      PROJECT_NAME       = var.project_name
       SQS_QUEUE_URL      = aws_sqs_queue.extraction_queue.url
       EXTRACTION_VERSION = var.extraction_version
       LOG_LEVEL          = "INFO"
@@ -85,6 +89,10 @@ resource "aws_lambda_function" "index_to_silver" {
       S3_BUCKET_NAME     = aws_s3_bucket.data_lake.id
       S3_BRONZE_PREFIX   = "bronze"
       S3_SILVER_PREFIX   = "silver"
+      AWS_REGION         = var.aws_region
+      AWS_ACCOUNT_ID     = data.aws_caller_identity.current.account_id
+      ENVIRONMENT        = var.environment
+      PROJECT_NAME       = var.project_name
       EXTRACTION_VERSION = var.extraction_version
       # Provide SQS queue URL so index-to-silver can enqueue extraction jobs
       EXTRACTION_QUEUE_URL = aws_sqs_queue.extraction_queue.url
@@ -102,11 +110,11 @@ resource "aws_lambda_function" "index_to_silver" {
   }
 
   # Use AWS Data Wrangler layer for pandas/pyarrow/numpy
-  layers = concat(
+  layers = compact(concat(
     var.lambda_layer_arns,
     ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"],
-    ["arn:aws:lambda:us-east-1:464813693153:layer:python-custom-dependencies:3"]
-  )
+    var.python_custom_dependencies_layer_arn != "" ? [var.python_custom_dependencies_layer_arn] : []
+  ))
 
 
   tags = merge(
@@ -159,6 +167,10 @@ resource "aws_lambda_function" "extract_document" {
       S3_BUCKET_NAME                  = aws_s3_bucket.data_lake.id
       S3_BRONZE_PREFIX                = "bronze"
       S3_SILVER_PREFIX                = "silver"
+      AWS_REGION                      = var.aws_region
+      AWS_ACCOUNT_ID                  = data.aws_caller_identity.current.account_id
+      ENVIRONMENT                     = var.environment
+      PROJECT_NAME                    = var.project_name
       EXTRACTION_VERSION              = var.extraction_version
       STRUCTURED_EXTRACTION_QUEUE_URL = aws_sqs_queue.structured_extraction_queue.id
       CODE_EXTRACTION_QUEUE_URL       = aws_sqs_queue.code_extraction_queue.id
@@ -176,11 +188,11 @@ resource "aws_lambda_function" "extract_document" {
     mode = var.enable_xray_tracing ? "Active" : "PassThrough"
   }
 
-  layers = concat(
+  layers = compact(concat(
     var.lambda_layer_arns,
     ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"],
-    ["arn:aws:lambda:us-east-1:464813693153:layer:python-custom-dependencies:3"] # Custom layer for jsonschema, etc.
-  )
+    var.python_custom_dependencies_layer_arn != "" ? [var.python_custom_dependencies_layer_arn] : [] # Custom layer for jsonschema, etc.
+  ))
 
 
   tags = merge(
@@ -273,6 +285,10 @@ resource "aws_lambda_function" "gold_seed" {
   environment {
     variables = {
       S3_BUCKET_NAME  = aws_s3_bucket.data_lake.id
+      AWS_REGION      = var.aws_region
+      AWS_ACCOUNT_ID  = data.aws_caller_identity.current.account_id
+      ENVIRONMENT     = var.environment
+      PROJECT_NAME    = var.project_name
       SEED_START_YEAR = "2008"
       SEED_END_YEAR   = "2030"
       LOG_LEVEL       = "INFO"
@@ -337,6 +353,10 @@ resource "aws_lambda_function" "gold_seed_members" {
   environment {
     variables = {
       S3_BUCKET_NAME             = aws_s3_bucket.data_lake.id
+      AWS_REGION                 = var.aws_region
+      AWS_ACCOUNT_ID             = data.aws_caller_identity.current.account_id
+      ENVIRONMENT                = var.environment
+      PROJECT_NAME               = var.project_name
       SSM_CONGRESS_API_KEY_PARAM = local.ssm_congress_api_key_param
       DIM_MEMBERS_TARGET_YEAR    = "${formatdate("YYYY", timestamp())}"
       LOG_LEVEL                  = "INFO"
@@ -403,6 +423,10 @@ resource "aws_lambda_function" "data_quality_validator" {
     variables = {
       S3_BUCKET_NAME   = aws_s3_bucket.data_lake.id
       S3_SILVER_PREFIX = "silver"
+      AWS_REGION       = var.aws_region
+      AWS_ACCOUNT_ID   = data.aws_caller_identity.current.account_id
+      ENVIRONMENT      = var.environment
+      PROJECT_NAME     = var.project_name
       LOG_LEVEL        = "INFO"
     }
   }

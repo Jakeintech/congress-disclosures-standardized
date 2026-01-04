@@ -213,9 +213,21 @@ variable "budget_daily_limit" {
 }
 
 variable "tesseract_layer_arn" {
-  description = "ARN of Lambda Layer containing Tesseract binaries"
+  description = "ARN of Lambda Layer containing Tesseract binaries. Set to empty string to disable."
   type        = string
-  default     = "arn:aws:lambda:us-east-1:464813693153:layer:tesseract-ocr:2"
+  default     = ""  # Changed from hardcoded account ID - users must provide their own layer ARN
+}
+
+variable "python_custom_dependencies_layer_arn" {
+  description = "ARN of Lambda Layer containing custom Python dependencies (jsonschema, etc). Set to empty string to disable."
+  type        = string
+  default     = ""  # Users must provide their own layer ARN
+}
+
+variable "pydantic_layer_arn" {
+  description = "ARN of Lambda Layer containing Pydantic v2.10.4. Set to empty string to disable."
+  type        = string
+  default     = ""  # Users must provide their own layer ARN
 }
 
 variable "alert_phone_number" {

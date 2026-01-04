@@ -7,13 +7,25 @@ Uses S3 metadata tagging to avoid reprocessing.
 import boto3
 import json
 import os
+import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
+
+# Environment variables
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+AWS_ACCOUNT_ID = os.environ.get('AWS_ACCOUNT_ID')
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'congress-disclosures')
+
+# Validate required environment variables
+if not AWS_ACCOUNT_ID:
+    print("ERROR: AWS_ACCOUNT_ID environment variable is required", file=sys.stderr)
+    sys.exit(1)
 
 S3_BUCKET = 'congress-disclosures-standardized'
 BRONZE_PREFIX = 'bronze/house/financial/year=2025/pdfs/2025/'
 SILVER_PREFIX = 'silver/house/financial/documents/year=2025/'
-SQS_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-queue'
+SQS_QUEUE_URL = f'https://sqs.{AWS_REGION}.amazonaws.com/{AWS_ACCOUNT_ID}/{PROJECT_NAME}-{ENVIRONMENT}-extract-queue'
 
 s3 = boto3.client('s3', region_name='us-east-1')
 sqs = boto3.client('sqs', region_name='us-east-1')

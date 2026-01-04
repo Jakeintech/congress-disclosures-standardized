@@ -39,13 +39,17 @@ locals {
     runtime     = "python3.11"
     timeout     = 29 # API Gateway max for synchronous invocation
     memory_size = 512
-    layers = [
+    layers = compact([
       "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24", # AWS Data Wrangler (pandas, numpy, pyarrow)
-      "arn:aws:lambda:us-east-1:464813693153:layer:pydantic-2-10-4:1",          # Pydantic v2.10.4
+      var.pydantic_layer_arn != "" ? var.pydantic_layer_arn : null,          # Pydantic v2.10.4
       aws_lambda_layer_version.api_duckdb_layer.arn # Custom DuckDB layer
-    ]
+    ])
     environment_variables = {
       S3_BUCKET_NAME        = aws_s3_bucket.data_lake.id
+      AWS_REGION            = var.aws_region
+      AWS_ACCOUNT_ID        = data.aws_caller_identity.current.account_id
+      ENVIRONMENT           = var.environment
+      PROJECT_NAME          = var.project_name
       LOG_LEVEL             = "INFO"
       CONGRESS_GOV_API_KEY  = data.aws_ssm_parameter.congress_api_key.value
     }

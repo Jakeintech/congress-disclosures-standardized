@@ -986,3 +986,32 @@ package-congress-orchestrator: ## Package Congress Orchestrator Lambda
 	@rm -rf $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip"
 	@ls -lh $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip | awk '{print "  Package size:", $$5}'
+
+##@ Selective Reprocessing (STORY-055)
+
+reprocess-type-p: ## Reprocess Type P (PTR) filings for 2024-2025
+@echo "Reprocessing Type P filings for 2024-2025..."
+@aws lambda invoke \
+--function-name $(PROJECT_NAME)-reprocess-filings \
+--payload '{"filing_type":"type_p","year_range":[2024,2025],"extractor_version":"1.1.0"}' \
+/tmp/reprocess_output.json
+@cat /tmp/reprocess_output.json | jq '.'
+@rm /tmp/reprocess_output.json
+
+reprocess-dry-run: ## Dry run reprocessing (validate without executing)
+@echo "Dry run reprocessing Type P for 2024..."
+@aws lambda invoke \
+--function-name $(PROJECT_NAME)-reprocess-filings \
+--payload '{"filing_type":"type_p","year_range":[2024,2024],"extractor_version":"1.1.0","dry_run":true}' \
+/tmp/reprocess_output.json
+@cat /tmp/reprocess_output.json | jq '.'
+@rm /tmp/reprocess_output.json
+
+reprocess-compare: ## Reprocess with quality comparison
+@echo "Reprocessing with quality comparison..."
+@aws lambda invoke \
+--function-name $(PROJECT_NAME)-reprocess-filings \
+--payload '{"filing_type":"type_p","year_range":[2024,2024],"extractor_version":"1.1.0","comparison_mode":true}' \
+/tmp/reprocess_output.json
+@cat /tmp/reprocess_output.json | jq '.comparison'
+@rm /tmp/reprocess_output.json

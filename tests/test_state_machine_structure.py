@@ -6,7 +6,6 @@ meets all requirements specified in STORY-028.
 """
 
 import json
-import os
 import re
 from pathlib import Path
 
@@ -14,13 +13,15 @@ import pytest
 
 
 # Path to state machine definition
-STATE_MACHINE_PATH = Path(__file__).parent.parent / "state_machines" / "congress_data_platform.json"
+STATE_MACHINE_PATH = (
+    Path(__file__).parent.parent / "state_machines" / "congress_data_platform.json"
+)
 
 
 @pytest.fixture
 def state_machine():
     """Load the state machine JSON."""
-    with open(STATE_MACHINE_PATH, 'r') as f:
+    with open(STATE_MACHINE_PATH, "r") as f:
         return json.load(f)
 
 
@@ -96,7 +97,8 @@ class TestParallelStates:
     def test_has_parallel_states(self, state_machine):
         """Verify state machine uses Parallel states."""
         parallel_states = [
-            name for name, config in state_machine["States"].items()
+            name
+            for name, config in state_machine["States"].items()
             if config.get("Type") == "Parallel"
         ]
         assert len(parallel_states) >= 4, "Should have at least 4 Parallel states"
@@ -136,7 +138,9 @@ class TestMapStates:
         for state_name, state_config in state_machine["States"].items():
             if state_config.get("Type") == "Parallel":
                 for branch in state_config.get("Branches", []):
-                    for branch_state_name, branch_state_config in branch.get("States", {}).items():
+                    for branch_state_name, branch_state_config in branch.get(
+                        "States", {}
+                    ).items():
                         if branch_state_config.get("Type") == "Map":
                             map_found = True
         assert map_found, "Should have Map states for distributed processing"
@@ -147,17 +151,24 @@ class TestMapStates:
         for state_name, state_config in state_machine["States"].items():
             if state_config.get("Type") == "Parallel":
                 for branch in state_config.get("Branches", []):
-                    for branch_state_name, branch_state_config in branch.get("States", {}).items():
+                    for branch_state_name, branch_state_config in branch.get(
+                        "States", {}
+                    ).items():
                         if branch_state_config.get("Type") == "Map":
-                            map_states.append({
-                                "name": branch_state_name,
-                                "max_concurrency": branch_state_config.get("MaxConcurrency")
-                            })
-        
+                            map_states.append(
+                                {
+                                    "name": branch_state_name,
+                                    "max_concurrency": branch_state_config.get(
+                                        "MaxConcurrency"
+                                    ),
+                                }
+                            )
+
         assert len(map_states) >= 2, "Should have at least 2 Map states"
         for map_state in map_states:
-            assert map_state["max_concurrency"] == 10, \
-                f"{map_state['name']} should have MaxConcurrency=10"
+            assert (
+                map_state["max_concurrency"] == 10
+            ), f"{map_state['name']} should have MaxConcurrency=10"
 
 
 class TestErrorHandling:
@@ -166,7 +177,8 @@ class TestErrorHandling:
     def test_states_with_retry(self, state_machine):
         """Verify states have Retry blocks."""
         states_with_retry = [
-            name for name, config in state_machine["States"].items()
+            name
+            for name, config in state_machine["States"].items()
             if config.get("Retry")
         ]
         assert len(states_with_retry) > 0, "Should have states with Retry blocks"
@@ -174,7 +186,8 @@ class TestErrorHandling:
     def test_states_with_catch(self, state_machine):
         """Verify states have Catch blocks."""
         states_with_catch = [
-            name for name, config in state_machine["States"].items()
+            name
+            for name, config in state_machine["States"].items()
             if config.get("Catch")
         ]
         assert len(states_with_catch) > 0, "Should have states with Catch blocks"
@@ -185,8 +198,9 @@ class TestErrorHandling:
             if state_config.get("Retry"):
                 for retry_block in state_config["Retry"]:
                     if "BackoffRate" in retry_block:
-                        assert retry_block["BackoffRate"] >= 1.5, \
-                            f"{state_name} should use exponential backoff (>= 1.5)"
+                        assert (
+                            retry_block["BackoffRate"] >= 1.5
+                        ), f"{state_name} should use exponential backoff (>= 1.5)"
 
 
 class TestLambdaReferences:
@@ -195,15 +209,16 @@ class TestLambdaReferences:
     def test_lambda_arns_referenced(self, state_machine):
         """Verify Lambda function ARNs are referenced."""
         state_machine_json = json.dumps(state_machine)
-        lambda_refs = set(re.findall(r'LAMBDA_[A-Z_]+', state_machine_json))
-        
-        assert len(lambda_refs) >= 20, \
-            f"Should reference at least 20 Lambda functions, found {len(lambda_refs)}"
+        lambda_refs = set(re.findall(r"LAMBDA_[A-Z_]+", state_machine_json))
+
+        assert (
+            len(lambda_refs) >= 20
+        ), f"Should reference at least 20 Lambda functions, found {len(lambda_refs)}"
 
     def test_critical_lambdas_present(self, state_machine):
         """Verify critical Lambda functions are referenced."""
         state_machine_json = json.dumps(state_machine)
-        
+
         critical_lambdas = [
             "LAMBDA_CHECK_HOUSE_FD_UPDATES",
             "LAMBDA_CHECK_CONGRESS_UPDATES",
@@ -213,10 +228,11 @@ class TestLambdaReferences:
             "LAMBDA_BUILD_DIM_MEMBERS",
             "LAMBDA_BUILD_FACT_TRANSACTIONS",
         ]
-        
+
         for lambda_name in critical_lambdas:
-            assert lambda_name in state_machine_json, \
-                f"{lambda_name} should be referenced in state machine"
+            assert (
+                lambda_name in state_machine_json
+            ), f"{lambda_name} should be referenced in state machine"
 
 
 class TestYearValidation:
@@ -232,11 +248,12 @@ class TestYearValidation:
         """Verify 5-year lookback window (2020-2025)."""
         validate_input = state_machine["States"]["ValidateInput"]
         year_range = validate_input["Parameters"]["valid_year_range"]
-        
+
         assert year_range["min_year"] == 2020, "Min year should be 2020"
         assert year_range["max_year"] == 2025, "Max year should be 2025"
-        assert year_range["max_year"] - year_range["min_year"] == 5, \
-            "Should have 5-year lookback window"
+        assert (
+            year_range["max_year"] - year_range["min_year"] == 5
+        ), "Should have 5-year lookback window"
 
 
 class TestChoiceStates:
@@ -307,9 +324,9 @@ class TestDocumentation:
     def test_readme_content(self):
         """Verify README has comprehensive documentation."""
         readme_path = STATE_MACHINE_PATH.parent / "README.md"
-        with open(readme_path, 'r') as f:
+        with open(readme_path, "r") as f:
             content = f.read()
-        
+
         assert "Congress Data Platform" in content
         assert "State Transition Documentation" in content
         assert "Lambda Functions Referenced" in content

@@ -133,3 +133,137 @@ def test_lambda_handler_no_transactions(s3_client, mock_lambda_context, monkeypa
 
     # Should handle gracefully
     assert result['statusCode'] in [200, 500]
+
+
+def test_lambda_handler_rebuild_mode(s3_client, mock_lambda_context, monkeypatch):
+    """Test rebuild mode (overwrite existing partitions)."""
+    monkeypatch.setenv('S3_BUCKET_NAME', 'test-bucket')
+
+    # Upload sample Type P extraction
+    sample_extraction = {
+        'doc_id': '10063229',
+        'filing_date': '2024-02-15',
+        'transactions': [
+            {
+                'transaction_date': '2024-02-10',
+                'trans_type': 'S',
+                'asset_name': 'Tesla Inc.',
+                'ticker': 'TSLA',
+                'amount': '$50,001 - $100,000',
+                'owner': 'Spouse'
+            }
+        ]
+    }
+
+    upload_json_to_s3(
+        s3_client,
+        'test-bucket',
+        'silver/house/financial/objects/filing_type=type_p/year=2024/doc_id=10063229.json',
+        sample_extraction
+    )
+
+    from handler import lambda_handler
+
+    event = {'rebuild': True}
+    result = lambda_handler(event, mock_lambda_context)
+
+    assert result['statusCode'] == 200
+    assert result['mode'] == 'rebuild'
+    assert result['records_processed'] >= 1
+
+
+def test_lambda_handler_incremental_mode(s3_client, mock_lambda_context, monkeypatch):
+    """Test incremental mode (append to existing partitions)."""
+    monkeypatch.setenv('S3_BUCKET_NAME', 'test-bucket')
+
+    # Upload sample Type P extraction
+    sample_extraction = {
+        'doc_id': '10063230',
+        'filing_date': '2024-03-15',
+        'transactions': [
+            {
+                'transaction_date': '2024-03-10',
+                'trans_type': 'P',
+                'asset_name': 'Microsoft Corp.',
+                'ticker': 'MSFT',
+                'amount': '$15,001 - $50,000',
+                'owner': 'Self'
+            }
+        ]
+    }
+
+    upload_json_to_s3(
+        s3_client,
+        'test-bucket',
+        'silver/house/financial/objects/filing_type=type_p/year=2024/doc_id=10063230.json',
+        sample_extraction
+    )
+
+    from handler import lambda_handler
+
+    event = {'rebuild': False}
+    result = lambda_handler(event, mock_lambda_context)
+
+    assert result['statusCode'] == 200
+    assert result['mode'] == 'incremental'
+    assert result['records_processed'] >= 1
+
+
+def test_lambda_handler_since_date_filter(s3_client, mock_lambda_context, monkeypatch):
+    """Test filtering by since_date parameter."""
+    monkeypatch.setenv('S3_BUCKET_NAME', 'test-bucket')
+
+    # Upload old transaction (should be filtered out)
+    old_extraction = {
+        'doc_id': '10063231',
+        'filing_date': '2024-01-05',
+        'transactions': [
+            {
+                'transaction_date': '2024-01-01',
+                'trans_type': 'P',
+                'asset_name': 'Old Corp.',
+                'ticker': 'OLD',
+                'amount': '$15,001 - $50,000',
+                'owner': 'Self'
+            }
+        ]
+    }
+
+    # Upload new transaction (should be included)
+    new_extraction = {
+        'doc_id': '10063232',
+        'filing_date': '2024-02-15',
+        'transactions': [
+            {
+                'transaction_date': '2024-02-10',
+                'trans_type': 'S',
+                'asset_name': 'New Corp.',
+                'ticker': 'NEW',
+                'amount': '$50,001 - $100,000',
+                'owner': 'Self'
+            }
+        ]
+    }
+
+    upload_json_to_s3(
+        s3_client,
+        'test-bucket',
+        'silver/house/financial/objects/filing_type=type_p/year=2024/doc_id=10063231.json',
+        old_extraction
+    )
+
+    upload_json_to_s3(
+        s3_client,
+        'test-bucket',
+        'silver/house/financial/objects/filing_type=type_p/year=2024/doc_id=10063232.json',
+        new_extraction
+    )
+
+    from handler import lambda_handler
+
+    event = {'since_date': '2024-02-01'}
+    result = lambda_handler(event, mock_lambda_context)
+
+    assert result['statusCode'] == 200
+    # Should only process transactions after 2024-02-01
+    assert result['records_processed'] >= 1

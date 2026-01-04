@@ -447,27 +447,71 @@ def lambda_handler(event, context):
 
 ### 5.1 build_fact_transactions
 
-**Status**: 🆕 NEW (wrap script)
+**Status**: ✅ IMPLEMENTED
 
-**Script**: `scripts/build_fact_ptr_transactions.py`
+**Lambda**: `ingestion/lambdas/build_fact_transactions/handler.py`
 
 **Purpose**: Build PTR transactions fact table (star schema)
 
+**Input**:
+```json
+{
+  "rebuild": true,
+  "since_date": "2024-12-01",
+  "year": 2024,
+  "bucket_name": "congress-disclosures-standardized"
+}
+```
+
+**Parameters**:
+- `rebuild` (boolean, default: true): If true, overwrite existing partitions. If false, append with deduplication.
+- `since_date` (string, optional): Filter transactions after this date (YYYY-MM-DD format)
+- `year` (int, optional): Filter by specific year
+- `bucket_name` (string, optional): S3 bucket name (defaults to environment variable)
+
 **Logic**:
-1. Read Silver objects (Type P filings)
-2. Flatten transactions array
-3. Join with dimensions:
-   - dim_members (member_key)
-   - dim_assets (asset_key)
-   - dim_dates (transaction_date_key, notification_date_key)
-4. Calculate amount_midpoint
-5. Partition by year/month
-6. Write to `gold/facts/ptr_transactions/`
+1. Read Silver objects (Type P filings) from `silver/house/financial/objects/filing_type=type_p/`
+2. Filter by year and/or since_date if specified
+3. Flatten transactions array
+4. Parse amount ranges into low/high values
+5. Generate unique transaction_key (MD5 hash)
+6. Partition by year/month
+7. If rebuild=false:
+   - Read existing Parquet partition
+   - Merge with new data
+   - Deduplicate by transaction_key (keep latest)
+8. Write to `gold/house/financial/facts/fact_ptr_transactions/year={year}/month={month}/`
+
+**Output**:
+```json
+{
+  "statusCode": 200,
+  "status": "success",
+  "fact_table": "fact_ptr_transactions",
+  "records_processed": 1250,
+  "files_written": ["gold/house/financial/facts/fact_ptr_transactions/year=2024/month=12/part-0000.parquet"],
+  "years": [2024],
+  "mode": "incremental",
+  "execution_time_ms": 45000
+}
+```
 
 **Configuration**:
-- Memory: 2GB
-- Timeout: 900s (15 min)
+- Memory: 1GB
+- Timeout: 600s (10 min)
+- Runtime: Python 3.11
+- Layer: AWS SDK Pandas (public Klayers)
 - Partitioning strategy: `year={year}/month={month}`
+
+**Features**:
+- ✅ Full rebuild mode (overwrite all partitions)
+- ✅ Incremental mode (append with deduplication)
+- ✅ Date-based filtering (since_date)
+- ✅ Year-based filtering
+- ✅ Transaction deduplication via MD5 hash
+- ✅ Partitioned Parquet output (Snappy compression)
+
+**Note**: Current implementation focuses on raw transaction extraction. Dimension joins (dim_members, dim_assets) are deferred to downstream analytics layers.
 
 ---
 

@@ -6,6 +6,7 @@ Reads Silver layer Type P structured JSONs and creates normalized transaction re
 """
 
 import hashlib
+import io
 import json
 import logging
 import os
@@ -81,9 +82,20 @@ def generate_transaction_key(doc_id: str, txn: Dict) -> str:
     return hashlib.md5(raw.encode()).hexdigest()
 
 
-def load_transactions_from_silver(bucket_name: str, year: Optional[int] = None) -> pd.DataFrame:
-    """Load PTR transactions from Silver layer Type P structured JSONs."""
+def load_transactions_from_silver(bucket_name: str, year: Optional[int] = None, since_date: Optional[str] = None) -> pd.DataFrame:
+    """Load PTR transactions from Silver layer Type P structured JSONs.
+    
+    Args:
+        bucket_name: S3 bucket name
+        year: Optional year filter
+        since_date: Optional date filter (YYYY-MM-DD) - only process transactions after this date
+    
+    Returns:
+        DataFrame of transactions
+    """
     logger.info("Loading PTR transactions from silver/house/financial/objects/...")
+    if since_date:
+        logger.info(f"  Filtering transactions since {since_date}")
 
     prefix = 'silver/house/financial/objects/'
     paginator = s3_client.get_paginator('list_objects_v2')
@@ -126,16 +138,27 @@ def load_transactions_from_silver(bucket_name: str, year: Optional[int] = None) 
 
                 doc_id = data.get('doc_id')
                 filing_date = data.get('filing_date')
+                
+                # Filter by since_date if specified
+                if since_date and filing_date:
+                    if filing_date < since_date:
+                        continue
 
                 # Extract transactions
                 for txn in data.get('transactions', []):
+                    # Filter individual transaction by date if since_date specified
+                    transaction_date = txn.get('transaction_date')
+                    if since_date and transaction_date:
+                        if transaction_date < since_date:
+                            continue
+                    
                     amount_low, amount_high = parse_amount_string(txn.get('amount'))
 
                     transaction = {
                         'transaction_key': generate_transaction_key(doc_id, txn),
                         'doc_id': doc_id,
                         'filing_date': filing_date,
-                        'transaction_date': txn.get('transaction_date'),
+                        'transaction_date': transaction_date,
                         'transaction_type': get_transaction_type(txn),
                         'asset_name': txn.get('asset_name', '').strip(),
                         'asset_description': txn.get('asset_description', '').strip(),
@@ -164,13 +187,22 @@ def load_transactions_from_silver(bucket_name: str, year: Optional[int] = None) 
     return pd.DataFrame(transactions)
 
 
-def write_to_gold(df: pd.DataFrame, bucket_name: str) -> Dict[str, Any]:
-    """Write fact_ptr_transactions to gold layer S3."""
+def write_to_gold(df: pd.DataFrame, bucket_name: str, rebuild: bool = True) -> Dict[str, Any]:
+    """Write fact_ptr_transactions to gold layer S3.
+    
+    Args:
+        df: DataFrame of transactions to write
+        bucket_name: S3 bucket name
+        rebuild: If True, overwrite existing partitions. If False, append and deduplicate.
+    
+    Returns:
+        Dict with files_written, total_records, years
+    """
     if df.empty:
         logger.warning("Empty dataframe - no files to write")
         return {'files_written': [], 'total_records': 0, 'years': []}
 
-    logger.info("Writing to gold layer...")
+    logger.info(f"Writing to gold layer (rebuild={rebuild})...")
 
     # Add partitioning columns
     df['year'] = pd.to_datetime(df['transaction_date']).dt.year
@@ -178,11 +210,35 @@ def write_to_gold(df: pd.DataFrame, bucket_name: str) -> Dict[str, Any]:
 
     files_written = []
     for (year, month), group in df.groupby(['year', 'month']):
-        group = group.drop(columns=['year', 'month'])
+        s3_key = f'gold/house/financial/facts/fact_ptr_transactions/year={int(year)}/month={int(month):02d}/part-0000.parquet'
+        
+        if not rebuild:
+            # Incremental mode: read existing data and merge
+            try:
+                logger.info(f"  Incremental mode: Reading existing partition {s3_key}")
+                response = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
+                existing_df = pd.read_parquet(io.BytesIO(response['Body'].read()))
+                
+                # Combine with new data
+                combined = pd.concat([existing_df, group], ignore_index=True)
+                
+                # Deduplicate by transaction_key (keep last)
+                combined = combined.drop_duplicates(subset=['transaction_key'], keep='last')
+                logger.info(f"  Merged {len(existing_df)} existing + {len(group)} new = {len(combined)} total (after dedup)")
+                
+                group = combined.drop(columns=['year', 'month'], errors='ignore')
+            except s3_client.exceptions.NoSuchKey:
+                logger.info(f"  No existing partition found, creating new: {s3_key}")
+                group = group.drop(columns=['year', 'month'])
+            except Exception as e:
+                logger.warning(f"  Error reading existing partition: {e}, treating as new")
+                group = group.drop(columns=['year', 'month'])
+        else:
+            # Rebuild mode: overwrite
+            group = group.drop(columns=['year', 'month'])
 
         with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:
             group.to_parquet(tmp.name, engine='pyarrow', compression='snappy', index=False)
-            s3_key = f'gold/house/financial/facts/fact_ptr_transactions/year={int(year)}/month={int(month):02d}/part-0000.parquet'
             s3_client.upload_file(tmp.name, bucket_name, s3_key)
             logger.info(f"  Uploaded {len(group)} records to s3://{bucket_name}/{s3_key}")
             files_written.append(s3_key)
@@ -200,7 +256,11 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Lambda handler for building fact_ptr_transactions.
 
     Args:
-        event: Event data with optional 'year' parameter
+        event: Event data with optional parameters:
+            - year: Filter by specific year (int)
+            - since_date: Filter transactions after this date (YYYY-MM-DD)
+            - rebuild: If True, overwrite existing partitions. If False, append (default: True)
+            - bucket_name: S3 bucket name (optional, defaults to env var)
         context: Lambda context
 
     Returns:
@@ -218,12 +278,16 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             bucket_name = event['bucket_name']
 
         year = event.get('year')  # Optional: filter by year
+        since_date = event.get('since_date')  # Optional: filter by date
+        rebuild = event.get('rebuild', True)  # Default to rebuild mode
+
+        logger.info(f"Parameters: year={year}, since_date={since_date}, rebuild={rebuild}")
 
         # Step 1: Load transactions from Silver
-        transactions_df = load_transactions_from_silver(bucket_name, year)
+        transactions_df = load_transactions_from_silver(bucket_name, year, since_date)
 
         # Step 2: Write to gold layer
-        result = write_to_gold(transactions_df, bucket_name)
+        result = write_to_gold(transactions_df, bucket_name, rebuild)
 
         logger.info("✅ fact_ptr_transactions build complete!")
 
@@ -234,6 +298,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'records_processed': result['total_records'],
             'files_written': result['files_written'],
             'years': result['years'],
+            'mode': 'rebuild' if rebuild else 'incremental',
             'execution_time_ms': context.get_remaining_time_in_millis() if context else None
         }
 

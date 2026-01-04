@@ -74,6 +74,8 @@ aws sns get-subscription-attributes \
 
 ### Method 1: Send Test Message via AWS CLI
 
+**Note**: Run these commands from the project root directory.
+
 ```bash
 # Test pipeline alerts topic
 aws sns publish \
@@ -81,8 +83,20 @@ aws sns publish \
   --subject "Test Alert - Pipeline Monitoring" \
   --message "This is a test alert. If you receive this, SNS email delivery is working correctly."
 
-# Test data quality alerts topic  
+# Alternative: Set ARN as variable first (more reliable)
+PIPELINE_ALERTS_ARN=$(cd infra/terraform && terraform output -raw pipeline_alerts_topic_arn)
 aws sns publish \
+  --topic-arn "$PIPELINE_ALERTS_ARN" \
+  --subject "Test Alert - Pipeline Monitoring" \
+  --message "This is a test alert."
+
+# Test data quality alerts topic  
+DATA_QUALITY_ALERTS_ARN=$(cd infra/terraform && terraform output -raw data_quality_alerts_topic_arn)
+aws sns publish \
+  --topic-arn "$DATA_QUALITY_ALERTS_ARN" \
+  --subject "Test Alert - Data Quality Monitoring" \
+  --message "This is a test data quality alert."
+```
   --topic-arn $(cd infra/terraform && terraform output -raw data_quality_alerts_topic_arn) \
   --subject "Test Alert - Data Quality Monitoring" \
   --message "This is a test data quality alert."

@@ -5,7 +5,7 @@ Provides version comparison, registry management, and quality metrics tracking.
 
 import logging
 from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 import boto3
 from botocore.exceptions import ClientError
 
@@ -110,14 +110,14 @@ class ExtractionVersionRegistry:
             changelog: Description of changes
             is_production: Whether this is the production version
         """
-        deployment_date = deployment_date or datetime.utcnow().isoformat() + "Z"
+        deployment_date = deployment_date or datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         
         item = {
             'extractor_class': {'S': extractor_class},
             'extractor_version': {'S': extractor_version},
             'deployment_date': {'S': deployment_date},
             'is_production': {'BOOL': is_production},
-            'updated_at': {'S': datetime.utcnow().isoformat() + "Z"}
+            'updated_at': {'S': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')}
         }
         
         if changelog:
@@ -243,7 +243,7 @@ class ExtractionVersionRegistry:
                     UpdateExpression='SET is_production = :false, updated_at = :now',
                     ExpressionAttributeValues={
                         ':false': {'BOOL': False},
-                        ':now': {'S': datetime.utcnow().isoformat() + "Z"}
+                        ':now': {'S': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')}
                     }
                 )
                 logger.info(f"Demoted {extractor_class} v{current_production['extractor_version']} from production")
@@ -262,7 +262,7 @@ class ExtractionVersionRegistry:
                 UpdateExpression='SET is_production = :true, updated_at = :now',
                 ExpressionAttributeValues={
                     ':true': {'BOOL': True},
-                    ':now': {'S': datetime.utcnow().isoformat() + "Z"}
+                    ':now': {'S': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')}
                 }
             )
             logger.info(f"Promoted {extractor_class} v{extractor_version} to production")

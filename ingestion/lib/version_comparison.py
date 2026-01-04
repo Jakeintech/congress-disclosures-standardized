@@ -274,8 +274,8 @@ class VersionComparison:
     
     def _get_timestamp(self) -> str:
         """Get current UTC timestamp."""
-        from datetime import datetime
-        return datetime.utcnow().isoformat() + "Z"
+        from datetime import datetime, timezone
+        return datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
 
 def generate_comparison_report(

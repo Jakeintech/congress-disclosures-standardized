@@ -12,7 +12,7 @@ import json
 # Import modules to test
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../ingestion'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../ingestion'))
 
 from lib.version_utils import (
     compare_versions,

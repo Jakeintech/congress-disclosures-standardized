@@ -182,6 +182,7 @@ locals {
     # ============================================================
     # UTILITIES
     # ============================================================
+    LAMBDA_VALIDATE_DIMENSIONS    = aws_lambda_function.validate_dimensions.function_name
     LAMBDA_RUN_SODA_CHECKS        = "congress-disclosures-run-soda-checks"
     LAMBDA_PUBLISH_METRICS        = "congress-disclosures-publish-pipeline-metrics"
     LAMBDA_UPDATE_API_CACHE       = "congress-disclosures-compute-trending-stocks-duckdb"

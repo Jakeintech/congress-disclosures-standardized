@@ -10,7 +10,8 @@ resource "aws_lambda_function" "validate_dimensions" {
   timeout       = 120
   memory_size   = 512
 
-  filename         = "${path.module}/../../build/validate_dimensions.zip"
+  s3_bucket        = var.s3_bucket_name
+  s3_key           = "lambda-deployments/gold-layer/validate_dimensions.zip"
   source_code_hash = fileexists("${path.module}/../../build/validate_dimensions.zip") ? filebase64sha256("${path.module}/../../build/validate_dimensions.zip") : null
 
   layers = [aws_lambda_layer_version.duckdb.arn]
@@ -32,6 +33,7 @@ resource "aws_lambda_function" "validate_dimensions" {
     Project     = var.project_name
     Environment = var.environment
     Purpose     = "gold-validation"
+    Sprint      = "sprint-3"
   }
 
   lifecycle {

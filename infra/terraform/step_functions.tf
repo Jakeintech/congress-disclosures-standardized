@@ -163,10 +163,10 @@ locals {
     # DUCKDB COMPUTE LAMBDAS (Analytics)
     # ============================================================
     LAMBDA_COMPUTE_TRENDING_STOCKS   = aws_lambda_function.compute_trending_stocks.function_name
-    LAMBDA_COMPUTE_DOCUMENT_QUALITY  = aws_lambda_function.compute_trending_stocks.function_name # Placeholder
+    LAMBDA_COMPUTE_DOCUMENT_QUALITY  = "${local.name_prefix}-compute-document-quality-duckdb" # Placeholder - unique name for future implementation
     LAMBDA_COMPUTE_MEMBER_STATS      = aws_lambda_function.compute_member_stats.function_name
-    LAMBDA_COMPUTE_NETWORK_GRAPH     = aws_lambda_function.compute_trending_stocks.function_name # Placeholder
-    LAMBDA_COMPUTE_LOBBYING_AGGREGATES = aws_lambda_function.compute_trending_stocks.function_name # Placeholder
+    LAMBDA_COMPUTE_NETWORK_GRAPH     = "${local.name_prefix}-compute-network-graph-duckdb" # Placeholder - unique name for future implementation
+    LAMBDA_COMPUTE_LOBBYING_AGGREGATES = "${local.name_prefix}-compute-lobbying-aggregates-duckdb" # Placeholder - unique name for future implementation
     
     # ============================================================
     # CROSS-DATASET CORRELATION LAMBDAS

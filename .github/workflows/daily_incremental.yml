@@ -2,8 +2,21 @@ name: Daily Incremental Update
 
 on:
   schedule:
-    - cron: '0 10 * * *'  # Run at 10:00 UTC daily
+    - cron: '0 6 * * *'  # Run at 6:00 AM UTC daily (per story requirements)
   workflow_dispatch:      # Allow manual trigger for testing
+    inputs:
+      year:
+        description: 'Year to process (optional, defaults to current year)'
+        required: false
+        type: string
+      mode:
+        description: 'Pipeline mode'
+        required: false
+        default: 'incremental'
+        type: choice
+        options:
+          - incremental
+          - full_refresh
 
 jobs:
   daily-update:
@@ -22,21 +35,87 @@ jobs:
         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
         aws-region: us-east-1
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install Dependencies
+    - name: Trigger Step Function
+      id: trigger
       run: |
-        python -m pip install --upgrade pip
-        pip install boto3 requests pandas pyarrow
-
-    - name: Trigger House FD Pipeline (Step Functions)
-      run: |
-        YEAR=$(date +%Y)
-        aws stepfunctions start-execution \
+        # Determine year and mode from inputs or defaults
+        YEAR="${{ github.event.inputs.year }}"
+        if [ -z "$YEAR" ]; then
+          YEAR=$(date +%Y)
+        fi
+        
+        MODE="${{ github.event.inputs.mode }}"
+        if [ -z "$MODE" ]; then
+          MODE="incremental"
+        fi
+        
+        echo "Starting pipeline execution for year $YEAR in mode $MODE"
+        
+        # Start Step Functions execution
+        EXECUTION_ARN=$(aws stepfunctions start-execution \
           --state-machine-arn ${{ secrets.HOUSE_FD_STATE_MACHINE_ARN }} \
           --name "daily-incremental-$(date +%Y%m%d-%H%M%S)" \
-          --input "{\"execution_type\":\"scheduled\",\"year\":$YEAR}"
+          --input "{\"execution_type\":\"scheduled\",\"year\":$YEAR,\"mode\":\"$MODE\"}" \
+          --query 'executionArn' \
+          --output text)
+        
+        echo "Execution ARN: $EXECUTION_ARN"
+        echo "execution_arn=$EXECUTION_ARN" >> $GITHUB_OUTPUT
+
+    - name: Wait for Step Function Completion
+      run: |
+        EXECUTION_ARN="${{ steps.trigger.outputs.execution_arn }}"
+        echo "Waiting for execution to complete: $EXECUTION_ARN"
+        
+        # Maximum wait time: 2 hours (Step Functions max execution time)
+        MAX_WAIT_SECONDS=7200
+        POLL_INTERVAL=30
+        ELAPSED=0
+        
+        while [ $ELAPSED -lt $MAX_WAIT_SECONDS ]; do
+          STATUS=$(aws stepfunctions describe-execution \
+            --execution-arn "$EXECUTION_ARN" \
+            --query 'status' \
+            --output text)
+          
+          echo "Current status: $STATUS (elapsed: ${ELAPSED}s)"
+          
+          if [ "$STATUS" == "SUCCEEDED" ]; then
+            echo "✅ Pipeline completed successfully"
+            
+            # Get execution output for summary
+            OUTPUT=$(aws stepfunctions describe-execution \
+              --execution-arn "$EXECUTION_ARN" \
+              --query 'output' \
+              --output text)
+            echo "Execution output:"
+            echo "$OUTPUT" | jq '.' || echo "$OUTPUT"
+            
+            exit 0
+          elif [ "$STATUS" == "FAILED" ]; then
+            echo "❌ Pipeline failed"
+            
+            # Get error details
+            aws stepfunctions describe-execution \
+              --execution-arn "$EXECUTION_ARN" \
+              --query '{cause: cause, error: error}' \
+              --output json | jq '.'
+            
+            exit 1
+          elif [ "$STATUS" == "TIMED_OUT" ]; then
+            echo "❌ Pipeline timed out"
+            exit 1
+          elif [ "$STATUS" == "ABORTED" ]; then
+            echo "❌ Pipeline was aborted"
+            exit 1
+          fi
+          
+          # Still running, wait before next check
+          sleep $POLL_INTERVAL
+          ELAPSED=$((ELAPSED + POLL_INTERVAL))
+        done
+        
+        echo "❌ Workflow timeout reached after ${MAX_WAIT_SECONDS}s"
+        echo "Pipeline is still running but workflow will exit"
+        exit 1
 

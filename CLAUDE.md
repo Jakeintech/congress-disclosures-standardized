@@ -52,23 +52,31 @@ house_fd_extract_structured_code (code-based extraction by filing type)
 Gold Scripts (aggregate_data, compute metrics, build fact tables)
 ```
 
-## Step Functions Architecture (STORY-015)
+## Step Functions Architecture
 
-### State Machine Orchestration
+### Overview
 
-The pipeline uses **AWS Step Functions** to orchestrate complex workflows with parallel processing, error handling, and quality gates.
+The pipeline uses **AWS Step Functions** to orchestrate complex data workflows with parallel processing, error handling, quality gates, and automatic retries. Step Functions replaces script-based orchestration with a visual, serverless workflow engine that provides better observability, error handling, and cost optimization.
 
-**State Machines**:
-- `house_fd_pipeline` - House Financial Disclosures pipeline
-- `congress_pipeline` - Congress.gov API data pipeline  
-- `lobbying_pipeline` - Senate LDA lobbying disclosures
-- `cross_dataset_correlation` - Cross-dataset analytics
+### Deployed State Machines
+
+The infrastructure deploys the following state machines (see `infra/terraform/step_functions.tf`):
+
+| State Machine | Purpose | ARN Pattern | Status |
+|---------------|---------|-------------|--------|
+| **house_fd_pipeline** | House Financial Disclosures (Bronze→Silver→Gold) | `arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:congress-disclosures-house-fd-pipeline` | ✅ Active |
+| **congress_pipeline** | Congress.gov API data ingestion | `arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:congress-disclosures-congress-pipeline` | ✅ Active |
+| **lobbying_pipeline** | Senate LDA lobbying disclosures | `arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:congress-disclosures-lobbying-pipeline` | ✅ Active |
+| **cross_dataset_correlation** | Cross-dataset analytics | `arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:congress-disclosures-cross-dataset-correlation` | ✅ Active |
+| **congress_data_platform** | Unified pipeline (future) | `arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:congress-disclosures-data-platform` | 🚧 In Development |
 
 **Key Features**:
-- **Parallel Processing**: Map states with `MaxConcurrency: 10` for PDF extraction
-- **Error Handling**: Exponential backoff retries, DLQ integration, SNS alerts
-- **Quality Gates**: Soda quality checks between Bronze→Silver→Gold
+- **Parallel Processing**: Map states with `MaxConcurrency: 1000` for PDF extraction (S3 distributed map)
+- **Error Handling**: Exponential backoff retries, catch blocks, SNS alerts
+- **Quality Gates**: Soda quality checks between Bronze→Silver→Gold layers
 - **Watermarking**: Prevents duplicate processing via SHA256 hashing + DynamoDB
+- **X-Ray Tracing**: Distributed tracing enabled for all state machines
+- **CloudWatch Logs**: Full execution logging with queryable logs
 
 ### Watermarking Patterns (STORY-003, 004, 005)
 
@@ -195,33 +203,202 @@ def lambda_handler(event, context):
 - Quality check failures → `data_quality_alerts` topic
 - DLQ depth > 0 → CloudWatch alarm → SNS
 
-### Execution Patterns
+### Manual Execution
 
-**Scheduled Execution** (EventBridge):
+You can manually trigger state machines using the AWS CLI or AWS Console.
+
+#### Using AWS CLI
+
+**1. Get State Machine ARN**:
+```bash
+# List all state machines
+aws stepfunctions list-state-machines \
+  --query "stateMachines[?contains(name, 'congress-disclosures')].{Name:name,ARN:stateMachineArn}" \
+  --output table
+
+# Or get specific ARN from Terraform outputs
+cd infra/terraform && terraform output house_fd_pipeline_arn
+```
+
+**2. Start Execution - House FD Pipeline**:
+```bash
+# Simple execution (current year)
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT_ID:stateMachine:congress-disclosures-house-fd-pipeline \
+  --name "manual-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025}'
+
+# With force refresh (reprocess all data)
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT_ID:stateMachine:congress-disclosures-house-fd-pipeline \
+  --name "manual-force-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025,"force_refresh":true}'
+
+# Multi-year initial load (STORY-046)
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT_ID:stateMachine:congress-disclosures-house-fd-pipeline \
+  --name "initial-load-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"initial_load","years":[2020,2021,2022,2023,2024,2025]}'
+```
+
+**3. Start Execution - Congress.gov Pipeline**:
+```bash
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT_ID:stateMachine:congress-disclosures-congress-pipeline \
+  --name "manual-congress-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025}'
+```
+
+**4. Start Execution - Lobbying Pipeline**:
+```bash
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT_ID:stateMachine:congress-disclosures-lobbying-pipeline \
+  --name "manual-lobbying-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025,"quarters":["Q1","Q2","Q3","Q4"]}'
+```
+
+**5. Check Execution Status**:
+```bash
+# Get execution ARN from start-execution output, then:
+aws stepfunctions describe-execution \
+  --execution-arn arn:aws:states:us-east-1:ACCOUNT_ID:execution:congress-disclosures-house-fd-pipeline:manual-20250105-120000
+
+# List recent executions
+aws stepfunctions list-executions \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT_ID:stateMachine:congress-disclosures-house-fd-pipeline \
+  --max-items 10
+```
+
+**6. Stop Execution (if needed)**:
+```bash
+aws stepfunctions stop-execution \
+  --execution-arn arn:aws:states:us-east-1:ACCOUNT_ID:execution:congress-disclosures-house-fd-pipeline:manual-20250105-120000 \
+  --cause "Manual cancellation" \
+  --error "UserCancelled"
+```
+
+#### Using AWS Console
+
+1. Navigate to **AWS Console → Step Functions**
+2. Select state machine (e.g., `congress-disclosures-house-fd-pipeline`)
+3. Click **Start execution**
+4. Enter input JSON:
+   ```json
+   {
+     "execution_type": "manual",
+     "year": 2025
+   }
+   ```
+5. Click **Start execution** and monitor in real-time
+
+### EventBridge Scheduling
+
+Automatic pipeline execution is controlled by **EventBridge rules** (see `infra/terraform/eventbridge.tf`).
+
+**Current Status**: ⚠️ **ALL SCHEDULES DISABLED** (STORY-001)
+- Disabled to prevent $4,000/month cost explosion from hourly executions
+- Enable only after watermarking is fully implemented and tested
+
+#### Configured Schedules
+
+| Pipeline | Schedule Expression | Time (EST) | Status | Rule Name |
+|----------|---------------------|------------|--------|-----------|
+| **House FD** | `cron(0 9 * * ? *)` | Daily at 4 AM | ⛔ DISABLED | `congress-disclosures-house-fd-daily` |
+| **Congress.gov** | `cron(0 8 * * ? *)` | Daily at 3 AM | ⛔ DISABLED | `congress-disclosures-congress-daily` |
+| **Lobbying** | `cron(0 11 ? * MON *)` | Weekly Mon 6 AM | ⛔ DISABLED | `congress-disclosures-lobbying-weekly` |
+
+#### Enable/Disable Schedules
+
+**Enable a schedule**:
+```bash
+# Enable House FD daily schedule
+aws events enable-rule --name congress-disclosures-house-fd-daily
+
+# Or via Terraform: Edit infra/terraform/eventbridge.tf
+# Change: state = "DISABLED"  →  state = "ENABLED"
+# Then: terraform apply
+```
+
+**Disable a schedule**:
+```bash
+# Disable House FD daily schedule
+aws events disable-rule --name congress-disclosures-house-fd-daily
+```
+
+**Check schedule status**:
+```bash
+# List all pipeline EventBridge rules
+aws events list-rules --name-prefix congress-disclosures
+
+# Get specific rule details
+aws events describe-rule --name congress-disclosures-house-fd-daily
+```
+
+#### Schedule Input Payloads
+
+Scheduled executions receive standardized input:
+
+**House FD Schedule**:
 ```json
 {
   "execution_type": "scheduled",
-  "year": 2025
+  "year": 2025,
+  "triggered_by": "eventbridge"
 }
 ```
 
-**Manual Execution** (GitHub Actions):
-```bash
-aws stepfunctions start-execution \
-  --state-machine-arn $STATE_MACHINE_ARN \
-  --name "manual-$(date +%Y%m%d-%H%M%S)" \
-  --input '{"execution_type":"manual","year":2024}'
+**Congress.gov Schedule**:
+```json
+{
+  "execution_type": "scheduled",
+  "year": 2025,
+  "triggered_by": "eventbridge"
+}
 ```
+
+**Lobbying Schedule**:
+```json
+{
+  "execution_type": "scheduled",
+  "trigger_time": "2025-01-06T11:00:00Z"
+}
+```
+
+### Execution Patterns
+
+**Incremental Processing** (default):
+```json
+{
+  "execution_type": "manual",
+  "year": 2025
+}
+```
+- Watermarking checks for new data
+- Skips unchanged files
+- Fastest execution (minutes to hours)
+
+**Force Refresh**:
+```json
+{
+  "execution_type": "manual",
+  "year": 2025,
+  "force_refresh": true
+}
+```
+- Bypasses watermarking
+- Reprocesses all data
+- Used for data quality fixes or schema changes
 
 **Multi-Year Initial Load** (STORY-046):
 ```json
 {
   "execution_type": "initial_load",
-  "parameters": {
-    "years": [2020, 2021, 2022, 2023, 2024, 2025]
-  }
+  "years": [2020, 2021, 2022, 2023, 2024, 2025]
 }
 ```
+- Processes multiple years in parallel (MaxConcurrency: 2)
+- Used for initial deployment or backfilling historical data
+- Each year runs as nested execution
 
 ### Cost Optimization (STORY-001, 002)
 
@@ -245,11 +422,219 @@ aws stepfunctions start-execution \
 - Quality check pass rates
 - Watermark hit rates
 
-- **X-Ray Tracing**: Distributed tracing enabled for all state machines
+**X-Ray Tracing**: Distributed tracing enabled for all state machines
 
 **Step Functions Console**: Visual execution history with state-by-state timing
 
 See `docs/STATE_MACHINE_FLOW.md` for detailed diagrams.
+
+### Troubleshooting Step Functions
+
+#### Common Issues
+
+**1. Execution Stuck in "Running" State**
+- **Symptom**: Execution shows "Running" for hours, no progress
+- **Cause**: Lambda timeout, infinite loop, or waiting for external resource
+- **Solution**:
+  ```bash
+  # Check execution details
+  aws stepfunctions describe-execution --execution-arn <ARN>
+  
+  # Get execution history
+  aws stepfunctions get-execution-history --execution-arn <ARN> --max-items 100
+  
+  # Stop stuck execution
+  aws stepfunctions stop-execution --execution-arn <ARN> --cause "Stuck execution"
+  ```
+
+**2. "Lambda.ServiceException" Errors**
+- **Symptom**: State fails with `Lambda.ServiceException`
+- **Cause**: Lambda execution error, timeout, or memory limit exceeded
+- **Solution**:
+  ```bash
+  # Check Lambda logs for the specific invocation
+  aws logs tail /aws/lambda/congress-disclosures-house-fd-ingest-zip --follow
+  
+  # Or use make commands
+  make logs-ingest        # House FD ingestion logs
+  make logs-extract       # Extraction logs
+  make logs-extract-recent # Recent extraction errors
+  ```
+
+**3. "States.TaskFailed" with Retry Exhausted**
+- **Symptom**: Task fails after 3 retry attempts
+- **Cause**: Persistent error (bad data, missing S3 object, schema mismatch)
+- **Solution**:
+  1. Check CloudWatch Logs for the Lambda function
+  2. Identify root cause (data issue, code bug, infrastructure)
+  3. Fix the issue
+  4. Re-run execution with same input
+
+**4. Quality Check Failures (ValidateSilverQuality/ValidateGoldQuality)**
+- **Symptom**: Execution fails at quality gate with "QualityCheckFailed"
+- **Cause**: Data quality issues detected by Soda checks
+- **Solution**:
+  ```bash
+  # Check Soda quality check logs
+  aws logs tail /aws/lambda/congress-disclosures-run-soda-checks --since 1h
+  
+  # Review quality metrics
+  aws cloudwatch get-metric-statistics \
+    --namespace Congress/Pipeline \
+    --metric-name QualityChecksPassed \
+    --start-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%S) \
+    --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+    --period 3600 \
+    --statistics Sum
+  ```
+
+**5. "States.Timeout" Errors**
+- **Symptom**: State times out before Lambda completes
+- **Cause**: Task timeout in state machine definition too short
+- **Solution**:
+  - Check state machine definition: `state_machines/house_fd_pipeline.json`
+  - Increase timeout for specific state (e.g., `IngestZip: 600s → 900s`)
+  - Update via Terraform and redeploy
+
+**6. DynamoDB Watermark Issues**
+- **Symptom**: Pipeline re-processes data that should be skipped
+- **Cause**: Watermark not updated, wrong key, or table access error
+- **Solution**:
+  ```bash
+  # Check watermark table
+  aws dynamodb scan --table-name congress-disclosures-pipeline-watermarks
+  
+  # Check specific watermark
+  aws dynamodb get-item \
+    --table-name congress-disclosures-pipeline-watermarks \
+    --key '{"table_name":{"S":"house_fd"},"watermark_type":{"S":"2025"}}'
+  
+  # Delete watermark to force refresh
+  aws dynamodb delete-item \
+    --table-name congress-disclosures-pipeline-watermarks \
+    --key '{"table_name":{"S":"house_fd"},"watermark_type":{"S":"2025"}}'
+  ```
+
+**7. SQS Queue Backed Up (ExtractDocumentsMap)**
+- **Symptom**: Extraction taking too long, thousands of messages in queue
+- **Cause**: Low concurrency, Lambda throttling, or large PDFs
+- **Solution**:
+  ```bash
+  # Check queue depth
+  make check-extraction-queue
+  
+  # Monitor processing rate
+  watch -n 5 'aws sqs get-queue-attributes \
+    --queue-url https://sqs.us-east-1.amazonaws.com/ACCOUNT/congress-disclosures-extraction-queue \
+    --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible'
+  
+  # Increase concurrency in state machine definition (if needed)
+  # Edit state_machines/house_fd_pipeline.json
+  # ExtractDocumentsMap.MaxConcurrency: 1000 → 1500 (if within limits)
+  ```
+
+**8. SNS Alert Spam**
+- **Symptom**: Receiving too many SNS alerts
+- **Cause**: Transient errors triggering NotifyPipelineFailure repeatedly
+- **Solution**:
+  - Review alert frequency: Check SNS topic `congress-disclosures-pipeline-alerts`
+  - Adjust retry logic in state machine if errors are transient
+  - Add error filtering to reduce noise
+
+#### Debugging Workflow
+
+**Step 1: Identify Failed Execution**
+```bash
+# List recent executions
+aws stepfunctions list-executions \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT:stateMachine:congress-disclosures-house-fd-pipeline \
+  --status-filter FAILED \
+  --max-items 5
+
+# Get execution details
+aws stepfunctions describe-execution --execution-arn <ARN>
+```
+
+**Step 2: Get Execution History**
+```bash
+# Full execution history (all state transitions)
+aws stepfunctions get-execution-history \
+  --execution-arn <ARN> \
+  --max-items 100 \
+  > execution_history.json
+
+# Find failed state
+cat execution_history.json | jq '.events[] | select(.type == "TaskFailed")'
+```
+
+**Step 3: Check Lambda Logs**
+```bash
+# Get Lambda function name from failed state
+# Then tail logs
+aws logs tail /aws/lambda/<FUNCTION_NAME> --since 1h --follow
+
+# Or search for errors
+aws logs filter-log-events \
+  --log-group-name /aws/lambda/<FUNCTION_NAME> \
+  --start-time $(date -u -d '1 hour ago' +%s)000 \
+  --filter-pattern "ERROR"
+```
+
+**Step 4: Check X-Ray Traces**
+```bash
+# Get trace ID from execution
+# View in X-Ray Console or CLI
+aws xray get-trace-summaries \
+  --start-time $(date -u -d '1 hour ago' +%s) \
+  --end-time $(date -u +%s) \
+  --filter-expression 'service(id(name: "congress-disclosures-house-fd-pipeline"))'
+```
+
+**Step 5: Fix and Retry**
+1. Identify root cause from logs/traces
+2. Fix the issue (code, data, infrastructure)
+3. Re-run execution with same input:
+   ```bash
+   aws stepfunctions start-execution \
+     --state-machine-arn <STATE_MACHINE_ARN> \
+     --name "retry-$(date +%Y%m%d-%H%M%S)" \
+     --input '<SAME_INPUT_JSON>'
+   ```
+
+#### Monitoring Dashboard
+
+**CloudWatch Dashboard**: Navigate to CloudWatch → Dashboards → `Congress-Pipeline-Metrics`
+
+**Key Metrics to Monitor**:
+- `ExecutionDuration` - Time per pipeline run
+- `ExecutionsFailed` - Failed executions count
+- `ExecutionsSucceeded` - Successful executions count
+- `QualityChecksPassed` - Data quality gate success rate
+- `WatermarkHitRate` - Percentage of skipped (unchanged) data
+
+**Set Up Alerts**:
+```bash
+# Create CloudWatch alarm for pipeline failures
+aws cloudwatch put-metric-alarm \
+  --alarm-name congress-pipeline-failures \
+  --alarm-description "Alert when Step Functions pipeline fails" \
+  --metric-name ExecutionsFailed \
+  --namespace AWS/States \
+  --statistic Sum \
+  --period 300 \
+  --evaluation-periods 1 \
+  --threshold 1 \
+  --comparison-operator GreaterThanThreshold \
+  --alarm-actions arn:aws:sns:us-east-1:ACCOUNT:congress-disclosures-pipeline-alerts
+```
+
+#### Useful AWS Console Links
+
+1. **Step Functions Console**: https://console.aws.amazon.com/states/home?region=us-east-1#/statemachines
+2. **CloudWatch Logs**: https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups
+3. **X-Ray Service Map**: https://console.aws.amazon.com/xray/home?region=us-east-1#/service-map
+4. **EventBridge Rules**: https://console.aws.amazon.com/events/home?region=us-east-1#/rules
+5. **SNS Topics**: https://console.aws.amazon.com/sns/v3/home?region=us-east-1#/topics
 
 
 ## Key Lambda Functions
@@ -325,6 +710,41 @@ make quick-deploy-ingest      # Deploy ingest Lambda
 make deploy-extractors        # Package + deploy structured extraction via Terraform
 ```
 
+### Step Functions & State Machines
+```bash
+# Note: There are no Makefile targets for Step Functions yet.
+# Use AWS CLI commands instead:
+
+# List all state machines
+aws stepfunctions list-state-machines \
+  --query "stateMachines[?contains(name,'congress-disclosures')].{Name:name,Status:status}" \
+  --output table
+
+# Start House FD pipeline
+aws stepfunctions start-execution \
+  --state-machine-arn $(cd infra/terraform && terraform output -raw house_fd_pipeline_arn) \
+  --name "manual-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025}'
+
+# List recent executions
+aws stepfunctions list-executions \
+  --state-machine-arn $(cd infra/terraform && terraform output -raw house_fd_pipeline_arn) \
+  --max-items 10
+
+# Describe specific execution
+aws stepfunctions describe-execution --execution-arn <EXECUTION_ARN>
+
+# Get execution history (for debugging)
+aws stepfunctions get-execution-history --execution-arn <EXECUTION_ARN>
+
+# Stop running execution
+aws stepfunctions stop-execution --execution-arn <EXECUTION_ARN> --cause "Manual stop"
+
+# Enable/disable EventBridge schedules
+aws events enable-rule --name congress-disclosures-house-fd-daily
+aws events disable-rule --name congress-disclosures-house-fd-daily
+```
+
 ### Data Operations
 ```bash
 # Ingestion
@@ -393,20 +813,60 @@ make clean-packages           # Clean Lambda package directories
 
 ## Pipeline Orchestration
 
-The master orchestrator is `scripts/run_smart_pipeline.py`. It supports 4 modes:
+The pipeline is orchestrated by **AWS Step Functions** state machines that replace the previous script-based approach. Step Functions provide better observability, error handling, and cost optimization.
 
-1. **Full Reset**: `python3 scripts/run_smart_pipeline.py --mode full --year 2025`
-   - Purges queue → Ingests (overwrite) → Waits for extraction → Aggregates
+### Primary Orchestration Method: Step Functions
 
-2. **Incremental**: `python3 scripts/run_smart_pipeline.py --mode incremental`
-   - Ingests (skip existing) → Waits for extraction → Aggregates
-   - Used for daily updates (GitHub Actions cron)
+**Recommended Approach** - Use Step Functions state machines for all data processing:
 
-3. **Reprocess**: `python3 scripts/run_smart_pipeline.py --mode reprocess`
-   - Re-triggers index-to-silver → Waits → Aggregates
+```bash
+# House FD Pipeline (most common)
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT:stateMachine:congress-disclosures-house-fd-pipeline \
+  --name "manual-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025}'
 
-4. **Aggregate Only**: `python3 scripts/run_smart_pipeline.py --mode aggregate`
-   - Skips ingestion, just runs Gold scripts
+# Congress.gov Pipeline
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT:stateMachine:congress-disclosures-congress-pipeline \
+  --name "manual-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025}'
+
+# Lobbying Pipeline
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:ACCOUNT:stateMachine:congress-disclosures-lobbying-pipeline \
+  --name "manual-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025}'
+```
+
+**Execution Monitoring**:
+- **AWS Console**: Navigate to Step Functions → Select state machine → View execution history
+- **CloudWatch Logs**: `/aws/vendedlogs/states/congress-disclosures-pipelines`
+- **X-Ray**: Service map and distributed tracing for performance analysis
+
+### Legacy: Script-Based Orchestration
+
+⚠️ **Deprecated** - The `run_smart_pipeline.py` script is being phased out in favor of Step Functions.
+
+**Still Available** for local development and testing:
+
+```bash
+# Using run_smart_pipeline.py (legacy)
+python3 scripts/run_smart_pipeline.py --mode incremental    # Incremental update
+python3 scripts/run_smart_pipeline.py --mode full --year 2025  # Full reprocess
+python3 scripts/run_smart_pipeline.py --mode aggregate      # Gold layer only
+```
+
+**Script Modes**:
+1. **Full Reset**: Purges queue → Ingests (overwrite) → Waits for extraction → Aggregates
+2. **Incremental**: Ingests (skip existing) → Waits for extraction → Aggregates
+3. **Reprocess**: Re-triggers index-to-silver → Waits → Aggregates  
+4. **Aggregate Only**: Skips ingestion, just runs Gold scripts
+
+**Migration Note**: Use Step Functions for production workflows. Scripts are useful for:
+- Local development without AWS Step Functions access
+- One-off data fixes
+- Testing new extraction logic
 
 ## Important Scripts
 
@@ -593,25 +1053,58 @@ Key variables in `.env` (see `.env.example`):
 
 ### Fresh Deployment
 ```bash
-# 1. Setup
+# 1. Setup environment
 make setup
 # Edit .env with your AWS credentials
 
-# 2. Deploy infrastructure
+# 2. Deploy infrastructure (includes Step Functions state machines)
 make init
 make deploy
 
-# 3. Run pipeline
-make run-pipeline
+# 3. Verify deployment
+cd infra/terraform && terraform output
+
+# 4. Run initial pipeline via Step Functions
+aws stepfunctions start-execution \
+  --state-machine-arn $(cd infra/terraform && terraform output -raw house_fd_pipeline_arn) \
+  --name "initial-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025}'
+
+# 5. Monitor execution
+# Navigate to AWS Console → Step Functions → congress-disclosures-house-fd-pipeline
 ```
 
 ### Daily Incremental Update
-Automated via GitHub Actions (`.github/workflows/daily_incremental.yml`):
+
+**Recommended**: Use EventBridge scheduled execution (currently DISABLED):
+```bash
+# Enable daily schedule (after watermarking is tested)
+aws events enable-rule --name congress-disclosures-house-fd-daily
+
+# Or trigger manually via Step Functions
+aws stepfunctions start-execution \
+  --state-machine-arn $(cd infra/terraform && terraform output -raw house_fd_pipeline_arn) \
+  --name "daily-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"scheduled","year":2025}'
+```
+
+**Legacy**: Automated via GitHub Actions (`.github/workflows/daily_incremental.yml`):
 ```bash
 python3 scripts/run_smart_pipeline.py --mode incremental
 ```
 
 ### Manual Re-processing
+
+**Using Step Functions** (recommended):
+```bash
+# Full refresh (force reprocess all data)
+aws stepfunctions start-execution \
+  --state-machine-arn $(cd infra/terraform && terraform output -raw house_fd_pipeline_arn) \
+  --name "reprocess-$(date +%Y%m%d-%H%M%S)" \
+  --input '{"execution_type":"manual","year":2025,"force_refresh":true}'
+```
+
+**Using Scripts** (legacy):
 ```bash
 # Re-extract all Bronze PDFs
 make run-silver-pipeline

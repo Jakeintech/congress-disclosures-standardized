@@ -46,8 +46,9 @@ sqs_max_receive_count          = 3 # Retries before DLQ
 cloudwatch_log_retention_days = 30 # Balance between auditability and cost
 
 # Monitoring & Alerts
+# IMPORTANT: Set your email to receive pipeline failure alerts via SNS
 enable_cost_alerts = true
-alert_email        = "" # Leave empty to disable email alerts, or add your email
+alert_email        = "your-email@example.com" # RECOMMENDED: Receive pipeline & quality alerts via SNS
 
 # Budget Protection (Cost Control)
 # IMPORTANT: Set your email to receive budget alerts

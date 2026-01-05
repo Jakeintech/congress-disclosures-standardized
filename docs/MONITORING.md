@@ -2,6 +2,8 @@
 
 This guide covers monitoring, alerting, and troubleshooting for both the Financial Disclosures (FD) and Congress.gov pipelines.
 
+> 📧 **For SNS email alert setup and configuration**, see **[ALERTS.md](ALERTS.md)**
+
 ---
 
 ## Overview
@@ -10,6 +12,11 @@ The pipeline uses CloudWatch for:
 - **Logs**: Lambda function execution logs (30-day retention)
 - **Metrics**: SQS queue depth, Lambda errors, DLQ messages
 - **Alarms**: Automated alerts for DLQ messages, stuck queues, Lambda errors
+
+**Alerting via SNS**:
+- **Email notifications** for pipeline failures and data quality issues
+- **SMS notifications** (optional) for critical alerts
+- See **[ALERTS.md](ALERTS.md)** for complete alert setup and management
 
 ---
 
@@ -125,8 +132,11 @@ aws sqs purge-queue --queue-url https://sqs.us-east-1.amazonaws.com/464813693153
 | `congress-disclosures-development-congress-fetch-queue-age` | ApproximateAgeOfOldestMessage    | > 3600s   | Alerts when fetch queue messages are stuck (>1 hour) |
 
 **Alarm Actions**:
-- If `alert_email` is configured in Terraform variables, alarms publish to SNS topic
-- SNS topic: `arn:aws:sns:us-east-1:464813693153:congress-disclosures-development-alerts`
+- If `alert_email` is configured in Terraform variables, alarms publish to SNS topics
+- **Pipeline Alerts**: `congress-disclosures-pipeline-alerts`
+- **Data Quality Alerts**: `congress-disclosures-data-quality-alerts`
+- **General CloudWatch Alarms**: `congress-disclosures-development-alerts`
+- **Setup**: See [ALERTS.md](ALERTS.md) for email subscription configuration
 
 ### Viewing Alarms
 

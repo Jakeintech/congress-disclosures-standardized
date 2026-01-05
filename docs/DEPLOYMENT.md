@@ -196,6 +196,42 @@ quick_reference = {
   "logs_extract" = "aws logs tail ..."
   ...
 }
+```
+
+### Post-Deployment: Confirm Email Subscription
+
+If you configured `alert_email` in `terraform.tfvars`, you must confirm your email subscription:
+
+1. **Check Your Email**: Within 5 minutes of `terraform apply`, you should receive an email from AWS Notifications with subject: `AWS Notification - Subscription Confirmation`
+
+2. **Click "Confirm subscription"**: Click the link in the email to activate alerts
+
+3. **Verify Subscription**:
+   ```bash
+   # Get your AWS account ID
+   ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+   
+   # Check pipeline alerts subscription
+   aws sns list-subscriptions-by-topic \
+     --topic-arn "arn:aws:sns:us-east-1:${ACCOUNT_ID}:congress-disclosures-pipeline-alerts" \
+     --query 'Subscriptions[*].[Protocol,Endpoint,SubscriptionArn]' \
+     --output table
+   
+   # Expected: Your email with a full ARN (not "PendingConfirmation")
+   ```
+
+4. **Test Alert Delivery** (optional):
+   ```bash
+   # Send test alert
+   aws sns publish \
+     --topic-arn "arn:aws:sns:us-east-1:${ACCOUNT_ID}:congress-disclosures-pipeline-alerts" \
+     --subject "Test Alert" \
+     --message "Testing SNS email delivery"
+   
+   # You should receive an email within 1 minute
+   ```
+
+> 📧 **For complete alert setup and troubleshooting**, see **[ALERTS.md](ALERTS.md)**
 
 ### Automatic Gold-Layer Seeding
 
@@ -579,9 +615,11 @@ For production deployments (not development/testing):
    ```
 
 4. **Set Up Alerts**:
-   - Configure `alert_email` in terraform.tfvars
+   - Configure `alert_email` in terraform.tfvars (REQUIRED for production)
+   - Confirm email subscription via AWS confirmation email
+   - Test alert delivery (see [ALERTS.md](ALERTS.md))
    - Monitor CloudWatch alarms daily
-   - Set up PagerDuty/OpsGenie integration
+   - Optional: Set up PagerDuty/OpsGenie integration for 24/7 coverage
 
 ---
 

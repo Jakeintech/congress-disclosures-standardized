@@ -166,6 +166,7 @@ def lambda_handler(event, context):
         # Check if new data exists
         record_count = response.get('pagination', {}).get('count', 0)
         has_new_data = record_count > 0
+        is_initial_load = watermark_status == "new"
         
         if has_new_data:
             logger.info(f"Found {record_count} new {data_type} records since {from_date}")
@@ -180,7 +181,7 @@ def lambda_handler(event, context):
                 "from_date": from_date,
                 "to_date": current_time,
                 "record_count": record_count,
-                "is_initial_load": watermark_status == "new",
+                "is_initial_load": is_initial_load,
                 "watermark_status": watermark_status,
                 "checked_at": current_time
             }
@@ -196,7 +197,7 @@ def lambda_handler(event, context):
                 "has_new_data": False,
                 "data_type": data_type,
                 "from_date": from_date,
-                "is_initial_load": watermark_status == "new",
+                "is_initial_load": is_initial_load,
                 "watermark_status": watermark_status,
                 "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             }

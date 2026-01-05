@@ -96,7 +96,8 @@ class TestCongressWatermarking:
         assert result['is_initial_load'] is True  # STORY-004 Scenario 3
         assert result['bills_count'] == 100  # STORY-004 Scenario 2
         # Should use 5-year lookback (current year - 5)
-        current_year = datetime.now().year
+        from datetime import timezone
+        current_year = datetime.now(timezone.utc).year
         lookback_year = current_year - 5
         assert str(lookback_year) in result['from_date']
     

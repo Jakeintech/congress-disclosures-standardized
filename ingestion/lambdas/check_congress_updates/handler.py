@@ -175,6 +175,8 @@ def lambda_handler(event, context):
                 "from_date": from_date,
                 "to_date": current_time,
                 "record_count": record_count,
+                "bills_count": record_count,  # Alias for compatibility with STORY-004
+                "is_initial_load": watermark_status == "new",
                 "watermark_status": watermark_status,
                 "checked_at": current_time
             }
@@ -184,6 +186,7 @@ def lambda_handler(event, context):
                 "has_new_data": False,
                 "data_type": data_type,
                 "from_date": from_date,
+                "is_initial_load": watermark_status == "new",
                 "watermark_status": watermark_status,
                 "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             }

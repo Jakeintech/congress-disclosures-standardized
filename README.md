@@ -93,6 +93,8 @@ The pipeline is orchestrated by `scripts/run_smart_pipeline.py` and supports sev
 *   **Gold Layer**: Aggregated facts, stats, and network graphs (Parquet/JSON).
 *   **Orchestration**: Python script + AWS Lambda + SQS (Sequential execution).
 
+📊 **[Complete Data Flow Diagram](docs/DATA_FLOW_DIAGRAM.md)** - Comprehensive Bronze → Silver → Gold medallion architecture with data volumes, schemas, and transformations.
+
 ### Data Medallion ERD
 
 ```mermaid

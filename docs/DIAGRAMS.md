@@ -2,6 +2,8 @@
 
 Comprehensive visual documentation of the Congress Financial Disclosures pipeline architecture, data flow, and relationships.
 
+**📊 NEW**: For a complete Bronze → Silver → Gold data flow diagram with data volumes, schemas, and transformations, see **[DATA_FLOW_DIAGRAM.md](DATA_FLOW_DIAGRAM.md)**
+
 ---
 
 ## System Architecture Overview

@@ -290,7 +290,7 @@
           "Key.$": "$.silver_index_result.documents_to_extract_s3_key"
         }
       },
-      "MaxConcurrency": 40,
+      "MaxConcurrency": 10,
       "ResultPath": "$.extraction_results",
       "ItemProcessor": {
         "ProcessorConfig": {

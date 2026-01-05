@@ -15,8 +15,9 @@
     },
     "MultiYearIterator": {
       "Type": "Map",
+      "Comment": "Process multiple years sequentially for initial load (2020-2025)",
       "ItemsPath": "$.years",
-      "MaxConcurrency": 2,
+      "MaxConcurrency": 1,
       "Iterator": {
         "StartAt": "StartChildExecution",
         "States": {
@@ -30,11 +31,136 @@
                 "year.$": "$"
               }
             },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "States.TaskFailed"
+                ],
+                "IntervalSeconds": 60,
+                "MaxAttempts": 2,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error",
+                "Next": "LogYearFailure"
+              }
+            ],
+            "Next": "LogYearSuccess"
+          },
+          "LogYearSuccess": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
+            "Comment": "Publish year completion metrics to CloudWatch",
+            "Parameters": {
+              "pipeline": "house_fd",
+              "phase": "year_complete",
+              "status": "success",
+              "year.$": "$",
+              "execution_id.$": "$$.Execution.Id"
+            },
+            "ResultPath": "$.metrics_result",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 2,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.metrics_error",
+                "Next": "YearComplete"
+              }
+            ],
+            "Next": "YearComplete"
+          },
+          "LogYearFailure": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
+            "Comment": "Publish year failure metrics to CloudWatch and continue",
+            "Parameters": {
+              "pipeline": "house_fd",
+              "phase": "year_complete",
+              "status": "failed",
+              "year.$": "$",
+              "error.$": "$.error",
+              "execution_id.$": "$$.Execution.Id"
+            },
+            "ResultPath": "$.metrics_result",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 2,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.metrics_error",
+                "Next": "YearComplete"
+              }
+            ],
+            "Next": "YearComplete"
+          },
+          "YearComplete": {
+            "Type": "Pass",
+            "Comment": "Mark year processing as complete (success or failure)",
+            "Parameters": {
+              "year.$": "$",
+              "status.$": "$.metrics_result.status"
+            },
             "End": true
           }
         }
       },
-      "End": true
+      "ResultPath": "$.year_results",
+      "Next": "SummarizeInitialLoad"
+    },
+    "SummarizeInitialLoad": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send summary of initial load results",
+      "Parameters": {
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "Subject": "House FD Initial Load Complete",
+        "Message.$": "States.Format('House FD initial load completed.\n\nYears Processed: {}\n\nResults: {}\n\nExecution ID: {}', States.ArrayLength($.years), States.JsonToString($.year_results), $$.Execution.Id)"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.sns_error",
+          "Next": "InitialLoadComplete"
+        }
+      ],
+      "Next": "InitialLoadComplete"
+    },
+    "InitialLoadComplete": {
+      "Type": "Succeed",
+      "Comment": "Initial load processing completed"
     },
     "CheckForNewFilings": {
       "Type": "Task",

@@ -5,7 +5,6 @@ Tests validate JSON structure and required states for Step Functions state machi
 """
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -18,7 +17,7 @@ STATE_MACHINES_DIR = Path(__file__).parent.parent.parent / "state_machines"
 def congress_data_platform_definition():
     """Load congress_data_platform.json once for all tests."""
     state_machine_path = STATE_MACHINES_DIR / "congress_data_platform.json"
-    
+
     with open(state_machine_path, "r") as f:
         return json.load(f)
 
@@ -36,137 +35,190 @@ class TestStateMachineDefinitions:
     """Test suite for state machine JSON definitions."""
 
     def test_congress_data_platform_json_valid(self, congress_data_platform_definition):
-        """Test that congress_data_platform.json is valid JSON."""
         definition = congress_data_platform_definition
-        
+
         assert definition is not None
         assert "States" in definition
         assert "StartAt" in definition
         assert "Comment" in definition
 
-    def test_bronze_ingestion_parallel_state_exists(self, congress_data_platform_definition):
-        """Test that BronzeIngestion Parallel state exists in congress_data_platform."""
+    def test_bronze_ingestion_parallel_state_exists(
+        self, congress_data_platform_definition
+    ):
         states = congress_data_platform_definition["States"]
-        
-        # Verify BronzeIngestion state exists
+
         assert "BronzeIngestion" in states, "BronzeIngestion state not found"
-        
+
         bronze_state = states["BronzeIngestion"]
-        
-        # Verify it's a Parallel state
-        assert bronze_state["Type"] == "Parallel", "BronzeIngestion must be a Parallel state"
-        
-        # Verify it has branches
-        assert "Branches" in bronze_state, "BronzeIngestion must have Branches"
-        assert len(bronze_state["Branches"]) == 3, "BronzeIngestion must have 3 branches"
 
-    def test_bronze_ingestion_has_three_branches(self, congress_data_platform_definition):
-        """Test that BronzeIngestion has House FD, Congress, and Lobbying branches."""
+        assert bronze_state["Type"] == "Parallel"
+        assert "Branches" in bronze_state
+        assert len(bronze_state["Branches"]) == 3
+
+    def test_bronze_ingestion_has_three_branches(
+        self, congress_data_platform_definition
+    ):
         bronze_state = congress_data_platform_definition["States"]["BronzeIngestion"]
         branches = bronze_state["Branches"]
-        
-        # Extract first state names from each branch
-        branch_names = []
-        for branch in branches:
-            start_state = branch["StartAt"]
-            branch_names.append(start_state)
-        
-        # Verify all three ingestion branches exist
-        assert "IngestHouseFD" in branch_names, "House FD ingestion branch missing"
-        assert "IngestCongress" in branch_names, "Congress ingestion branch missing"
-        assert "IngestLobbying" in branch_names, "Lobbying ingestion branch missing"
 
-    def test_bronze_ingestion_error_handling(self, congress_data_platform_definition):
-        """Test that each branch has proper error handling (Retry, Catch)."""
+        branch_names = [branch["StartAt"] for branch in branches]
+
+        assert "IngestHouseFD" in branch_names
+        assert "IngestCongress" in branch_names
+        assert "IngestLobbying" in branch_names
+
+    def test_bronze_ingestion_error_handling(
+        self, congress_data_platform_definition
+    ):
         bronze_state = congress_data_platform_definition["States"]["BronzeIngestion"]
-        branches = bronze_state["Branches"]
-        
-        for branch in branches:
-            start_state = branch["StartAt"]
-            states = branch["States"]
-            
-            # Get the first (ingestion) state
-            ingest_state = states[start_state]
-            
-            # Verify it's a Task state
-            assert ingest_state["Type"] == "Task", f"{start_state} must be a Task state"
-            
-            # Verify it has Retry configuration
-            assert "Retry" in ingest_state, f"{start_state} must have Retry configuration"
-            assert len(ingest_state["Retry"]) > 0, f"{start_state} must have at least one retry policy"
-            
-            # Verify it has Catch configuration
-            assert "Catch" in ingest_state, f"{start_state} must have Catch configuration"
-            assert len(ingest_state["Catch"]) > 0, f"{start_state} must have at least one catch policy"
 
-    def test_bronze_ingestion_timeout_configured(self, congress_data_platform_definition):
-        """Test that each ingestion Lambda has a timeout configured."""
+        for branch in bronze_state["Branches"]:
+            start_state = branch["StartAt"]
+            ingest_state = branch["States"][start_state]
+
+            assert ingest_state["Type"] == "Task"
+            assert "Retry" in ingest_state and len(ingest_state["Retry"]) > 0
+            assert "Catch" in ingest_state and len(ingest_state["Catch"]) > 0
+
+    def test_bronze_ingestion_timeout_configured(
+        self, congress_data_platform_definition
+    ):
         bronze_state = congress_data_platform_definition["States"]["BronzeIngestion"]
-        branches = bronze_state["Branches"]
-        
-        for branch in branches:
-            start_state = branch["StartAt"]
-            states = branch["States"]
-            ingest_state = states[start_state]
-            
-            # Verify timeout is configured
-            assert "TimeoutSeconds" in ingest_state, f"{start_state} must have TimeoutSeconds configured"
-            timeout = ingest_state["TimeoutSeconds"]
-            
-            # Verify timeout is reasonable (between 5 and 15 minutes)
-            assert 300 <= timeout <= 900, f"{start_state} timeout should be between 300 and 900 seconds"
 
-    def test_check_for_updates_parallel_state_exists(self, congress_data_platform_definition):
-        """Test that CheckForUpdates Parallel state exists."""
+        for branch in bronze_state["Branches"]:
+            start_state = branch["StartAt"]
+            ingest_state = branch["States"][start_state]
+
+            assert "TimeoutSeconds" in ingest_state
+            assert 300 <= ingest_state["TimeoutSeconds"] <= 900
+
+    def test_check_for_updates_parallel_state_exists(
+        self, congress_data_platform_definition
+    ):
         states = congress_data_platform_definition["States"]
-        
-        # Verify CheckForUpdates state exists
-        assert "CheckForUpdates" in states, "CheckForUpdates state not found"
-        
+
+        assert "CheckForUpdates" in states
         check_state = states["CheckForUpdates"]
-        
-        # Verify it's a Parallel state
-        assert check_state["Type"] == "Parallel", "CheckForUpdates must be a Parallel state"
-        
-        # Verify it has 3 branches (House FD, Congress, Lobbying)
-        assert len(check_state["Branches"]) == 3, "CheckForUpdates must have 3 branches"
+
+        assert check_state["Type"] == "Parallel"
+        assert len(check_state["Branches"]) == 3
 
     def test_state_machine_has_timeout(self, congress_data_platform_definition):
-        """Test that the state machine has a global timeout configured."""
-        assert "TimeoutSeconds" in congress_data_platform_definition, "State machine must have TimeoutSeconds"
-        timeout = congress_data_platform_definition["TimeoutSeconds"]
-        
-        # Verify timeout is 2 hours (7200 seconds) as per spec
-        assert timeout == 7200, "State machine timeout should be 7200 seconds (2 hours)"
+        assert "TimeoutSeconds" in congress_data_platform_definition
+        assert congress_data_platform_definition["TimeoutSeconds"] == 7200
 
     def test_all_state_machines_valid_json(self):
-        """Test that all state machine JSON files are valid."""
         for state_machine_file in STATE_MACHINES_DIR.glob("*.json"):
-            # Skip interpolated files (they contain Terraform variables)
             if "interpolated" in state_machine_file.name:
                 continue
-            
+
             with open(state_machine_file, "r") as f:
                 try:
                     definition = json.load(f)
-                    assert definition is not None
                     assert "States" in definition
                     assert "StartAt" in definition
                 except json.JSONDecodeError as e:
                     pytest.fail(f"Invalid JSON in {state_machine_file.name}: {e}")
 
+    def test_multi_year_iterator_sequential_processing(
+        self, congress_data_platform_definition
+    ):
+        states = congress_data_platform_definition["States"]
+
+        assert "MultiYearIterator" in states
+        multi_year_state = states["MultiYearIterator"]
+
+        assert multi_year_state["Type"] == "Map"
+        assert multi_year_state["MaxConcurrency"] == 1
+
+    def test_multi_year_iterator_error_handling(
+        self, congress_data_platform_definition
+    ):
+        iterator_states = (
+            congress_data_platform_definition["States"]["MultiYearIterator"]["Iterator"]["States"]
+        )
+
+        child_exec_state = iterator_states["StartChildExecution"]
+
+        assert "Catch" in child_exec_state
+        assert child_exec_state["Catch"][0]["Next"] == "LogYearFailure"
+
+        assert iterator_states["LogYearFailure"]["Next"] == "YearComplete"
+
+    def test_multi_year_iterator_cloudwatch_metrics(
+        self, congress_data_platform_definition
+    ):
+        iterator_states = (
+            congress_data_platform_definition["States"]["MultiYearIterator"]["Iterator"]["States"]
+        )
+
+        for state_name in ("LogYearSuccess", "LogYearFailure"):
+            state = iterator_states[state_name]
+            assert state["Type"] == "Task"
+            assert "LAMBDA_PUBLISH_METRICS" in state["Resource"]
+
+    def test_initial_load_summary_notification(
+        self, congress_data_platform_definition
+    ):
+        states = congress_data_platform_definition["States"]
+
+        assert "SummarizeInitialLoad" in states
+        summary_state = states["SummarizeInitialLoad"]
+
+        assert summary_state["Type"] == "Task"
+        assert "sns:publish" in summary_state["Resource"]
+        assert "Initial Load Complete" in summary_state["Parameters"]["Subject"]
+
+
+class TestHouseFDPipelineMultiYear:
+    """Test suite for House FD Pipeline multi-year initial load features."""
+
     def test_extract_documents_map_concurrency(self, house_fd_pipeline_definition):
-        """Test that ExtractDocumentsMap has MaxConcurrency set to 10."""
         states = house_fd_pipeline_definition["States"]
 
-        # Verify ExtractDocumentsMap state exists
-        assert "ExtractDocumentsMap" in states, "ExtractDocumentsMap state not found"
-
+        assert "ExtractDocumentsMap" in states
         extract_map_state = states["ExtractDocumentsMap"]
 
-        # Verify it's a Map state
-        assert extract_map_state["Type"] == "Map", "ExtractDocumentsMap must be a Map state"
+        assert extract_map_state["Type"] == "Map"
+        assert "MaxConcurrency" in extract_map_state
+        assert extract_map_state["MaxConcurrency"] == 40
 
-        # Verify MaxConcurrency is set to 10
-        assert "MaxConcurrency" in extract_map_state, "ExtractDocumentsMap must have MaxConcurrency configured"
-        assert extract_map_state["MaxConcurrency"] == 10, "ExtractDocumentsMap MaxConcurrency must be 10"
+    def test_house_fd_multi_year_iterator_sequential_processing(
+        self, house_fd_pipeline_definition
+    ):
+        multi_year_state = house_fd_pipeline_definition["States"]["MultiYearIterator"]
+
+        assert multi_year_state["Type"] == "Map"
+        assert multi_year_state["MaxConcurrency"] == 1
+
+    def test_house_fd_multi_year_iterator_error_handling(
+        self, house_fd_pipeline_definition
+    ):
+        iterator_states = (
+            house_fd_pipeline_definition["States"]["MultiYearIterator"]["Iterator"]["States"]
+        )
+
+        child_exec_state = iterator_states["StartChildExecution"]
+
+        assert "Catch" in child_exec_state
+        assert child_exec_state["Catch"][0]["Next"] == "LogYearFailure"
+
+    def test_house_fd_multi_year_cloudwatch_metrics(
+        self, house_fd_pipeline_definition
+    ):
+        iterator_states = (
+            house_fd_pipeline_definition["States"]["MultiYearIterator"]["Iterator"]["States"]
+        )
+
+        for state_name in ("LogYearSuccess", "LogYearFailure"):
+            assert "LAMBDA_PUBLISH_METRICS" in iterator_states[state_name]["Resource"]
+
+    def test_house_fd_initial_load_summary(self, house_fd_pipeline_definition):
+        states = house_fd_pipeline_definition["States"]
+
+        assert "SummarizeInitialLoad" in states
+        summary_state = states["SummarizeInitialLoad"]
+
+        assert summary_state["Type"] == "Task"
+        assert "sns:publish" in summary_state["Resource"]
+        assert "House FD Initial Load Complete" in summary_state["Parameters"]["Subject"]

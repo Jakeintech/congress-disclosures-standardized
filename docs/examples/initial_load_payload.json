@@ -1,0 +1,31 @@
+{
+  "Comment": "Example payloads for initial_load execution mode",
+  "examples": {
+    "full_initial_load_2020_2025": {
+      "execution_type": "initial_load",
+      "years": [2020, 2021, 2022, 2023, 2024, 2025]
+    },
+    "test_initial_load_2_years": {
+      "execution_type": "initial_load",
+      "years": [2024, 2025]
+    },
+    "single_year_manual": {
+      "execution_type": "manual",
+      "year": 2025
+    },
+    "scheduled_execution": {
+      "execution_type": "scheduled"
+    }
+  },
+  "notes": {
+    "execution_type": {
+      "initial_load": "Processes multiple years sequentially (see years array). Each year completes Bronze → Silver → Gold before next year starts.",
+      "manual": "Process a single year specified in 'year' parameter. Used for ad-hoc re-processing.",
+      "scheduled": "Regular scheduled execution. Checks for updates and processes new data only."
+    },
+    "years": "Array of years to process in sequential order. Years are processed one at a time with MaxConcurrency: 1.",
+    "error_handling": "If a year fails, the failure is logged to CloudWatch metrics and SNS, but processing continues with the next year.",
+    "metrics": "Year-by-year progress is published to CloudWatch via the publish_pipeline_metrics Lambda.",
+    "summary": "After all years are processed (or attempted), a summary notification is sent via SNS."
+  }
+}

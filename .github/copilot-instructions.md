@@ -2,6 +2,37 @@
 
 This file provides context-aware instructions for GitHub Copilot when working in this repository.
 
+> **Quick Links for Agents:**
+> - 🚀 [Start Here](.github/AGENT_START_HERE.md) - Quick start guide for AI agents
+> - 📋 [AI Agent Context](docs/agile/AI_AGENT_CONTEXT.md) - Complete project context (copy-paste for each task)
+> - 🔄 [AI Agent Workflow](.github/AI_AGENT_WORKFLOW.md) - Multi-agent coordination protocol
+> - 📝 [Task Template](.github/AI_AGENT_TASK_TEMPLATE.md) - Structured task execution template
+> - 📚 [CLAUDE.md](CLAUDE.md) - Comprehensive project guide with all commands
+> - 🤝 [CONTRIBUTING.md](CONTRIBUTING.md) - Code standards, commit conventions, PR process
+
+## 🤖 For AI Agents (Copilot, Claude, etc.)
+
+**If you're an AI coding agent working on this repository:**
+
+1. **ALWAYS read [AI_AGENT_CONTEXT.md](docs/agile/AI_AGENT_CONTEXT.md) first** - This is your master context document with complete project overview, current sprint status, and critical gotchas.
+
+2. **Follow the structured workflow** defined in [AI_AGENT_WORKFLOW.md](.github/AI_AGENT_WORKFLOW.md):
+   - Claim issues properly to avoid conflicts with other agents
+   - Use branch naming: `agent/<name>/<STORY-ID>-description`
+   - Follow conventional commit format: `<type>(<scope>): [STORY-ID] <description>`
+   - Complete the task template checklist before submitting PRs
+
+3. **Token budget awareness**: Stories are estimated in tokens (1 point ≈ 10K tokens). Track your usage and optimize by reading context files before coding to avoid backtracking.
+
+4. **Quality gates**: All PRs must pass:
+   - Unit tests (`pytest tests/unit/`)
+   - Linting (`black`, `flake8`, `mypy`)
+   - Coverage ≥80%
+   - Security checks (no secrets, no SQL injection)
+   - Legal compliance (5 U.S.C. § 13107)
+
+5. **When in doubt**, reference existing implementations in `ingestion/lambdas/` for patterns.
+
 ## Project Overview
 
 This is a **serverless data pipeline** for ingesting, extracting, and standardizing US Congress financial disclosures. The pipeline processes 15+ years of PDF filings from the House Clerk website, extracting structured transaction data, assets, and compliance information into a queryable data lake.
@@ -32,6 +63,30 @@ The pipeline follows a **medallion architecture** with three data layers:
 ### Gold Layer (Query-Facing/Aggregated)
 - **Location**: `s3://congress-disclosures-standardized/gold/house/financial/`
 - **Structure**: Star schema with dimensions, facts, and pre-computed aggregates
+
+## Data Flow
+
+The pipeline follows this orchestration pattern:
+
+```
+Manual/Cron Trigger
+    ↓
+house_fd_ingest_zip (downloads YEARFD.zip, uploads to Bronze, queues PDFs)
+    ↓
+house_fd_index_to_silver (parses XML, writes Silver tables, queues extraction)
+    ↓
+SQS Queue (5K-15K messages) → house_fd_extract_document (parallel, 10 concurrent)
+    ↓ (extracts text via pypdf → OCR fallback)
+house_fd_extract_structured_code (code-based extraction by filing type)
+    ↓ (outputs structured JSON to Silver)
+Gold Scripts (aggregate_data, compute metrics, build fact tables)
+```
+
+**Key Execution Patterns:**
+- **Step Functions**: Orchestrates complex workflows with parallel processing (MaxConcurrency: 10)
+- **Watermarking**: Prevents duplicate processing via SHA256 hashing + DynamoDB
+- **Error Handling**: Exponential backoff retries, DLQ integration, SNS alerts
+- **Quality Gates**: Soda checks between Bronze→Silver→Gold transitions
 
 ## Coding Standards
 
@@ -341,11 +396,23 @@ s3_client.copy_object(
 - ❌ `.env` files with secrets
 - ❌ SSH keys, certificates, or passwords
 
+**Pre-commit Security Checks:**
+```bash
+# Install pre-commit hooks
+pre-commit install
+
+# Run security scan
+detect-secrets scan
+
+# These run automatically on every commit
+```
+
 ### Best Practices
 - ✅ Use AWS IAM roles instead of hardcoded credentials
 - ✅ Store secrets in AWS Secrets Manager or SSM Parameter Store
 - ✅ Use `.env.example` to document required variables
 - ✅ Scan commits with pre-commit hooks (detect-secrets)
+- ✅ Rotate credentials immediately if accidentally committed
 
 ### Legal Compliance (5 U.S.C. § 13107)
 All code must comply with federal law. Prohibited uses:
@@ -357,6 +424,8 @@ Permitted uses:
 - ✅ Transparency and research purposes
 - ✅ News and media reporting
 - ✅ Public accountability
+
+**Important**: Every PR must include a statement confirming legal compliance. Any features that could enable prohibited uses must be rejected.
 
 ## Do's and Don'ts
 
@@ -443,12 +512,21 @@ Permitted uses:
 
 When starting work on this project, read these files in order:
 
-1. **CLAUDE.md** - Project overview, architecture, common commands
-2. **CONTRIBUTING.md** - Coding standards, commit conventions, PR process
-3. **.github/AGENT_START_HERE.md** - Quick start guide for agents
-4. **.github/AI_AGENT_WORKFLOW.md** - Multi-agent coordination
-5. **docs/ARCHITECTURE.md** - Detailed architecture documentation
-6. **docs/EXTRACTION_ARCHITECTURE.md** - Extraction pipeline deep dive
+### Essential (Read First)
+1. **[CLAUDE.md](CLAUDE.md)** - Project overview, architecture, common commands (15 min read)
+2. **[CONTRIBUTING.md](CONTRIBUTING.md)** - Coding standards, commit conventions, PR process (10 min read)
+
+### For AI Agents (Required)
+3. **[.github/AGENT_START_HERE.md](.github/AGENT_START_HERE.md)** - Quick start guide for agents (5 min read)
+4. **[docs/agile/AI_AGENT_CONTEXT.md](docs/agile/AI_AGENT_CONTEXT.md)** - Complete project context to copy-paste (5 min read, reference throughout)
+5. **[.github/AI_AGENT_WORKFLOW.md](.github/AI_AGENT_WORKFLOW.md)** - Multi-agent coordination (10 min read)
+6. **[.github/AI_AGENT_TASK_TEMPLATE.md](.github/AI_AGENT_TASK_TEMPLATE.md)** - Task execution template (reference during work)
+
+### Deep Dive (As Needed)
+7. **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed architecture documentation
+8. **[docs/EXTRACTION_ARCHITECTURE.md](docs/EXTRACTION_ARCHITECTURE.md)** - Extraction pipeline deep dive
+9. **[docs/agile/STORY_CATALOG.md](docs/agile/STORY_CATALOG.md)** - All user stories overview
+10. **[docs/agile/technical/](docs/agile/technical/)** - Technical specifications and ADRs
 
 ## Step Functions & State Machines
 
@@ -468,22 +546,109 @@ The pipeline uses AWS Step Functions for orchestration:
 ## Help & Support
 
 ### If Blocked
-1. Check existing similar implementations
+1. Check existing similar implementations in the codebase
 2. Review technical specs in `docs/agile/technical/`
 3. Search codebase: `grep -r "pattern" --include="*.py"`
 4. Check git history: `git log --grep="keyword"`
 5. Ask in issue comments with specific question
+6. **For AI agents**: Check [AI_AGENT_WORKFLOW.md](.github/AI_AGENT_WORKFLOW.md) for handoff procedures
 
 ### Resources
-- **Documentation**: Start with `CLAUDE.md`
-- **Code Examples**: Browse `ingestion/lambdas/` for patterns
+- **Documentation**: Start with `CLAUDE.md` (comprehensive guide)
+- **Code Examples**: Browse `ingestion/lambdas/` for Lambda patterns
 - **Test Examples**: Browse `tests/unit/` for test patterns
 - **Architecture Decisions**: See `docs/agile/technical/ARCHITECTURE_DECISION_RECORD.md`
+- **AI Agent Resources**:
+  - [AI_AGENT_CONTEXT.md](docs/agile/AI_AGENT_CONTEXT.md) - Complete project context
+  - [AGENT_ONBOARDING.md](.github/AGENT_ONBOARDING.md) - First-time agent walkthrough
+  - [AI_AGENT_TASK_TEMPLATE.md](.github/AI_AGENT_TASK_TEMPLATE.md) - Task execution template
+  - [STORY_CATALOG.md](docs/agile/STORY_CATALOG.md) - All user stories overview
+
+### Common Workflows for Copilot
+
+**Starting a new task:**
+```bash
+# 1. Find and claim an issue
+gh issue list --label "agent-task" --state open --limit 5
+gh issue edit <NUMBER> --add-assignee @me
+
+# 2. Create branch
+git checkout -b agent/copilot/STORY-XXX-description
+
+# 3. Read context
+cat docs/agile/AI_AGENT_CONTEXT.md
+cat docs/agile/stories/active/STORY_XXX_*.md
+```
+
+**Before submitting PR:**
+```bash
+# Run quality checks
+make check-all           # format, lint, type-check, test
+pytest --cov=ingestion   # verify coverage ≥80%
+
+# Verify no secrets
+detect-secrets scan
+
+# Create PR with conventional commit
+git commit -m "feat(scope): [STORY-XXX] description"
+gh pr create --fill
+```
+
+## Definition of Done (DoD)
+
+Every PR must meet these criteria before merge:
+
+### Code Quality
+- [ ] Code follows PEP 8 style guide (88 char line length)
+- [ ] All functions have type hints
+- [ ] All public functions have Google-style docstrings
+- [ ] No commented-out code (use git history instead)
+- [ ] No TODOs without linked issues
+- [ ] Black formatting applied
+- [ ] flake8 linting passes
+- [ ] mypy type checking passes
+
+### Testing
+- [ ] Unit tests written for new functionality
+- [ ] Test coverage ≥80% for new code
+- [ ] Critical paths have 100% coverage
+- [ ] All tests pass locally (`pytest tests/`)
+- [ ] Integration tests pass (if applicable)
+
+### Security
+- [ ] No hardcoded secrets or credentials
+- [ ] No SQL injection vulnerabilities
+- [ ] No command injection risks
+- [ ] `detect-secrets` scan passes
+- [ ] Legal compliance verified (5 U.S.C. § 13107)
+
+### Documentation
+- [ ] Code changes documented in docstrings
+- [ ] Complex logic has inline comments
+- [ ] README/CLAUDE.md updated if workflow changed
+- [ ] `.env.example` updated if new env vars added
+- [ ] PR description clearly explains changes
+
+### Git & CI/CD
+- [ ] Conventional commit format used
+- [ ] Branch named correctly (`agent/<name>/STORY-XXX-description`)
+- [ ] Issue linked in PR (`Closes #XXX`)
+- [ ] All CI/CD checks passing
+- [ ] No merge conflicts
+- [ ] Self-review completed
+
+### Acceptance Criteria
+- [ ] All story acceptance criteria met
+- [ ] Manual testing completed
+- [ ] Edge cases considered and handled
+- [ ] Error messages are clear and actionable
+
+**For AI Agents**: Track your token usage against estimates. If >20% over budget, document why in PR description.
 
 ---
 
-**Version**: 1.0  
-**Last Updated**: 2025-12-29  
+**Version**: 1.1  
+**Last Updated**: 2026-01-05  
 **Maintained By**: Project Team
 
 For questions or improvements to these instructions, create an issue with the `documentation` label.

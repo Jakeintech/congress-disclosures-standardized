@@ -278,6 +278,28 @@ class TestStateMachineDefinitions:
             "Initial Load Complete" in summary_state["Parameters"]["Subject"]
         ), "Subject must indicate initial load completion"
 
+    def test_extract_documents_map_concurrency(self, house_fd_pipeline_definition):
+        """Test that ExtractDocumentsMap has MaxConcurrency configured."""
+        states = house_fd_pipeline_definition["States"]
+
+        # Verify ExtractDocumentsMap state exists
+        assert "ExtractDocumentsMap" in states, "ExtractDocumentsMap state not found"
+
+        extract_map_state = states["ExtractDocumentsMap"]
+
+        # Verify it's a Map state
+        assert (
+            extract_map_state["Type"] == "Map"
+        ), "ExtractDocumentsMap must be a Map state"
+
+        # Verify MaxConcurrency is set to 40 (high concurrency for parallel extraction)
+        assert (
+            "MaxConcurrency" in extract_map_state
+        ), "ExtractDocumentsMap must have MaxConcurrency configured"
+        assert (
+            extract_map_state["MaxConcurrency"] == 40
+        ), "ExtractDocumentsMap MaxConcurrency must be 40"
+
 
 class TestHouseFDPipelineMultiYear:
     """Test suite for House FD Pipeline multi-year initial load features."""

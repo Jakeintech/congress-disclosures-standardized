@@ -71,7 +71,7 @@ def load_filings_and_transactions(bucket_name: str) -> tuple[pd.DataFrame, pd.Da
 
 
 def compute_member_stats(filings: pd.DataFrame, transactions: pd.DataFrame) -> pd.DataFrame:
-    """Compute member trading statistics."""
+    """Compute member trading statistics including compliance score."""
     if filings.empty:
         logger.warning("No filings to analyze")
         return pd.DataFrame()
@@ -102,6 +102,33 @@ def compute_member_stats(filings: pd.DataFrame, transactions: pd.DataFrame) -> p
     # Flatten multi-level columns from agg IMMEDIATELY
     member_filing_stats.columns = ['filer_name', 'total_filings', 'first_filing_date',
                                      'latest_filing_date', 'state_district']
+    
+    # Calculate late filing count for compliance score
+    # Late filing = filed > 45 days after transaction date
+    late_filing_counts = pd.DataFrame()
+    if not transactions.empty and 'filer_name' in transactions.columns:
+        txn_copy = transactions.copy()
+        # Ensure date columns are datetime
+        if 'filing_date' in txn_copy.columns and 'transaction_date' in txn_copy.columns:
+            txn_copy['filing_date'] = pd.to_datetime(txn_copy['filing_date'], errors='coerce')
+            txn_copy['transaction_date'] = pd.to_datetime(txn_copy['transaction_date'], errors='coerce')
+            txn_copy['days_to_file'] = (txn_copy['filing_date'] - txn_copy['transaction_date']).dt.days
+            txn_copy['is_late'] = txn_copy['days_to_file'] > 45
+            
+            late_filing_counts = txn_copy.groupby('filer_name').agg({
+                'is_late': 'sum',
+                'transaction_key': 'count'
+            }).reset_index()
+            late_filing_counts.columns = ['filer_name', 'late_filing_count', 'transaction_count_for_compliance']
+    
+    # Merge late filing counts if available
+    if not late_filing_counts.empty:
+        member_filing_stats = member_filing_stats.merge(late_filing_counts, on='filer_name', how='left')
+        member_filing_stats['late_filing_count'] = member_filing_stats['late_filing_count'].fillna(0).astype(int)
+        member_filing_stats['transaction_count_for_compliance'] = member_filing_stats['transaction_count_for_compliance'].fillna(0).astype(int)
+    else:
+        member_filing_stats['late_filing_count'] = 0
+        member_filing_stats['transaction_count_for_compliance'] = 0
 
     # If we have transactions, compute transaction stats
     if not transactions.empty:
@@ -137,6 +164,19 @@ def compute_member_stats(filings: pd.DataFrame, transactions: pd.DataFrame) -> p
     member_stats['total_transactions'] = member_stats['total_transactions'].fillna(0).astype(int)
     member_stats['total_volume'] = member_stats['total_volume'].fillna(0.0)
     member_stats['unique_stocks'] = member_stats['unique_stocks'].fillna(0).astype(int)
+    
+    # Calculate compliance score (0.0 - 1.0)
+    # compliance_score = 1.0 - (late_filing_count / total_transactions)
+    # If no transactions, default to 1.0 (perfect compliance)
+    if 'late_filing_count' in member_stats.columns and 'transaction_count_for_compliance' in member_stats.columns:
+        member_stats['compliance_score'] = 1.0 - (
+            member_stats['late_filing_count'] / 
+            member_stats['transaction_count_for_compliance'].replace(0, 1)  # Avoid division by zero
+        )
+        # Ensure compliance_score is between 0.0 and 1.0
+        member_stats['compliance_score'] = member_stats['compliance_score'].clip(0.0, 1.0)
+    else:
+        member_stats['compliance_score'] = 1.0  # Default perfect compliance if no data
 
     # Add computed timestamp
     member_stats['computed_at'] = datetime.utcnow().isoformat()
@@ -158,7 +198,7 @@ def write_to_gold(df: pd.DataFrame, bucket_name: str) -> Dict[str, Any]:
 
     with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:
         df.to_parquet(tmp.name, engine='pyarrow', compression='snappy', index=False)
-        s3_key = 'gold/house/financial/aggregates/member_trading_stats/latest.parquet'
+        s3_key = 'gold/house/financial/aggregates/agg_member_trading_stats/latest.parquet'
         s3_client.upload_file(tmp.name, bucket_name, s3_key)
         logger.info(f"  Uploaded to s3://{bucket_name}/{s3_key}")
         os.unlink(tmp.name)

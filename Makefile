@@ -894,6 +894,44 @@ logs-extract: ## Tail logs for extract Lambda
 logs-extract-recent: ## Show recent extract Lambda logs (last 2min, errors + successes)
 	@aws logs tail /aws/lambda/congress-disclosures-development-extract-document --since 2m --format short | grep -E "(Processing doc_id|Starting text extraction|validation failed|ERROR)" | tail -30
 
+check-sns-subscriptions: ## Check SNS email subscription status
+	@echo "Checking SNS subscriptions..."
+	@ACCOUNT_ID=$$(aws sts get-caller-identity --query Account --output text); \
+	echo ""; \
+	echo "Pipeline Alerts Topic:"; \
+	aws sns list-subscriptions-by-topic \
+		--topic-arn "arn:aws:sns:us-east-1:$$ACCOUNT_ID:congress-disclosures-pipeline-alerts" \
+		--query 'Subscriptions[*].[Protocol,Endpoint,SubscriptionArn]' \
+		--output table || echo "  (topic not found or no subscriptions)"; \
+	echo ""; \
+	echo "Data Quality Alerts Topic:"; \
+	aws sns list-subscriptions-by-topic \
+		--topic-arn "arn:aws:sns:us-east-1:$$ACCOUNT_ID:congress-disclosures-data-quality-alerts" \
+		--query 'Subscriptions[*].[Protocol,Endpoint,SubscriptionArn]' \
+		--output table || echo "  (topic not found or no subscriptions)"
+
+test-pipeline-alert: ## Send test alert to pipeline alerts topic
+	@ACCOUNT_ID=$$(aws sts get-caller-identity --query Account --output text); \
+	echo "Sending test alert to pipeline alerts topic..."; \
+	aws sns publish \
+		--topic-arn "arn:aws:sns:us-east-1:$$ACCOUNT_ID:congress-disclosures-pipeline-alerts" \
+		--subject "Test Alert: Pipeline Monitoring" \
+		--message "This is a test alert from the Congress Disclosures pipeline. If you received this, your SNS email subscription is working correctly. Sent at $$(date -u +"%Y-%m-%d %H:%M:%S UTC")" && \
+	echo "✓ Test alert sent. Check your email within 1 minute."
+
+test-quality-alert: ## Send test alert to data quality topic
+	@ACCOUNT_ID=$$(aws sts get-caller-identity --query Account --output text); \
+	echo "Sending test alert to data quality topic..."; \
+	aws sns publish \
+		--topic-arn "arn:aws:sns:us-east-1:$$ACCOUNT_ID:congress-disclosures-data-quality-alerts" \
+		--subject "Test Alert: Data Quality Monitoring" \
+		--message "This is a test alert for data quality checks. If you received this, your SNS email subscription is working correctly. Sent at $$(date -u +"%Y-%m-%d %H:%M:%S UTC")" && \
+	echo "✓ Test alert sent. Check your email within 1 minute."
+
+test-all-alerts: check-sns-subscriptions test-pipeline-alert test-quality-alert ## Check subscriptions and test all alert topics
+	@echo ""
+	@echo "✓ All alert tests complete. Check your email for test messages."
+
 ##@ Utilities
 
 verify-aws: ## Verify AWS credentials are configured

@@ -35,6 +35,7 @@ BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', 'congress-disclosures-standardize
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 AWS_ACCOUNT_ID = os.environ.get('AWS_ACCOUNT_ID')
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+PROJECT_NAME = os.environ.get('PROJECT_NAME', 'congress-disclosures')
 SCRIPTS_DIR = Path(__file__).parent
 
 # Validate required environment variables
@@ -71,7 +72,7 @@ def get_queue_message_count(queue_url: str) -> int:
 def invoke_orchestrator(entity_type: str, congress: int = None, mode: str = 'full') -> dict:
     """Invoke the Congress API ingest orchestrator Lambda."""
     lambda_client = get_lambda_client()
-    function_name = f"congress-disclosures-development-congress-orchestrator"
+    function_name = f"{PROJECT_NAME}-{ENVIRONMENT}-congress-orchestrator"
     
     payload = {
         'entity_type': entity_type,

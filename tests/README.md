@@ -7,9 +7,58 @@ This directory contains tests for the Congress Financial Disclosures pipeline.
 ```
 tests/
 ├── unit/           # Unit tests (fast, no AWS required)
+│   ├── watermarking/  # Watermarking function tests (STORY-051)
+│   ├── api/           # API endpoint tests
+│   └── ...
 ├── integration/    # Integration tests (require AWS)
 └── fixtures/       # Test data fixtures
 ```
+
+## Watermarking Tests (Sprint 1)
+
+The watermarking tests validate incremental processing logic for all data sources:
+
+### Running Watermarking Tests
+
+```bash
+# Run all watermarking tests
+pytest tests/unit/watermarking/ -v
+
+# With coverage report
+pytest tests/unit/watermarking/ --cov=ingestion/lambdas/check_house_fd_updates \
+       --cov=ingestion/lambdas/check_congress_updates \
+       --cov=ingestion/lambdas/check_lobbying_updates \
+       --cov-report=term-missing
+```
+
+### Test Coverage
+
+**Target**: ≥85% coverage for watermarking modules  
+**Current**: 85% (26 tests passing)
+
+- `check_house_fd_updates`: 88% coverage (11 tests)
+- `check_congress_updates`: 79% coverage (8 tests)
+- `check_lobbying_updates`: 89% coverage (6 tests)
+
+### Test Patterns
+
+**House FD Watermarking** (SHA256-based):
+- Tests SHA256 hash comparison
+- Tests DynamoDB watermark storage/retrieval
+- Tests HTTP error handling (404, timeout)
+- Tests year validation (lookback window)
+
+**Congress Watermarking** (timestamp-based):
+- Tests DynamoDB timestamp watermarks
+- Tests Congress.gov API integration
+- Tests rate limiting (HTTP 429)
+- Tests incremental vs. initial ingestion
+
+**Lobbying Watermarking** (S3 existence-based):
+- Tests S3 object existence checks
+- Tests quarter validation
+- Tests year validation
+- Tests partial quarter processing
 
 ## Running Tests
 

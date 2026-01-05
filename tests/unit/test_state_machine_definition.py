@@ -27,7 +27,7 @@ def congress_data_platform_definition():
 def house_fd_pipeline_definition():
     """Load house_fd_pipeline.json once for all tests."""
     state_machine_path = STATE_MACHINES_DIR / "house_fd_pipeline.json"
-    
+
     with open(state_machine_path, "r") as f:
         return json.load(f)
 
@@ -158,15 +158,15 @@ class TestStateMachineDefinitions:
     def test_extract_documents_map_concurrency(self, house_fd_pipeline_definition):
         """Test that ExtractDocumentsMap has MaxConcurrency set to 10."""
         states = house_fd_pipeline_definition["States"]
-        
+
         # Verify ExtractDocumentsMap state exists
         assert "ExtractDocumentsMap" in states, "ExtractDocumentsMap state not found"
-        
+
         extract_map_state = states["ExtractDocumentsMap"]
-        
+
         # Verify it's a Map state
         assert extract_map_state["Type"] == "Map", "ExtractDocumentsMap must be a Map state"
-        
+
         # Verify MaxConcurrency is set to 10
         assert "MaxConcurrency" in extract_map_state, "ExtractDocumentsMap must have MaxConcurrency configured"
         assert extract_map_state["MaxConcurrency"] == 10, "ExtractDocumentsMap MaxConcurrency must be 10"

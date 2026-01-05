@@ -118,6 +118,20 @@ class TestCongressWatermarking:
     
     @patch('handler.check_congress_api')
     @patch('handler.get_watermark')
+    @patch('handler.update_watermark')
+    def test_members_data_type_no_bills_count(self, mock_update, mock_get, mock_api):
+        """Test that bills_count is NOT present when data_type is 'members'."""
+        mock_get.return_value = {}
+        mock_api.return_value = {'pagination': {'count': 50}}
+        
+        result = handler.lambda_handler({'data_type': 'members'}, {})
+        
+        assert result['has_new_data'] is True
+        assert result['record_count'] == 50
+        assert 'bills_count' not in result  # Should not have bills_count for members
+    
+    @patch('handler.check_congress_api')
+    @patch('handler.get_watermark')
     def test_rate_limiting_handled_gracefully(self, mock_get, mock_api):
         """Test that HTTP 429 rate limiting is handled gracefully."""
         mock_get.return_value = {'last_update_date': '2025-01-01T00:00:00Z'}

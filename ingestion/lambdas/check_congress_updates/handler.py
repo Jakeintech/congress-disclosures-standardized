@@ -121,7 +121,7 @@ def lambda_handler(event, context):
             "from_date": "2024-01-01T00:00:00Z",
             "to_date": "2025-12-14T10:30:00Z",  # Only when has_new_data=true
             "record_count": 150,                # Only when has_new_data=true
-            "bills_count": 150,                  # Alias for record_count (STORY-004)
+            "bills_count": 150,                  # Only when data_type="bills" and has_new_data=true (STORY-004)
             "is_initial_load": true,             # true when watermark_status="new"
             "watermark_status": "new|incremental",
             "checked_at": "2025-12-14T10:30:00Z"
@@ -174,17 +174,22 @@ def lambda_handler(event, context):
             current_time = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             update_watermark(data_type, current_time, record_count)
             
-            return {
+            response = {
                 "has_new_data": True,
                 "data_type": data_type,
                 "from_date": from_date,
                 "to_date": current_time,
                 "record_count": record_count,
-                "bills_count": record_count,  # Alias for compatibility with STORY-004
                 "is_initial_load": watermark_status == "new",
                 "watermark_status": watermark_status,
                 "checked_at": current_time
             }
+            
+            # Add bills_count alias only for bills (STORY-004 compatibility)
+            if data_type == "bills":
+                response["bills_count"] = record_count
+            
+            return response
         else:
             logger.info(f"No new {data_type} records since {from_date}")
             return {

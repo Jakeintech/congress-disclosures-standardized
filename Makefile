@@ -786,6 +786,10 @@ build-lobbying-gold-dim-lobbyist: ## Build lobbying Gold dim_lobbyist
 	@echo "Building lobbying Gold dim_lobbyist..."
 	@$(PYTHON) scripts/lobbying_build_dim_lobbyist.py
 
+build-lobbying-gold-fact-table: ## Build lobbying Gold fact_lobbying (Lambda wrapper)
+	@echo "Building lobbying Gold fact_lobbying via Lambda..."
+	@$(PYTHON) scripts/build_fact_lobbying.py
+
 build-lobbying-gold-all: build-lobbying-gold-fact build-lobbying-gold-dim-client build-lobbying-gold-dim-registrant build-lobbying-gold-dim-lobbyist ## Build all lobbying Gold tables
 	@echo "✓ Lobbying Gold layer build complete"
 

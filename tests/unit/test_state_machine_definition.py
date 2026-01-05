@@ -170,3 +170,140 @@ class TestStateMachineDefinitions:
         # Verify MaxConcurrency is set to 10
         assert "MaxConcurrency" in extract_map_state, "ExtractDocumentsMap must have MaxConcurrency configured"
         assert extract_map_state["MaxConcurrency"] == 10, "ExtractDocumentsMap MaxConcurrency must be 10"
+
+    def test_multi_year_iterator_exists_house_fd(self, house_fd_pipeline_definition):
+        """Test that MultiYearIterator state exists in house_fd_pipeline."""
+        states = house_fd_pipeline_definition["States"]
+        
+        # Verify MultiYearIterator state exists
+        assert "MultiYearIterator" in states, "MultiYearIterator state not found"
+        
+        iterator_state = states["MultiYearIterator"]
+        
+        # Verify it's a Map state
+        assert iterator_state["Type"] == "Map", "MultiYearIterator must be a Map state"
+        
+        # Verify ItemsPath is configured
+        assert "ItemsPath" in iterator_state, "MultiYearIterator must have ItemsPath"
+        assert iterator_state["ItemsPath"] == "$.years", "ItemsPath must be $.years"
+
+    def test_multi_year_iterator_sequential_processing(self, house_fd_pipeline_definition):
+        """Test that MultiYearIterator processes years sequentially (MaxConcurrency=1)."""
+        states = house_fd_pipeline_definition["States"]
+        iterator_state = states["MultiYearIterator"]
+        
+        # Verify MaxConcurrency is set to 1 for sequential processing
+        assert "MaxConcurrency" in iterator_state, "MultiYearIterator must have MaxConcurrency"
+        assert iterator_state["MaxConcurrency"] == 1, "MultiYearIterator MaxConcurrency must be 1 for sequential processing"
+
+    def test_multi_year_iterator_error_handling(self, house_fd_pipeline_definition):
+        """Test that MultiYearIterator has proper error handling."""
+        states = house_fd_pipeline_definition["States"]
+        iterator_state = states["MultiYearIterator"]
+        iterator_states = iterator_state["Iterator"]["States"]
+        
+        # Verify StartChildExecution has Catch configuration
+        start_child = iterator_states["StartChildExecution"]
+        assert "Catch" in start_child, "StartChildExecution must have Catch configuration"
+        
+        # Verify error is caught and routed to LogYearFailure
+        catch_configs = start_child["Catch"]
+        assert len(catch_configs) > 0, "Must have at least one catch configuration"
+        assert catch_configs[0]["Next"] == "LogYearFailure", "Errors must route to LogYearFailure"
+
+    def test_multi_year_iterator_continue_on_error(self, house_fd_pipeline_definition):
+        """Test that MultiYearIterator continues processing after year failure."""
+        states = house_fd_pipeline_definition["States"]
+        iterator_state = states["MultiYearIterator"]
+        iterator_states = iterator_state["Iterator"]["States"]
+        
+        # Verify LogYearFailure state exists
+        assert "LogYearFailure" in iterator_states, "LogYearFailure state must exist"
+        
+        # Verify LogYearFailure ends gracefully (not a Fail state)
+        log_failure_state = iterator_states["LogYearFailure"]
+        assert log_failure_state["Type"] == "Task", "LogYearFailure must be a Task state (not Fail)"
+        assert log_failure_state["Next"] == "YearCompleted", "LogYearFailure must continue to YearCompleted"
+
+    def test_multi_year_iterator_cloudwatch_metrics(self, house_fd_pipeline_definition):
+        """Test that MultiYearIterator publishes CloudWatch metrics for progress."""
+        states = house_fd_pipeline_definition["States"]
+        iterator_state = states["MultiYearIterator"]
+        iterator_states = iterator_state["Iterator"]["States"]
+        
+        # Verify LogYearSuccess state exists
+        assert "LogYearSuccess" in iterator_states, "LogYearSuccess state must exist"
+        
+        log_success_state = iterator_states["LogYearSuccess"]
+        
+        # Verify it's a Task that calls LAMBDA_PUBLISH_METRICS
+        assert log_success_state["Type"] == "Task", "LogYearSuccess must be a Task"
+        assert "LAMBDA_PUBLISH_METRICS" in log_success_state["Resource"], "Must call metrics Lambda"
+        
+        # Verify it has metric_name parameter
+        params = log_success_state["Parameters"]
+        assert "metric_name" in params, "Must have metric_name parameter"
+        assert params["metric_name"] == "YearProcessingComplete", "Metric name must be YearProcessingComplete"
+
+    def test_multi_year_iterator_summary_notification(self, house_fd_pipeline_definition):
+        """Test that MultiYearIterator sends summary notification after completion."""
+        states = house_fd_pipeline_definition["States"]
+        
+        # Verify SummarizeInitialLoad state exists
+        assert "SummarizeInitialLoad" in states, "SummarizeInitialLoad state must exist"
+        
+        summary_state = states["SummarizeInitialLoad"]
+        
+        # Verify it's an SNS publish task
+        assert summary_state["Type"] == "Task", "SummarizeInitialLoad must be a Task"
+        assert "sns:publish" in summary_state["Resource"], "Must use SNS publish resource"
+        
+        # Verify subject includes "Initial Load"
+        params = summary_state["Parameters"]
+        assert "Initial Load" in params["Subject"], "Subject must mention Initial Load"
+
+    def test_check_execution_type_routes_to_multi_year(self, house_fd_pipeline_definition):
+        """Test that CheckExecutionType routes initial_load to MultiYearIterator."""
+        states = house_fd_pipeline_definition["States"]
+        
+        # Verify CheckExecutionType exists
+        assert "CheckExecutionType" in states, "CheckExecutionType state must exist"
+        
+        check_state = states["CheckExecutionType"]
+        
+        # Verify it's a Choice state
+        assert check_state["Type"] == "Choice", "CheckExecutionType must be a Choice state"
+        
+        # Verify it has a choice for execution_type == "initial_load"
+        choices = check_state["Choices"]
+        initial_load_choice = next(
+            (c for c in choices if c.get("Variable") == "$.execution_type" and c.get("StringEquals") == "initial_load"),
+            None
+        )
+        
+        assert initial_load_choice is not None, "Must have choice for execution_type=initial_load"
+        assert initial_load_choice["Next"] == "MultiYearIterator", "initial_load must route to MultiYearIterator"
+
+    def test_multi_year_iterator_exists_congress_platform(self, congress_data_platform_definition):
+        """Test that MultiYearIterator state exists in congress_data_platform."""
+        states = congress_data_platform_definition["States"]
+        
+        # Verify MultiYearIterator state exists
+        assert "MultiYearIterator" in states, "MultiYearIterator state not found in congress_data_platform"
+        
+        iterator_state = states["MultiYearIterator"]
+        
+        # Verify it's a Map state with sequential processing
+        assert iterator_state["Type"] == "Map", "MultiYearIterator must be a Map state"
+        assert iterator_state["MaxConcurrency"] == 1, "MultiYearIterator MaxConcurrency must be 1"
+
+    def test_multi_year_iterator_congress_platform_error_handling(self, congress_data_platform_definition):
+        """Test that congress_data_platform MultiYearIterator has proper error handling."""
+        states = congress_data_platform_definition["States"]
+        iterator_state = states["MultiYearIterator"]
+        iterator_states = iterator_state["Iterator"]["States"]
+        
+        # Verify continue-on-error behavior
+        assert "LogYearFailure" in iterator_states, "LogYearFailure state must exist"
+        log_failure_state = iterator_states["LogYearFailure"]
+        assert log_failure_state["Next"] == "YearCompleted", "Must continue after failure"

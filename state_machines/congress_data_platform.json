@@ -16,9 +16,9 @@
     },
     "MultiYearIterator": {
       "Type": "Map",
-      "Comment": "Process multiple years in parallel for initial load",
+      "Comment": "Process multiple years sequentially (one at a time) for initial load",
       "ItemsPath": "$.years",
-      "MaxConcurrency": 2,
+      "MaxConcurrency": 1,
       "Iterator": {
         "StartAt": "StartChildExecution",
         "States": {
@@ -32,11 +32,119 @@
                 "year.$": "$"
               }
             },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "States.TaskFailed"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 2,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "ResultPath": "$.error",
+                "Next": "LogYearFailure"
+              }
+            ],
+            "Next": "LogYearSuccess"
+          },
+          "LogYearSuccess": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
+            "Comment": "Log successful year completion to CloudWatch",
+            "Parameters": {
+              "pipeline": "congress_data_platform",
+              "execution_type": "initial_load",
+              "year.$": "$",
+              "status": "success",
+              "metric_name": "YearProcessingComplete"
+            },
+            "ResultPath": "$.metrics",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "ResultPath": "$.metrics_error",
+                "Next": "YearCompleted"
+              }
+            ],
+            "Next": "YearCompleted"
+          },
+          "LogYearFailure": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_PUBLISH_METRICS}",
+            "Comment": "Log year failure to CloudWatch but continue with next year",
+            "Parameters": {
+              "pipeline": "congress_data_platform",
+              "execution_type": "initial_load",
+              "year.$": "$",
+              "status": "failed",
+              "error.$": "$.error",
+              "metric_name": "YearProcessingFailed"
+            },
+            "ResultPath": "$.metrics",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "ResultPath": "$.metrics_error",
+                "Next": "YearCompleted"
+              }
+            ],
+            "Next": "YearCompleted"
+          },
+          "YearCompleted": {
+            "Type": "Pass",
+            "Comment": "Year processing completed (success or failure)",
             "End": true
           }
         }
       },
-      "End": true
+      "ResultPath": "$.year_results",
+      "Next": "SummarizeInitialLoad"
+    },
+    "SummarizeInitialLoad": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Comment": "Send summary of initial load execution",
+      "Parameters": {
+        "TopicArn": "${SNS_PIPELINE_ALERTS_ARN}",
+        "Subject": "Initial Load Complete - Congress Data Platform",
+        "Message.$": "States.Format('Initial load execution completed.\n\nResults: {}\n\nExecution ID: {}', States.JsonToString($.year_results), $$.Execution.Id)"
+      },
+      "ResultPath": "$.summary",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.summary_error",
+          "Next": "InitialLoadComplete"
+        }
+      ],
+      "Next": "InitialLoadComplete"
+    },
+    "InitialLoadComplete": {
+      "Type": "Succeed",
+      "Comment": "Initial load processing completed"
     },
     "CheckForUpdates": {
       "Type": "Parallel",

@@ -7,6 +7,7 @@ import sys
 import os
 import importlib.util
 from unittest.mock import patch
+from botocore.exceptions import NoRegionError
 
 # Scripts that require AWS_ACCOUNT_ID
 SCRIPTS_TO_TEST = [
@@ -39,11 +40,15 @@ class TestEnvironmentVariableValidation:
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
         
         for script_path in SCRIPTS_TO_TEST:
-            # Clear AWS_ACCOUNT_ID from environment
-            with patch.dict(os.environ, {'AWS_REGION': 'us-east-1'}, clear=False):
-                if 'AWS_ACCOUNT_ID' in os.environ:
-                    del os.environ['AWS_ACCOUNT_ID']
-                
+            # Set minimal environment with AWS_REGION but no AWS_ACCOUNT_ID
+            minimal_env = {
+                'AWS_REGION': 'us-east-1',
+                'PATH': os.environ.get('PATH', ''),
+                'HOME': os.environ.get('HOME', ''),
+                'PYTHONPATH': os.environ.get('PYTHONPATH', ''),
+            }
+            
+            with patch.dict(os.environ, minimal_env, clear=True):
                 # Try to import the script (which should validate env vars)
                 full_path = os.path.join(repo_root, script_path)
                 spec = importlib.util.spec_from_file_location("test_module", full_path)
@@ -51,9 +56,11 @@ class TestEnvironmentVariableValidation:
                 if spec and spec.loader:
                     module = importlib.util.module_from_spec(spec)
                     
-                    # Script should raise ValueError or other error for missing AWS_ACCOUNT_ID
-                    # Some scripts will fail when initializing boto3, others validate early
-                    with pytest.raises((ValueError, Exception)):
+                    # Script should raise one of these errors for missing AWS_ACCOUNT_ID:
+                    # - ValueError: Raised by our explicit validation
+                    # - KeyError/TypeError: May occur when constructing URLs with None
+                    # - NoRegionError: May occur if AWS_REGION is not properly passed to boto3
+                    with pytest.raises((ValueError, KeyError, TypeError, NoRegionError)):
                         spec.loader.exec_module(module)
     
     def test_scripts_use_environment_variables(self):

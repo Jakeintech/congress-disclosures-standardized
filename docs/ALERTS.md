@@ -255,7 +255,25 @@ aws lambda get-function-concurrency \
 
 ## Testing Alert Delivery
 
-### Test Pipeline Alerts Topic
+### Quick Test Using Make (Recommended)
+
+```bash
+# Check subscription status
+make check-sns-subscriptions
+
+# Test pipeline alerts
+make test-pipeline-alert
+
+# Test data quality alerts
+make test-quality-alert
+
+# Run all tests (check subscriptions + test both topics)
+make test-all-alerts
+```
+
+**Expected**: Email(s) received within 1 minute
+
+### Manual Test: Pipeline Alerts Topic
 
 ```bash
 # Get your AWS account ID
@@ -270,7 +288,7 @@ aws sns publish \
 
 **Expected**: Email received within 1 minute
 
-### Test Data Quality Alerts Topic
+### Manual Test: Data Quality Alerts Topic
 
 ```bash
 # Send test alert to data quality topic
@@ -285,6 +303,10 @@ aws sns publish \
 ### Verify Subscription Status
 
 ```bash
+# Using Make
+make check-sns-subscriptions
+
+# Or manually
 # Check pipeline alerts subscriptions
 aws sns list-subscriptions-by-topic \
   --topic-arn "arn:aws:sns:us-east-1:${ACCOUNT_ID}:congress-disclosures-pipeline-alerts" \

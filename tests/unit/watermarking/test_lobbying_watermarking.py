@@ -9,16 +9,18 @@ from datetime import datetime
 import sys
 import os
 
-# Add ingestion path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../ingestion/lambdas/check_lobbying_updates'))
+# Add parent lambda directories to path
+lambda_dir = os.path.join(os.path.dirname(__file__), '../../../ingestion/lambdas')
+sys.path.insert(0, lambda_dir)
 
-import handler
+# Now import the specific handler module
+from check_lobbying_updates import handler
 
 
 @pytest.fixture
 def mock_s3():
     """Mock S3 client."""
-    with patch('handler.s3') as mock_s3_client:
+    with patch('check_lobbying_updates.handler.s3') as mock_s3_client:
         yield mock_s3_client
 
 
@@ -42,7 +44,7 @@ class TestLobbyingWatermarking:
         
         assert result is False
     
-    @patch('handler.check_bronze_exists')
+    @patch('check_lobbying_updates.handler.check_bronze_exists')
     def test_all_quarters_exist(self, mock_check):
         """Test when all quarters already exist."""
         mock_check.return_value = True
@@ -52,7 +54,7 @@ class TestLobbyingWatermarking:
         assert result['has_new_filings'] is False
         assert len(result['quarters_to_process']) == 0
     
-    @patch('handler.check_bronze_exists')
+    @patch('check_lobbying_updates.handler.check_bronze_exists')
     def test_some_quarters_missing(self, mock_check):
         """Test when some quarters are missing."""
         # Q1 and Q3 exist, Q2 and Q4 missing

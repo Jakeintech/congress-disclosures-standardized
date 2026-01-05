@@ -98,8 +98,9 @@ def lambda_handler(event, context):
             continue
         
         # No Bronze data - need to process this quarter
+        quarters_to_process.append(q)
+    
     try:
-        quarters_to_process = quarters
         has_new_filings = len(quarters_to_process) > 0
         
         # Prepare API ingestion tasks

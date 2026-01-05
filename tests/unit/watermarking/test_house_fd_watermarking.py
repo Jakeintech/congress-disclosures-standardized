@@ -10,16 +10,18 @@ from datetime import datetime
 import sys
 import os
 
-# Add ingestion path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../ingestion/lambdas/check_house_fd_updates'))
+# Add parent lambda directories to path
+lambda_dir = os.path.join(os.path.dirname(__file__), '../../../ingestion/lambdas')
+sys.path.insert(0, lambda_dir)
 
-import handler
+# Now import the specific handler module
+from check_house_fd_updates import handler
 
 
 @pytest.fixture
 def mock_dynamodb():
     """Mock DynamoDB table resource."""
-    with patch('handler.dynamodb') as mock_db:
+    with patch('check_house_fd_updates.handler.dynamodb') as mock_db:
         mock_table = Mock()
         mock_db.Table.return_value = mock_table
         yield mock_table
@@ -28,7 +30,7 @@ def mock_dynamodb():
 @pytest.fixture
 def mock_urllib():
     """Mock urllib for HTTP requests."""
-    with patch('handler.urllib.request.urlopen') as mock_urlopen:
+    with patch('check_house_fd_updates.handler.urllib.request.urlopen') as mock_urlopen:
         yield mock_urlopen
 
 
@@ -82,7 +84,7 @@ class TestUpdateWatermark:
         item = call_args['Item']
         
         assert item['table_name'] == 'house_fd'
-        assert item['watermark_type'] == '2025'
+        assert item['watermark_type'] == 'year_2025'  # Handler uses year_{year} format
         assert item['sha256'] == 'abc123'
         assert item['content_length'] == Decimal('1000000')
     
@@ -122,9 +124,9 @@ class TestComputeSHA256:
 class TestLambdaHandler:
     """Test lambda_handler function."""
     
-    @patch('handler.get_watermark')
-    @patch('handler.update_watermark')
-    @patch('handler.urllib.request.urlopen')
+    @patch('check_house_fd_updates.handler.get_watermark')
+    @patch('check_house_fd_updates.handler.update_watermark')
+    @patch('check_house_fd_updates.handler.urllib.request.urlopen')
     def test_new_filing_no_watermark(self, mock_urlopen, mock_update, mock_get):
         """Test handling of new filing (no existing watermark)."""
         # No watermark exists
@@ -153,9 +155,9 @@ class TestLambdaHandler:
         assert result['watermark_status'] == 'new'
         mock_update.assert_called_once()
     
-    @patch('handler.get_watermark')
-    @patch('handler.update_watermark')
-    @patch('handler.urllib.request.urlopen')
+    @patch('check_house_fd_updates.handler.get_watermark')
+    @patch('check_house_fd_updates.handler.update_watermark')
+    @patch('check_house_fd_updates.handler.urllib.request.urlopen')
     def test_unchanged_filing_same_sha256(self, mock_urlopen, mock_update, mock_get):
         """Test handling of unchanged filing (same SHA256)."""
         # Watermark exists with same SHA256
@@ -174,7 +176,7 @@ class TestLambdaHandler:
         mock_head_response.__exit__ = Mock(return_value=False)
         
         # Mock SHA256 computation (same hash)
-        with patch('handler.compute_sha256_from_url', return_value='abc123'):
+        with patch('check_house_fd_updates.handler.compute_sha256_from_url', return_value='abc123'):
             mock_urlopen.return_value = mock_head_response
             
             result = handler.lambda_handler({'year': 2025}, {})
@@ -183,9 +185,9 @@ class TestLambdaHandler:
         assert result['watermark_status'] == 'unchanged'
         mock_update.assert_not_called()
     
-    @patch('handler.get_watermark')
-    @patch('handler.update_watermark')
-    @patch('handler.urllib.request.urlopen')
+    @patch('check_house_fd_updates.handler.get_watermark')
+    @patch('check_house_fd_updates.handler.update_watermark')
+    @patch('check_house_fd_updates.handler.urllib.request.urlopen')
     def test_updated_filing_different_sha256(self, mock_urlopen, mock_update, mock_get):
         """Test handling of updated filing (different SHA256)."""
         # Watermark exists with different SHA256
@@ -204,7 +206,7 @@ class TestLambdaHandler:
         mock_head_response.__exit__ = Mock(return_value=False)
         
         # Mock SHA256 computation (new hash)
-        with patch('handler.compute_sha256_from_url', return_value='new_hash'):
+        with patch('check_house_fd_updates.handler.compute_sha256_from_url', return_value='new_hash'):
             mock_urlopen.return_value = mock_head_response
             
             result = handler.lambda_handler({'year': 2025}, {})
@@ -213,7 +215,7 @@ class TestLambdaHandler:
         assert result['watermark_status'] == 'updated'
         mock_update.assert_called_once()
     
-    @patch('handler.urllib.request.urlopen')
+    @patch('check_house_fd_updates.handler.urllib.request.urlopen')
     def test_file_not_found_404(self, mock_urlopen):
         """Test handling of 404 error (file not found)."""
         from urllib.error import HTTPError

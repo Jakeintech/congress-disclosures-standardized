@@ -10,16 +10,18 @@ from datetime import datetime
 import sys
 import os
 
-# Add ingestion path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../ingestion/lambdas/check_congress_updates'))
+# Add parent lambda directories to path
+lambda_dir = os.path.join(os.path.dirname(__file__), '../../../ingestion/lambdas')
+sys.path.insert(0, lambda_dir)
 
-import handler
+# Now import the specific handler module
+from check_congress_updates import handler
 
 
 @pytest.fixture
 def mock_dynamodb():
     """Mock DynamoDB table resource."""
-    with patch('handler.dynamodb') as mock_db:
+    with patch('check_congress_updates.handler.dynamodb') as mock_db:
         mock_table = Mock()
         mock_db.Table.return_value = mock_table
         yield mock_table
@@ -56,9 +58,9 @@ class TestCongressWatermarking:
         assert item['watermark_type'] == 'bills'
         assert item['last_update_date'] == '2025-01-15T10:00:00Z'
     
-    @patch('handler.check_congress_api')
-    @patch('handler.get_watermark')
-    @patch('handler.update_watermark')
+    @patch('check_congress_updates.handler.check_congress_api')
+    @patch('check_congress_updates.handler.get_watermark')
+    @patch('check_congress_updates.handler.update_watermark')
     def test_new_data_available(self, mock_update, mock_get, mock_api):
         """Test handling when new data is available."""
         mock_get.return_value = {'last_update_date': '2025-01-01T00:00:00Z'}
@@ -70,8 +72,8 @@ class TestCongressWatermarking:
         assert result['watermark_status'] == 'incremental'
         mock_update.assert_called_once()
     
-    @patch('handler.check_congress_api')
-    @patch('handler.get_watermark')
+    @patch('check_congress_updates.handler.check_congress_api')
+    @patch('check_congress_updates.handler.get_watermark')
     def test_no_new_data(self, mock_get, mock_api):
         """Test handling when no new data is available."""
         mock_get.return_value = {'last_update_date': '2025-01-01T00:00:00Z'}
@@ -81,9 +83,9 @@ class TestCongressWatermarking:
         
         assert result['has_new_data'] is False
     
-    @patch('handler.check_congress_api')
-    @patch('handler.get_watermark')
-    @patch('handler.update_watermark')
+    @patch('check_congress_updates.handler.check_congress_api')
+    @patch('check_congress_updates.handler.get_watermark')
+    @patch('check_congress_updates.handler.update_watermark')
     def test_first_ingestion_no_watermark(self, mock_update, mock_get, mock_api):
         """Test first ingestion with no existing watermark."""
         mock_get.return_value = {}
@@ -93,11 +95,11 @@ class TestCongressWatermarking:
         
         assert result['has_new_data'] is True
         assert result['watermark_status'] == 'new'
-        # Should use 5-year lookback
-        assert '2020' in result['from_date'] or '2019' in result['from_date']
+        # Should use 5-year lookback (current year 2026 - 5 = 2021)
+        assert '2021' in result['from_date']
     
-    @patch('handler.check_congress_api')
-    @patch('handler.get_watermark')
+    @patch('check_congress_updates.handler.check_congress_api')
+    @patch('check_congress_updates.handler.get_watermark')
     def test_rate_limiting_handled_gracefully(self, mock_get, mock_api):
         """Test that HTTP 429 rate limiting is handled gracefully."""
         mock_get.return_value = {'last_update_date': '2025-01-01T00:00:00Z'}
@@ -110,7 +112,7 @@ class TestCongressWatermarking:
         # Should not fail the pipeline
         assert 'error' not in result or result.get('error') != 'rate_limited'
     
-    @patch('handler.urllib.request.urlopen')
+    @patch('check_congress_updates.handler.urllib.request.urlopen')
     def test_check_congress_api_handles_429(self, mock_urlopen):
         """Test that check_congress_api handles HTTP 429 gracefully."""
         # Simulate HTTP 429 error
@@ -124,7 +126,7 @@ class TestCongressWatermarking:
         # Should return empty result, not raise exception
         assert result == {'pagination': {'count': 0}}
     
-    @patch('handler.urllib.request.urlopen')
+    @patch('check_congress_updates.handler.urllib.request.urlopen')
     def test_check_congress_api_success(self, mock_urlopen):
         """Test successful API call."""
         # Mock successful response

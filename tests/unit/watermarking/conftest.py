@@ -1,6 +1,10 @@
 """Shared test fixtures for watermarking tests."""
 import pytest
+import os
 from unittest.mock import Mock
+
+# Set AWS region to avoid NoRegionError during imports
+os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
 
 @pytest.fixture

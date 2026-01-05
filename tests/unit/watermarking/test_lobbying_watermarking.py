@@ -8,22 +8,23 @@ from unittest.mock import patch
 from datetime import datetime
 import sys
 import os
+import importlib.util
 
-# Add ingestion path
-sys.path.insert(
-    0,
-    os.path.join(
-        os.path.dirname(__file__), "../../../ingestion/lambdas/check_lobbying_updates"
-    ),
+# Import handler module with unique name to avoid caching issues
+handler_path = os.path.join(
+    os.path.dirname(__file__), 
+    "../../../ingestion/lambdas/check_lobbying_updates/handler.py"
 )
-
-import handler  # noqa: E402
+spec = importlib.util.spec_from_file_location("lobbying_handler", handler_path)
+handler = importlib.util.module_from_spec(spec)
+sys.modules["lobbying_handler"] = handler
+spec.loader.exec_module(handler)
 
 
 @pytest.fixture
 def mock_s3():
     """Mock S3 client."""
-    with patch("handler.s3") as mock_s3_client:
+    with patch.object(handler, "s3") as mock_s3_client:
         yield mock_s3_client
 
 
@@ -47,21 +48,24 @@ class TestLobbyingWatermarking:
 
         assert result is False
 
-    @patch("handler.check_bronze_exists")
-    def test_all_quarters_exist(self, mock_check):
+    def test_all_quarters_exist(self, mock_s3):
         """Test when all quarters already exist."""
-        mock_check.return_value = True
+        mock_s3.list_objects_v2.return_value = {"KeyCount": 5}
 
         result = handler.lambda_handler({"year": 2025, "quarter": "all"}, {})
 
         assert result["has_new_filings"] is False
         assert len(result["quarters_to_process"]) == 0
 
-    @patch("handler.check_bronze_exists")
-    def test_some_quarters_missing(self, mock_check):
+    def test_some_quarters_missing(self, mock_s3):
         """Test when some quarters are missing."""
         # Q1 and Q3 exist, Q2 and Q4 missing
-        mock_check.side_effect = [True, False, True, False]
+        mock_s3.list_objects_v2.side_effect = [
+            {"KeyCount": 5},  # Q1 exists
+            {"KeyCount": 0},  # Q2 missing
+            {"KeyCount": 5},  # Q3 exists
+            {"KeyCount": 0}   # Q4 missing
+        ]
 
         result = handler.lambda_handler({"year": 2025, "quarter": "all"}, {})
 
@@ -87,15 +91,14 @@ class TestLobbyingWatermarking:
         assert result["has_new_filings"] is False
         assert "error" in result
 
-    @patch("handler.check_bronze_exists")
-    def test_scenario_1_current_quarter_already_ingested(self, mock_check):
+    def test_scenario_1_current_quarter_already_ingested(self, mock_s3):
         """Test Acceptance Criteria Scenario 1: Current quarter already ingested.
 
         GIVEN: Bronze has complete Q4 2024 data
         WHEN: check_lobbying_updates executes for Q4 2024
         THEN: return {"has_new_filings": false}
         """
-        mock_check.return_value = True
+        mock_s3.list_objects_v2.return_value = {"KeyCount": 5}
 
         result = handler.lambda_handler({"year": 2024, "quarter": "Q4"}, {})
 
@@ -103,10 +106,9 @@ class TestLobbyingWatermarking:
         assert result["year"] == 2024
         assert result["quarter"] == "Q4"
         assert len(result["quarters_to_process"]) == 0
-        mock_check.assert_called_once_with(2024, "Q4")
+        mock_s3.list_objects_v2.assert_called_once()
 
-    @patch("handler.check_bronze_exists")
-    def test_scenario_2_new_quarter_available(self, mock_check):
+    def test_scenario_2_new_quarter_available(self, mock_s3):
         """Test Acceptance Criteria Scenario 2: New quarter available.
 
         GIVEN: Q1 2025 filings now available
@@ -114,7 +116,7 @@ class TestLobbyingWatermarking:
         WHEN: check_lobbying_updates executes
         THEN: return {"has_new_filings": true, ...}
         """
-        mock_check.return_value = False
+        mock_s3.list_objects_v2.return_value = {"KeyCount": 0}
 
         result = handler.lambda_handler({"year": 2025, "quarter": "Q1"}, {})
 
@@ -123,7 +125,7 @@ class TestLobbyingWatermarking:
         assert result["quarter"] == "Q1"
         assert "Q1" in result["quarters_to_process"]
         assert len(result["ingest_tasks"]) > 0
-        mock_check.assert_called_once_with(2025, "Q1")
+        mock_s3.list_objects_v2.assert_called_once()
 
     def test_scenario_3_year_outside_lookback_window(self):
         """Test Acceptance Criteria Scenario 3: Year/Quarter outside 5-year lookback.

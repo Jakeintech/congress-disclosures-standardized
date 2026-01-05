@@ -108,8 +108,8 @@ def lambda_handler(event, context):
     """
     Check if new Congress.gov data is available.
     
-    STORY-004: Implements watermarking with Congress.gov API.
-    STORY-047: Created initial check_congress_updates Lambda.
+    STORY-004: Added watermarking response fields (is_initial_load, bills_count).
+    STORY-047: Initial Lambda implementation with DynamoDB watermarking.
     
     Args:
         event: { "data_type": "bills" or "members" }
@@ -122,7 +122,7 @@ def lambda_handler(event, context):
             "to_date": "2025-12-14T10:30:00Z",  # Only when has_new_data=true
             "record_count": 150,                # Only when has_new_data=true
             "bills_count": 150,                  # Only when data_type="bills" and has_new_data=true (STORY-004)
-            "is_initial_load": true,             # true when watermark_status="new"
+            "is_initial_load": true,             # true when watermark_status="new" (STORY-004)
             "watermark_status": "new|incremental",
             "checked_at": "2025-12-14T10:30:00Z"
         }

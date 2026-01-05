@@ -6,7 +6,7 @@ Tests DynamoDB timestamp-based watermarking with Congress.gov API.
 import pytest
 from unittest.mock import Mock, patch
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone
 import sys
 import os
 
@@ -96,7 +96,6 @@ class TestCongressWatermarking:
         assert result['is_initial_load'] is True  # STORY-004 Scenario 3
         assert result['bills_count'] == 100  # STORY-004 Scenario 2
         # Should use 5-year lookback (current year - 5)
-        from datetime import timezone
         current_year = datetime.now(timezone.utc).year
         lookback_year = current_year - 5
         assert str(lookback_year) in result['from_date']

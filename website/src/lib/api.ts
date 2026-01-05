@@ -199,7 +199,7 @@ export async function fetchMembers(params: MembersParams = {}): Promise<{ data: 
     if (params.limit) searchParams.set('limit', params.limit.toString());
     if (params.offset) searchParams.set('offset', params.offset.toString());
 
-    const url = `${API_BASE}/v1/congress/members?${searchParams.toString()}`;
+    const url = `${API_BASE}/v1/members?${searchParams.toString()}`;
     const raw = await fetchApi<any>(`${url}`);
 
     const items = parseAPIResponse<CongressMember>(raw, { expectPaginated: true }) as CongressMember[];
@@ -271,8 +271,9 @@ export async function fetchTrendingStocks(limit = 10): Promise<TrendingStock[]> 
         const raw = await fetchApi<any>(
             `${API_BASE}/v1/analytics/trending-stocks?limit=${limit}`
         );
+        const data = raw.data || raw;
         // Handle both legacy (trending_stocks) and standardized (stocks) formats
-        const stocks = raw.stocks || raw.trending_stocks || (Array.isArray(raw) ? raw : []);
+        const stocks = data.stocks || data.trending_stocks || (Array.isArray(data) ? data : []);
 
         // Map backend fields to frontend expectations (e.g., total_transactions -> trade_count)
         return stocks.map((s: any) => ({
@@ -298,8 +299,9 @@ export async function fetchTopTraders(limit = 10): Promise<TopTrader[]> {
         const raw = await fetchApi<any>(
             `${API_BASE}/v1/analytics/top-traders?limit=${limit}`
         );
+        const data = raw.data || raw;
         // Handle both legacy (top_traders) and standardized (traders) formats
-        const traders = raw.traders || raw.top_traders || (Array.isArray(raw) ? raw : []);
+        const traders = data.traders || data.top_traders || (Array.isArray(data) ? data : []);
 
         return traders.map((t: any) => ({
             name: t.name || t.full_name || t.filer_name,
@@ -401,10 +403,11 @@ export async function fetchDashboardSummary(): Promise<{
  */
 export async function fetchSectorActivity(): Promise<SectorData[]> {
     try {
-        const raw = await fetchApi<{ sectors?: SectorData[], message?: string }>(
+        const raw = await fetchApi<any>(
             `${API_BASE}/v1/analytics/sector-activity`
         );
-        return raw.sectors || [];
+        const data = raw.data || raw;
+        return data.sectors || [];
     } catch (e) {
         console.warn("Failed to fetch sector activity", e);
         return [];
@@ -499,7 +502,7 @@ export async function fetchNetworkGraph(params: {
     if (params.limit) searchParams.set('limit', params.limit.toString());
 
     try {
-        const res = await fetch(`${API_BASE}/v1/analytics/network-graph?${searchParams.toString()}`);
+        const res = await fetch(`${API_BASE}/v1/network-graph?${searchParams.toString()}`);
         if (!res.ok) {
             console.warn(`Network graph API error: ${res.status}`);
             return { nodes: [], links: [] };

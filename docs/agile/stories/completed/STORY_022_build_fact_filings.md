@@ -15,12 +15,16 @@
 - **AND** Computes quality scores
 
 ## Technical Tasks
-- [ ] Read Silver filings
-- [ ] Join with dim_members
-- [ ] Aggregate transaction counts from fact_transactions
-- [ ] Calculate quality scores
-- [ ] Partition by year
-- [ ] Write to fact_filings.parquet
+- [x] Read Silver filings
+- [ ] Join with dim_members (deferred - not in current Lambda implementation)
+- [ ] Aggregate transaction counts from fact_transactions (deferred - not in current Lambda implementation)
+- [ ] Calculate quality scores (deferred - not in current Lambda implementation)
+- [x] Partition by year
+- [x] Write to fact_filings.parquet
+- [x] Create Lambda handler
+- [x] Configure Terraform deployment
+- [x] Add to packaging script
+- [x] Write unit tests (11 tests, all passing)
 
 ## Estimated Effort: 5 hours
 **Target**: Dec 24, 2025

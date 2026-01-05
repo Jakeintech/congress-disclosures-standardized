@@ -6,6 +6,7 @@ import boto3
 import json
 import logging
 import argparse
+import os
 import sys
 
 # Setup logging
@@ -14,7 +15,15 @@ logger = logging.getLogger(__name__)
 
 # Config
 S3_BUCKET = "congress-disclosures-standardized"
-QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-code-extraction-queue"
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+AWS_ACCOUNT_ID = os.environ.get('AWS_ACCOUNT_ID')
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+
+# Validate required environment variables
+if not AWS_ACCOUNT_ID:
+    raise ValueError("AWS_ACCOUNT_ID environment variable is required")
+
+QUEUE_URL = f"https://sqs.{AWS_REGION}.amazonaws.com/{AWS_ACCOUNT_ID}/congress-disclosures-{ENVIRONMENT}-code-extraction-queue"
 
 s3 = boto3.client('s3')
 sqs = boto3.client('sqs')

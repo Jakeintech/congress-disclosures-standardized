@@ -12,6 +12,7 @@ Returns JSON with:
 
 import boto3
 import json
+import os
 from collections import defaultdict
 import sys
 
@@ -19,8 +20,16 @@ s3 = boto3.client('s3')
 sqs = boto3.client('sqs')
 
 BUCKET = 'congress-disclosures-standardized'
-QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-queue'
-DLQ_URL = 'https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-dlq'
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+AWS_ACCOUNT_ID = os.environ.get('AWS_ACCOUNT_ID')
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+
+# Validate required environment variables
+if not AWS_ACCOUNT_ID:
+    raise ValueError("AWS_ACCOUNT_ID environment variable is required")
+
+QUEUE_URL = f'https://sqs.{AWS_REGION}.amazonaws.com/{AWS_ACCOUNT_ID}/congress-disclosures-{ENVIRONMENT}-extract-queue'
+DLQ_URL = f'https://sqs.{AWS_REGION}.amazonaws.com/{AWS_ACCOUNT_ID}/congress-disclosures-{ENVIRONMENT}-extract-dlq'
 
 def count_bronze_pdfs():
     """Count total PDFs in Bronze layer."""

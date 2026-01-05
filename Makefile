@@ -14,6 +14,7 @@ endif
 TERRAFORM_DIR := infra/terraform
 LAMBDA_DIR := ingestion/lambdas
 S3_BUCKET ?= congress-disclosures-standardized
+ENVIRONMENT ?= development
 PYTHON := python3.11
 PIP := $(PYTHON) -m pip
 PYTEST := $(PYTHON) -m pytest
@@ -674,7 +675,7 @@ incremental-force: ## Force incremental pipeline (treat as first run)
 check-extraction-queue: ## Check SQS extraction queue status
 	@echo "Checking extraction queue status..."
 	@aws sqs get-queue-attributes \
-		--queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-queue \
+		--queue-url https://sqs.$(AWS_REGION).amazonaws.com/$(AWS_ACCOUNT_ID)/congress-disclosures-$(ENVIRONMENT)-extract-queue \
 		--attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible ApproximateNumberOfMessagesDelayed \
 		--query 'Attributes' --output table
 	@echo "✓ Queue status retrieved"
@@ -683,7 +684,7 @@ purge-extraction-queue: ## Purge extraction queue (clear all messages)
 	@echo "⚠️  WARNING: This will delete ALL messages in the extraction queue!"
 	@read -p "Are you sure? [y/N]: " confirm && [ "$$confirm" = "y" ] || exit 1
 	@echo "Purging extraction queue..."
-	@aws sqs purge-queue --queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-queue
+	@aws sqs purge-queue --queue-url https://sqs.$(AWS_REGION).amazonaws.com/$(AWS_ACCOUNT_ID)/congress-disclosures-$(ENVIRONMENT)-extract-queue
 	@echo "✓ Extraction queue purged"
 
 reset-pipeline: ## Reset pipeline (clear S3 silver/gold and purge queues)
@@ -813,13 +814,13 @@ build-lobbying-pipeline: build-lobbying-silver-all build-lobbying-gold-all compu
 
 purge-dlq: ## Purge dead letter queue
 	@echo "Purging dead letter queue..."
-	@aws sqs purge-queue --queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-dlq
+	@aws sqs purge-queue --queue-url https://sqs.$(AWS_REGION).amazonaws.com/$(AWS_ACCOUNT_ID)/congress-disclosures-$(ENVIRONMENT)-extract-dlq
 	@echo "✓ DLQ purged"
 
 check-dlq: ## Check dead letter queue status
 	@echo "Checking DLQ status..."
 	@aws sqs get-queue-attributes \
-		--queue-url https://sqs.us-east-1.amazonaws.com/464813693153/congress-disclosures-development-extract-dlq \
+		--queue-url https://sqs.$(AWS_REGION).amazonaws.com/$(AWS_ACCOUNT_ID)/congress-disclosures-$(ENVIRONMENT)-extract-dlq \
 		--attribute-names ApproximateNumberOfMessages \
 		--query 'Attributes.ApproximateNumberOfMessages' --output text | \
 		xargs -I {} echo "Messages in DLQ: {}"

@@ -6,7 +6,7 @@ Tests DynamoDB timestamp-based watermarking with Congress.gov API.
 import pytest
 from unittest.mock import Mock, patch
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone
 import sys
 import os
 
@@ -93,8 +93,42 @@ class TestCongressWatermarking:
         
         assert result['has_new_data'] is True
         assert result['watermark_status'] == 'new'
-        # Should use 5-year lookback
-        assert '2020' in result['from_date'] or '2019' in result['from_date']
+        assert result['is_initial_load'] is True  # STORY-004 Scenario 3
+        assert result['bills_count'] == 100  # STORY-004 Scenario 2
+        # Should use 5-year lookback (current year - 5)
+        current_year = datetime.now(timezone.utc).year
+        lookback_year = current_year - 5
+        assert str(lookback_year) in result['from_date']
+    
+    @patch('handler.check_congress_api')
+    @patch('handler.get_watermark')
+    def test_no_new_data_scenario_1(self, mock_get, mock_api):
+        """Test STORY-004 Scenario 1: No new data since last check."""
+        # GIVEN: Last fetch timestamp = "2025-12-14T00:00:00Z"
+        mock_get.return_value = {'last_update_date': '2025-12-14T00:00:00Z'}
+        # AND: Congress.gov API has no new data since that time
+        mock_api.return_value = {'pagination': {'count': 0}}
+        
+        # WHEN: check_congress_updates executes
+        result = handler.lambda_handler({'data_type': 'bills'}, {})
+        
+        # THEN: return {"has_new_data": false}
+        assert result['has_new_data'] is False
+        assert result['is_initial_load'] is False
+    
+    @patch('handler.check_congress_api')
+    @patch('handler.get_watermark')
+    @patch('handler.update_watermark')
+    def test_members_data_type_no_bills_count(self, mock_update, mock_get, mock_api):
+        """Test that bills_count is NOT present when data_type is 'members'."""
+        mock_get.return_value = {}
+        mock_api.return_value = {'pagination': {'count': 50}}
+        
+        result = handler.lambda_handler({'data_type': 'members'}, {})
+        
+        assert result['has_new_data'] is True
+        assert result['record_count'] == 50
+        assert 'bills_count' not in result  # Should not have bills_count for members
     
     @patch('handler.check_congress_api')
     @patch('handler.get_watermark')

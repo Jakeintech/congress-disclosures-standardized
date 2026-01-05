@@ -108,7 +108,8 @@ def lambda_handler(event, context):
     """
     Check if new Congress.gov data is available.
     
-    STORY-047: Implements watermarking with Congress.gov API.
+    STORY-004: Added watermarking response fields (is_initial_load, bills_count).
+    STORY-047: Initial Lambda implementation with DynamoDB watermarking.
     
     Args:
         event: { "data_type": "bills" or "members" }
@@ -118,8 +119,12 @@ def lambda_handler(event, context):
             "has_new_data": true/false,
             "data_type": "bills",
             "from_date": "2024-01-01T00:00:00Z",
-            "record_count": 150,
-            "watermark_status": "new|incremental"
+            "to_date": "2025-12-14T10:30:00Z",  # Only when has_new_data=true
+            "record_count": 150,                # Only when has_new_data=true
+            "bills_count": 150,                  # Only when data_type="bills" and has_new_data=true (STORY-004)
+            "is_initial_load": true,             # true when watermark_status="new" (STORY-004)
+            "watermark_status": "new|incremental",
+            "checked_at": "2025-12-14T10:30:00Z"
         }
     """
     data_type = event.get('data_type', 'bills')
@@ -161,6 +166,7 @@ def lambda_handler(event, context):
         # Check if new data exists
         record_count = response.get('pagination', {}).get('count', 0)
         has_new_data = record_count > 0
+        is_initial_load = watermark_status == "new"
         
         if has_new_data:
             logger.info(f"Found {record_count} new {data_type} records since {from_date}")
@@ -169,21 +175,29 @@ def lambda_handler(event, context):
             current_time = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             update_watermark(data_type, current_time, record_count)
             
-            return {
+            response = {
                 "has_new_data": True,
                 "data_type": data_type,
                 "from_date": from_date,
                 "to_date": current_time,
                 "record_count": record_count,
+                "is_initial_load": is_initial_load,
                 "watermark_status": watermark_status,
                 "checked_at": current_time
             }
+            
+            # Add bills_count alias only for bills (STORY-004 compatibility)
+            if data_type == "bills":
+                response["bills_count"] = record_count
+            
+            return response
         else:
             logger.info(f"No new {data_type} records since {from_date}")
             return {
                 "has_new_data": False,
                 "data_type": data_type,
                 "from_date": from_date,
+                "is_initial_load": is_initial_load,
                 "watermark_status": watermark_status,
                 "checked_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             }

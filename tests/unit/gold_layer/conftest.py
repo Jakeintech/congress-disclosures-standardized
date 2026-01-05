@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 import boto3
 import pandas as pd
 import pytest
-from moto import mock_s3, mock_dynamodb
+from moto import mock_aws
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def aws_credentials():
 @pytest.fixture
 def s3_client(aws_credentials):
     """Create mock S3 client."""
-    with mock_s3():
+    with mock_aws():
         s3 = boto3.client('s3', region_name='us-east-1')
         s3.create_bucket(Bucket='test-bucket')
         yield s3
@@ -36,7 +36,7 @@ def s3_client(aws_credentials):
 @pytest.fixture
 def dynamodb_client(aws_credentials):
     """Create mock DynamoDB client."""
-    with mock_dynamodb():
+    with mock_aws():
         dynamodb = boto3.client('dynamodb', region_name='us-east-1')
         yield dynamodb
 

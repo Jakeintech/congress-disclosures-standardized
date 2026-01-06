@@ -1,0 +1,49 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Mark Dr Green",
+    "filer_type": "Member",
+    "state": "TN",
+    "district": "07"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Partner Interests (NGL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-18",
+      "notification_date": "2025-02-25",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Mark Dr Green",
+    "filer_signature_date": "2025-02-28",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 1
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:10:39.240185+00:00",
+    "text_length": 1506,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

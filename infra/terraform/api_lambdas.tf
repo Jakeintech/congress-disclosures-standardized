@@ -14,7 +14,7 @@ resource "aws_lambda_layer_version" "api_duckdb_layer" {
   layer_name          = "${local.name_prefix}-api-duckdb"
   description         = "DuckDB 1.1.3 + PyArrow 18.1.0 for S3-native analytics (2025-12-25)"
   s3_bucket           = aws_s3_bucket.data_lake.id
-  s3_key              = "lambda-layers/congress-duckdb-1.1.3.zip"
+  s3_key              = "lambda-backend/layers/congress-duckdb-1.1.3.zip"
   compatible_runtimes = ["python3.11"]
   compatible_architectures = ["x86_64"]
 

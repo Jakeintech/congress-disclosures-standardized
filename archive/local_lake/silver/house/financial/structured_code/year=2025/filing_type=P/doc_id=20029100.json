@@ -1,0 +1,60 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Dave Min",
+    "filer_type": "Member",
+    "state": "CA",
+    "district": "47"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "First Solar, Inc. - Common Stock (FSLR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-19",
+      "notification_date": "2025-03-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Zoom Technologies, Inc. (ZOOM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-19",
+      "notification_date": "2025-03-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Dave Min",
+    "filer_signature_date": "2025-04-14",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 2
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:13:31.336731+00:00",
+    "text_length": 1000,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

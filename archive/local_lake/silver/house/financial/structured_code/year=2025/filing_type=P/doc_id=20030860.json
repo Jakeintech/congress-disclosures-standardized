@@ -1,0 +1,379 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Jonathan Jackson",
+    "filer_type": "Member",
+    "state": "IL",
+    "district": "01"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-24",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-23",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Depositary Shares (ARM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-17",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CHD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CHD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-24",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CHD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-23",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CHD)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-05",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Eli Lilly and Company Common Stock (LLY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-21",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Eli Lilly and Company Common Stock (LLY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-23",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "de C.V. Common Stock (FMX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-21",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "de C.V. Common Stock (FMX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-17",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Goldman Sachs Group, Inc. (GS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Goldman Sachs Group, Inc. (GS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Goldman Sachs Group, Inc. (GS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-24",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP KKR & Co. Inc. Common Stock (KKR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP KKR & Co. Inc. Common Stock (KKR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-24",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP KKR & Co. Inc. Common Stock (KKR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MCK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MCK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-24",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MCK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-23",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (META)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (META)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-24",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (META)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-23",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Palo Alto Networks, Inc. (PANW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Palo Alto Networks, Inc. (PANW)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-17",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP T-Mobile US, Inc. (TMUS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP T-Mobile US, Inc. (TMUS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-24",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP T-Mobile US, Inc. (TMUS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-23",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Williams Companies, Inc. (WMB)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-17",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Williams Companies, Inc. (WMB)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-24",
+      "notification_date": "2025-08-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Jonathan Jackson",
+    "filer_signature_date": "2025-08-25",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 31
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:10:55.186114+00:00",
+    "text_length": 6677,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

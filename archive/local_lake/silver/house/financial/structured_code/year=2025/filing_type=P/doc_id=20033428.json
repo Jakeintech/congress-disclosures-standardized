@@ -1,0 +1,49 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Marjorie Taylor Greene",
+    "filer_type": "Member",
+    "state": "GA",
+    "district": "14"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Procter & Gamble Company (PG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-06",
+      "notification_date": "2025-11-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Marjorie Taylor Greene",
+    "filer_signature_date": "2025-11-07",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 1
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:11:03.821269+00:00",
+    "text_length": 925,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

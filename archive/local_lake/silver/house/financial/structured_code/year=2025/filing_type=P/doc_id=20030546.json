@@ -1,0 +1,181 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Rob Bresnahan",
+    "filer_type": "Member",
+    "state": "PA",
+    "district": "08"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "3M Company Common Stock (MMM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-05-23",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Arista Networks, Inc. Common Stock (ANET)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-29",
+      "notification_date": "2025-05-29",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Chubb Limited Common Stock (CB)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-13",
+      "notification_date": "2025-06-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Elastic N.V. Ordinary Shares (ESTC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-05-23",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (GWRE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-05-23",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MCD)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-02",
+      "notification_date": "2025-06-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Shares (NU)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-05-23",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-29",
+      "notification_date": "2025-05-29",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-05-23",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Okta, Inc. - Class A Common Stock (OKTA)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-29",
+      "notification_date": "2025-05-29",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SNOW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-05-23",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Tesla, Inc. - Common Stock (TSLA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-05-23",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (VEEV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-29",
+      "notification_date": "2025-05-29",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Rob Bresnahan",
+    "filer_signature_date": "2025-06-23",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 13
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:06:09.898996+00:00",
+    "text_length": 2901,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

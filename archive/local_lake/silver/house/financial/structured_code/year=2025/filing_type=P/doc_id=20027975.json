@@ -1,0 +1,258 @@
+{
+  "filer_info": {
+    "full_name": "Hon. April McClain Delaney",
+    "filer_type": "Member",
+    "state": "MD",
+    "district": "06"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CACI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-27",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CNM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-08",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Corpay, Inc. Common Stock (CPAY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-22",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Corpay, Inc. Common Stock (CPAY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-06",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Corpay, Inc. Common Stock (CPAY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-28",
+      "notification_date": "2025-03-01",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Entegris, Inc. - Common Stock (ENTG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-17",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (FBIN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-17",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (FBIN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-08",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Labcorp Holdings Inc. Common Stock (LH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-08",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Labcorp Holdings Inc. Common Stock (LH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-17",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Labcorp Holdings Inc. Common Stock (LH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-27",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Labcorp Holdings Inc. Common Stock (LH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-28",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Labcorp Holdings Inc. Common Stock (LH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-05",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Paychex, Inc. - Common Stock (PAYX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-05",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Paychex, Inc. - Common Stock (PAYX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-27",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Paychex, Inc. - Common Stock (PAYX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-21",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Paychex, Inc. - Common Stock (PAYX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-09",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Revvity, Inc. Common Stock (RVTY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-28",
+      "notification_date": "2025-03-01",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (TSCO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-09",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Viking Holdings Ltd Ordinary Shares (VIK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-17",
+      "notification_date": "2025-03-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. April McClain Delaney",
+    "filer_signature_date": "2025-03-20",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 20
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:10:30.092304+00:00",
+    "text_length": 5457,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

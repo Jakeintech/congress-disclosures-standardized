@@ -1,0 +1,49 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Brandon Gill",
+    "filer_type": "Member",
+    "state": "TX",
+    "district": "26"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Invesco S&P 500 Equal Weight ETF (RSP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-28",
+      "notification_date": "2025-05-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Brandon Gill",
+    "filer_signature_date": "2025-05-30",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 1
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:05:04.101189+00:00",
+    "text_length": 1403,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

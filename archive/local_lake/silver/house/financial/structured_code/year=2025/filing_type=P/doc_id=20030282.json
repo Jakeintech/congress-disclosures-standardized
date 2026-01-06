@@ -1,0 +1,412 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Jared Moskowitz",
+    "filer_type": "Member",
+    "state": "FL",
+    "district": "23"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "AbbVie Inc. Common Stock (ABBV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Shares (ACN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Amgen Inc. - Common Stock (AMGN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-16",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amgen Inc. - Common Stock (AMGN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-16",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Analog Devices, Inc. - Common Stock (ADI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CARR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Caterpillar, Inc. Common Stock (CAT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Goldman Sachs Group, Inc. (GS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-10",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC Goldman Sachs Group, Inc. (GS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-10",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Goldman Sachs Group, Inc. (GS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-10",
+      "notification_date": "2025-04-30",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Goldman Sachs Group, Inc. (GS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Honeywell International Inc. (HON)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (ITW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Shares (LECO)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NextEra Energy, Inc. Common Stock (NEE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-16",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-16",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Oracle Corporation Common Stock (ORCL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Pepsico, Inc. (PEP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (QCOM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (RPM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Sherwin-Williams Company (SHW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Southern Company (SO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SBUX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-10",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SBUX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-10",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SBUX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-10",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stryker Corporation Common Stock (SYK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (TXN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "TJX Companies, Inc. (TJX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (TSCO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Visa Inc. (V)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-04-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Jared Moskowitz",
+    "filer_signature_date": "2025-05-09",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 34
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:13:56.403297+00:00",
+    "text_length": 6617,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

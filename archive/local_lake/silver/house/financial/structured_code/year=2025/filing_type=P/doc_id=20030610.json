@@ -1,0 +1,82 @@
+{
+  "filer_info": {
+    "full_name": "Hon. John W. Rose",
+    "filer_type": "Member",
+    "state": "TN",
+    "district": "06"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (GOOGL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,000,001-$5,000,000",
+      "amount_low": 1000001,
+      "amount_high": 5000000,
+      "amount_column": "G"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Alphabet Inc. - Class C Capital Stock (GOOG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-04",
+      "amount_range": "$250,001-$500,000",
+      "amount_low": 250001,
+      "amount_high": 500000,
+      "amount_column": "E"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "WORLD FUND CL A M/F (SMCWX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-04",
+      "amount_range": "$500,001-$1,000,000",
+      "amount_low": 500001,
+      "amount_high": 1000000,
+      "amount_column": "F"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-04",
+      "amount_range": "$250,001-$500,000",
+      "amount_low": 250001,
+      "amount_high": 500000,
+      "amount_column": "E"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. John W. Rose",
+    "filer_signature_date": "2025-07-04",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 4
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:22:46.123122+00:00",
+    "text_length": 3411,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

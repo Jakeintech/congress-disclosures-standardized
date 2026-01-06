@@ -1,0 +1,49 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Robert E. Latta",
+    "filer_type": "Member",
+    "state": "OH",
+    "district": "05"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Farmers & Merchants Bancorp, Inc. (FMAO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-20",
+      "notification_date": "2025-07-21",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Robert E. Latta",
+    "filer_signature_date": "2025-07-25",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 1
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:16:01.870099+00:00",
+    "text_length": 1001,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

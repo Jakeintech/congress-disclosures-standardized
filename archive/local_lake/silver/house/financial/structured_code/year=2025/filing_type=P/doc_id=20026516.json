@@ -1,0 +1,126 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Virginia Foxx",
+    "filer_type": "Member",
+    "state": "NC",
+    "district": "05"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "AbbVie Inc. Common Stock (ABBV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-12-06",
+      "notification_date": "2025-01-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Inc. (AEP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-12-06",
+      "notification_date": "2025-01-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amgen Inc. - Common Stock (AMGN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-12-06",
+      "notification_date": "2025-01-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (BMY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-12-06",
+      "notification_date": "2025-01-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Duke Energy Corporation (DUK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-12-06",
+      "notification_date": "2025-01-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Johnson & Johnson Common Stock (JNJ)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-12-06",
+      "notification_date": "2025-01-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Public Storage Common Stock (PSA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-12-06",
+      "notification_date": "2025-01-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (VIASP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2024-12-06",
+      "notification_date": "2025-01-06",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Virginia Foxx",
+    "filer_signature_date": "2025-01-06",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 8
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:14:33.982448+00:00",
+    "text_length": 2791,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

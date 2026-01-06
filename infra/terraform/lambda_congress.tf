@@ -15,7 +15,7 @@ resource "aws_lambda_function" "congress_fetch_entity" {
   # Deploy from S3 (packages >50 MB must use S3)
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/congress_api_fetch_entity/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/congress_api_fetch_entity/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/congress_api_fetch_entity/function.zip") : null
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/congress_api_fetch_entity/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/congress_api_fetch_entity/function.zip") : null
 
   timeout     = var.lambda_congress_timeout_seconds
   memory_size = var.lambda_congress_fetch_memory_mb
@@ -128,7 +128,7 @@ resource "aws_lambda_function" "congress_orchestrator" {
   # Deploy from S3
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/congress_api_ingest_orchestrator/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/congress_api_ingest_orchestrator/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/congress_api_ingest_orchestrator/function.zip") : null
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/congress_api_ingest_orchestrator/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/congress_api_ingest_orchestrator/function.zip") : null
 
   timeout     = 900 # 15 minutes max (for paginating through all bills)
   memory_size = var.lambda_congress_orchestrator_memory_mb
@@ -192,14 +192,7 @@ output "congress_orchestrator_lambda_name" {
 # Lambda Function: congress_bronze_to_silver
 # =============================================================================
 
-# Custom Layer for Pandas/PyArrow (Linux binaries)
-resource "aws_lambda_layer_version" "congress_pandas_layer" {
-  layer_name          = "congress-pandas-pyarrow-layer"
-  s3_bucket           = aws_s3_bucket.data_lake.id
-  s3_key              = "lambda-deployments/layers/pandas_pyarrow/layer.zip"
-  compatible_runtimes = ["python3.11"]
-  description         = "Custom layer with pandas 2.1.4, pyarrow 14.0.2, numpy 1.26.4 (stripped)"
-}
+
 
 resource "aws_lambda_function" "congress_bronze_to_silver" {
   count = var.enable_congress_pipeline ? 1 : 0
@@ -212,14 +205,15 @@ resource "aws_lambda_function" "congress_bronze_to_silver" {
   # Deploy from S3
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/congress_bronze_to_silver/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/congress_bronze_to_silver/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/congress_bronze_to_silver/function.zip") : null
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/congress_bronze_to_silver/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/congress_bronze_to_silver/function.zip") : null
 
   timeout     = var.lambda_congress_timeout_seconds
   memory_size = var.lambda_congress_silver_memory_mb
 
   # Use custom layer
   layers = [
-    aws_lambda_layer_version.congress_pandas_layer.arn
+    # AWS Data Wrangler (pandas, numpy, pyarrow)
+    "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:24"
   ]
 
   # Environment variables

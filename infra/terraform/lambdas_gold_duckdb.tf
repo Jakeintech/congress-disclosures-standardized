@@ -1,13 +1,13 @@
 # Lambda Functions for Gold Transformations using DuckDB
 
 # DuckDB Lambda Layer (using pre-uploaded layer from S3)
-# Layer uploaded manually via layers/duckdb/build.sh --publish
+# Layer uploaded manually via backend/layers/duckdb/build.sh --publish
 # Version: DuckDB 1.1.3 + PyArrow 18.1.0 (2025-12-25)
 resource "aws_lambda_layer_version" "duckdb" {
   layer_name          = "${var.project_name}-duckdb"
   description         = "DuckDB 1.1.3 + PyArrow 18.1.0 for S3-native analytics (2025-12-25)"
   s3_bucket           = var.s3_bucket_name
-  s3_key              = "lambda-layers/congress-duckdb-1.1.3.zip"
+  s3_key              = "lambda-backend/layers/congress-duckdb-1.1.3.zip"
   compatible_runtimes = ["python3.11"]
   compatible_architectures = ["x86_64"]
 

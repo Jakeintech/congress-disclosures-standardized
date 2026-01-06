@@ -1,0 +1,214 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Tim Moore",
+    "filer_type": "Member",
+    "state": "NC",
+    "district": "14"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-07",
+      "notification_date": "2025-03-10",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-10",
+      "notification_date": "2025-03-10",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-04",
+      "notification_date": "2025-03-10",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-05",
+      "notification_date": "2025-03-10",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-06",
+      "notification_date": "2025-03-10",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-13",
+      "notification_date": "2025-03-10",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (GD)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-20",
+      "notification_date": "2025-03-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-04",
+      "notification_date": "2025-03-10",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-06",
+      "notification_date": "2025-03-10",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-05",
+      "notification_date": "2025-03-10",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-12",
+      "notification_date": "2025-03-10",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-12",
+      "notification_date": "2025-03-10",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-10",
+      "notification_date": "2025-03-10",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (ROK)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-21",
+      "notification_date": "2025-03-10",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SIMCORP A/S UN/ADR (SMCYY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-04",
+      "notification_date": "2025-03-10",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SIMCORP A/S UN/ADR (SMCYY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-06",
+      "notification_date": "2025-03-10",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Tim Moore",
+    "filer_signature_date": "2025-03-11",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 16
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:14:00.537936+00:00",
+    "text_length": 3461,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

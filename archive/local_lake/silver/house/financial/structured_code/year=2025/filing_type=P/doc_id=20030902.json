@@ -1,0 +1,225 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Austin Scott",
+    "filer_type": "Member",
+    "state": "GA",
+    "district": "08"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Shares (BLDP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2024-07-31",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (BE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2024-07-15",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CLNE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2024-07-15",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Ford Motor Company Common Stock (F)",
+      "transaction_type": "Sale",
+      "transaction_date": "2024-10-02",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Ford Motor Company Common Stock (F)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-04",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP GE Aerospace Common Stock (GE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP GE Aerospace Common Stock (GE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-16",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP GE Aerospace Common Stock (GE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2024-12-13",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP GE Aerospace Common Stock (GE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-13",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP GE Aerospace Common Stock (GE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-04",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (GEHC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-27",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP GE Vernova Inc. Common Stock (GEV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-14",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP GE Vernova Inc. Common Stock (GEV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2024-10-02",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP GE Vernova Inc. Common Stock (GEV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-16",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP GE Vernova Inc. Common Stock (GEV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (KPLT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2024-07-31",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Plug Power, Inc. - Common Stock (PLUG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2024-07-31",
+      "notification_date": "2025-08-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Austin Scott",
+    "filer_signature_date": "2025-08-13",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 17
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:20:38.377021+00:00",
+    "text_length": 4209,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

@@ -1,0 +1,49 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Richard W. Allen",
+    "filer_type": "Member",
+    "state": "GA",
+    "district": "12"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Charles Schwab Corporation (SCHW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-10",
+      "notification_date": "2025-08-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Richard W. Allen",
+    "filer_signature_date": "2025-08-11",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 1
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:03:31.535411+00:00",
+    "text_length": 1434,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

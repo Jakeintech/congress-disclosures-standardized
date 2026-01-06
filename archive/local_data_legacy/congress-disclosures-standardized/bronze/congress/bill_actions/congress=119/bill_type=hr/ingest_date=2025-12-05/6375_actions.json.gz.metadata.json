@@ -1,0 +1,13 @@
+{
+  "Metadata": {
+    "api-url": "https://api.congress.gov/v3/bill/119/hr/6375/actions",
+    "entity-type": "bill_actions",
+    "bill_type": "hr",
+    "source-system": "congress-api",
+    "http-status": "200",
+    "ingest-version": "1.0.0",
+    "entity-id": "6375",
+    "ingest-timestamp": "2025-12-05T18:30:33.675402+00:00",
+    "congress": "119"
+  }
+}

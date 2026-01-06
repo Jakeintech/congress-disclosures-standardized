@@ -1,0 +1,236 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Tim Moore",
+    "filer_type": "Member",
+    "state": "NC",
+    "district": "14"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-07",
+      "notification_date": "2025-09-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-08",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "stock (HY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-12",
+      "notification_date": "2025-09-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "stock (HY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-13",
+      "notification_date": "2025-09-02",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "stock (HY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-07",
+      "notification_date": "2025-09-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Intel Corporation - Common Stock (INTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-08",
+      "notification_date": "2025-09-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Intel Corporation - Common Stock (INTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-01",
+      "notification_date": "2025-09-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Intel Corporation - Common Stock (INTC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-13",
+      "notification_date": "2025-09-02",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Intel Corporation - Common Stock (INTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-11",
+      "notification_date": "2025-09-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Krispy Kreme, Inc. - Common Stock (DNUT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-01",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Krispy Kreme, Inc. - Common Stock (DNUT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-04",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-01",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-08",
+      "notification_date": "2025-09-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-15",
+      "notification_date": "2025-09-02",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (VZ)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-01",
+      "notification_date": "2025-09-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Yieldmax MSTR Opt Incm Strtgy ETF (MSTY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-11",
+      "notification_date": "2025-09-02",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Yieldmax MSTR Opt Incm Strtgy ETF (MSTY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-20",
+      "notification_date": "2025-09-02",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Tim Moore",
+    "filer_signature_date": "2025-09-03",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 18
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:15:14.996352+00:00",
+    "text_length": 4299,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

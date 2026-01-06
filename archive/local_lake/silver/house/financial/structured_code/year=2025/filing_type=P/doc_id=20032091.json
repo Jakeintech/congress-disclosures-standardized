@@ -1,0 +1,192 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Dan Newhouse",
+    "filer_type": "Member",
+    "state": "WA",
+    "district": "04"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Advanced Micro Devices, Inc. (AMD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP AMETEK, Inc. (AME)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (AMAT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (ADP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Brown & Brown, Inc. Common Stock (BRO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP ConocoPhillips Common Stock (COP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (XOM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP General Mills, Inc. Common Stock (GIS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP ONEOK, Inc. Common Stock (OKE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Prologis, Inc. Common Stock (PLD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Ross Stores, Inc. - Common Stock (ROST)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP S&P Global Inc. Common Stock (SPGI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Target Corporation Common Stock (TGT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (UPS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-18",
+      "notification_date": "2025-09-02",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Dan Newhouse",
+    "filer_signature_date": "2025-09-17",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 14
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:16:32.214719+00:00",
+    "text_length": 3244,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

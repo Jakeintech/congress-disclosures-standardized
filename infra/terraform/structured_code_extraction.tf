@@ -76,7 +76,7 @@ resource "aws_lambda_function" "extract_structured_code" {
   # Deploy from S3
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/house_fd_extract_structured_code/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_extract_structured_code/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_extract_structured_code/function.zip") : null
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/house_fd_extract_structured_code/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/house_fd_extract_structured_code/function.zip") : null
 
   timeout     = 180 # 3 minutes (code-based extraction is fast)
   memory_size = 1024 # Needs more memory for OCR

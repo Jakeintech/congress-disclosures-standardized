@@ -1,0 +1,434 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Gilbert Cisneros",
+    "filer_type": "Member",
+    "state": "CA",
+    "district": "31"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "AtriCure, Inc. - Common Stock (ATRC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-06",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Boeing Company (BA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "ConAgra Brands, Inc. Common Stock (CAG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Dayforce, Inc. Common Stock (DAY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-13",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Elevance Health, Inc. Common Stock (ELV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Shares (DAVA)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-16",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "ENGIE SA ORD (ENGQF)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-09",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (FWRG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (HLT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-07",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Humana Inc. Common Stock (HUM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ingersoll Rand Inc. Common Stock (IR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-13",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Johnson & Johnson Common Stock (JNJ)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Kinder Morgan, Inc. Common Stock (KMI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "KKR & Co. Inc. Common Stock (KKR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-07",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LHX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LEN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LMT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MRK)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MTX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-06",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NeoGenomics, Inc. - Common Stock (NEO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-07",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NINTENDO CO LTD ORD (NTDOF)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-27",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (NOC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Okta, Inc. - Class A Common Stock (OKTA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-29",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Pfizer, Inc. Common Stock (PFE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "PTC Inc. - Common Stock (PTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-28",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "PTC Inc. - Common Stock (PTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-13",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Shares (RSNHF)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-09",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Revvity, Inc. Common Stock (RVTY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-28",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Schlumberger N.V. Common Stock (SLB)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SLAB)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-06",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Class A Common Stock (SEI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-06",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ordinary Shares (SMFNF)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-27",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (USPH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-20",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-30",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (UTZ)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Gilbert Cisneros",
+    "filer_signature_date": "2025-06-06",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 36
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:06:52.149731+00:00",
+    "text_length": 9069,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

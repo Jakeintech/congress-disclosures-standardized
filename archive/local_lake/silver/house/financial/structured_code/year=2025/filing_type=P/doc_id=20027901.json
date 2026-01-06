@@ -1,0 +1,357 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Josh Gottheimer",
+    "filer_type": "Member",
+    "state": "NJ",
+    "district": "05"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Abbott Laboratories Common Stock (ABT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-13",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "representing eight Ordinary share (BABA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-12",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Shares (ABEV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-07",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Block, Inc. Class A Common Stock, (XYZ)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-27",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Block, Inc. Class A Common Stock, (XYZ)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-03",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Broadcom Inc. - Common Stock (AVGO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-06",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT DISCO CORP UNSP /ADR (DSCSY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-10",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT DISCO CORP UNSP /ADR (DSCSY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-07",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Fiserv, Inc. Common Stock (FI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-26",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Fiserv, Inc. Common Stock (FI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-21",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (ICFI)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-19",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-14",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,000,001-$5,000,000",
+      "amount_low": 1000001,
+      "amount_high": 5000000,
+      "amount_column": "G"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-14",
+      "notification_date": "2025-03-05",
+      "amount_range": "$500,001-$1,000,000",
+      "amount_low": 500001,
+      "amount_high": 1000000,
+      "amount_column": "F"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-14",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,000,001-$5,000,000",
+      "amount_low": 1000001,
+      "amount_high": 5000000,
+      "amount_column": "G"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-14",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,000,001-$5,000,000",
+      "amount_low": 1000001,
+      "amount_high": 5000000,
+      "amount_column": "G"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-14",
+      "notification_date": "2025-03-05",
+      "amount_range": "$500,001-$1,000,000",
+      "amount_low": 500001,
+      "amount_high": 1000000,
+      "amount_column": "F"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-14",
+      "notification_date": "2025-03-05",
+      "amount_range": "$250,001-$500,000",
+      "amount_low": 250001,
+      "amount_high": 500000,
+      "amount_column": "E"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-14",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,000,001-$5,000,000",
+      "amount_low": 1000001,
+      "amount_high": 5000000,
+      "amount_column": "G"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Paragon 28, Inc. Common Stock (FNA)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-27",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Voting Shares (SHOP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-12",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Voting Shares (SHOP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-03",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SNOW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-21",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Tesla, Inc. - Common Stock (TSLA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-05",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Twilio Inc. Class A Common Stock (TWLO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-06",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (UNP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-03",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (VRT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-25",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Visa Inc. (V)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-28",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Visa Inc. (V)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-13",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Walmart Inc. Common Stock (WMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-03",
+      "notification_date": "2025-03-05",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Josh Gottheimer",
+    "filer_signature_date": "2025-03-06",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 29
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:04:18.536735+00:00",
+    "text_length": 12334,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

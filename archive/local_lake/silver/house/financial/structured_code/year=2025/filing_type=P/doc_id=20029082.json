@@ -1,0 +1,137 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Susie Lee",
+    "filer_type": "Member",
+    "state": "NV",
+    "district": "03"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Carnival Corporation Common Stock (CCL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-03-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CNTY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-03-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (GDEN)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-03-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MAR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-03-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MGM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-03-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Depositary Shares (SONY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-03-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SBUX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-03-14",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Tennant Company Common Stock (TNC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-03-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (WYNN)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-03-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Susie Lee",
+    "filer_signature_date": "2025-04-11",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 9
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:13:04.415121+00:00",
+    "text_length": 2889,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

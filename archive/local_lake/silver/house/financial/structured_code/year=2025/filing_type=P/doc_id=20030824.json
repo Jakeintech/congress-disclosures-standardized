@@ -1,0 +1,181 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Tim Moore",
+    "filer_type": "Member",
+    "state": "NC",
+    "district": "14"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-14",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-18",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-21",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-22",
+      "notification_date": "2025-08-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-29",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Centene Corporation Common Stock (CNC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-30",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-30",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Intel Corporation - Common Stock (INTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-29",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Krispy Kreme, Inc. - Common Stock (DNUT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-29",
+      "notification_date": "2025-08-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Krispy Kreme, Inc. - Common Stock (DNUT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-30",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-21",
+      "notification_date": "2025-08-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-16",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (VZ)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-29",
+      "notification_date": "2025-08-04",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Tim Moore",
+    "filer_signature_date": "2025-08-05",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 13
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:15:41.108642+00:00",
+    "text_length": 3476,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

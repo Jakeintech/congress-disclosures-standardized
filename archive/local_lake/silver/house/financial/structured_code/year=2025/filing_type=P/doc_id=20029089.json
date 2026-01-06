@@ -1,0 +1,225 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Marjorie Taylor Greene",
+    "filer_type": "Member",
+    "state": "GA",
+    "district": "14"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-03",
+      "notification_date": "2025-04-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Caterpillar, Inc. Common Stock (CAT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (DELL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "FedEx Corporation Common Stock (FDX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "FedEx Corporation Common Stock (FDX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-03",
+      "notification_date": "2025-04-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (JPM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LRCX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LULU)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Nike, Inc. Common Stock (NKE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (NSC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (ODFL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (ODFL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-03",
+      "notification_date": "2025-04-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (QCOM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "RH Common Stock (RH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Southern Company (SO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-03",
+      "notification_date": "2025-04-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (UPS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Marjorie Taylor Greene",
+    "filer_signature_date": "2025-04-07",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 17
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:05:18.730039+00:00",
+    "text_length": 2995,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

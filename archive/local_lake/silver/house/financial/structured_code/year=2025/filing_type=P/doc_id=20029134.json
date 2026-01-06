@@ -1,0 +1,357 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Tim Moore",
+    "filer_type": "Member",
+    "state": "NC",
+    "district": "14"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (AAL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-12",
+      "notification_date": "2025-04-07",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (AAL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-13",
+      "notification_date": "2025-04-07",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (AAL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (AAL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-20",
+      "notification_date": "2025-04-07",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (AAL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-31",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (BKR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "BlackRock, Inc. Common Stock (BLK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "- (TNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "- (TNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Direxion Daily Small Cap Bull 3X ETF (TNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-06",
+      "notification_date": "2025-04-07",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Direxion Daily Small Cap Bull 3X ETF (TNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-12",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Direxion Daily Small Cap Bull 3X ETF (TNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-10",
+      "notification_date": "2025-04-07",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Direxion Daily Small Cap Bull 3X ETF (TNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-11",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Direxion Daily Small Cap Bull 3X ETF (TNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-07",
+      "notification_date": "2025-04-07",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Direxion Daily Small Cap Bull 3X ETF (TNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-31",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DoorDash, Inc. - Common Stock (DASH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-05",
+      "notification_date": "2025-04-07",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-10",
+      "notification_date": "2025-04-07",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-31",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-03",
+      "notification_date": "2025-04-07",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-25",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-14",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-03-10",
+      "notification_date": "2025-04-07",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-07",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Harley-Davidson, Inc. Common Stock (HOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-06",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (USFD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-04",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Yieldmax MSCI Optn Inc Strg ETF (SMCY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-28",
+      "notification_date": "2025-04-07",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Yieldmax SMCI Optn Inc Strg ETF (SCMY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-31",
+      "notification_date": "2025-04-07",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Yieldmax SMCI Optn Inc Strg ETRF (SMCY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-03-27",
+      "notification_date": "2025-04-07",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Tim Moore",
+    "filer_signature_date": "2025-04-14",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 29
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:17:46.417447+00:00",
+    "text_length": 4776,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

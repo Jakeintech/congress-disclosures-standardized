@@ -1,0 +1,32 @@
+{
+  "doc_id": "10067552",
+  "year": 2025,
+  "filing_type": "C",
+  "document_header": {
+    "filing_id": "10067552",
+    "filer_name": "Michael Roth\nStatus",
+    "filing_date": "08/12/2025"
+  },
+  "schedules": {},
+  "missing_fields": [
+    "Schedule A",
+    "Schedule B",
+    "Schedule C",
+    "Schedule D",
+    "Schedule E",
+    "Schedule F",
+    "Schedule G",
+    "Schedule H",
+    "Schedule I"
+  ],
+  "confidence_score": 0.3,
+  "textract_recommended": true,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "C",
+    "extraction_timestamp": "2025-11-30T22:28:01.359135+00:00",
+    "text_length": 13059,
+    "confidence_score": 0.3,
+    "textract_recommended": true
+  }
+}

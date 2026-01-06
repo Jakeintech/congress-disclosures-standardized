@@ -1,0 +1,32 @@
+{
+  "doc_id": "10063455",
+  "year": 2025,
+  "filing_type": "C",
+  "document_header": {
+    "filing_id": "10063455",
+    "filer_name": "Gregory Vartan",
+    "filing_date": "06/07/2025"
+  },
+  "schedules": {},
+  "missing_fields": [
+    "Schedule A",
+    "Schedule B",
+    "Schedule C",
+    "Schedule D",
+    "Schedule E",
+    "Schedule F",
+    "Schedule G",
+    "Schedule H",
+    "Schedule I"
+  ],
+  "confidence_score": 0.3,
+  "textract_recommended": true,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "C",
+    "extraction_timestamp": "2025-11-30T22:21:27.599249+00:00",
+    "text_length": 3546,
+    "confidence_score": 0.3,
+    "textract_recommended": true
+  }
+}

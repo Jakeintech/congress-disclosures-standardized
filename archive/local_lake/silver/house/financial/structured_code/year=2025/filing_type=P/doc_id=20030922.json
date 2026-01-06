@@ -1,0 +1,126 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Daniel Meuser",
+    "filer_type": "Member",
+    "state": "PA",
+    "district": "09"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (GOOGL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-11",
+      "notification_date": "2025-02-11",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Amgen Inc. - Common Stock (AMGN)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-11",
+      "notification_date": "2025-02-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-11",
+      "notification_date": "2025-02-11",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Aptiv PLC Ordinary Shares (APTV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-11",
+      "notification_date": "2025-02-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-11",
+      "notification_date": "2025-02-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MDLZ)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-11",
+      "notification_date": "2025-02-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (QCOM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-11",
+      "notification_date": "2025-02-11",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Visa Inc. (V)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-02-11",
+      "notification_date": "2025-02-11",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Daniel Meuser",
+    "filer_signature_date": "2025-08-20",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 8
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:18:48.642068+00:00",
+    "text_length": 2302,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

@@ -1,0 +1,24 @@
+{
+  "doc_id": "30025310",
+  "year": 2025,
+  "filing_type": "X",
+  "document_header": {
+    "filer_name": "Christina Bohannan\nStatus",
+    "filing_id": "30025310"
+  },
+  "extension_details": {
+    "is_extension_request": true,
+    "days_requested": 90
+  },
+  "missing_fields": [],
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "X",
+    "extraction_timestamp": "2025-11-30T22:08:27.902964+00:00",
+    "text_length": 1088,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  }
+}

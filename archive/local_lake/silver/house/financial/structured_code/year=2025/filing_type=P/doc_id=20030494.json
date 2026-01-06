@@ -1,0 +1,368 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Scott Scott Franklin",
+    "filer_type": "Member",
+    "state": "FL",
+    "district": "18"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Shares (ACN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (APD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Alphabet Inc. - Class C Capital Stock (GOOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Amgen Inc. - Common Stock (AMGN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (ADP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-09-25",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Chubb Limited Common Stock (CB)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CMCSA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (COST)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Fidelity Advisor Total Bond CL Z (FBKWX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "VI SMID RISNG ETF (SDVY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (GD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Home Depot, Inc. (HD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (ITW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-09-25",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NASDAQ 100 ETF (QQQM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Johnson & Johnson Common Stock (JNJ)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (JPM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "HIGH YLD I (LSYIX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MCD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MRK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Pepsico, Inc. (PEP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Procter & Gamble Company (PG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SBUX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (HSY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (UPS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Visa Inc. (V)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Walmart Inc. Common Stock (WMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2024-08-07",
+      "notification_date": "2025-05-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Scott Scott Franklin",
+    "filer_signature_date": "2025-07-03",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 30
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:05:36.997835+00:00",
+    "text_length": 18489,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

@@ -1,0 +1,478 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Rob Bresnahan",
+    "filer_type": "Member",
+    "state": "PA",
+    "district": "08"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Advanced Micro Devices, Inc. (AMD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (A)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Alphabet Inc. - Class C Capital Stock (GOOG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-08",
+      "notification_date": "2025-05-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Alphabet Inc. - Class C Capital Stock (GOOG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-07",
+      "notification_date": "2025-05-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amcor plc Ordinary Shares (AMCR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Caterpillar, Inc. Common Stock (CAT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "International, Inc. Common Stock (CRL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "ConocoPhillips Common Stock (COP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "CoStar Group, Inc. - Common Stock (CSGP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CVS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Danaher Corporation Common Stock (DHR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Elevance Health, Inc. Common Stock (ELV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (XOM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (GEHC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "General Mills, Inc. Common Stock (GIS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Incyte Corporation - Common Stock (INCY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Inc. Common Stock (IFF)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "IQVIA Holdings, Inc. Common Stock (IQV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Keurig Dr Pepper Inc. (KDP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (KMB)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Labcorp Holdings Inc. Common Stock (LH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MPC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Medtronic plc. Ordinary Shares (MDT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MRK)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MTD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-09",
+      "notification_date": "2025-05-09",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (OXY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Pepsico, Inc. (PEP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Pfizer, Inc. Common Stock (PFE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (HOOD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-09",
+      "notification_date": "2025-05-09",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Schlumberger N.V. Common Stock (SLB)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (TXN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (HSY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (KHC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (TMO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (WEC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Yum! Brands, Inc. (YUM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (ZBH)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Zoetis Inc. Class A Common Stock (ZTS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-15",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Rob Bresnahan",
+    "filer_signature_date": "2025-05-31",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 40
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:11:51.587295+00:00",
+    "text_length": 8664,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

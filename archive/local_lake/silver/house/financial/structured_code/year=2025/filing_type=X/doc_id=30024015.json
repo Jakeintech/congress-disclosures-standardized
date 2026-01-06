@@ -1,0 +1,24 @@
+{
+  "doc_id": "30024015",
+  "year": 2025,
+  "filing_type": "X",
+  "document_header": {
+    "filer_name": "Everton Blair\nStatus",
+    "filing_id": "30024015"
+  },
+  "extension_details": {
+    "is_extension_request": true,
+    "days_requested": 90
+  },
+  "missing_fields": [],
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "X",
+    "extraction_timestamp": "2025-11-30T22:06:44.903464+00:00",
+    "text_length": 1082,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  }
+}

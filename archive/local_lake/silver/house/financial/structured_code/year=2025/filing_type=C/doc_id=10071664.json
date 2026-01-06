@@ -1,0 +1,32 @@
+{
+  "doc_id": "10071664",
+  "year": 2025,
+  "filing_type": "C",
+  "document_header": {
+    "filing_id": "10071664",
+    "filing_date": "06/29/2025"
+  },
+  "schedules": {},
+  "missing_fields": [
+    "filer_name",
+    "Schedule A",
+    "Schedule B",
+    "Schedule C",
+    "Schedule D",
+    "Schedule E",
+    "Schedule F",
+    "Schedule G",
+    "Schedule H",
+    "Schedule I"
+  ],
+  "confidence_score": 0.3,
+  "textract_recommended": true,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "C",
+    "extraction_timestamp": "2025-11-30T22:23:34.770473+00:00",
+    "text_length": 6238,
+    "confidence_score": 0.3,
+    "textract_recommended": true
+  }
+}

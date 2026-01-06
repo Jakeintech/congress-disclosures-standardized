@@ -1,0 +1,412 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Gilbert Cisneros",
+    "filer_type": "Member",
+    "state": "CA",
+    "district": "31"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "AJINOMOTO CO INC (AJINF)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-30",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (APG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-12",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (APG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-30",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (ARIS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-26",
+      "notification_date": "2025-10-08",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (BE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-26",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (BBIO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-22",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CMG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-12",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (NET)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-12",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "CoStar Group, Inc. - Common Stock (CSGP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-30",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "CoStar Group, Inc. - Common Stock (CSGP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-22",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Fortive Corporation Common Stock (FTV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-30",
+      "notification_date": "2025-10-08",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Halliburton Company Common Stock (HAL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-05",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Home Depot, Inc. (HD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-12",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ordinary Shares (MHVYF)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-30",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Class B Common Stock (TAP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-05",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MDB)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-12",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Okta, Inc. - Class A Common Stock (OKTA)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-12",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "PTC Inc. - Common Stock (PTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-30",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Quanta Services, Inc. Common Stock (PWR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-12",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Revvity, Inc. Common Stock (RVTY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-12",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LUV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-05",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "StandardAero, Inc. Common Stock (SARO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-01",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "StandardAero, Inc. Common Stock (SARO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-30",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (SMCI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-05",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (THR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-05",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (THR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-22",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "U.S. Bancorp Common Stock (USB)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-26",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "UNICREDITO SPA ORD NEW (UNCFF)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-18",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-05",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "WaterBridge Infrastructure LLC Cl A (WBI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-17",
+      "notification_date": "2025-10-08",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "WaterBridge Infrastructure LLC Cl A (WBI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-26",
+      "notification_date": "2025-10-08",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Waters Corporation Common Stock (WAT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-30",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Shares (WPM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-12",
+      "notification_date": "2025-10-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (WDAY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-22",
+      "notification_date": "2025-10-08",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Gilbert Cisneros",
+    "filer_signature_date": "2025-10-10",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 34
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:08:32.985130+00:00",
+    "text_length": 13422,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

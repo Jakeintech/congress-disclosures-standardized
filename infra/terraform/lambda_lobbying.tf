@@ -26,7 +26,7 @@ resource "aws_lambda_function" "lda_ingest_filings" {
   # Deploy from S3
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/lda_ingest_filings/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/lda_ingest_filings/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/lda_ingest_filings/function.zip") : null
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/lda_ingest_filings/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/lda_ingest_filings/function.zip") : null
 
   timeout     = var.lambda_timeout_seconds
   memory_size = var.lambda_ingest_memory_mb

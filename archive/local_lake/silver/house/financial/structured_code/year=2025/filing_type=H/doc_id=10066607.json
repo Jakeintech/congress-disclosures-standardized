@@ -1,0 +1,21 @@
+{
+  "doc_id": "10066607",
+  "year": 2025,
+  "filing_type": "H",
+  "extracted_data": {},
+  "confidence_score": 0.0,
+  "manual_review_required": true,
+  "textract_recommended": false,
+  "missing_fields": [
+    "All fields - unknown filing type, needs manual review"
+  ],
+  "review_reason": "Filing type 'H' not supported (Types G, E, B are rare <1.5% of files)",
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "H",
+    "extraction_timestamp": "2025-11-30T22:23:03.595883+00:00",
+    "text_length": 12769,
+    "confidence_score": 0.0,
+    "textract_recommended": false
+  }
+}

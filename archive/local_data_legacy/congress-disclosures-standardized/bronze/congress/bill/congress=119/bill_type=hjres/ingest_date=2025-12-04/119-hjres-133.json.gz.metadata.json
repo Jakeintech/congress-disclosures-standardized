@@ -1,0 +1,13 @@
+{
+  "Metadata": {
+    "api-url": "https://api.congress.gov/v3/bill/119/hjres/133",
+    "entity-type": "bill",
+    "bill_type": "hjres",
+    "source-system": "congress-api",
+    "http-status": "200",
+    "ingest-version": "1.0.0",
+    "entity-id": "119-hjres-133",
+    "ingest-timestamp": "2025-12-04T22:41:08.384503+00:00",
+    "congress": "119"
+  }
+}

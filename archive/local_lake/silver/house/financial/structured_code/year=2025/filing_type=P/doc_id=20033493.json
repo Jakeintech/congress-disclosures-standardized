@@ -1,0 +1,82 @@
+{
+  "filer_info": {
+    "full_name": "Cleo Fields",
+    "filer_type": "Member",
+    "state": "LA",
+    "district": "06"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-13",
+      "notification_date": "2025-11-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Celestica, Inc. Common Stock (CLS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-03",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Netflix, Inc. - Common Stock (NFLX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-03",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Netflix, Inc. - Common Stock (NFLX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-03",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Cleo Fields",
+    "filer_signature_date": "2025-11-19",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 4
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:11:17.938064+00:00",
+    "text_length": 1427,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

@@ -1,0 +1,445 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Gilbert Cisneros",
+    "filer_type": "Member",
+    "state": "CA",
+    "district": "31"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (AGIO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-29",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Airbnb, Inc. - Class A Common Stock (ABNB)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (APG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-07",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Broadcom Inc. - Common Stock (AVGO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-29",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CACI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-31",
+      "notification_date": "2025-02-06",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "CarMax Inc (KMX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-13",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (STZ)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-13",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CRNX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-29",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Crown Castle Inc. Common Stock (CCI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CVS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (XRAY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-08",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (DG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Dominion Energy, Inc. Common Stock (D)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (FERG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-07",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ford Motor Company Common Stock (F)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Fortive Corporation Common Stock (FTV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-07",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (HE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-31",
+      "notification_date": "2025-02-06",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (ISRG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-30",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Kellanova Common Stock (K)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LNTH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-28",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LNTH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-13",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LNTH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-07",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LNTH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-08",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MCK)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MRK)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (PLTR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (PAR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-22",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Paragon 28, Inc. Common Stock (FNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-29",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LUV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "common stock (SWTX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-29",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "TENCENT HLDIGS LTD (TCTZF)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-09",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SJM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (USPH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-29",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-06",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Company - Ordinary Shares (WTW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-28",
+      "notification_date": "2025-02-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Company - Ordinary Shares (WTW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-13",
+      "notification_date": "2025-02-06",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Gilbert Cisneros",
+    "filer_signature_date": "2025-02-11",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 37
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:08:28.107440+00:00",
+    "text_length": 11089,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

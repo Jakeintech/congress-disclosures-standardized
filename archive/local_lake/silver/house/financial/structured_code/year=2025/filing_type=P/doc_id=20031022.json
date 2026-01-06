@@ -1,0 +1,478 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Gilbert Cisneros",
+    "filer_type": "Member",
+    "state": "CA",
+    "district": "31"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "APA Corporation - Common Stock (APA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (APG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-26",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Avantor, Inc. Common Stock (AVTR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-13",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Avient Corporation Common Stock (AVNT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-02",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (BBIO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-08",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CHRW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Limited Common Shares (CP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-06",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CNC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (CVLT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-15",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CAG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (ELV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (HAL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Hermes Intl S A Ordinary Shares (HESAF)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-07",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Humana Inc. Common Stock (HUM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Intapp, Inc. - Common Stock (INTA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-15",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Intapp, Inc. - Common Stock (INTA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-26",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Kellanova Common Stock (K)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Liability Company Interests (LB)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-06",
+      "notification_date": "2025-09-08",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MCK)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MRK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Inc Ordinary Shares (MBFJF)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-08",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MOH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Class B Common Stock (TAP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (OXY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (RAL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-08",
+      "notification_date": "2025-08-13",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (O)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Revvity, Inc. Common Stock (RVTY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-13",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Schlumberger N.V. Common Stock (SLB)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SMTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-02",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SMTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-26",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LUV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "A Perpetual Stretch Preferred Stock (STRC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-06",
+      "notification_date": "2025-09-08",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Tesla, Inc. - Common Stock (TSLA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (RARE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-08",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UPS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-05",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (WAT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-26",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (WAT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-13",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (WAT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-12",
+      "notification_date": "2025-09-08",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Gilbert Cisneros",
+    "filer_signature_date": "2025-09-12",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 40
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:07:13.444472+00:00",
+    "text_length": 12325,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

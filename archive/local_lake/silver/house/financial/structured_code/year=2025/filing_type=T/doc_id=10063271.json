@@ -1,0 +1,23 @@
+{
+  "doc_id": "10063271",
+  "year": 2025,
+  "filing_type": "T",
+  "document_header": {
+    "filing_id": "10063271",
+    "filer_name": "Debbie Lesko\nStatus"
+  },
+  "termination_details": {},
+  "missing_fields": [
+    "termination_confirmation"
+  ],
+  "confidence_score": 0.3,
+  "textract_recommended": true,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "T",
+    "extraction_timestamp": "2025-11-30T22:13:24.978003+00:00",
+    "text_length": 6875,
+    "confidence_score": 0.3,
+    "textract_recommended": true
+  }
+}

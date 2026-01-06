@@ -1,0 +1,13 @@
+{
+  "Metadata": {
+    "api-url": "https://api.congress.gov/v3/bill/118/sconres/19/actions",
+    "entity-type": "bill_actions",
+    "bill_type": "sconres",
+    "source-system": "congress-api",
+    "http-status": "200",
+    "ingest-version": "1.0.0",
+    "entity-id": "19",
+    "ingest-timestamp": "2025-12-05T18:24:56.519363+00:00",
+    "congress": "118"
+  }
+}

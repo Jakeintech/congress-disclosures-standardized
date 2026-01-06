@@ -1,0 +1,258 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Josh Gottheimer",
+    "filer_type": "Member",
+    "state": "NJ",
+    "district": "05"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "JT AbbVie Inc. Common Stock (ABBV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-22",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (APP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-28",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Registry Shares (ASML)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-22",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT COLOPLAST AS SP/ADR (CLPBY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-14",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Corning Incorporated Common Stock (GLW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-28",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Corning Incorporated Common Stock (GLW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-22",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Eli Lilly and Company Common Stock (LLY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-01",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Fiserv, Inc. Common Stock (FI)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-14",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Gilead Sciences, Inc. - Common Stock (GILD)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-14",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-21",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-22",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Salesforce, Inc. Common Stock (CRM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-22",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ordinary Share (SE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT TE Connectivity plc Ordinary Shares (TEL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-22",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Tesla, Inc. - Common Stock (TSLA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-29",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Tesla, Inc. - Common Stock (TSLA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-27",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Tesla, Inc. - Common Stock (TSLA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-16",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Tesla, Inc. - Common Stock (TSLA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (UBER)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT ZTO Express (ZTO)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-23",
+      "notification_date": "2025-06-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Josh Gottheimer",
+    "filer_signature_date": "2025-06-11",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 20
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:12:13.918413+00:00",
+    "text_length": 5028,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

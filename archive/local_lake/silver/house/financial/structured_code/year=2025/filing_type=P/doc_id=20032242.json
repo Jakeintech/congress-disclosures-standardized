@@ -1,0 +1,258 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Julie Johnson",
+    "filer_type": "Member",
+    "state": "TX",
+    "district": "32"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (AOS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Ameren Corporation Common Stock (AEE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT DaVita Inc. Common Stock (DVA)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT DBA Sempra Common Stock (SRE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Equinix, Inc. - Common Stock (EQIX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (XOM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-16",
+      "notification_date": "2025-10-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Honeywell International Inc. (HON)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT KeyCorp Common Stock (KEY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ordinary Shares Class A (LYB)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MKC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Class B Common Stock (TAP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MNST)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Paychex, Inc. - Common Stock (PAYX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Paycom Software, Inc. Common Stock (PAYC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Rollins, Inc. Common Stock (ROL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT The Cigna Group Common Stock (CI)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT UDR, Inc. Common Stock (UDR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (WEC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Xcel Energy Inc. (XEL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-25",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Julie Johnson",
+    "filer_signature_date": "2025-10-07",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 20
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:08:55.850346+00:00",
+    "text_length": 4173,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

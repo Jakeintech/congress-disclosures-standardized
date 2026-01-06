@@ -1,0 +1,13 @@
+{
+  "Metadata": {
+    "api-url": "https://api.congress.gov/v3/bill/118/s/2609/committees",
+    "entity-type": "bill_committees",
+    "bill_type": "s",
+    "source-system": "congress-api",
+    "http-status": "200",
+    "ingest-version": "1.0.0",
+    "entity-id": "2609",
+    "ingest-timestamp": "2025-12-05T18:23:05.039493+00:00",
+    "congress": "118"
+  }
+}

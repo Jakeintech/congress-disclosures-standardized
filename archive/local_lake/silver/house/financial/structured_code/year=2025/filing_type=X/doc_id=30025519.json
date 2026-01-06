@@ -1,0 +1,25 @@
+{
+  "doc_id": "30025519",
+  "year": 2025,
+  "filing_type": "X",
+  "document_header": {
+    "filing_id": "30025519"
+  },
+  "extension_details": {
+    "is_extension_request": true,
+    "days_requested": 90
+  },
+  "missing_fields": [
+    "filer_name"
+  ],
+  "confidence_score": 0.5,
+  "textract_recommended": false,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "X",
+    "extraction_timestamp": "2025-11-30T22:06:16.473693+00:00",
+    "text_length": 1087,
+    "confidence_score": 0.5,
+    "textract_recommended": false
+  }
+}

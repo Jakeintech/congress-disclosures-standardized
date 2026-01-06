@@ -1,0 +1,24 @@
+{
+  "doc_id": "40004841",
+  "year": 2025,
+  "filing_type": "D",
+  "document_header": {
+    "filing_id": "40004841",
+    "filer_name": "Lucas Todd Youngerberg\nStatus"
+  },
+  "notice_type": "Duplicate Filing",
+  "missing_fields": [
+    "filing_date"
+  ],
+  "confidence_score": 0.6666666666666666,
+  "textract_recommended": false,
+  "manual_review_required": false,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "D",
+    "extraction_timestamp": "2025-11-30T22:22:07.262038+00:00",
+    "text_length": 1052,
+    "confidence_score": 0.6666666666666666,
+    "textract_recommended": false
+  }
+}

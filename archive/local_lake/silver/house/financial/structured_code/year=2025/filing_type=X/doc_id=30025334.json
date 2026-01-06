@@ -1,0 +1,24 @@
+{
+  "doc_id": "30025334",
+  "year": 2025,
+  "filing_type": "X",
+  "document_header": {
+    "filer_name": "Beth Andres",
+    "filing_id": "30025334"
+  },
+  "extension_details": {
+    "is_extension_request": true,
+    "days_requested": 90
+  },
+  "missing_fields": [],
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "X",
+    "extraction_timestamp": "2025-11-30T22:04:18.381250+00:00",
+    "text_length": 1085,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  }
+}

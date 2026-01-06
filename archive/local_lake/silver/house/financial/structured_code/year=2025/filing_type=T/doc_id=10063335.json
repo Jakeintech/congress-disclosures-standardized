@@ -1,0 +1,23 @@
+{
+  "doc_id": "10063335",
+  "year": 2025,
+  "filing_type": "T",
+  "document_header": {
+    "filing_id": "10063335"
+  },
+  "termination_details": {},
+  "missing_fields": [
+    "filer_name",
+    "termination_confirmation"
+  ],
+  "confidence_score": 0.3,
+  "textract_recommended": true,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "T",
+    "extraction_timestamp": "2025-11-30T22:06:43.809843+00:00",
+    "text_length": 3950,
+    "confidence_score": 0.3,
+    "textract_recommended": true
+  }
+}

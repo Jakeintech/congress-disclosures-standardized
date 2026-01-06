@@ -1,0 +1,13 @@
+{
+  "Metadata": {
+    "api-url": "https://api.congress.gov/v3/bill/118/hres/647/actions",
+    "entity-type": "bill_actions",
+    "bill_type": "hres",
+    "source-system": "congress-api",
+    "http-status": "200",
+    "ingest-version": "1.0.0",
+    "entity-id": "647",
+    "ingest-timestamp": "2025-12-05T18:17:13.281854+00:00",
+    "congress": "118"
+  }
+}

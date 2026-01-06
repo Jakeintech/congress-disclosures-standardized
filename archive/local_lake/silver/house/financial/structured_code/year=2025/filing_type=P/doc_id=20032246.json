@@ -1,0 +1,137 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Josh Gottheimer",
+    "filer_type": "Member",
+    "state": "NJ",
+    "district": "05"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CVLT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-23",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Diageo plc Common Stock (DEO)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-22",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (IRT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-22",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT M3 INC UNSP/ADR (MTHRY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-30",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Natera, Inc. - Common Stock (NTRA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-22",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT SYSMEX CORP UNSP/ASDR (SSMXY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-22",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (TNDM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-09-22",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Class A Common Stock (BWIN)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-23",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (TTD)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-09-11",
+      "notification_date": "2025-10-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Josh Gottheimer",
+    "filer_signature_date": "2025-10-15",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 9
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:08:28.590011+00:00",
+    "text_length": 2654,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

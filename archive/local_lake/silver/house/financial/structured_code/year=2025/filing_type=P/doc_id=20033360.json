@@ -1,0 +1,181 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Marjorie Taylor Greene",
+    "filer_type": "Member",
+    "state": "GA",
+    "district": "14"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amgen Inc. - Common Stock (AMGN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Blackstone Inc. Common Stock (BX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Cardinal Health, Inc. Common Stock (CAH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Chevron Corporation Common Stock (CVX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Home Depot, Inc. (HD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Bitcoin Trust ETF (IBIT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Kinder Morgan, Inc. Common Stock (KMI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "MercadoLibre, Inc. - Common Stock (MELI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Netflix, Inc. - Common Stock (NFLX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (OXY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Palo Alto Networks, Inc. (PANW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-24",
+      "notification_date": "2025-10-27",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Marjorie Taylor Greene",
+    "filer_signature_date": "2025-10-28",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 13
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:12:48.899977+00:00",
+    "text_length": 2379,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

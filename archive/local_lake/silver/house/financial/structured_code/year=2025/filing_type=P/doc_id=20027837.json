@@ -1,0 +1,115 @@
+{
+  "filer_info": {
+    "full_name": "Hon. William R. Keating",
+    "filer_type": "Member",
+    "state": "MA",
+    "district": "09"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Shares (ACN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-05",
+      "notification_date": "2025-02-24",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Aramark Common Stock (ARMK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-05",
+      "notification_date": "2025-02-24",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "CoStar Group, Inc. - Common Stock (CSGP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-21",
+      "notification_date": "2025-02-24",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "KLA Corporation - Common Stock (KLAC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-24",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LRCX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-24",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-05",
+      "notification_date": "2025-02-24",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Pepsico, Inc. (PEP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-05",
+      "notification_date": "2025-02-24",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. William R. Keating",
+    "filer_signature_date": "2025-02-25",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 7
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:11:52.530034+00:00",
+    "text_length": 2533,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

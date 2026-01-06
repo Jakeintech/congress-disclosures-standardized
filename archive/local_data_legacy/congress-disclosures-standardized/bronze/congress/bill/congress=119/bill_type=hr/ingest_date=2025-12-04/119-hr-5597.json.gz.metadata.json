@@ -1,0 +1,13 @@
+{
+  "Metadata": {
+    "api-url": "https://api.congress.gov/v3/bill/119/hr/5597",
+    "entity-type": "bill",
+    "bill_type": "hr",
+    "source-system": "congress-api",
+    "http-status": "200",
+    "ingest-version": "1.0.0",
+    "entity-id": "119-hr-5597",
+    "ingest-timestamp": "2025-12-04T22:43:12.348651+00:00",
+    "congress": "119"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "doc_id": "10071836",
+  "year": 2025,
+  "filing_type": "C",
+  "document_header": {
+    "filing_id": "10071836",
+    "filer_name": "Gavin Solomon\nStatus",
+    "filing_date": "07/20/2025"
+  },
+  "schedules": {},
+  "missing_fields": [
+    "Schedule A",
+    "Schedule B",
+    "Schedule C",
+    "Schedule D",
+    "Schedule E",
+    "Schedule F",
+    "Schedule G",
+    "Schedule H",
+    "Schedule I"
+  ],
+  "confidence_score": 0.3,
+  "textract_recommended": true,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "C",
+    "extraction_timestamp": "2025-11-30T22:21:27.300138+00:00",
+    "text_length": 3188,
+    "confidence_score": 0.3,
+    "textract_recommended": true
+  }
+}

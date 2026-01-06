@@ -13,10 +13,10 @@ resource "aws_lambda_function" "structured_extraction" {
   runtime       = "python3.12"
   timeout       = 900
   memory_size   = 1024
-  filename      = "${path.module}/../../ingestion/lambdas/house_fd_extract_structured/dist/package.zip"
+  filename      = "${path.module}/../../backend/functions/ingestion/house_fd_extract_structured/dist/package.zip"
   # Guard against missing local zip during plans that don't deploy this Lambda
   # This prevents plan/apply for unrelated targets (e.g., bucket policy) from failing.
-  source_code_hash = try(filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_extract_structured/dist/package.zip"), null)
+  source_code_hash = try(filebase64sha256("${path.module}/../../backend/functions/ingestion/house_fd_extract_structured/dist/package.zip"), null)
 
   environment {
     variables = {

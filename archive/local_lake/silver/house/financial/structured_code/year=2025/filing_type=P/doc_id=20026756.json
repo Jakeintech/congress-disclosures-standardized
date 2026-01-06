@@ -1,0 +1,148 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Emily Randall",
+    "filer_type": "Member",
+    "state": "WA",
+    "district": "06"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Abbott Laboratories Common Stock (ABT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Amgen Inc. - Common Stock (AMGN)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (XOM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Fortive Corporation Common Stock (FTV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Medtronic plc. Ordinary Shares (MDT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MDLZ)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Pepsico, Inc. (PEP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Procter & Gamble Company (PG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (VZ)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (WFC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-06",
+      "notification_date": "2025-02-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Emily Randall",
+    "filer_signature_date": "2025-02-11",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 10
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:20:08.563748+00:00",
+    "text_length": 2933,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

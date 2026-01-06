@@ -1,0 +1,24 @@
+{
+  "doc_id": "40004827",
+  "year": 2025,
+  "filing_type": "D",
+  "document_header": {
+    "filing_id": "40004827",
+    "filer_name": "Thomas Gary Barnes\nStatus"
+  },
+  "notice_type": "Duplicate Filing",
+  "missing_fields": [
+    "filing_date"
+  ],
+  "confidence_score": 0.6666666666666666,
+  "textract_recommended": false,
+  "manual_review_required": false,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "D",
+    "extraction_timestamp": "2025-11-30T22:03:04.415939+00:00",
+    "text_length": 1045,
+    "confidence_score": 0.6666666666666666,
+    "textract_recommended": false
+  }
+}

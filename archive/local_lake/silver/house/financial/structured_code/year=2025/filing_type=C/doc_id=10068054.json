@@ -1,0 +1,32 @@
+{
+  "doc_id": "10068054",
+  "year": 2025,
+  "filing_type": "C",
+  "document_header": {
+    "filing_id": "10068054",
+    "filer_name": "Eldon Dan Mc",
+    "filing_date": "05/12/2025"
+  },
+  "schedules": {},
+  "missing_fields": [
+    "Schedule A",
+    "Schedule B",
+    "Schedule C",
+    "Schedule D",
+    "Schedule E",
+    "Schedule F",
+    "Schedule G",
+    "Schedule H",
+    "Schedule I"
+  ],
+  "confidence_score": 0.3,
+  "textract_recommended": true,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "C",
+    "extraction_timestamp": "2025-11-30T22:16:11.063771+00:00",
+    "text_length": 2173,
+    "confidence_score": 0.3,
+    "textract_recommended": true
+  }
+}

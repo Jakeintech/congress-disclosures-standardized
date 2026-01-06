@@ -1,0 +1,203 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Gilbert Cisneros",
+    "filer_type": "Member",
+    "state": "CA",
+    "district": "31"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "CoStar Group, Inc. - Common Stock (CSGP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-31",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "CoStar Group, Inc. - Common Stock (CSGP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-09",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Shares (DSKYF)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-03",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Dayforce, Inc. Common Stock (DAY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-31",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "General Mills, Inc. Common Stock (GIS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-03",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Shares (GPOR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-07",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Shares (GPOR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-18",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "PTC Inc. - Common Stock (PTC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-09",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Ralliant Corporation Common Stock (RAL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-09",
+      "notification_date": "2025-08-13",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Revvity, Inc. Common Stock (RVTY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-23",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Rio Tinto Plc Common Stock (RIO)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-03",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (HOOD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-09",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SIEMENS ENERGY AG (SMEGF)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-03",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LUV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-03",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (RARE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-15",
+      "notification_date": "2025-08-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Gilbert Cisneros",
+    "filer_signature_date": "2025-08-14",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 15
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:06:18.055689+00:00",
+    "text_length": 5443,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

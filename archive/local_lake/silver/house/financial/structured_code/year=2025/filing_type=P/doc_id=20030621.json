@@ -1,0 +1,159 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Josh Gottheimer",
+    "filer_type": "Member",
+    "state": "NJ",
+    "district": "05"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (AKAM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Broadcom Inc. - Common Stock (AVGO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Carvana Co. Class A Common Stock (CVNA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-20",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Chubb Limited Common Stock (CB)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-13",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (NET)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-20",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Services, Inc. Common Stock (FIS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (INSM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-16",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-24",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Pfizer, Inc. Common Stock (PFE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Salesforce, Inc. Common Stock (CRM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-04",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (UNP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-04",
+      "notification_date": "2025-07-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Josh Gottheimer",
+    "filer_signature_date": "2025-07-16",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 11
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:13:27.091610+00:00",
+    "text_length": 4051,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

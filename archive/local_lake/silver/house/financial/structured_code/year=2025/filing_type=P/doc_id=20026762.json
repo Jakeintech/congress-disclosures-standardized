@@ -1,0 +1,478 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Julie Johnson",
+    "filer_type": "Member",
+    "state": "TX",
+    "district": "32"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Allete, Inc. (ALE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-28",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT American Tower Corporation (AMT)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Boeing Company (BA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (BMY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "International, Inc. Common Stock (CRL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT ConocoPhillips Common Stock (COP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT CoStar Group, Inc. - Common Stock (CSGP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Danaher Corporation Common Stock (DHR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (DELL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-28",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (DG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Dollar Tree, Inc. - Common Stock (DLTR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Dow Inc. Common Stock (DOW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Enphase Energy, Inc. - Common Stock (ENPH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Estee Lauder Companies, Inc. (EL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Eversource Energy (ES)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Goldman Sachs Group, Inc. (GS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Hasbro, Inc. - Common Stock (HAS)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Intuit Inc. - Common Stock (INTU)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-28",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (JNPR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LW)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MKTX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MRK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-17",
+      "notification_date": "2025-02-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Moderna, Inc. - Common Stock (MRNA)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT MSCI Inc. Common Stock (MSCI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT NextEra Energy, Inc. Common Stock (NEE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Nike, Inc. Common Stock (NKE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (PLTR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Pepsico, Inc. (PEP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Pepsico, Inc. (PEP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-28",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT PPG Industries, Inc. Common Stock (PPG)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-27",
+      "notification_date": "2025-02-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Progressive Corporation (PGR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-24",
+      "notification_date": "2025-02-11",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Qorvo, Inc. - Common Stock (QRVO)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (REGN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Class A Common Stock (SBAC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (SOLV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (SMCI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT The Cigna Group Common Stock (CI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (HSY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (UBER)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (WBA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-01-15",
+      "notification_date": "2025-02-07",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Julie Johnson",
+    "filer_signature_date": "2025-02-12",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 40
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:11:17.669036+00:00",
+    "text_length": 9434,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

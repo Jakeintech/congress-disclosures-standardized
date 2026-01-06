@@ -1,0 +1,137 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Scott Scott Franklin",
+    "filer_type": "Member",
+    "state": "FL",
+    "district": "18"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-26",
+      "notification_date": "2025-03-18",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-26",
+      "notification_date": "2025-03-18",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-26",
+      "notification_date": "2025-03-18",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (COST)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-28",
+      "notification_date": "2025-03-18",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (COST)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-28",
+      "notification_date": "2025-03-18",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (COST)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-01-28",
+      "notification_date": "2025-03-18",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-18",
+      "notification_date": "2025-03-18",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-18",
+      "notification_date": "2025-03-18",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (LMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-02-18",
+      "notification_date": "2025-03-18",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Scott Scott Franklin",
+    "filer_signature_date": "2025-03-18",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 9
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:13:23.613830+00:00",
+    "text_length": 2730,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

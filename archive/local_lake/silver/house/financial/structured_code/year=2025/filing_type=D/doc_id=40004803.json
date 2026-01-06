@@ -1,0 +1,24 @@
+{
+  "doc_id": "40004803",
+  "year": 2025,
+  "filing_type": "D",
+  "document_header": {
+    "filing_id": "40004803"
+  },
+  "notice_type": "Duplicate Filing",
+  "missing_fields": [
+    "filer_name",
+    "filing_date"
+  ],
+  "confidence_score": 0.3333333333333333,
+  "textract_recommended": false,
+  "manual_review_required": true,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "D",
+    "extraction_timestamp": "2025-11-30T22:04:01.699478+00:00",
+    "text_length": 1047,
+    "confidence_score": 0.3333333333333333,
+    "textract_recommended": false
+  }
+}

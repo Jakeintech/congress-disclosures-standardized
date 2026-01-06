@@ -1,0 +1,13 @@
+{
+  "Metadata": {
+    "api-url": "https://api.congress.gov/v3/bill/119/s/3332",
+    "entity-type": "bill",
+    "bill_type": "s",
+    "source-system": "congress-api",
+    "http-status": "200",
+    "ingest-version": "1.0.0",
+    "entity-id": "119-s-3332",
+    "ingest-timestamp": "2025-12-04T22:41:25.013028+00:00",
+    "congress": "119"
+  }
+}

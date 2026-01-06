@@ -1,0 +1,39 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Neal Patrick MD, Facs Dunn",
+    "filer_type": "Member",
+    "state": "FL",
+    "district": "02"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Neal Patrick MD, Facs Dunn",
+    "filer_signature_date": "2025-10-01",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 0
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:07:00.031166+00:00",
+    "text_length": 1171,
+    "confidence_score": 0.6666666666666666,
+    "textract_recommended": true
+  },
+  "confidence_score": 0.6666666666666666,
+  "textract_recommended": true,
+  "missing_fields": [
+    "transactions"
+  ],
+  "filing_type": "P"
+}

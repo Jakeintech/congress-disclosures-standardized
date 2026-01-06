@@ -1,0 +1,60 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Cliff Bentz",
+    "filer_type": "Member",
+    "state": "OR",
+    "district": "02"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Amgen Inc. - Common Stock (AMGN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-06",
+      "notification_date": "2025-07-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "SP Procter & Gamble Company (PG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-06",
+      "notification_date": "2025-07-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Cliff Bentz",
+    "filer_signature_date": "2025-07-09",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 2
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:07:37.409235+00:00",
+    "text_length": 1103,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

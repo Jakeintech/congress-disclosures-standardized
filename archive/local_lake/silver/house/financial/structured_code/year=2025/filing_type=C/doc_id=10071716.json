@@ -1,0 +1,32 @@
+{
+  "doc_id": "10071716",
+  "year": 2025,
+  "filing_type": "C",
+  "document_header": {
+    "filing_id": "10071716",
+    "filer_name": "Amanda Pohl\nStatus",
+    "filing_date": "07/05/2025"
+  },
+  "schedules": {},
+  "missing_fields": [
+    "Schedule A",
+    "Schedule B",
+    "Schedule C",
+    "Schedule D",
+    "Schedule E",
+    "Schedule F",
+    "Schedule G",
+    "Schedule H",
+    "Schedule I"
+  ],
+  "confidence_score": 0.3,
+  "textract_recommended": true,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "C",
+    "extraction_timestamp": "2025-11-30T22:18:10.234379+00:00",
+    "text_length": 5375,
+    "confidence_score": 0.3,
+    "textract_recommended": true
+  }
+}

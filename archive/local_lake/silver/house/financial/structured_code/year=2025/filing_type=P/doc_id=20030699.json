@@ -1,0 +1,401 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Richard Dean Dr McCormick",
+    "filer_type": "Member",
+    "state": "GA",
+    "district": "06"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Abbott Laboratories Common Stock (ABT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (APD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "American Tower Corporation (AMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (AWK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Analog Devices, Inc. - Common Stock (ADI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (ADP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Baron Asset Fund Inst Shs (BARIX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Baron Emerging Markets Fd Inst Shs (BEXIX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "BlackRock, Inc. Common Stock (BLK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Cisco Systems, Inc. - Common Stock (CSCO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (COST)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (EMR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Appreciation Fund: Class I (FCPIX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Class I (FEPIX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Home Depot, Inc. (HD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (ITW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (ICE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "- I Shares (JFLEX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Johnson & Johnson Common Stock (JNJ)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LHX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MCD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Medtronic plc. Ordinary Shares (MDT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Institutional (NBGIX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NextEra Energy, Inc. Common Stock (NEE)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "I (FARCX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Pepsico, Inc. (PEP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (O)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Class 1 Shs (TSIIX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Vanguard Mega Cap Growth ETF (MGK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Walmart Inc. Common Stock (WMT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2023-03-15",
+      "notification_date": "2023-04-10",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Richard Dean Dr McCormick",
+    "filer_signature_date": "2025-09-17",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 33
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:15:01.303274+00:00",
+    "text_length": 6425,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

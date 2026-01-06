@@ -1,0 +1,203 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Julie Johnson",
+    "filer_type": "Member",
+    "state": "TX",
+    "district": "32"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Alaska Air Group, Inc. Common Stock (ALK)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-22",
+      "notification_date": "2025-11-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Alphabet Inc. - Class C Capital Stock (GOOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-21",
+      "notification_date": "2025-11-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Alphabet Inc. - Class C Capital Stock (GOOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-27",
+      "notification_date": "2025-11-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Alphabet Inc. - Class C Capital Stock (GOOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-31",
+      "notification_date": "2025-11-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CARR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-06",
+      "notification_date": "2025-11-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CARR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-07",
+      "notification_date": "2025-11-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Danaher Corporation Common Stock (DHR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-10-07",
+      "notification_date": "2025-11-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Deere & Company Common Stock (DE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-22",
+      "notification_date": "2025-11-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT F5, Inc. - Common Stock (FFIV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-22",
+      "notification_date": "2025-11-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Fiserv, Inc. Common Stock (FI)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-06",
+      "notification_date": "2025-11-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Gen Digital Inc. - Common Stock (GEN)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-22",
+      "notification_date": "2025-11-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Kroger Company (KR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-06",
+      "notification_date": "2025-11-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (PH)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-31",
+      "notification_date": "2025-11-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT PNC Financial Services Group, Inc. (PNC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-21",
+      "notification_date": "2025-11-04",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (WY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-10-22",
+      "notification_date": "2025-11-06",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Julie Johnson",
+    "filer_signature_date": "2025-11-14",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 15
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:11:36.507864+00:00",
+    "text_length": 3736,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

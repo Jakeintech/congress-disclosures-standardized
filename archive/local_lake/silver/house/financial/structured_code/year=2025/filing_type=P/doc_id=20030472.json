@@ -1,0 +1,522 @@
+{
+  "filer_info": {
+    "full_name": "Cleo Fields",
+    "filer_type": "Member",
+    "state": "LA",
+    "district": "06"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Alphabet Inc. - Class C Capital Stock (GOOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-05",
+      "notification_date": "2025-06-05",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Alphabet Inc. - Class C Capital Stock (GOOG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-09",
+      "notification_date": "2025-06-09",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-05",
+      "notification_date": "2025-06-05",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-09",
+      "notification_date": "2025-06-09",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Amazon.com, Inc. - Common Stock (AMZN)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-09",
+      "notification_date": "2025-06-09",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-09",
+      "notification_date": "2025-06-09",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-03",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Apple Inc. - Common Stock (AAPL)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "AT&T Inc. (T)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (CMG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Cisco Systems, Inc. - Common Stock (CSCO)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Intel Corporation - Common Stock (INTC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (JPM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MCD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (META)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-03",
+      "amount_range": "$250,001-$500,000",
+      "amount_low": 250001,
+      "amount_high": 500000,
+      "amount_column": "E"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-03",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-03",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-05",
+      "notification_date": "2025-06-05",
+      "amount_range": "$250,001-$500,000",
+      "amount_low": 250001,
+      "amount_high": 500000,
+      "amount_column": "E"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-09",
+      "notification_date": "2025-06-09",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-09",
+      "notification_date": "2025-06-09",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-26",
+      "notification_date": "2025-06-26",
+      "amount_range": "$1,000,001-$5,000,000",
+      "amount_low": 1000001,
+      "amount_high": 5000000,
+      "amount_column": "G"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-03",
+      "notification_date": "2025-06-03",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "NVIDIA Corporation - Common Stock (NVDA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (PLTR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (PLTR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-06-30",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Manufacturing Company Ltd. (TSM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-25",
+      "notification_date": "2025-06-25",
+      "amount_range": "$100,001-$250,000",
+      "amount_low": 100001,
+      "amount_high": 250000,
+      "amount_column": "D"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Cleo Fields",
+    "filer_signature_date": "2025-07-01",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 44
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:13:22.272224+00:00",
+    "text_length": 8379,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

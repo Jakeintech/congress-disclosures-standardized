@@ -1,8 +1,0 @@
-{
-    "Records": [
-        {
-            "messageId": "test-1",
-            "body": "{\"doc_id\": \"10063536\", \"year\": 2025, \"text_s3_key\": \"silver/house/financial/text/extraction_method=direct_text/year=2025/doc_id=10063536/raw_text.txt.gz\", \"filing_type\": \"A\"}"
-        }
-    ]
-}

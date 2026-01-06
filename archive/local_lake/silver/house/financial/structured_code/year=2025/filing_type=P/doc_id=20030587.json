@@ -1,0 +1,60 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Virginia Foxx",
+    "filer_type": "Member",
+    "state": "NC",
+    "district": "05"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (BMY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-06-24",
+      "notification_date": "2025-07-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (EFC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-06-30",
+      "notification_date": "2025-07-01",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Virginia Foxx",
+    "filer_signature_date": "2025-07-03",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 2
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:04:34.385268+00:00",
+    "text_length": 1145,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

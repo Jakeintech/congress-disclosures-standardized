@@ -1,0 +1,115 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Jared Moskowitz",
+    "filer_type": "Member",
+    "state": "FL",
+    "district": "23"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "HCA Healthcare, Inc. Common Stock (HCA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC HCA Healthcare, Inc. Common Stock (HCA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "DC The Cigna Group Common Stock (CI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "The Cigna Group Common Stock (CI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (UNH)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-05-15",
+      "notification_date": "2025-05-30",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Jared Moskowitz",
+    "filer_signature_date": "2025-06-27",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 7
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:19:33.779827+00:00",
+    "text_length": 2188,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

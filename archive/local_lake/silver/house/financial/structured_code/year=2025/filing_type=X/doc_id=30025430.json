@@ -1,0 +1,24 @@
+{
+  "doc_id": "30025430",
+  "year": 2025,
+  "filing_type": "X",
+  "document_header": {
+    "filer_name": "Mark Charles Teixeira\nStatus",
+    "filing_id": "30025430"
+  },
+  "extension_details": {
+    "is_extension_request": true,
+    "days_requested": 90
+  },
+  "missing_fields": [],
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "X",
+    "extraction_timestamp": "2025-11-30T22:21:44.548628+00:00",
+    "text_length": 1091,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  }
+}

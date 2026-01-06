@@ -1,0 +1,269 @@
+{
+  "filer_info": {
+    "full_name": "Hon. David J. Taylor",
+    "filer_type": "Member",
+    "state": "OH",
+    "district": "02"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "AT&T Inc. (T)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-18",
+      "notification_date": "2025-07-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "AT&T Inc. (T)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-18",
+      "notification_date": "2025-07-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Eli Lilly and Company Common Stock (LLY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-14",
+      "notification_date": "2025-08-19",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Eli Lilly and Company Common Stock (LLY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-14",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (IBP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-13",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (IBP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-08-07",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LRCX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-18",
+      "notification_date": "2025-07-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (LRCX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-18",
+      "notification_date": "2025-07-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MPC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-18",
+      "notification_date": "2025-07-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MPC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-18",
+      "notification_date": "2025-07-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (MPC)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-14",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MEDP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-07-23",
+      "notification_date": "2025-07-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Procter & Gamble Company (PG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-13",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Procter & Gamble Company (PG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-07",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Progressive Corporation (PGR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-07-18",
+      "notification_date": "2025-07-31",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Prologis, Inc. Common Stock (PLD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-14",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Prologis, Inc. Common Stock (PLD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-07",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Salesforce, Inc. Common Stock (CRM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-07",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "- Common Stock (VRTX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-07",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Visa Inc. (V)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-13",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Visa Inc. (V)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-08-13",
+      "notification_date": "2025-08-19",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. David J. Taylor",
+    "filer_signature_date": "2025-09-02",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 21
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:21:29.251209+00:00",
+    "text_length": 4801,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

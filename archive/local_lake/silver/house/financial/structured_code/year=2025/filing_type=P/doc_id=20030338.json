@@ -1,0 +1,412 @@
+{
+  "filer_info": {
+    "full_name": "Hon. Josh Gottheimer",
+    "filer_type": "Member",
+    "state": "NJ",
+    "district": "05"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "JT 3M Company Common Stock (MMM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-05",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT AbbVie Inc. Common Stock (ABBV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-03",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT AbbVie Inc. Common Stock (ABBV)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-01",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT AbbVie Inc. Common Stock (ABBV)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (AEIS)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "representing eight Ordinary share (BABA)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (APP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-16",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (APP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-14",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Registry Shares (ASML)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Cadre Holdings, Inc. Common Stock (CDRE)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT ChampionX Corporation (CHX)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-05-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Charles Schwab Corporation (SCHW)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-07",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Cheniere Energy, Inc. Common Stock (LNG)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-22",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Corning Incorporated Common Stock (GLW)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-09",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Corning Incorporated Common Stock (GLW)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT D.R. Horton, Inc. Common Stock (DHI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-21",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (EPAC)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Fiserv, Inc. Common Stock (FI)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (HLMN)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Home Depot, Inc. (HD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-21",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Intra-Cellular Therapies Inc. (ITCI)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-03",
+      "notification_date": "2025-05-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (MSFT)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-04",
+      "notification_date": "2025-05-14",
+      "amount_range": "$50,001-$100,000",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "amount_column": "C"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (PAR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT PT Telekomunikasi Indonesia, Tbk (TLK)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-21",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT RTX Corporation Common Stock (RTX)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-23",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Salesforce, Inc. Common Stock (CRM)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT SHIMANO INC UNSP/ADR (SMNNY)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-11",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT TE Connectivity plc Ordinary Shares (TEL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-09",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT TE Connectivity plc Ordinary Shares (TEL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$15,001-$50,000",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "amount_column": "B"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT TECHTRONIC INDUS LTD ADR (TTNDY)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-21",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (THR)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (TPH)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-04-21",
+      "notification_date": "2025-05-12",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "JT Twilio Inc. Class A Common Stock (TWLO)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (USPH)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-04-17",
+      "notification_date": "2025-05-13",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. Josh Gottheimer",
+    "filer_signature_date": "2025-05-14",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 34
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:16:48.583401+00:00",
+    "text_length": 22395,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

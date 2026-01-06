@@ -1,0 +1,13 @@
+{
+  "Metadata": {
+    "api-url": "https://api.congress.gov/v3/bill/119/hres/801",
+    "entity-type": "bill",
+    "bill_type": "hres",
+    "source-system": "congress-api",
+    "http-status": "200",
+    "ingest-version": "1.0.0",
+    "entity-id": "119-hres-801",
+    "ingest-timestamp": "2025-12-04T22:45:01.771238+00:00",
+    "congress": "119"
+  }
+}

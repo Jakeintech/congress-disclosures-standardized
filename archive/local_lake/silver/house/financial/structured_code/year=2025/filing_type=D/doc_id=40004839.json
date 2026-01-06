@@ -1,0 +1,24 @@
+{
+  "doc_id": "40004839",
+  "year": 2025,
+  "filing_type": "D",
+  "document_header": {
+    "filing_id": "40004839",
+    "filer_name": "Daniel Lee Lucio\nStatus"
+  },
+  "notice_type": "Duplicate Filing",
+  "missing_fields": [
+    "filing_date"
+  ],
+  "confidence_score": 0.6666666666666666,
+  "textract_recommended": false,
+  "manual_review_required": false,
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "D",
+    "extraction_timestamp": "2025-11-30T22:15:01.219717+00:00",
+    "text_length": 1041,
+    "confidence_score": 0.6666666666666666,
+    "textract_recommended": false
+  }
+}

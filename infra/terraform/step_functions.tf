@@ -348,8 +348,8 @@ resource "aws_lambda_function" "publish_pipeline_metrics" {
   handler       = "handler.lambda_handler"
   runtime       = "python3.11"
 
-  filename         = "${path.module}/../../ingestion/lambdas/publish_pipeline_metrics/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/publish_pipeline_metrics/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/publish_pipeline_metrics/function.zip") : null
+  filename         = "${path.module}/../../backend/functions/ingestion/publish_pipeline_metrics/function.zip"
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/publish_pipeline_metrics/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/publish_pipeline_metrics/function.zip") : null
 
   timeout     = 30
   memory_size = 128

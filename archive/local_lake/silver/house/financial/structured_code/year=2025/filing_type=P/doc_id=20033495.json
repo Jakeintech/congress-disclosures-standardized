@@ -1,0 +1,159 @@
+{
+  "filer_info": {
+    "full_name": "Hon. David J. Taylor",
+    "filer_type": "Member",
+    "state": "OH",
+    "district": "02"
+  },
+  "report_type": {
+    "is_initial": true,
+    "is_amendment": false,
+    "date_of_report_being_amended": null
+  },
+  "ipo_shares_allocated": false,
+  "transactions": [
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (GOOGL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (GOOGL)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Inc. (AEP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Inc. (AEP)",
+      "transaction_type": "Sale",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Home Depot, Inc. (HD)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-11",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (IBP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Common Stock (IBP)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Progressive Corporation (PGR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Progressive Corporation (PGR)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-03",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Stock (RPM)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-11",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    },
+    {
+      "owner_code": "SP",
+      "asset_name": "Visa Inc. (V)",
+      "transaction_type": "Purchase",
+      "transaction_date": "2025-11-12",
+      "notification_date": "2025-11-14",
+      "amount_range": "$1,001-$15,000",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "amount_column": "A"
+    }
+  ],
+  "filer_notes": [],
+  "certification": {
+    "filer_certified": true,
+    "filer_signature": "Hon. David J. Taylor",
+    "filer_signature_date": "2025-11-18",
+    "stock_act_certified": true
+  },
+  "filing_metadata": {
+    "transaction_count": 11
+  },
+  "extraction_metadata": {
+    "method": "code_based",
+    "filing_type": "P",
+    "extraction_timestamp": "2025-11-30T22:23:17.682557+00:00",
+    "text_length": 2998,
+    "confidence_score": 1.0,
+    "textract_recommended": false
+  },
+  "confidence_score": 1.0,
+  "textract_recommended": false,
+  "missing_fields": [],
+  "filing_type": "P"
+}

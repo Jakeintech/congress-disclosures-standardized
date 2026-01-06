@@ -11,7 +11,7 @@ resource "aws_lambda_function" "ingest_zip" {
   # Deploy from S3 (packages >50 MB must use S3)
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/house_fd_ingest_zip/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/house_fd_ingest_zip/function.zip") : null
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/house_fd_ingest_zip/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/house_fd_ingest_zip/function.zip") : null
 
   timeout     = 900
   memory_size = 2048
@@ -265,7 +265,7 @@ resource "aws_lambda_function" "gold_seed" {
 
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/gold_seed/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/gold_seed/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/gold_seed/function.zip") : null
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/gold_seed/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/gold_seed/function.zip") : null
 
   timeout     = 60
   memory_size = 512
@@ -329,7 +329,7 @@ resource "aws_lambda_function" "gold_seed_members" {
 
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/gold_seed_members/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/gold_seed_members/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/gold_seed_members/function.zip") : null
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/gold_seed_members/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/gold_seed_members/function.zip") : null
 
   timeout     = 120
   memory_size = 512
@@ -394,7 +394,7 @@ resource "aws_lambda_function" "data_quality_validator" {
 
   s3_bucket        = aws_s3_bucket.data_lake.id
   s3_key           = "lambda-deployments/data_quality_validator/function.zip"
-  source_code_hash = fileexists("${path.module}/../../ingestion/lambdas/data_quality_validator/function.zip") ? filebase64sha256("${path.module}/../../ingestion/lambdas/data_quality_validator/function.zip") : null
+  source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/data_quality_validator/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/data_quality_validator/function.zip") : null
 
   timeout     = 300
   memory_size = 512

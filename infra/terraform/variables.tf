@@ -230,4 +230,34 @@ variable "enable_custom_alert_handler" {
   default     = false
 }
 
+# AWS Glue Data Catalog Configuration
+variable "glue_catalog_prefix" {
+  description = "S3 prefix for Glue Catalog metadata storage"
+  type        = string
+  default     = "metadata/glue"
+}
+
+variable "glue_crawler_schedule" {
+  description = "Cron schedule for Glue Crawler (Gold layer)"
+  type        = string
+  default     = "cron(0 6 * * ? *)" # Daily at 6 AM UTC (after nightly aggregations)
+
+  validation {
+    condition     = can(regex("^cron\\(.+\\)$", var.glue_crawler_schedule))
+    error_message = "Crawler schedule must be a valid cron expression."
+  }
+}
+
+variable "glue_silver_crawler_schedule" {
+  description = "Cron schedule for Silver layer crawler (less frequent)"
+  type        = string
+  default     = "cron(0 7 ? * SUN *)" # Weekly on Sundays at 7 AM UTC
+}
+
+variable "enable_glue_crawler" {
+  description = "Enable automatic Glue Crawler runs (set to false to save costs)"
+  type        = bool
+  default     = true
+}
+
 

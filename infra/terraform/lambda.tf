@@ -73,8 +73,8 @@ resource "aws_lambda_function" "index_to_silver" {
   runtime       = "python3.11"
 
   # Deploy from S3 (packages >50 MB must use S3)
-  s3_bucket        = aws_s3_bucket.data_lake.id
-  s3_key           = "lambda-deployments/house_fd_index_to_silver/function.zip"
+  s3_bucket = aws_s3_bucket.data_lake.id
+  s3_key    = "lambda-deployments/house_fd_index_to_silver/function.zip"
   # source_code_hash removed to prevent race condition with package_lambdas
 
   timeout     = 120 # 2 minutes (lighter processing)
@@ -88,9 +88,9 @@ resource "aws_lambda_function" "index_to_silver" {
       EXTRACTION_VERSION = var.extraction_version
       # Provide SQS queue URL so index-to-silver can enqueue extraction jobs
       EXTRACTION_QUEUE_URL = aws_sqs_queue.extraction_queue.url
-      LOG_LEVEL          = "INFO"
-      PYTHONUNBUFFERED   = "1"
-      TZ                 = "UTC"
+      LOG_LEVEL            = "INFO"
+      PYTHONUNBUFFERED     = "1"
+      TZ                   = "UTC"
     }
   }
 
@@ -142,8 +142,8 @@ resource "aws_lambda_function" "extract_document" {
   runtime       = "python3.11"
 
   # Deploy from S3 (packages >50 MB must use S3)
-  s3_bucket        = aws_s3_bucket.data_lake.id
-  s3_key           = "lambda-deployments/house_fd_extract_document/function.zip"
+  s3_bucket = aws_s3_bucket.data_lake.id
+  s3_key    = "lambda-deployments/house_fd_extract_document/function.zip"
   # source_code_hash removed to prevent race condition with package_lambdas
 
   timeout     = var.lambda_timeout_seconds

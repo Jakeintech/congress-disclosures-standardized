@@ -9,7 +9,7 @@ resource "aws_s3_bucket_policy" "public_read_access" {
         Effect    = "Allow"
         Principal = "*"
         Action    = "s3:GetObject"
-        Resource  = [
+        Resource = [
           "${aws_s3_bucket.data_lake.arn}/website/*",
           "${aws_s3_bucket.data_lake.arn}/website/api/*",
           "${aws_s3_bucket.data_lake.arn}/docs/*",
@@ -24,7 +24,7 @@ resource "aws_s3_bucket_policy" "public_read_access" {
         Sid       = "PublicListSpecificPrefixes"
         Effect    = "Allow"
         Principal = "*"
-        Action    = [
+        Action = [
           "s3:ListBucket"
         ]
         Resource = aws_s3_bucket.data_lake.arn

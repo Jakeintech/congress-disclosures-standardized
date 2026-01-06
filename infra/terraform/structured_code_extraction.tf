@@ -4,9 +4,9 @@
 # SQS Queue for code-based extraction jobs
 resource "aws_sqs_queue" "code_extraction_queue" {
   name                       = "${local.name_prefix}-code-extraction-queue"
-  visibility_timeout_seconds = 360 # 6 minutes (Lambda timeout * 2)
+  visibility_timeout_seconds = 360     # 6 minutes (Lambda timeout * 2)
   message_retention_seconds  = 1209600 # 14 days
-  receive_wait_time_seconds  = 20 # Long polling
+  receive_wait_time_seconds  = 20      # Long polling
 
   # DLQ for failed code extractions
   redrive_policy = jsonencode({
@@ -78,18 +78,18 @@ resource "aws_lambda_function" "extract_structured_code" {
   s3_key           = "lambda-deployments/house_fd_extract_structured_code/function.zip"
   source_code_hash = fileexists("${path.module}/../../backend/functions/ingestion/house_fd_extract_structured_code/function.zip") ? filebase64sha256("${path.module}/../../backend/functions/ingestion/house_fd_extract_structured_code/function.zip") : null
 
-  timeout     = 180 # 3 minutes (code-based extraction is fast)
+  timeout     = 180  # 3 minutes (code-based extraction is fast)
   memory_size = 1024 # Needs more memory for OCR
 
   layers = [var.tesseract_layer_arn]
 
   environment {
     variables = {
-      S3_BUCKET_NAME              = aws_s3_bucket.data_lake.id
-      S3_SILVER_PREFIX            = "silver"
-      LOG_LEVEL                   = "INFO"
-      PYTHONUNBUFFERED            = "1"
-      TZ                          = "UTC"
+      S3_BUCKET_NAME   = aws_s3_bucket.data_lake.id
+      S3_SILVER_PREFIX = "silver"
+      LOG_LEVEL        = "INFO"
+      PYTHONUNBUFFERED = "1"
+      TZ               = "UTC"
     }
   }
 

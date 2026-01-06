@@ -5,7 +5,7 @@
 # Pipeline Watermarks Table (NEW - for incremental processing)
 resource "aws_dynamodb_table" "pipeline_watermarks" {
   name         = "${var.project_name}-pipeline-watermarks"
-  billing_mode = "PAY_PER_REQUEST"  # Free tier: 25GB storage, 25 WCU/RCU
+  billing_mode = "PAY_PER_REQUEST" # Free tier: 25GB storage, 25 WCU/RCU
 
   hash_key  = "table_name"
   range_key = "watermark_type"

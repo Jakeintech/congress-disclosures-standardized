@@ -1,7 +1,7 @@
 # Structured Extraction Terraform
 
 resource "aws_sqs_queue" "structured_extraction_queue" {
-  name                      = "congress-disclosures-development-structured-extraction-queue-v2"
+  name                       = "congress-disclosures-development-structured-extraction-queue-v2"
   visibility_timeout_seconds = 5400
   message_retention_seconds  = 345600
 }
@@ -20,10 +20,10 @@ resource "aws_lambda_function" "structured_extraction" {
 
   environment {
     variables = {
-      S3_BUCKET_NAME               = var.s3_bucket_name
-      S3_BRONZE_PREFIX             = "bronze"
-      S3_SILVER_PREFIX             = "silver"
-      LOG_LEVEL                    = "INFO"
+      S3_BUCKET_NAME                  = var.s3_bucket_name
+      S3_BRONZE_PREFIX                = "bronze"
+      S3_SILVER_PREFIX                = "silver"
+      LOG_LEVEL                       = "INFO"
       STRUCTURED_EXTRACTION_QUEUE_URL = aws_sqs_queue.structured_extraction_queue.id
     }
   }

@@ -1,88 +1,9 @@
-# CloudWatch Log Groups for Lambda functions
-resource "aws_cloudwatch_log_group" "ingest_zip" {
-  name              = "/aws/lambda/${local.name_prefix}-ingest-zip"
-  retention_in_days = var.cloudwatch_log_retention_days
+# CloudWatch Dashboards, Alarms, and Monitoring Resources
+# Consolidated from cloudwatch.tf and cloudwatch_congress.tf
 
-  tags = merge(
-    local.standard_tags,
-    {
-      Name      = "${local.name_prefix}-ingest-zip-logs"
-      Component = "logging"
-      Lambda    = "ingest-zip"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "index_to_silver" {
-  name              = "/aws/lambda/${local.name_prefix}-index-to-silver"
-  retention_in_days = var.cloudwatch_log_retention_days
-
-  tags = merge(
-    local.standard_tags,
-    {
-      Name      = "${local.name_prefix}-index-to-silver-logs"
-      Component = "logging"
-      Lambda    = "index-to-silver"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "extract_document" {
-  name              = "/aws/lambda/${local.name_prefix}-extract-document"
-  retention_in_days = var.cloudwatch_log_retention_days
-
-  tags = merge(
-    local.standard_tags,
-    {
-      Name      = "${local.name_prefix}-extract-document-logs"
-      Component = "logging"
-      Lambda    = "extract-document"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "gold_seed" {
-  name              = "/aws/lambda/${local.name_prefix}-gold-seed"
-  retention_in_days = var.cloudwatch_log_retention_days
-
-  tags = merge(
-    local.standard_tags,
-    {
-      Name      = "${local.name_prefix}-gold-seed-logs"
-      Component = "logging"
-      Lambda    = "gold-seed"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "gold_seed_members" {
-  name              = "/aws/lambda/${local.name_prefix}-gold-seed-members"
-  retention_in_days = var.cloudwatch_log_retention_days
-
-  tags = merge(
-    local.standard_tags,
-    {
-      Name      = "${local.name_prefix}-gold-seed-members-logs"
-      Component = "logging"
-      Lambda    = "gold-seed-members"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "data_quality_validator" {
-  name              = "/aws/lambda/${local.name_prefix}-data-quality-validator"
-  retention_in_days = var.cloudwatch_log_retention_days
-
-  tags = merge(
-    local.standard_tags,
-    {
-      Name      = "${local.name_prefix}-data-quality-validator-logs"
-      Component = "logging"
-      Lambda    = "data-quality-validator"
-    }
-  )
-}
-
+# -----------------------------------------------------------
+# From cloudwatch.tf (Alarms & Dashboards & SNS)
+# -----------------------------------------------------------
 # SNS Topic for alerts (optional)
 resource "aws_sns_topic" "alerts" {
   count = var.enable_cost_alerts && var.alert_email != "" ? 1 : 0
@@ -320,17 +241,106 @@ resource "aws_cloudwatch_dashboard" "main" {
   })
 }
 
+# -----------------------------------------------------------
+# From cloudwatch_congress.tf (Alarms)
+# -----------------------------------------------------------
+
+# Congress Fetch DLQ Alarm
+resource "aws_cloudwatch_metric_alarm" "congress_fetch_dlq_messages" {
+  count = var.enable_congress_pipeline && var.enable_cost_alerts ? 1 : 0
+
+  alarm_name          = "${local.name_prefix}-congress-fetch-dlq"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "ApproximateNumberOfMessagesVisible"
+  namespace           = "AWS/SQS"
+  period              = 300 # 5 minutes
+  statistic           = "Sum"
+  threshold           = 5 # Alert when more than 5 messages in DLQ
+  alarm_description   = "Alert when Congress API fetch messages appear in DLQ (indicates API fetch failures)"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    QueueName = aws_sqs_queue.congress_fetch_dlq[0].name
+  }
+
+  alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+
+  tags = merge(
+    local.congress_tags,
+    {
+      Name      = "${local.name_prefix}-congress-fetch-dlq-alarm"
+      Component = "monitoring"
+      Pipeline  = "congress-fetch"
+    }
+  )
+}
+
+# Congress Silver DLQ Alarm
+resource "aws_cloudwatch_metric_alarm" "congress_silver_dlq_messages" {
+  count = var.enable_congress_pipeline && var.enable_cost_alerts ? 1 : 0
+
+  alarm_name          = "${local.name_prefix}-congress-silver-dlq"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "ApproximateNumberOfMessagesVisible"
+  namespace           = "AWS/SQS"
+  period              = 300 # 5 minutes
+  statistic           = "Sum"
+  threshold           = 5 # Alert when more than 5 messages in DLQ
+  alarm_description   = "Alert when Congress Bronze-to-Silver messages appear in DLQ (indicates transform failures)"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    QueueName = aws_sqs_queue.congress_silver_dlq[0].name
+  }
+
+  alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+
+  tags = merge(
+    local.congress_tags,
+    {
+      Name      = "${local.name_prefix}-congress-silver-dlq-alarm"
+      Component = "monitoring"
+      Pipeline  = "congress-silver"
+    }
+  )
+}
+
+# Congress Fetch Queue Age Alarm (Optional - detect stuck processing)
+resource "aws_cloudwatch_metric_alarm" "congress_fetch_queue_age" {
+  count = var.enable_congress_pipeline && var.enable_cost_alerts ? 1 : 0
+
+  alarm_name          = "${local.name_prefix}-congress-fetch-queue-age"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "ApproximateAgeOfOldestMessage"
+  namespace           = "AWS/SQS"
+  period              = 300 # 5 minutes
+  statistic           = "Maximum"
+  threshold           = 3600 # 1 hour (messages older than 1 hour indicate stuck processing)
+  alarm_description   = "Alert when Congress fetch queue messages are stuck (oldest message > 1 hour old)"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    QueueName = aws_sqs_queue.congress_fetch_queue[0].name
+  }
+
+  alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+
+  tags = merge(
+    local.congress_tags,
+    {
+      Name      = "${local.name_prefix}-congress-fetch-age-alarm"
+      Component = "monitoring"
+      Pipeline  = "congress-fetch"
+    }
+  )
+}
+
+# -----------------------------------------------------------
 # Outputs
-output "cloudwatch_log_group_ingest" {
-  description = "CloudWatch log group for ingest Lambda"
-  value       = aws_cloudwatch_log_group.ingest_zip.name
-}
-
-output "cloudwatch_log_group_extract" {
-  description = "CloudWatch log group for extract Lambda"
-  value       = aws_cloudwatch_log_group.extract_document.name
-}
-
+# -----------------------------------------------------------
 output "sns_topic_arn" {
   description = "SNS topic ARN for alerts"
   value       = var.enable_cost_alerts && var.alert_email != "" ? aws_sns_topic.alerts[0].arn : null
@@ -339,4 +349,14 @@ output "sns_topic_arn" {
 output "cloudwatch_dashboard_url" {
   description = "URL to CloudWatch dashboard"
   value       = var.enable_cost_alerts ? "https://console.aws.amazon.com/cloudwatch/home?region=${local.region}#dashboards:name=${local.name_prefix}-dashboard" : null
+}
+
+output "congress_fetch_dlq_alarm_name" {
+  description = "Name of Congress fetch DLQ CloudWatch alarm"
+  value       = var.enable_congress_pipeline && var.enable_cost_alerts ? aws_cloudwatch_metric_alarm.congress_fetch_dlq_messages[0].alarm_name : ""
+}
+
+output "congress_silver_dlq_alarm_name" {
+  description = "Name of Congress Silver DLQ CloudWatch alarm"
+  value       = var.enable_congress_pipeline && var.enable_cost_alerts ? aws_cloudwatch_metric_alarm.congress_silver_dlq_messages[0].alarm_name : ""
 }

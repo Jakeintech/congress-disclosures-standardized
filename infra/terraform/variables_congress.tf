@@ -35,7 +35,7 @@ variable "congress_api_key_ssm_path" {
   default     = "" # Empty string means use computed path: /congress-disclosures/{environment}/congress-api-key
 
   validation {
-    condition = var.congress_api_key_ssm_path == "" || can(regex("^/", var.congress_api_key_ssm_path))
+    condition     = var.congress_api_key_ssm_path == "" || can(regex("^/", var.congress_api_key_ssm_path))
     error_message = "SSM parameter path must start with / if provided."
   }
 }
@@ -182,7 +182,7 @@ variable "congress_common_tags" {
   description = "Common tags for Congress.gov pipeline resources"
   type        = map(string)
   default = {
-    Component = "congress-ingestion"
+    Component  = "congress-ingestion"
     DataSource = "congress-api"
   }
 }
@@ -202,8 +202,8 @@ locals {
   congress_silver_lambda_name       = "${var.project_name}-${var.environment}-congress-bronze-to-silver"
 
   # Congress SQS queue names
-  congress_fetch_queue_name    = "${var.project_name}-${var.environment}-congress-fetch-queue"
-  congress_fetch_dlq_name      = "${var.project_name}-${var.environment}-congress-fetch-dlq"
-  congress_silver_queue_name   = "${var.project_name}-${var.environment}-congress-silver-queue"
-  congress_silver_dlq_name     = "${var.project_name}-${var.environment}-congress-silver-dlq"
+  congress_fetch_queue_name  = "${var.project_name}-${var.environment}-congress-fetch-queue"
+  congress_fetch_dlq_name    = "${var.project_name}-${var.environment}-congress-fetch-dlq"
+  congress_silver_queue_name = "${var.project_name}-${var.environment}-congress-silver-queue"
+  congress_silver_dlq_name   = "${var.project_name}-${var.environment}-congress-silver-dlq"
 }

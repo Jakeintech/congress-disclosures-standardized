@@ -201,7 +201,7 @@ resource "aws_cloudwatch_log_group" "glue_crawler" {
 }
 
 # Data source for AWS account ID
-data "aws_caller_identity" "current" {}
+
 
 # Outputs
 output "glue_database_name" {

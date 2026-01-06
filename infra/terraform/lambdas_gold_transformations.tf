@@ -14,7 +14,7 @@ resource "aws_lambda_function" "build_dim_members" {
   role          = aws_iam_role.lambda_execution.arn
   handler       = "handler.lambda_handler"
   runtime       = "python3.11"
-  timeout       = 300  # 5 minutes
+  timeout       = 300 # 5 minutes
   memory_size   = 512
 
   s3_bucket        = var.s3_bucket_name
@@ -171,7 +171,7 @@ resource "aws_lambda_function" "build_fact_transactions" {
   role          = aws_iam_role.lambda_execution.arn
   handler       = "handler.lambda_handler"
   runtime       = "python3.11"
-  timeout       = 600  # 10 minutes - transactions are large
+  timeout       = 600 # 10 minutes - transactions are large
   memory_size   = 1024
 
   s3_bucket        = var.s3_bucket_name
@@ -465,4 +465,43 @@ output "lambda_compute_trending_stocks_arn" {
 output "lambda_compute_member_stats_arn" {
   description = "ARN of compute_member_stats Lambda function"
   value       = aws_lambda_function.compute_member_stats.arn
+}
+
+# Lambda Function: Compute Bill-Trade Correlations
+# Added to fix missing reference in step_functions.tf
+resource "aws_lambda_function" "compute_bill_trade_correlations" {
+  function_name = "${var.project_name}-compute-bill-trade-correlations"
+  description   = "Compute correlations between legislative activity and trading behavior"
+  role          = aws_iam_role.lambda_execution.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.11"
+  timeout       = 300
+  memory_size   = 1024
+
+  s3_bucket        = var.s3_bucket_name
+  s3_key           = "lambda-deployments/gold-layer/compute_bill_trade_correlations.zip"
+  # Use a dummy hash if the file doesn't exist yet to allow terraform plan
+  source_code_hash = fileexists("${path.module}/../../build/compute_bill_trade_correlations.zip") ? filebase64sha256("${path.module}/../../build/compute_bill_trade_correlations.zip") : null
+
+  layers = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:20"]
+
+  environment {
+    variables = {
+      S3_BUCKET_NAME = var.s3_bucket_name
+      LOG_LEVEL      = "INFO"
+    }
+  }
+
+  tags = {
+    Name        = "${var.project_name}-compute-bill-trade-correlations"
+    Project     = var.project_name
+    Environment = var.environment
+    Purpose     = "gold-analytics"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "compute_bill_trade_correlations_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.compute_bill_trade_correlations.function_name}"
+  retention_in_days = 30
+  tags              = local.standard_tags
 }

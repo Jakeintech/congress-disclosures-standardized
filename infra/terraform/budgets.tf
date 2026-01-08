@@ -16,6 +16,25 @@ resource "aws_sns_topic" "budget_alerts" {
   )
 }
 
+# SNS Topic Policy to allow Budgets to publish
+resource "aws_sns_topic_policy" "budget_alerts" {
+  arn = aws_sns_topic.budget_alerts.arn
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "budgets.amazonaws.com"
+        }
+        Action   = "sns:Publish"
+        Resource = aws_sns_topic.budget_alerts.arn
+      }
+    ]
+  })
+}
+
 # SNS Topic Subscription (Email)
 resource "aws_sns_topic_subscription" "budget_email" {
   topic_arn = aws_sns_topic.budget_alerts.arn

@@ -44,11 +44,11 @@ rm -f lambdas_data_quality.tf
 ```
 
 **Definition of Done**:
-- [ ] 8 files deleted from `infra/terraform/`
-- [ ] `terraform validate` passes
-- [ ] `terraform plan` shows 0 changes (no infrastructure impact)
-- [ ] Git commit: "refactor: delete redundant Terraform files"
-- [ ] File count reduced from 44 → 36 files
+- [x] 8 files deleted from `infra/terraform/`
+- [x] `terraform validate` passes
+- [x] `terraform plan` shows 0 changes (no infrastructure impact)
+- [x] Git commit: "refactor: delete redundant Terraform files"
+- [x] File count reduced from 44 → 36 files
 
 **Validation**:
 ```bash
@@ -69,12 +69,12 @@ terraform plan | grep "No changes"
 2. Edit `lambda_congress.tf` - Remove `aws_lambda_layer_version.congress_pandas_layer` (duplicate layer)
 
 **Definition of Done**:
-- [ ] `aws_dynamodb_table.house_fd_documents` removed from dynamodb.tf
-- [ ] `aws_lambda_layer_version.congress_pandas_layer` removed from lambda_congress.tf
-- [ ] `terraform plan` shows 2 resource deletions
-- [ ] **VERIFY**: No production systems depend on these resources (check application logs, Step Functions)
-- [ ] `terraform apply` executed successfully
-- [ ] Git commit: "refactor: remove legacy DynamoDB table and duplicate Lambda layer"
+- [x] `aws_dynamodb_table.house_fd_documents` removed from dynamodb.tf
+- [x] `aws_lambda_layer_version.congress_pandas_layer` removed from lambda_congress.tf
+- [x] `terraform plan` shows 2 resource deletions
+- [x] **VERIFY**: No production systems depend on these resources (check application logs, Step Functions)
+- [x] `terraform apply` executed successfully
+- [x] Git commit: "refactor: remove legacy DynamoDB table and duplicate Lambda layer"
 
 **Validation**:
 ```bash

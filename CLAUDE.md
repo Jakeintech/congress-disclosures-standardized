@@ -694,10 +694,12 @@ All usage must comply with **5 U.S.C. § 13107** (see `docs/LEGAL_NOTES.md`):
 
 ## Additional Documentation
 
-- `README.md` - Quick start guide
+- `README.md` - Quick start guide, repository structure
 - `CONTRIBUTING.md` - Contribution guidelines, commit conventions
-- `docs/ARCHITECTURE.md` - Detailed architecture documentation
-- `docs/DEPLOYMENT.md` - Self-hosting deployment guide
-- `docs/EXTRACTION_ARCHITECTURE.md` - Extraction pipeline deep dive
-- `docs/API_STRATEGY.md` - API design and endpoints
+- `docs/architecture/ARCHITECTURE.md` - Detailed architecture documentation
+- `docs/guides/DEPLOYMENT.md` - Self-hosting deployment guide
+- `docs/architecture/EXTRACTION_ARCHITECTURE.md` - Extraction pipeline deep dive
+- `docs/plans/API_STRATEGY.md` - API design and endpoints
+- `docs/plans/AGENT_EXECUTION_PLAN.md` - Sequential execution plan for agents
+- `docs/README.md` - Documentation index and navigation
 - Refer to files in .github which outline templates, processes, SOPs.

@@ -396,6 +396,67 @@ House Clerk ZIP → Bronze PDFs → Silver Text → Silver Structured → Gold F
 Congress.gov API → Bronze JSON → Silver Dims → Gold Member Enrichment
 ```
 
+## 📁 Repository Structure
+
+```
+congress-disclosures-standardized/
+├── backend/                 # Backend code (Lambda functions, shared libraries, scripts)
+│   ├── functions/           # Lambda function handlers
+│   │   ├── ingestion/       # Data ingestion functions
+│   │   ├── gold_layer/      # Analytics aggregation functions
+│   │   └── api/             # API endpoint handlers
+│   ├── lib/                 # Shared libraries
+│   │   ├── ingestion/       # Extraction, S3 utils, parquet writers
+│   │   └── gold/            # Aggregation utilities
+│   ├── scripts/             # Data operations scripts (Python)
+│   │   └── utils/           # Helper scripts for debugging
+│   └── orchestration/       # Step Functions state machine definitions
+│
+├── frontend/                # Frontend applications
+│   └── website/             # Next.js website (React, TypeScript)
+│
+├── infra/                   # Infrastructure as Code
+│   └── terraform/           # Terraform configuration files
+│
+├── docs/                    # Documentation
+│   ├── architecture/        # System architecture, data flow, schemas
+│   ├── guides/              # Setup guides, deployment, automation
+│   ├── plans/               # Modernization plans, execution roadmaps
+│   ├── terraform_audit/     # Infrastructure audit reports
+│   └── archived/            # Historical documentation
+│
+├── scripts/                 # Operational scripts (Shell)
+│   ├── setup/               # Environment setup, config sync
+│   ├── deployment/          # Lambda packaging, deployment
+│   └── data_operations/     # Pipeline management
+│
+├── tests/                   # Test suites
+│   ├── unit/                # Unit tests
+│   └── integration/         # Integration tests
+│
+├── config/                  # Configuration files
+│   ├── .env.example         # Environment variables template
+│   ├── .flake8              # Python linting config
+│   ├── pytest.ini           # Test configuration
+│   └── mypy.ini             # Type checking config
+│
+├── README.md                # This file
+├── CLAUDE.md                # Claude Code instructions
+├── Makefile                 # Development commands
+└── requirements.txt         # Python dependencies
+```
+
+### Key Directories
+
+- **`backend/functions/`** - AWS Lambda function handlers for ingestion, transformation, and API
+- **`backend/lib/`** - Shared Python libraries (S3 utils, extractors, parquet writers)
+- **`backend/scripts/`** - Python scripts for data operations (100+ scripts for pipeline management)
+- **`infra/terraform/`** - All infrastructure definitions (Lambda, S3, SQS, DynamoDB, API Gateway)
+- **`docs/`** - Comprehensive documentation organized by type
+- **`scripts/`** - Shell scripts for setup, deployment, and operations
+- **`tests/`** - Unit and integration test suites
+
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on branch naming, commit messages, and our AI agent workflow.

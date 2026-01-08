@@ -1021,3 +1021,91 @@ package-congress-orchestrator: ## Package Congress Orchestrator Lambda
 	@rm -rf $(LAMBDA_DIR)/congress_api_ingest_orchestrator/package
 	@echo "✓ Lambda package created: $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip"
 	@ls -lh $(LAMBDA_DIR)/congress_api_ingest_orchestrator/function.zip | awk '{print "  Package size:", $$5}'
+
+# ========================================
+# Analytics Aggregates (Factual, Criteria-Based)
+# ========================================
+
+.PHONY: compute-transaction-filters compute-crypto-transactions compute-bill-trade-correlation compute-all-analytics
+
+compute-transaction-filters:  ## Compute transaction filters aggregate (amount, crypto, committee correlation)
+	@echo "Computing transaction filters aggregate..."
+	$(PYTHON) backend/scripts/compute_agg_transaction_filters.py
+
+compute-crypto-transactions:  ## Compute crypto transactions aggregate (Bitcoin, Ethereum, exchanges)
+	@echo "Computing crypto transactions aggregate..."
+	$(PYTHON) backend/scripts/compute_agg_crypto_transactions.py
+
+compute-bill-trade-correlation:  ## Compute bill-trade temporal correlation (±7, ±14, ±30 days)
+	@echo "Computing bill-trade temporal correlation..."
+	$(PYTHON) backend/scripts/compute_agg_bill_trade_temporal_correlation.py
+
+compute-all-analytics:  ## Run all analytics aggregates
+	@echo "Running all analytics aggregates..."
+	@$(MAKE) compute-transaction-filters
+	@$(MAKE) compute-crypto-transactions
+	@$(MAKE) compute-bill-trade-correlation
+	@echo "✓ All analytics aggregates complete"
+
+# ========================================
+# Analytics API Deployment
+# ========================================
+
+.PHONY: package-analytics-api deploy-analytics-api deploy-alert-lambda
+
+package-analytics-api:  ## Package analytics API Lambda functions
+	@echo "Packaging analytics API functions..."
+	@cd backend/functions/api/get_filtered_transactions && \
+		pip install -r requirements.txt -t . && \
+		zip -r function.zip . -x "*.pyc" -x "__pycache__/*" -x "*.git*"
+	@cd backend/functions/api/get_crypto_transactions && \
+		pip install -r requirements.txt -t . && \
+		zip -r function.zip . -x "*.pyc" -x "__pycache__/*" -x "*.git*"
+	@echo "✓ Analytics API functions packaged"
+
+deploy-analytics-api:  ## Deploy analytics API infrastructure (Lambdas + API Gateway routes)
+	@echo "Deploying analytics API infrastructure..."
+	@$(MAKE) package-analytics-api
+	@cd infra/terraform && terraform apply \
+		-target=aws_lambda_function.get_filtered_transactions \
+		-target=aws_lambda_function.get_crypto_transactions \
+		-target=aws_apigatewayv2_integration.filtered_transactions \
+		-target=aws_apigatewayv2_integration.crypto_transactions \
+		-target=aws_apigatewayv2_route.filtered_transactions \
+		-target=aws_apigatewayv2_route.crypto_transactions \
+		-auto-approve
+	@echo "✓ Analytics API deployed"
+
+package-alert-lambda:  ## Package transaction alert Lambda function
+	@echo "Packaging transaction alert Lambda..."
+	@cd backend/functions/alerts/transaction_alert && \
+		pip install -r requirements.txt -t . && \
+		zip -r function.zip . -x "*.pyc" -x "__pycache__/*" -x "*.git*"
+	@echo "✓ Alert Lambda packaged"
+
+deploy-alert-infrastructure:  ## Deploy alert infrastructure (SNS, DynamoDB, Lambda, EventBridge)
+	@echo "Deploying alert infrastructure..."
+	@$(MAKE) package-alert-lambda
+	@cd infra/terraform && terraform apply \
+		-target=aws_sns_topic.transaction_alerts \
+		-target=aws_dynamodb_table.alerts \
+		-target=aws_dynamodb_table.alert_subscriptions \
+		-target=aws_lambda_function.transaction_alert \
+		-target=aws_iam_role.transaction_alert_lambda_role \
+		-target=aws_cloudwatch_event_rule.gold_transactions_updated \
+		-auto-approve
+	@echo "✓ Alert infrastructure deployed"
+
+deploy-analytics-full:  ## Deploy complete analytics system (aggregates + API + alerts)
+	@echo "Deploying complete analytics system..."
+	@$(MAKE) compute-all-analytics
+	@$(MAKE) deploy-analytics-api
+	@$(MAKE) deploy-alert-infrastructure
+	@echo ""
+	@echo "✓ Complete analytics system deployed!"
+	@echo "  - Transaction filters aggregate"
+	@echo "  - Crypto transactions aggregate"
+	@echo "  - Bill-trade correlation aggregate"
+	@echo "  - API endpoints: /v1/analytics/filtered-transactions, /v1/analytics/crypto-transactions"
+	@echo "  - Alert system: SNS + DynamoDB + Lambda"
+
